@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="style-theme.css">
+  <link rel="stylesheet" href="style-login.css">
+</head>
+<body class="login-page">
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-brand">
+        <img src="logo.png" alt="All-In Chat Poker logo" class="brand-logo">
+        <div>
+          <h1>All-In Chat Poker</h1>
+          <p class="subtitle">Admin Access</p>
+        </div>
+      </div>
+      <button id="login-theme-toggle" class="btn btn-secondary btn-sm" style="margin-bottom: 12px;">Theme</button>
+      <p class="subtitle">Enter admin password</p>
+
+      <form id="login-form" class="login-form">
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Enter password"
+            required
+            autocomplete="current-password"
+          >
+          <div id="password-strength" class="password-strength"></div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" id="login-btn">
+          Sign In
+        </button>
+      </form>
+
+      <div id="error-message" class="error-message" style="display: none;"></div>
+
+      <hr class="divider">
+
+      <div class="oauth-section">
+        <p class="oauth-label">Or sign in with:</p>
+        <button type="button" class="btn btn-oauth" id="twitch-login-btn">
+          Sign in with Twitch
+        </button>
+      </div>
+    </div>
+
+    <div class="login-footer">
+      <p>Video Poker Overlay for Twitch</p>
+    </div>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="client.js"></script>
+  <script src="login.js"></script>
+</body>
+</html>

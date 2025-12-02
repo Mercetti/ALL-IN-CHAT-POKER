@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="style-theme.css">
+  <link rel="stylesheet" href="style-admin.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="admin-header">
+      <div class="admin-brand">
+        <img src="logo.png" alt="All-In Chat Poker logo" class="brand-logo">
+        <div>
+          <h1>All-In Chat Poker Admin</h1>
+          <p class="brand-subtitle">Control the table, manage players</p>
+        </div>
+      </div>
+        <div class="header-actions">
+          <div id="admin-countdown" class="countdown">00:00</div>
+          <div id="admin-phase" class="phase-chip">Betting</div>
+          <button id="admin-theme-toggle" class="btn btn-secondary btn-sm">Theme</button>
+          <button id="btn-export" class="btn btn-secondary btn-sm">Export</button>
+          <button id="btn-logout" class="btn btn-danger btn-sm">Logout</button>
+        </div>
+    </header>
+
+    <main class="admin-main">
+      <!-- Stats Grid -->
+      <section class="stats-grid">
+        <div class="stat-card">
+          <h3>Total Players</h3>
+          <div id="stat-total-players" class="stat-number">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Total Balance</h3>
+          <div id="stat-total-balance" class="stat-number">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Top Winner</h3>
+          <div id="stat-top-winner" class="stat-name">—</div>
+        </div>
+        <div class="stat-card">
+          <h3>Biggest Win</h3>
+          <div id="stat-biggest-win" class="stat-number">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Pot</h3>
+          <div id="admin-pot" class="stat-number">0</div>
+          <div class="stat-sub">Current Bet: <span id="admin-current-bet">0</span></div>
+        </div>
+      </section>
+
+      <!-- Control Panel -->
+      <section class="control-panel">
+        <h2>Game Controls</h2>
+        <div class="control-buttons">
+          <button id="btn-admin-start-round" class="btn btn-primary">
+            Start Round
+          </button>
+          <button id="btn-admin-start-now" class="btn btn-success">
+            Start Now
+          </button>
+          <button id="btn-admin-draw" class="btn btn-success">
+            Process Draw
+          </button>
+          <button id="btn-reset-game" class="btn btn-warning">
+            Reset Game
+          </button>
+        </div>
+        <div class="mode-select">
+          <label for="game-mode">Game Mode</label>
+          <select id="game-mode" class="form-input">
+            <option value="poker">Poker</option>
+            <option value="blackjack">Blackjack</option>
+          </select>
+          <button id="btn-save-mode" class="btn btn-info btn-sm">Save Mode</button>
+        </div>
+        <div class="queue-display">
+          <h4>Waiting Queue <span class="phase-chip subtle" id="queue-count">0</span></h4>
+          <ol id="queue-list" class="leaderboard">
+            <li>None</li>
+          </ol>
+        </div>
+        <div class="rules-card">
+          <h4>Last Payouts</h4>
+          <ul id="admin-payouts" class="payouts-list">
+            <li>None</li>
+          </ul>
+        </div>
+        <div class="rules-grid">
+          <div class="rules-card">
+            <h4>Poker Quick Rules</h4>
+            <ul>
+              <li>Phases: pre-flop, flop, turn, river → showdown</li>
+              <li>Actions: check, bet, call, raise, fold</li>
+              <li>Best 5-card hand wins (hole + community)</li>
+            </ul>
+          </div>
+          <div class="rules-card">
+            <h4>Blackjack Quick Rules</h4>
+            <ul>
+              <li>Bet, then deal (2 player, dealer 1 up/1 down)</li>
+              <li>Hit/stand; double (1 card), split pairs, surrender</li>
+              <li>Dealer hits to 17+, goal: beat dealer without bust</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Profiles Section -->
+      <section class="profiles-section">
+        <h2>Player Profiles</h2>
+        <div class="profiles-toolbar">
+          <input
+            type="search"
+            id="profiles-search"
+            class="search-input"
+            placeholder="Search players..."
+          >
+          <button id="btn-refresh-profiles" class="btn btn-info btn-sm">
+            Refresh
+          </button>
+        </div>
+
+        <table class="profiles-table">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Display Name</th>
+              <th>Balance</th>
+              <th>Rounds Won</th>
+              <th>Total Won</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="profiles-table-body">
+            <!-- Profile rows will be rendered here -->
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Audit Log -->
+      <section class="audit-section">
+        <h2>Unblock Audit Log</h2>
+        <table class="audit-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Admin</th>
+              <th>Target</th>
+              <th>Type</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="audit-table-body">
+            <!-- Audit entries will be rendered here -->
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <!-- Edit Profile Modal -->
+  <div id="edit-profile-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Edit Profile</h2>
+        <button type="button" class="modal-close" id="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="edit-profile-form" class="form">
+          <div class="form-group">
+            <label for="edit-login">Username</label>
+            <input type="text" id="edit-login" readonly class="form-input">
+          </div>
+          <div class="form-group">
+            <label for="edit-display-name">Display Name</label>
+            <input type="text" id="edit-display-name" class="form-input">
+          </div>
+          <div class="form-group">
+            <label for="edit-starting-chips">Starting Chips</label>
+            <input type="number" id="edit-starting-chips" class="form-input" min="100" max="10000">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="modal-cancel">Cancel</button>
+        <button type="button" class="btn btn-primary" id="modal-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

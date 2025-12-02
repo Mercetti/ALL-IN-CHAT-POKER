@@ -1,0 +1,123 @@
+/**
+ * Login page styles
+ */
+
+.login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-tertiary) 100%);
+}
+
+.login-container {
+  width: 100%;
+  max-width: 400px;
+  padding: var(--spacing-md);
+}
+
+.login-card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-lg);
+}
+
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.login-brand h1 {
+  margin: 0;
+}
+
+.brand-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(0, 255, 170, 0.3);
+}
+
+.subtitle {
+  text-align: center;
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-lg);
+}
+
+.login-form {
+  margin-bottom: var(--spacing-lg);
+}
+
+.password-strength {
+  height: 4px;
+  background-color: var(--bg-primary);
+  border-radius: 2px;
+  margin-top: 4px;
+  overflow: hidden;
+}
+
+.password-strength.weak {
+  background: linear-gradient(90deg, var(--color-danger) 33%, transparent 33%);
+}
+
+.password-strength.fair {
+  background: linear-gradient(90deg, var(--color-warning) 66%, transparent 66%);
+}
+
+.password-strength.good {
+  background: var(--color-success);
+}
+
+.error-message {
+  background-color: rgba(220, 53, 69, 0.1);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  color: #ff6b6b;
+  margin-bottom: var(--spacing-lg);
+  text-align: center;
+  font-size: var(--font-size-sm);
+}
+
+.oauth-section {
+  text-align: center;
+}
+
+.oauth-label {
+  margin-bottom: var(--spacing-md);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.btn-oauth {
+  background-color: #9146ff;
+  color: white;
+  width: 100%;
+  margin-bottom: var(--spacing-md);
+}
+
+.btn-oauth:hover:not(:disabled) {
+  background-color: #7c3aed;
+}
+
+.login-footer {
+  text-align: center;
+  margin-top: var(--spacing-xl);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: var(--spacing-lg);
+  }
+
+  .login-container {
+    padding: var(--spacing-sm);
+  }
+}

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Profile</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="style-theme.css">
+  <link rel="stylesheet" href="style-profile.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="brand">
+        <img src="logo.png" alt="All-In Chat Poker logo" class="brand-logo">
+        <div class="brand-text">
+          <h1>All-In Chat Poker</h1>
+          <p class="brand-subtitle">Player Profile</p>
+        </div>
+      </div>
+      <button id="profile-theme-toggle" class="btn btn-secondary btn-sm">Theme</button>
+      <button id="btn-back" class="btn btn-secondary">Back</button>
+    </header>
+
+    <main class="profile-main">
+      <div class="profile-content">
+        <!-- Profile Editor -->
+        <section class="profile-editor">
+          <h2>Profile Settings</h2>
+          <form id="profile-form" class="form">
+            <div class="form-group">
+              <label for="profile-username">Username</label>
+              <input type="text" id="profile-username" readonly class="form-input" disabled>
+            </div>
+
+            <div class="form-group">
+              <label for="profile-display-name">Display Name</label>
+              <input type="text" id="profile-display-name" class="form-input" placeholder="Your display name">
+            </div>
+
+            <div class="form-group">
+              <label for="profile-theme">Theme</label>
+              <select id="profile-theme" class="form-input">
+                <option value="dark">Dark</option>
+                <option value="light">Light</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="profile-starting-chips">Starting Chips</label>
+              <input type="number" id="profile-starting-chips" class="form-input" min="100" max="10000" value="1000">
+            </div>
+
+            <div class="form-group">
+              <label for="profile-avatar">Avatar URL (Twitch image)</label>
+              <input type="url" id="profile-avatar" class="form-input" placeholder="https://static-cdn.jtvnw.net/...">
+            </div>
+
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </form>
+
+          <div id="unsaved-warning" class="warning-banner" style="display: none;">
+            ⚠️ You have unsaved changes
+          </div>
+        </section>
+
+        <!-- Profile Preview -->
+        <aside class="profile-preview">
+          <h2>Preview</h2>
+          <div class="preview-card">
+            <div class="preview-avatar">
+              <img id="preview-avatar" src="" alt="avatar">
+            </div>
+            <div class="preview-item">
+              <span>Username:</span>
+              <strong id="preview-username">—</strong>
+            </div>
+            <div class="preview-item">
+              <span>Display Name:</span>
+              <strong id="preview-display-name">—</strong>
+            </div>
+            <div class="preview-item">
+              <span>Theme:</span>
+              <strong id="preview-theme">Dark</strong>
+            </div>
+            <div class="preview-item">
+              <span>Starting Chips:</span>
+              <strong id="preview-chips">1000</strong>
+            </div>
+          </div>
+
+          <div class="profile-stats">
+            <h3>Your Stats</h3>
+            <div class="preview-item">
+              <span>Rounds Played:</span>
+              <strong id="preview-rounds-played">0</strong>
+            </div>
+            <div class="preview-item">
+              <span>Rounds Won:</span>
+              <strong id="preview-rounds-won">0</strong>
+            </div>
+            <div class="preview-item">
+              <span>Total Won:</span>
+              <strong id="preview-total-won">0</strong>
+            </div>
+            <div class="preview-item">
+              <span>Biggest Win:</span>
+              <strong id="preview-biggest-win">0</strong>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="client.js"></script>
+  <script src="profile.js"></script>
+</body>
+</html>

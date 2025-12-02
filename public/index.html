@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Poker Overlay</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="style-theme.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <div class="brand">
+          <img src="logo.png" alt="All-In Chat Poker logo" class="brand-logo">
+          <div class="brand-text">
+            <h1>All-In Chat Poker</h1>
+            <p class="brand-subtitle">Chat-powered video poker</p>
+          </div>
+        </div>
+        <div class="header-info">
+          <span class="round-info">
+            <span id="phase-badge" class="badge badge-info phase-chip">Waiting...</span>
+          </span>
+          <span id="mode-badge" class="badge badge-secondary phase-chip subtle">Mode: poker</span>
+          <span id="phase-countdown" class="countdown countdown-pill">00:00</span>
+          <span id="phase-label" class="badge badge-secondary phase-chip subtle">-</span>
+          <button id="theme-toggle" class="btn btn-secondary btn-sm">Theme</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <!-- Cards Section -->
+      <section class="cards-section">
+        <div class="cards-container">
+          <div id="dealer-section" class="dealer-section" style="display:none;">
+            <h3>Dealer</h3>
+            <div id="dealer-cards" class="cards-grid"></div>
+          </div>
+          <div id="community-section" class="dealer-section" style="display:none;">
+            <h3>Community</h3>
+            <div id="community-cards" class="cards-grid"></div>
+          </div>
+          <div id="player-hands" class="player-grid">
+            <!-- Player hands will be rendered here -->
+          </div>
+          <div class="player-actions">
+            <div class="action-block">
+              <h4>Hold (Poker)</h4>
+              <div class="hold-toggle">
+                <label><input type="checkbox" class="hold-checkbox" data-idx="0"> Card 1</label>
+                <label><input type="checkbox" class="hold-checkbox" data-idx="1"> Card 2</label>
+                <label><input type="checkbox" class="hold-checkbox" data-idx="2"> Card 3</label>
+                <label><input type="checkbox" class="hold-checkbox" data-idx="3"> Card 4</label>
+                <label><input type="checkbox" class="hold-checkbox" data-idx="4"> Card 5</label>
+              </div>
+            </div>
+            <div class="action-block">
+              <h4>Blackjack</h4>
+              <div class="action-row">
+                <button id="btn-hit" class="btn btn-primary btn-sm">Hit</button>
+                <button id="btn-stand" class="btn btn-secondary btn-sm">Stand</button>
+              </div>
+              <button id="btn-double" class="btn btn-warning btn-sm">Double</button>
+              <button id="btn-surrender" class="btn btn-danger btn-sm subtle">Surrender</button>
+              <div class="action-row">
+                <button id="btn-insurance" class="btn btn-info btn-sm subtle">Insurance</button>
+                <button id="btn-split" class="btn btn-secondary btn-sm subtle">Split</button>
+              </div>
+              <div class="action-row">
+                <button id="btn-prev-hand" class="btn btn-secondary btn-sm subtle">Prev Hand</button>
+                <button id="btn-next-hand" class="btn btn-secondary btn-sm subtle">Next Hand</button>
+              </div>
+            </div>
+          </div>
+          <div class="cards-actions">
+            <button id="btn-draw" class="btn btn-primary" disabled>Draw</button>
+            <button id="btn-force-draw" class="btn btn-secondary" disabled>Force Draw (Admin)</button>
+            <span id="player-action-timer" class="countdown countdown-inline">00:00</span>
+          </div>
+
+          <div class="poker-actions">
+            <input id="poker-raise-amount" type="number" min="0" step="10" class="form-input" placeholder="Raise amount">
+            <button id="poker-check" class="btn btn-secondary btn-sm">Check</button>
+            <button id="poker-call" class="btn btn-primary btn-sm">Call</button>
+            <button id="poker-raise" class="btn btn-success btn-sm">Raise</button>
+            <button id="poker-fold" class="btn btn-danger btn-sm">Fold</button>
+          </div>
+        </div>
+
+        <!-- Result Display -->
+        <div id="result-display" class="result-display" style="display: none;">
+          <div class="result-card">
+            <h2 id="result-hand-name">No Winner</h2>
+            <div class="result-details">
+              <div class="result-item">
+                <span class="label">Payout:</span>
+                <span id="result-payout" class="value">0x</span>
+              </div>
+            </div>
+          </div>
+          <div id="payout-details" class="payout-details"></div>
+        </div>
+      </section>
+
+      <!-- Stats Section -->
+      <aside class="stats-sidebar">
+        <div class="stats-card">
+          <h3>Your Stats</h3>
+          <div class="stat">
+            <span class="stat-label">Balance:</span>
+            <span id="user-balance" class="stat-value">1000</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Rounds Won:</span>
+            <span id="user-wins" class="stat-value">0</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Total Won:</span>
+            <span id="user-total-won" class="stat-value">0</span>
+          </div>
+        </div>
+
+        <div class="stats-card">
+          <h3>Leaderboard</h3>
+          <ol id="leaderboard" class="leaderboard">
+            <!-- Leaderboard entries will be rendered here -->
+          </ol>
+        </div>
+
+        <div class="stats-card">
+          <h3>Pot &amp; Bets</h3>
+          <div class="stat">
+            <span class="stat-label">Pot:</span>
+            <span id="pot-value" class="stat-value">0</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Current Bet:</span>
+            <span id="current-bet" class="stat-value">0</span>
+          </div>
+        </div>
+
+        <div class="stats-card">
+          <h3>Waiting Queue</h3>
+          <div class="queue-header">
+            <span class="badge badge-secondary phase-chip subtle" id="waiting-count">0</span>
+          </div>
+          <ol id="waiting-queue" class="leaderboard">
+            <li>None</li>
+          </ol>
+        </div>
+
+        <div id="insurance-banner" class="info-banner" style="display:none;">
+          Dealer shows an Ace – Insurance available now.
+        </div>
+
+        <div class="stats-card">
+          <h3>Commands</h3>
+          <div class="command-guide">
+            <p><code>!bet &lt;amount&gt;</code> - Place bet</p>
+            <p><code>!raise &lt;amount&gt;</code> - Raise bet</p>
+            <p><code>!call</code> - Match current bet</p>
+            <p><code>!fold</code> - Exit round</p>
+          </div>
+        </div>
+
+        <div class="stats-card">
+          <h3>Poker Rules</h3>
+          <ul class="command-guide">
+            <li>Betting phases: pre-flop, flop, turn, river</li>
+            <li>Actions: check, bet, call, raise, fold</li>
+            <li>Best 5-card hand wins using hole + community</li>
+            <li>Hands: Royal Flush down to High Card</li>
+          </ul>
+        </div>
+
+        <div class="stats-card">
+          <h3>Blackjack Rules</h3>
+          <ul class="command-guide">
+            <li>Wager first, then deal (2 cards player, 1 up / 1 down dealer)</li>
+            <li>Actions: hit, stand, double down (one card), split pairs, surrender (early), insurance vs dealer Ace</li>
+            <li>Dealer reveals downcard after players finish; hits until 17+</li>
+            <li>Goal: get closer to 21 than dealer without busting</li>
+          </ul>
+        </div>
+      </aside>
+    </main>
+
+    <!-- Admin Controls (shown when authorized) -->
+    <footer class="admin-controls" id="admin-controls" style="display: none;">
+      <div class="admin-container">
+        <button id="btn-start-round" class="btn btn-success">Start Round</button>
+        <button id="btn-admin-panel" class="btn btn-info">Admin Panel</button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client.js"></script>
+  <script>
+    // Expose the stored user token for Socket.IO auth
+    window.__USER_TOKEN__ = getUserToken && getUserToken();
+  </script>
+  <script src="overlay.js"></script>
+</body>
+</html>
