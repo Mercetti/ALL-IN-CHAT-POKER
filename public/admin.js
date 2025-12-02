@@ -268,7 +268,8 @@ window.viewProfile = viewProfile;
 window.deleteAudit = deleteAudit;
 
 function initSocket() {
-  adminSocket = io({
+  const socketUrl = typeof getBackendBase === 'function' ? getBackendBase() : '';
+  adminSocket = io(socketUrl || undefined, {
     transports: ['websocket', 'polling'],
     withCredentials: true,
   });

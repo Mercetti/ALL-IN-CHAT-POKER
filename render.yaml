@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: all-in-chat-poker
+    env: node
+    plan: free
+    branch: main
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_FILE
+        value: /opt/data/data.db
+      - key: JWT_SECRET
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ADMIN_TOKEN
+        sync: false
+      - key: STREAMER_LOGIN
+        value: streamer
+      - key: GAME_MODE
+        value: poker
+    disk:
+      name: data
+      mountPath: /opt/data
+      sizeGB: 1

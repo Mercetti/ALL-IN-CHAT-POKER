@@ -3,6 +3,27 @@
  */
 
 /**
+ * Resolve backend base URL (Render in production, same-origin locally)
+ */
+function getBackendBase() {
+  if (typeof window === 'undefined') return '';
+  const override = window.__BACKEND_URL || window.BACKEND_URL;
+  const defaultProd =
+    window.location.hostname.endsWith('github.io') || window.location.hostname.endsWith('all-in-chat-poker.com')
+      ? 'https://all-in-chat-poker.onrender.com'
+      : window.location.origin;
+  const base = override || defaultProd;
+  return base ? base.replace(/\/$/, '') : '';
+}
+
+function buildApiUrl(endpoint) {
+  if (/^https?:\/\//i.test(endpoint)) return endpoint;
+  const base = getBackendBase();
+  const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  return `${base}${path}`;
+}
+
+/**
  * Toast notification system
  */
 class Toast {
@@ -132,7 +153,8 @@ async function apiCall(endpoint, options = {}) {
   }
 
   try {
-    const response = await fetch(endpoint, {
+    const url = buildApiUrl(endpoint);
+    const response = await fetch(url, {
       ...options,
       headers,
     });
@@ -166,3 +188,5 @@ window.applyTheme = applyTheme;
 window.toggleTheme = toggleTheme;
 window.getTheme = getTheme;
 window.setThemeButtonLabel = setThemeButtonLabel;
+window.getBackendBase = getBackendBase;
+window.buildApiUrl = buildApiUrl;

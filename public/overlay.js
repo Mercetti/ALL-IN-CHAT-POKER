@@ -2,11 +2,13 @@
  * Overlay client with Socket.IO integration
  */
 
-const socket = io({
+const SOCKET_URL = typeof getBackendBase === 'function' ? getBackendBase() : '';
+const socket = io(SOCKET_URL || undefined, {
   reconnection: true,
   reconnectionDelay: 1000,
   reconnectionDelayMax: 5000,
   reconnectionAttempts: 5,
+  transports: ['websocket', 'polling'],
   auth: {
     token: (typeof window !== 'undefined' && window.__USER_TOKEN__) || (typeof getUserToken === 'function' ? getUserToken() : null),
   },
