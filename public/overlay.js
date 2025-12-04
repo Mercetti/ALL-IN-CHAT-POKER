@@ -72,6 +72,18 @@ if (logoutBtn) {
   });
 }
 
+// Apply saved theme on load and wire theme toggle
+applyTheme();
+const headerThemeBtn = document.getElementById('theme-toggle');
+if (headerThemeBtn) {
+  setThemeButtonLabel(headerThemeBtn);
+  headerThemeBtn.addEventListener('click', () => {
+    const next = toggleTheme();
+    setThemeButtonLabel(headerThemeBtn);
+    Toast.info(`Theme: ${next}`);
+  });
+}
+
 // Socket.IO event handlers
 socket.on('connect', () => {
   console.log('Connected to server');
@@ -82,10 +94,6 @@ socket.on('disconnect', () => {
   console.log('Disconnected from server');
   Toast.warning('Disconnected');
 });
-
-// Apply saved theme on load
-applyTheme();
-setThemeButtonLabel(document.getElementById('theme-toggle'));
 
 socket.on('state', (data) => {
   console.log('State received:', data);
