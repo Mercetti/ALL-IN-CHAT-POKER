@@ -4,13 +4,47 @@
 
 let currentEditingProfile = null;
 let adminSocket = null;
+let streamerLogin = '';
+let useUserToken = false;
+
+function decodeUserLogin(token) {
+  if (!token) return null;
+  try {
+    const payload = token.split('.')[1];
+    const pad = payload.length % 4 === 2 ? '==' : payload.length % 4 === 3 ? '=' : '';
+    const data = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/') + pad));
+    return data.user || data.login || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function loadPublicConfig() {
+  try {
+    const res = await fetch('/public-config.json');
+    if (res.ok) {
+      const cfg = await res.json();
+      streamerLogin = (cfg.streamerLogin || '').toLowerCase();
+    }
+  } catch (e) {
+    // ignore
+  }
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Check if logged in
-  if (!getToken()) {
+  await loadPublicConfig();
+
+  // Check if logged in (admin token or streamer user token)
+  const adminToken = getToken();
+  const userToken = getUserToken();
+  const userLogin = decodeUserLogin(userToken || '');
+  if (!adminToken && !(userToken && streamerLogin && userLogin && userLogin.toLowerCase() === streamerLogin)) {
     window.location.href = '/login.html';
     return;
   }
+
+  useUserToken = !adminToken && !!userToken;
+  window.__DEFAULT_USE_USER_TOKEN = useUserToken;
 
   // Load initial data
   await loadStats();
@@ -272,6 +306,7 @@ function initSocket() {
   adminSocket = io(socketUrl || undefined, {
     transports: ['websocket', 'polling'],
     withCredentials: true,
+    auth: useUserToken ? { token: getUserToken() } : undefined,
   });
 
   adminSocket.on('connect', () => {

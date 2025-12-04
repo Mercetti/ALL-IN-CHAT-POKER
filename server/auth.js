@@ -78,6 +78,27 @@ function isAdminRequest(req) {
     // Check permanent token
     const token = extractAdminToken(req);
     if (config.ADMIN_TOKEN && token === config.ADMIN_TOKEN) return true;
+
+    // Allow streamer (by login) to act as admin when presenting a valid user JWT
+    const userToken =
+      extractAdminToken(req) ||
+      (req && req.handshake && req.handshake.auth && req.handshake.auth.token) ||
+      (req && req.auth && req.auth.token) ||
+      (req && req.headers && (req.headers.authorization || req.headers.Authorization));
+
+    if (userToken) {
+      const bearer = typeof userToken === 'string' && userToken.toLowerCase().startsWith('bearer ')
+        ? userToken.slice(7).trim()
+        : userToken;
+      try {
+        const payload = jwt.verify(bearer, config.JWT_SECRET);
+        if (payload && payload.user && config.STREAMER_LOGIN && payload.user.toLowerCase() === config.STREAMER_LOGIN.toLowerCase()) {
+          return true;
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
   } catch (err) {
     logger.debug('Admin check failed', { error: err.message });
   }

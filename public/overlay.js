@@ -22,6 +22,21 @@ let countdownEndsAt = null;
 let overlayPlayers = [];
 let currentDealerHand = [];
 let overlayMode = 'poker';
+let streamerLogin = '';
+
+async function loadPublicConfig() {
+  try {
+    const res = await fetch('/public-config.json');
+    if (res.ok) {
+      const cfg = await res.json();
+      streamerLogin = (cfg.streamerLogin || '').toLowerCase();
+      updateUserBadge();
+    }
+  } catch (e) {
+    // ignore
+  }
+}
+loadPublicConfig();
 
 function decodeLoginFromJwt(token) {
   if (!token || typeof token !== 'string') return null;
@@ -42,9 +57,11 @@ function updateUserBadge() {
   const pill = document.getElementById('user-pill');
   const logoutBtn = document.getElementById('logout-btn');
   const loginLink = document.getElementById('login-link');
+  const streamerBtn = document.getElementById('streamer-btn');
   const token = typeof getUserToken === 'function' ? getUserToken() : null;
   const login = decodeLoginFromJwt(token);
   userLogin = login || null;
+  const isStreamer = login && streamerLogin && login.toLowerCase() === streamerLogin;
 
   if (login) {
     pill.textContent = `Signed in as ${login}`;
@@ -59,6 +76,7 @@ function updateUserBadge() {
     if (logoutBtn) logoutBtn.style.display = 'none';
     if (loginLink) loginLink.style.display = 'inline-flex';
   }
+  if (streamerBtn) streamerBtn.style.display = isStreamer ? 'inline-flex' : 'none';
 }
 
 // Init auth UI immediately (script loads after DOM)

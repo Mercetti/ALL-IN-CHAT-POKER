@@ -50,6 +50,7 @@ app.get('/public-config.json', (req, res) => {
   res.json({
     twitchClientId: config.TWITCH_CLIENT_ID || '',
     redirectUri: `${proto}://${req.get('host')}/login.html`,
+    streamerLogin: config.STREAMER_LOGIN || '',
   });
 });
 app.use(express.static('public'));

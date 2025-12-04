@@ -142,7 +142,8 @@ function setThemeButtonLabel(btn) {
 }
 
 async function apiCall(endpoint, options = {}) {
-  const token = options.useUserToken ? getUserToken() : getToken();
+  const useUserToken = options.useUserToken !== undefined ? options.useUserToken : !!window.__DEFAULT_USE_USER_TOKEN;
+  const token = useUserToken ? getUserToken() : getToken();
   const headers = {
     'Content-Type': 'application/json',
     ...options.headers,
