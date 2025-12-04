@@ -27,7 +27,10 @@ function decodeLoginFromJwt(token) {
   if (!token || typeof token !== 'string') return null;
   try {
     const payload = token.split('.')[1];
-    const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+    // base64url decode with padding
+    const pad = payload.length % 4 === 2 ? '==' : payload.length % 4 === 3 ? '=' : '';
+    const b64 = payload.replace(/-/g, '+').replace(/_/g, '/') + pad;
+    const decoded = JSON.parse(atob(b64));
     return decoded.user || decoded.login || null;
   } catch (err) {
     console.warn('Failed to decode user token', err);
@@ -58,17 +61,16 @@ function updateUserBadge() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  updateUserBadge();
-  const logoutBtn = document.getElementById('logout-btn');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-      clearUserToken && clearUserToken();
-      updateUserBadge();
-      Toast.info('Signed out');
-    });
-  }
-});
+// Init auth UI immediately (script loads after DOM)
+updateUserBadge();
+const logoutBtn = document.getElementById('logout-btn');
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', () => {
+    clearUserToken && clearUserToken();
+    updateUserBadge();
+    Toast.info('Signed out');
+  });
+}
 
 // Socket.IO event handlers
 socket.on('connect', () => {
