@@ -1,6 +1,18 @@
-/.git
-/node_modules
-.dockerignore
+# Exclude files not needed for container builds to speed up Fly deploys
+node_modules
+npm-debug.log*
+.git
+.gitignore
+.vscode
+.DS_Store
+*.log
+*.db
+data/
+tmp/
+temp/
+dist/
+build/
+coverage/
+*.local
 .env
-Dockerfile
-fly.toml
+.env.*
