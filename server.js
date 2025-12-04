@@ -41,6 +41,15 @@ const io = socketIO(server, {
 
 // Middleware
 app.use(express.json());
+// Redirect root traffic to the login page instead of the overlay
+app.get('/', (_req, res) => res.redirect('/login.html'));
+// Expose minimal public config for the frontend (no secrets)
+app.get('/public-config.json', (req, res) => {
+  res.json({
+    twitchClientId: config.TWITCH_CLIENT_ID || '',
+    redirectUri: `${req.protocol}://${req.get('host')}/login.html`,
+  });
+});
 app.use(express.static('public'));
 
 // ============ STATE MANAGEMENT ============

@@ -11,6 +11,37 @@ document.addEventListener('DOMContentLoaded', () => {
   const errorMessage = document.getElementById('error-message');
   const loginBtn = document.getElementById('login-btn');
   const twitchLoginBtn = document.getElementById('twitch-login-btn');
+  const twitchRedirectUri = `${window.location.origin}/login.html`;
+  let twitchConfig = null;
+
+  async function loadTwitchConfig() {
+    if (twitchConfig) return twitchConfig;
+    try {
+      const res = await fetch('/public-config.json');
+      if (!res.ok) throw new Error('config unavailable');
+      const data = await res.json();
+      twitchConfig = data;
+      return data;
+    } catch (err) {
+      Toast.warning('Twitch OAuth not configured yet');
+      return null;
+    }
+  }
+
+  function parseTwitchTokenFromHash() {
+    const hash = window.location.hash || '';
+    if (!hash.startsWith('#')) return null;
+    const params = new URLSearchParams(hash.slice(1));
+    return params.get('access_token');
+  }
+
+  function clearHash() {
+    if (window.history.replaceState) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    } else {
+      window.location.hash = '';
+    }
+  }
 
   // Password strength indicator
   passwordInput.addEventListener('input', (e) => {
@@ -70,10 +101,40 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Twitch login button
-  twitchLoginBtn.addEventListener('click', () => {
-    // In a real app, this would redirect to Twitch OAuth
-    Toast.info('Twitch login not yet configured');
+  twitchLoginBtn.addEventListener('click', async () => {
+    const cfg = await loadTwitchConfig();
+    if (!cfg || !cfg.twitchClientId) {
+      Toast.error('Twitch OAuth not configured on server');
+      return;
+    }
+    const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${encodeURIComponent(
+      cfg.twitchClientId
+    )}&redirect_uri=${encodeURIComponent(cfg.redirectUri || twitchRedirectUri)}&response_type=token&scope=user:read:email`;
+    window.location.href = authUrl;
   });
+
+  // Handle Twitch redirect back with access token in URL hash
+  (async () => {
+    const twitchToken = parseTwitchTokenFromHash();
+    if (!twitchToken) return;
+    clearHash();
+    Toast.info('Signing in with Twitch...');
+    try {
+      const result = await apiCall('/user/login', {
+        method: 'POST',
+        body: JSON.stringify({ twitchToken }),
+      });
+      if (result.token) {
+        setUserToken(result.token);
+        Toast.success(`Signed in as ${result.login}`);
+        setTimeout(() => {
+          window.location.href = '/index.html';
+        }, 500);
+      }
+    } catch (err) {
+      Toast.error(`Twitch sign-in failed: ${err.message}`);
+    }
+  })();
 
   const themeBtn = document.getElementById('login-theme-toggle');
   if (themeBtn) {
