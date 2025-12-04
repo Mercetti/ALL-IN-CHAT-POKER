@@ -23,6 +23,53 @@ let overlayPlayers = [];
 let currentDealerHand = [];
 let overlayMode = 'poker';
 
+function decodeLoginFromJwt(token) {
+  if (!token || typeof token !== 'string') return null;
+  try {
+    const payload = token.split('.')[1];
+    const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+    return decoded.user || decoded.login || null;
+  } catch (err) {
+    console.warn('Failed to decode user token', err);
+    return null;
+  }
+}
+
+function updateUserBadge() {
+  const pill = document.getElementById('user-pill');
+  const logoutBtn = document.getElementById('logout-btn');
+  const loginLink = document.getElementById('login-link');
+  const token = typeof getUserToken === 'function' ? getUserToken() : null;
+  const login = decodeLoginFromJwt(token);
+  userLogin = login || null;
+
+  if (login) {
+    pill.textContent = `Signed in as ${login}`;
+    pill.classList.remove('badge-secondary');
+    pill.classList.add('badge-success');
+    if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+    if (loginLink) loginLink.style.display = 'none';
+  } else {
+    pill.textContent = 'Signed out';
+    pill.classList.remove('badge-success');
+    pill.classList.add('badge-secondary');
+    if (logoutBtn) logoutBtn.style.display = 'none';
+    if (loginLink) loginLink.style.display = 'inline-flex';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  updateUserBadge();
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      clearUserToken && clearUserToken();
+      updateUserBadge();
+      Toast.info('Signed out');
+    });
+  }
+});
+
 // Socket.IO event handlers
 socket.on('connect', () => {
   console.log('Connected to server');
