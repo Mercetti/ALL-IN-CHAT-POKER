@@ -45,9 +45,11 @@ app.use(express.json());
 app.get('/', (_req, res) => res.redirect('/login.html'));
 // Expose minimal public config for the frontend (no secrets)
 app.get('/public-config.json', (req, res) => {
+  const forwardedProto = (req.headers['x-forwarded-proto'] || '').split(',')[0].trim();
+  const proto = forwardedProto || req.protocol || 'https';
   res.json({
     twitchClientId: config.TWITCH_CLIENT_ID || '',
-    redirectUri: `${req.protocol}://${req.get('host')}/login.html`,
+    redirectUri: `${proto}://${req.get('host')}/login.html`,
   });
 });
 app.use(express.static('public'));
