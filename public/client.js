@@ -30,6 +30,12 @@ function getChannelParam() {
   return (params.get('channel') || '').trim().toLowerCase();
 }
 
+function getChannelParam() {
+  if (typeof window === 'undefined') return '';
+  const params = new URLSearchParams(window.location.search || '');
+  return (params.get('channel') || '').trim().toLowerCase();
+}
+
 /**
  * Toast notification system
  */
