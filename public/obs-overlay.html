@@ -10,77 +10,13 @@
 </head>
 <body class="obs-body">
   <div class="obs-shell">
-    <div class="meta-row">
+    <div class="hud">
       <span class="status-pill" id="connection-pill">Connecting...</span>
-      <span class="status-pill" id="seated-pill">0 / 8 seated</span>
-      <span class="status-pill" id="mode-pill">Mode: poker</span>
+      <span class="status-pill" id="mode-pill">Mode: -</span>
+      <span class="status-pill" id="seated-pill">0 seated</span>
     </div>
 
-    <div class="table-frame">
-      <div class="table-surface">
-        <div class="table-brand">
-          <span>All-In</span>
-          <span>Chat</span>
-          <span>Poker</span>
-        </div>
-      </div>
-
-      <div class="seat-layer">
-        <div class="seat" data-seat="0">
-          <div class="avatar-wrap">
-            <img src="https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/default-profile_image.png" alt="Open seat">
-          </div>
-          <div class="seat-name">Open Seat</div>
-        </div>
-        <div class="seat" data-seat="1">
-          <div class="avatar-wrap">
-            <img src="https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/default-profile_image.png" alt="Open seat">
-          </div>
-          <div class="seat-name">Open Seat</div>
-        </div>
-        <div class="seat" data-seat="2">
-          <div class="avatar-wrap">
-            <img src="https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/default-profile_image.png" alt="Open seat">
-          </div>
-          <div class="seat-name">Open Seat</div>
-        </div>
-        <div class="seat" data-seat="3">
-          <div class="avatar-wrap">
-            <img src="https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/default-profile_image.png" alt="Open seat">
-          </div>
-          <div class="seat-name">Open Seat</div>
-        </div>
-        <div class="seat" data-seat="4">
-          <div class="avatar-wrap">
-            <img src="https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/default-profile_image.png" alt="Open seat">
-          </div>
-          <div class="seat-name">Open Seat</div>
-        </div>
-        <div class="seat" data-seat="5">
-          <div class="avatar-wrap">
-            <img src="https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/default-profile_image.png" alt="Open seat">
-          </div>
-          <div class="seat-name">Open Seat</div>
-        </div>
-        <div class="seat" data-seat="6">
-          <div class="avatar-wrap">
-            <img src="https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/default-profile_image.png" alt="Open seat">
-          </div>
-          <div class="seat-name">Open Seat</div>
-        </div>
-        <div class="seat" data-seat="7">
-          <div class="avatar-wrap">
-            <img src="https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/default-profile_image.png" alt="Open seat">
-          </div>
-          <div class="seat-name">Open Seat</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="overflow-row" id="overflow-row">
-      <span class="label">Waiting</span>
-      <span class="names" id="overflow-names">-</span>
-    </div>
+    <iframe id="table-frame" class="table-frame" src="/" allowtransparency="true"></iframe>
   </div>
 
   <div id="toast-container" class="toast-container"></div>
