@@ -24,6 +24,12 @@ function buildApiUrl(endpoint) {
   return `${base}${path}`;
 }
 
+function getChannelParam() {
+  if (typeof window === 'undefined') return '';
+  const params = new URLSearchParams(window.location.search || '');
+  return (params.get('channel') || '').trim().toLowerCase();
+}
+
 /**
  * Toast notification system
  */

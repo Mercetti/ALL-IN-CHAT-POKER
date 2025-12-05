@@ -9,6 +9,7 @@ let botAdminLogin = '';
 let useUserToken = false;
 let adminSocketReady = false;
 const NOT_CONNECTED_MSG = 'Not connected to server. Please refresh and try again.';
+const channelParam = typeof getChannelParam === 'function' ? getChannelParam() : '';
 const adjustLoginInput = document.getElementById('adjust-login');
 const adjustAmountInput = document.getElementById('adjust-amount');
 const adjustModeSelect = document.getElementById('adjust-mode');
@@ -413,7 +414,9 @@ function initSocket() {
   adminSocket = io(socketUrl || undefined, {
     transports: ['websocket', 'polling'],
     withCredentials: true,
-    auth: useUserToken ? { token: getUserToken() } : undefined,
+    auth: useUserToken
+      ? { token: getUserToken(), channel: channelParam }
+      : { channel: channelParam },
   });
 
   adminSocket.on('connect', () => {

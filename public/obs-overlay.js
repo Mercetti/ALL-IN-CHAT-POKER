@@ -3,11 +3,15 @@
  */
 
 const SOCKET_URL = typeof getBackendBase === 'function' ? getBackendBase() : '';
+const overlayChannel = typeof getChannelParam === 'function' ? getChannelParam() : '';
 const socket = io(SOCKET_URL || undefined, {
   reconnection: true,
   reconnectionDelay: 1000,
   reconnectionDelayMax: 5000,
   transports: ['websocket', 'polling'],
+  auth: {
+    channel: overlayChannel,
+  },
 });
 
 const DEFAULT_AVATAR = 'https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/default-profile_image.png';

@@ -3,6 +3,7 @@
  */
 
 const SOCKET_URL = typeof getBackendBase === 'function' ? getBackendBase() : '';
+const overlayChannel = typeof getChannelParam === 'function' ? getChannelParam() : '';
 const socket = io(SOCKET_URL || undefined, {
   reconnection: true,
   reconnectionDelay: 1000,
@@ -11,6 +12,7 @@ const socket = io(SOCKET_URL || undefined, {
   transports: ['websocket', 'polling'],
   auth: {
     token: (typeof window !== 'undefined' && window.__USER_TOKEN__) || (typeof getUserToken === 'function' ? getUserToken() : null),
+    channel: overlayChannel,
   },
 });
 
