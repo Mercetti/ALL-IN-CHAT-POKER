@@ -94,6 +94,13 @@ class DBHelper {
       )
     `);
 
+    // Bot joined channels
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS bot_channels (
+        channel TEXT PRIMARY KEY
+      )
+    `);
+
     // Profiles
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS profiles (
@@ -407,6 +414,26 @@ class DBHelper {
       'SELECT id, login, display_name, created_at, updated_at FROM profiles LIMIT ?'
     );
     return stmt.all(limit);
+  }
+
+  /**
+   * Get bot joined channels
+   * @returns {string[]}
+   */
+  getBotChannels() {
+    const stmt = this.db.prepare('SELECT channel FROM bot_channels');
+    return stmt.all().map(row => row.channel);
+  }
+
+  /**
+   * Add a channel to bot join list
+   * @param {string} channel
+   */
+  addBotChannel(channel) {
+    if (!channel) return;
+    const normalized = channel.trim().toLowerCase().replace(/^#/, '');
+    if (!normalized) return;
+    this.db.prepare('INSERT OR IGNORE INTO bot_channels (channel) VALUES (?)').run(normalized);
   }
 
   /**

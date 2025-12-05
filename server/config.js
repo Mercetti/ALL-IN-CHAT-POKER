@@ -39,6 +39,7 @@ module.exports = {
   TWITCH_OAUTH_TOKEN: process.env.TWITCH_OAUTH_TOKEN || '',
   TWITCH_CLIENT_ID: process.env.TWITCH_CLIENT_ID || '',
   TWITCH_CLIENT_SECRET: process.env.TWITCH_CLIENT_SECRET || '',
+  BOT_JOIN_SECRET: process.env.BOT_JOIN_SECRET || '', // optional secret for chat-based join
 
   // Game settings
   GAME_STARTING_CHIPS: 1000,

@@ -1181,12 +1181,25 @@ socket.on('startRound', (data) => {
 let tmiClient = null;
 
 async function initializeTwitch() {
-  if (!config.TWITCH_CHANNEL || !config.TWITCH_OAUTH_TOKEN) {
+  if (!config.TWITCH_OAUTH_TOKEN || !config.TWITCH_BOT_USERNAME) {
     logger.warn('Twitch configuration incomplete, skipping chat integration');
     return;
   }
 
   try {
+    // Determine channels to join (persisted list + default channel)
+    let botChannels = [];
+    try {
+      botChannels = db.getBotChannels();
+    } catch (e) {
+      logger.warn('Failed to load bot channels; defaulting to TWITCH_CHANNEL', { error: e.message });
+    }
+    if ((!botChannels || botChannels.length === 0) && config.TWITCH_CHANNEL) {
+      db.addBotChannel(config.TWITCH_CHANNEL);
+      botChannels = [config.TWITCH_CHANNEL];
+    }
+    botChannels = (botChannels || []).map(c => c.replace(/^#/, '').toLowerCase());
+
     tmiClient = new tmi.Client({
       options: { debug: config.NODE_ENV === 'development' },
       connection: {
@@ -1197,8 +1210,20 @@ async function initializeTwitch() {
         username: config.TWITCH_BOT_USERNAME,
         password: config.TWITCH_OAUTH_TOKEN,
       },
-      channels: [config.TWITCH_CHANNEL],
+      channels: botChannels,
     });
+
+    async function joinChannel(channelName) {
+      const channel = channelName.replace(/^#/, '').toLowerCase();
+      if (!channel) return;
+      db.addBotChannel(channel);
+      try {
+        await tmiClient.join(channel);
+        logger.info('Joined channel', { channel });
+      } catch (err) {
+        logger.error('Failed to join channel', { channel, error: err.message });
+      }
+    }
 
     tmiClient.on('message', (channel, tags, message, self) => {
       if (self) return;
@@ -1213,6 +1238,20 @@ async function initializeTwitch() {
         const parts = content.split(/\s+/);
         const amount = parseInt(parts[1], 10);
         placeBet(username, amount);
+      } else if (content.toLowerCase().startsWith('!joinme ')) {
+        const parts = content.split(/\s+/);
+        const token = parts[1]?.trim();
+        const secretOk = token && (
+          (config.BOT_JOIN_SECRET && token === config.BOT_JOIN_SECRET) ||
+          (config.ADMIN_TOKEN && token === config.ADMIN_TOKEN)
+        );
+        if (!secretOk) {
+          logger.warn('Join request rejected (bad token)', { channel, user: username });
+          return;
+        }
+        const requestedChannel = channel.replace(/^#/, '');
+        joinChannel(requestedChannel);
+        tmiClient.say(channel, `Bot joining ${requestedChannel}`);
       } else if (content === '!hit') {
         if (currentMode === 'blackjack') {
           blackjackHandlers.hit(username);
@@ -1233,7 +1272,7 @@ async function initializeTwitch() {
     });
 
     await tmiClient.connect();
-    logger.info('Twitch chat connected', { channel: config.TWITCH_CHANNEL });
+    logger.info('Twitch chat connected', { channels: botChannels });
   } catch (err) {
     logger.error('Failed to initialize Twitch', { error: err.message });
   }
