@@ -31,18 +31,41 @@ if (!BOT_USERNAME || !BOT_OAUTH_TOKEN) {
 
 if (!TARGET_CHANNELS.length) {
   console.error('Set TARGET_CHANNELS (comma separated) to join channels.');
-  process.exit(1);
 }
 
-const client = new tmi.Client({
-  options: { debug: true },
-  identity: {
-    username: BOT_USERNAME,
-    password: BOT_OAUTH_TOKEN,
-  },
-  channels: TARGET_CHANNELS,
-  connection: { reconnect: true, secure: true },
-});
+let client = null;
+
+async function getBackendChannels() {
+  if (!BOT_JOIN_SECRET) return [];
+  try {
+    const url = `${BACKEND_URL}/bot/channels?secret=${encodeURIComponent(BOT_JOIN_SECRET)}`;
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data?.channels) ? data.channels : [];
+  } catch (e) {
+    console.error('Failed to fetch backend bot channels', e);
+    return [];
+  }
+}
+
+async function bootstrap() {
+  const backendChannels = await getBackendChannels();
+  const channels = Array.from(new Set([...TARGET_CHANNELS, ...backendChannels])).filter(Boolean);
+  if (!channels.length) {
+    console.error('No channels configured to join. Set TARGET_CHANNELS or configure backend channels.');
+    process.exit(1);
+  }
+
+  client = new tmi.Client({
+    options: { debug: true },
+    identity: {
+      username: BOT_USERNAME,
+      password: BOT_OAUTH_TOKEN,
+    },
+    channels,
+    connection: { reconnect: true, secure: true },
+  });
 
 client.on('connected', (addr, port) => {
   console.log(`Connected to Twitch IRC at ${addr}:${port} as ${BOT_USERNAME}`);
@@ -262,6 +285,9 @@ client.on('message', async (channel, tags, message, self) => {
   }
 });
 
+  await client.connect();
+}
+
 async function callAdmin(path) {
   if (!ADMIN_TOKEN) return false;
   try {
@@ -319,6 +345,11 @@ async function callChatBet(login, amount) {
     return null;
   }
 }
+
+bootstrap().catch(err => {
+  console.error('Bot bootstrap failed', err);
+  process.exit(1);
+});
 
 async function callAdminPost(path, body) {
   if (!ADMIN_TOKEN) return false;

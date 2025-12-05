@@ -1038,6 +1038,27 @@ app.post('/chat/bet', (req, res) => {
 });
 
 /**
+ * Bot channels list (used by Twitch bot to auto-join streamer channel)
+ */
+app.get('/bot/channels', (req, res) => {
+  const secret = (req.query && req.query.secret) || '';
+  if (!config.BOT_JOIN_SECRET || secret !== config.BOT_JOIN_SECRET) {
+    return res.status(403).json({ error: 'not authorized' });
+  }
+
+  try {
+    const channels = db.getBotChannels();
+    const defaults = [];
+    if (config.TWITCH_CHANNEL) defaults.push(config.TWITCH_CHANNEL.replace(/^#/, '').toLowerCase());
+    const unique = Array.from(new Set([...defaults, ...channels]));
+    return res.json({ channels: unique });
+  } catch (err) {
+    logger.error('Failed to fetch bot channels', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+/**
  * Get all profiles (admin only)
  */
 app.get('/admin/profiles', auth.requireAdmin, (req, res) => {
