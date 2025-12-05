@@ -20,6 +20,7 @@ const TARGET_CHANNELS = (process.env.TARGET_CHANNELS || process.env.TWITCH_CHANN
   .split(',')
   .map(c => c.trim().toLowerCase())
   .filter(Boolean);
+const BOT_NAME_LOWER = BOT_USERNAME.toLowerCase();
 
 if (!BOT_USERNAME || !BOT_OAUTH_TOKEN) {
   console.error('BOT_USERNAME and BOT_OAUTH_TOKEN are required.');
@@ -72,6 +73,12 @@ const quips = {
     "Cheers {user}! Appreciate the vibes.",
     "You're the MVP, {user}.",
     "Respect, {user}.",
+  ],
+  mention: [
+    "Yo {user}, I'm here! Need a status check?",
+    "Sup {user}? I'm watching the table.",
+    "Hey {user}, bot at your service.",
+    "What's good, {user}? Want me to start a round?",
   ],
 };
 
@@ -159,6 +166,11 @@ client.on('message', async (channel, tags, message, self) => {
   // Thanks triggers
   if (/thank/.test(content)) {
     client.say(channel, pick(quips.thanks).replace('{user}', user));
+  }
+
+  // Mention trigger
+  if (raw.toLowerCase().includes(`@${BOT_NAME_LOWER}`) || raw.toLowerCase().includes(BOT_NAME_LOWER)) {
+    client.say(channel, pick(quips.mention).replace('{user}', user));
   }
 });
 
