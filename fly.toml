@@ -47,3 +47,7 @@ primary_region = "iad"
   memory = "1gb"
   cpu_kind = "shared"
   cpus = 1
+
+# Optional bot process group (run separately with a machine or scaling group)
+[processes]
+  bot = "node bot/bot.js"
