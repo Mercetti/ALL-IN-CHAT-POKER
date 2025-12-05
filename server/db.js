@@ -130,6 +130,18 @@ class DBHelper {
   }
 
   /**
+   * Ensure a balance row exists, seeded with starting chips
+   * @param {string} username
+   * @returns {number} current balance
+   */
+  ensureBalance(username) {
+    this.db
+      .prepare('INSERT OR IGNORE INTO balances (username, chips) VALUES (?, ?)')
+      .run(username, config.GAME_STARTING_CHIPS);
+    return this.getBalance(username);
+  }
+
+  /**
    * Set user balance
    * @param {string} username
    * @param {number} chips
@@ -174,6 +186,16 @@ class DBHelper {
       biggestWin: 0,
       bestHand: 'None',
     };
+  }
+
+  /**
+   * Ensure a stats row exists for a user
+   * @param {string} username
+   * @returns {Object} stats row
+   */
+  ensureStats(username) {
+    this.db.prepare('INSERT OR IGNORE INTO stats (username) VALUES (?)').run(username);
+    return this.getStats(username);
   }
 
   /**

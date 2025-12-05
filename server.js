@@ -655,18 +655,20 @@ app.post('/user/login', async (req, res) => {
       return res.status(401).json({ error: 'invalid twitch token' });
     }
 
-    const login = twitchProfile.login;
-    const safeAvatar = twitchProfile.avatarUrl ? validation.sanitizeString(twitchProfile.avatarUrl) : undefined;
+  const login = twitchProfile.login;
+  const safeAvatar = twitchProfile.avatarUrl ? validation.sanitizeString(twitchProfile.avatarUrl) : undefined;
 
-    db.upsertProfile({
-      login,
-      display_name: twitchProfile.display_name || login,
-      settings: { startingChips: config.GAME_STARTING_CHIPS, theme: 'dark', avatarUrl: safeAvatar },
-      role: login === config.STREAMER_LOGIN ? 'streamer' : 'player',
-    });
+  db.upsertProfile({
+    login,
+    display_name: twitchProfile.display_name || login,
+    settings: { startingChips: config.GAME_STARTING_CHIPS, theme: 'dark', avatarUrl: safeAvatar },
+    role: login === config.STREAMER_LOGIN ? 'streamer' : 'player',
+  });
+  db.ensureBalance(login);
+  const stats = db.ensureStats(login);
 
-    const token = auth.signUserJWT(login);
-    return res.json({ token, login, avatarUrl: safeAvatar, expiresIn: config.USER_JWT_TTL_SECONDS });
+  const token = auth.signUserJWT(login);
+  return res.json({ token, login, avatarUrl: safeAvatar, expiresIn: config.USER_JWT_TTL_SECONDS, stats });
   } catch (err) {
     logger.error('User login failed', { error: err.message });
     return res.status(500).json({ error: 'internal_error' });
