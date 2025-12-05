@@ -20,22 +20,22 @@
             <p class="brand-subtitle">Chat-powered video poker</p>
           </div>
         </div>
-        <div class="header-info">
-          <div class="user-auth">
-            <span id="user-pill" class="badge badge-secondary subtle">Signed out</span>
-            <button id="logout-btn" class="btn btn-secondary btn-sm" style="display:none;">Logout</button>
-            <a id="login-link" class="btn btn-primary btn-sm" href="/login.html" style="display:none;">Sign In</a>
-            <a id="streamer-btn" class="btn btn-info btn-sm" href="/admin2.html">Streamer Panel</a>
+          <div class="header-info">
+            <div class="user-auth">
+              <span id="user-pill" class="badge badge-secondary subtle">Signed out</span>
+              <button id="logout-btn" class="btn btn-secondary btn-sm" style="display:none;">Logout</button>
+              <a id="login-link" class="btn btn-primary btn-sm" href="/login.html" style="display:none;">Sign In</a>
+              <a id="streamer-btn" class="btn btn-info btn-sm" href="/admin2.html">Streamer Panel</a>
+            </div>
+            <span class="round-info">
+              <span id="phase-badge" class="badge badge-info phase-chip">Waiting...</span>
+            </span>
+          <span id="mode-badge" class="badge badge-secondary phase-chip subtle">Mode: blackjack</span>
+            <span id="phase-countdown" class="countdown countdown-pill">00:00</span>
+            <span id="phase-label" class="badge badge-secondary phase-chip subtle">-</span>
+            <a href="/help.html" class="btn btn-secondary btn-sm">Help</a>
+            <button id="theme-toggle" class="btn btn-secondary btn-sm">Theme</button>
           </div>
-          <span class="round-info">
-            <span id="phase-badge" class="badge badge-info phase-chip">Waiting...</span>
-          </span>
-          <span id="mode-badge" class="badge badge-secondary phase-chip subtle">Mode: poker</span>
-          <span id="phase-countdown" class="countdown countdown-pill">00:00</span>
-          <span id="phase-label" class="badge badge-secondary phase-chip subtle">-</span>
-          <a href="/help.html" class="btn btn-secondary btn-sm">Help</a>
-          <button id="theme-toggle" class="btn btn-secondary btn-sm">Theme</button>
-        </div>
       </div>
     </header>
 
@@ -51,11 +51,16 @@
             <h3>Community</h3>
             <div id="community-cards" class="cards-grid"></div>
           </div>
+
+          <div id="table-pot" class="table-pot">
+            <div class="pot-label">Pot</div>
+            <div id="pot-chips" class="pot-chips"></div>
+          </div>
           <div id="player-hands" class="player-grid">
             <!-- Player hands will be rendered here -->
           </div>
           <div class="player-actions">
-            <div class="action-block">
+            <div class="action-block" style="display:none;">
               <h4>Hold (Poker)</h4>
               <div class="hold-toggle">
                 <label><input type="checkbox" class="hold-checkbox" data-idx="0"> Card 1</label>
@@ -83,13 +88,13 @@
               </div>
             </div>
           </div>
-          <div class="cards-actions">
+          <div class="cards-actions" style="display:none;">
             <button id="btn-draw" class="btn btn-primary" disabled>Draw</button>
             <button id="btn-force-draw" class="btn btn-secondary" disabled>Force Draw (Admin)</button>
             <span id="player-action-timer" class="countdown countdown-inline">00:00</span>
           </div>
 
-          <div class="poker-actions">
+          <div class="poker-actions" style="display:none;">
             <input id="poker-raise-amount" type="number" min="0" step="10" class="form-input" placeholder="Raise amount">
             <button id="poker-check" class="btn btn-secondary btn-sm">Check</button>
             <button id="poker-call" class="btn btn-primary btn-sm">Call</button>

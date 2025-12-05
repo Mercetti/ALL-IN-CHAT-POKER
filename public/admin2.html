@@ -73,11 +73,31 @@
         </div>
         <div class="mode-select">
           <label for="game-mode">Game Mode</label>
-          <select id="game-mode" class="form-input">
-            <option value="poker">Poker</option>
-            <option value="blackjack">Blackjack</option>
+          <select id="game-mode" class="form-input" disabled>
+            <option value="blackjack" selected>Blackjack (locked)</option>
           </select>
-          <button id="btn-save-mode" class="btn btn-info btn-sm">Save Mode</button>
+          <button id="btn-save-mode" class="btn btn-info btn-sm" disabled style="opacity:0.4; cursor:not-allowed;">Locked</button>
+        </div>
+        <div class="control-card">
+          <h4>Adjust Player Balance</h4>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="adjust-login">Player</label>
+              <input id="adjust-login" type="text" class="form-input" placeholder="username">
+            </div>
+            <div class="form-group">
+              <label for="adjust-amount">Amount</label>
+              <input id="adjust-amount" type="number" class="form-input" placeholder="e.g. 500">
+            </div>
+            <div class="form-group">
+              <label for="adjust-mode">Mode</label>
+              <select id="adjust-mode" class="form-input">
+                <option value="add">Add chips</option>
+                <option value="set">Set exact balance</option>
+              </select>
+            </div>
+          </div>
+          <button id="btn-adjust-balance" class="btn btn-primary btn-sm" style="margin-top:8px;">Apply</button>
         </div>
         <div class="queue-display">
           <h4>Waiting Queue <span class="phase-chip subtle" id="queue-count">0</span></h4>

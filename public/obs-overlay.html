@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OBS Table Overlay | All-In Chat Poker</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="style-theme.css">
+  <link rel="stylesheet" href="style-obs-overlay.css">
+</head>
+<body class="obs-body">
+  <div class="obs-shell">
+    <div class="meta-row">
+      <span class="status-pill" id="connection-pill">Connecting...</span>
+      <span class="status-pill" id="seated-pill">0 / 8 seated</span>
+      <span class="status-pill" id="mode-pill">Mode: poker</span>
+    </div>
+
+    <div class="table-frame">
+      <div class="table-surface">
+        <div class="table-brand">
+          <span>All-In</span>
+          <span>Chat</span>
+          <span>Poker</span>
+        </div>
+      </div>
+
+      <div class="seat-layer">
+        <div class="seat" data-seat="0">
+          <div class="avatar-wrap">
+            <img src="https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/default-profile_image.png" alt="Open seat">
+          </div>
+          <div class="seat-name">Open Seat</div>
+        </div>
+        <div class="seat" data-seat="1">
+          <div class="avatar-wrap">
+            <img src="https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/default-profile_image.png" alt="Open seat">
+          </div>
+          <div class="seat-name">Open Seat</div>
+        </div>
+        <div class="seat" data-seat="2">
+          <div class="avatar-wrap">
+            <img src="https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/default-profile_image.png" alt="Open seat">
+          </div>
+          <div class="seat-name">Open Seat</div>
+        </div>
+        <div class="seat" data-seat="3">
+          <div class="avatar-wrap">
+            <img src="https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/default-profile_image.png" alt="Open seat">
+          </div>
+          <div class="seat-name">Open Seat</div>
+        </div>
+        <div class="seat" data-seat="4">
+          <div class="avatar-wrap">
+            <img src="https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/default-profile_image.png" alt="Open seat">
+          </div>
+          <div class="seat-name">Open Seat</div>
+        </div>
+        <div class="seat" data-seat="5">
+          <div class="avatar-wrap">
+            <img src="https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/default-profile_image.png" alt="Open seat">
+          </div>
+          <div class="seat-name">Open Seat</div>
+        </div>
+        <div class="seat" data-seat="6">
+          <div class="avatar-wrap">
+            <img src="https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/default-profile_image.png" alt="Open seat">
+          </div>
+          <div class="seat-name">Open Seat</div>
+        </div>
+        <div class="seat" data-seat="7">
+          <div class="avatar-wrap">
+            <img src="https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/default-profile_image.png" alt="Open seat">
+          </div>
+          <div class="seat-name">Open Seat</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="overflow-row" id="overflow-row">
+      <span class="label">Waiting</span>
+      <span class="names" id="overflow-names">-</span>
+    </div>
+  </div>
+
+  <div id="toast-container" class="toast-container"></div>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-wNqiR6UCbyaxTs3LpwBbUMkM94ePQz0cCVu3RHYZK8eC6xkzGdY9lKDrV1Q9l2Kk" crossorigin="anonymous"></script>
+  <script src="client.js"></script>
+  <script>
+    window.__USER_TOKEN__ = typeof getUserToken === 'function' ? getUserToken() : null;
+  </script>
+  <script src="obs-overlay.js"></script>
+</body>
+</html>

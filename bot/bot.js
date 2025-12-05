@@ -92,6 +92,16 @@ const quips = {
     "Stacking chips and good energy.",
     "Bots can't feel luck, but I'm sensing a heater.",
   ],
+  reassure: [
+    "Tough beats happen. Fresh hand coming, {user}.",
+    "Shake it off, {user}. Next hand is yours.",
+    "Cold streaks flip fast. Stick around, {user}.",
+  ],
+  comeback: [
+    "Chip up, {user}. Small bets build stacks.",
+    "Smart plays > luck. You've got this, {user}.",
+    "Patience pays. Wait for your spot, {user}.",
+  ],
 };
 
 const rules = {
@@ -105,6 +115,8 @@ function pick(arr) {
 
 const replyCooldownMs = 8000;
 const lastReplyAt = {};
+const channelMood = {};
+const MAX_MOOD = 5;
 
 function shouldReply(channel) {
   const now = Date.now();
@@ -115,11 +127,34 @@ function shouldReply(channel) {
   return false;
 }
 
+function updateMood(channel, text) {
+  const lower = text.toLowerCase();
+  let delta = 0;
+  if (/(win|gg|nice|good|let's go|lets go|lfg|hype|pog)/.test(lower)) delta += 1;
+  if (/(rip|bust|lost|rigged|mad|angry|trash|bad|hate)/.test(lower)) delta -= 1;
+  if (/(all-in|all in)/.test(lower)) delta += 1;
+  const current = channelMood[channel] || 0;
+  channelMood[channel] = Math.max(-MAX_MOOD, Math.min(MAX_MOOD, current + delta));
+}
+
+function getMood(channel) {
+  return channelMood[channel] || 0;
+}
+
+function pickMood(quipsArr, mood, fallbackArr) {
+  if (mood <= -2 && fallbackArr && fallbackArr.length) {
+    return pick(fallbackArr);
+  }
+  return pick(quipsArr);
+}
+
 client.on('message', async (channel, tags, message, self) => {
   if (self) return;
   const raw = message.trim();
   const content = raw.toLowerCase();
   const user = tags['display-name'] || tags.username || 'friend';
+  updateMood(channel, content);
+  const mood = getMood(channel);
 
   // Commands
   if (content === '!ping') {
@@ -179,12 +214,12 @@ client.on('message', async (channel, tags, message, self) => {
 
   // Greeting triggers
   if (/hello|hi bot|hey bot|sup bot/.test(content)) {
-    client.say(channel, pick(quips.greeting).replace('{user}', user));
+    client.say(channel, pickMood(quips.greeting, mood, quips.reassure).replace('{user}', user));
   }
 
   // Hype triggers
   if (/hype|pog|let's go|lets go|lfg/.test(content)) {
-    client.say(channel, pick(quips.hype));
+    client.say(channel, pickMood(quips.hype, mood, quips.comeback));
   }
 
   // Thanks triggers
@@ -194,11 +229,11 @@ client.on('message', async (channel, tags, message, self) => {
 
   // Mention trigger
   if (raw.toLowerCase().includes(`@${BOT_NAME_LOWER}`) || raw.toLowerCase().includes(BOT_NAME_LOWER)) {
-    client.say(channel, pick(quips.mention).replace('{user}', user));
-  } else if (raw.endsWith('?') && shouldReply(channel)) {
-    client.say(channel, pick(quips.curious).replace('{user}', user));
-  } else if (/cool|awesome|bot/.test(content) && shouldReply(channel)) {
-    client.say(channel, pick(quips.vibes));
+    client.say(channel, pickMood(quips.mention, mood, quips.reassure).replace('{user}', user));
+  } else if (raw.endsWith('?') && shouldReply(channel) && mood > -3) {
+    client.say(channel, pickMood(quips.curious, mood, quips.reassure).replace('{user}', user));
+  } else if (/cool|awesome|bot/.test(content) && shouldReply(channel) && mood > -3) {
+    client.say(channel, pickMood(quips.vibes, mood, quips.comeback));
   }
 });
 

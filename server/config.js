@@ -30,7 +30,7 @@ module.exports = {
   REDIS_URL: process.env.REDIS_URL || '',
 
   // Game mode
-  GAME_MODE: process.env.GAME_MODE || 'poker', // 'poker' (default) or 'blackjack' (future expansion)
+  GAME_MODE: process.env.GAME_MODE || 'blackjack', // locked to blackjack for now
   STREAMER_LOGIN: process.env.STREAMER_LOGIN || 'streamer',
 
   // Twitch
@@ -40,6 +40,7 @@ module.exports = {
   TWITCH_CLIENT_ID: process.env.TWITCH_CLIENT_ID || '',
   TWITCH_CLIENT_SECRET: process.env.TWITCH_CLIENT_SECRET || '',
   BOT_JOIN_SECRET: process.env.BOT_JOIN_SECRET || '', // optional secret for chat-based join
+  BOT_ADMIN_LOGIN: process.env.BOT_ADMIN_LOGIN || 'allinchatpokerbot',
 
   // Game settings
   GAME_STARTING_CHIPS: 1000,
@@ -56,6 +57,17 @@ module.exports = {
   BJ_ACTION_DURATION_MS: parseInt(process.env.BJ_ACTION_DURATION_MS || '20000', 10),
   BJ_SETTLE_DELAY_MS: parseInt(process.env.BJ_SETTLE_DELAY_MS || '2000', 10),
   POKER_ACTION_DURATION_MS: parseInt(process.env.POKER_ACTION_DURATION_MS || '20000', 10),
+  BJ_TIMER_MIN_PCT: parseFloat(process.env.BJ_TIMER_MIN_PCT || '0.7'),
+  BJ_TIMER_MAX_PCT: parseFloat(process.env.BJ_TIMER_MAX_PCT || '1.2'),
+  BJ_TIMER_MIN_MS: parseInt(process.env.BJ_TIMER_MIN_MS || '8000', 10),
+  BJ_TIMER_MAX_MS: parseInt(process.env.BJ_TIMER_MAX_MS || '35000', 10),
+  BJ_TIMEOUT_WINDOW: parseInt(process.env.BJ_TIMEOUT_WINDOW || '5', 10),
+  BJ_TIMEOUT_THRESHOLD: parseInt(process.env.BJ_TIMEOUT_THRESHOLD || '2', 10),
+  BJ_NEW_PLAYER_ROUNDS: parseInt(process.env.BJ_NEW_PLAYER_ROUNDS || '3', 10),
+  TILT_BET_WARN_RATIO: parseFloat(process.env.TILT_BET_WARN_RATIO || '0.4'),
+  TILT_BET_CLAMP_RATIO: parseFloat(process.env.TILT_BET_CLAMP_RATIO || '0.6'),
+  STREAK_WINDOW: parseInt(process.env.STREAK_WINDOW || '5', 10),
+  POT_GLOW_MULTIPLIER: parseInt(process.env.POT_GLOW_MULTIPLIER || '5', 10),
 
   // Logging
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',

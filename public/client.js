@@ -86,10 +86,14 @@ function getToken() {
 }
 
 function setToken(token) {
+  const secureFlag =
+    typeof window !== 'undefined' && window.location && window.location.protocol === 'https:'
+      ? '; secure'
+      : '';
   if (token) {
-    document.cookie = `admin_jwt=${token}; path=/; secure; samesite=strict`;
+    document.cookie = `admin_jwt=${token}; path=/; samesite=strict${secureFlag}`;
   } else {
-    document.cookie = 'admin_jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
+    document.cookie = `admin_jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; samesite=strict${secureFlag}`;
   }
 }
 

@@ -6,6 +6,7 @@ const express = require('express');
 const http = require('http');
 const tmi = require('tmi.js');
 const socketIO = require('socket.io');
+const path = require('path');
 
 // Import utilities
 const config = require('./server/config');
@@ -30,7 +31,7 @@ const {
 const fetch = global.fetch;
 
 const logger = new Logger('server');
-let currentMode = config.GAME_MODE || 'poker';
+let currentMode = 'blackjack';
 let tmiClient = null;
 
 // Initialize app
@@ -42,8 +43,10 @@ const io = socketIO(server, {
 
 // Middleware
 app.use(express.json());
-// Redirect root traffic to the login page instead of the overlay
-app.get('/', (_req, res) => res.redirect('/login.html'));
+// Serve overlay by default at root
+app.get('/', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 // Expose minimal public config for the frontend (no secrets)
 app.get('/public-config.json', (req, res) => {
   const forwardedProto = (req.headers['x-forwarded-proto'] || '').split(',')[0].trim();
@@ -52,6 +55,9 @@ app.get('/public-config.json', (req, res) => {
     twitchClientId: config.TWITCH_CLIENT_ID || '',
     redirectUri: `${proto}://${req.get('host')}/login.html`,
     streamerLogin: config.STREAMER_LOGIN || '',
+    botAdminLogin: config.BOT_ADMIN_LOGIN || '',
+    minBet: config.GAME_MIN_BET || 0,
+    potGlowMultiplier: config.POT_GLOW_MULTIPLIER || 5,
   });
 });
 app.use(express.static('public'));
@@ -105,6 +111,68 @@ let playerTurnIndex = 0;
 let turnManager = null;
 let pokerHandlers = null;
 let blackjackHandlers = null;
+const playerHeuristics = {};
+
+function ensureHeuristic(login) {
+  if (!playerHeuristics[login]) {
+    playerHeuristics[login] = { history: [], streak: 0, tilt: 0, lastBetRatio: 0, rounds: 0, timeouts: [] };
+  }
+  return playerHeuristics[login];
+}
+
+function recordBetHeuristic(login, amount, balanceAfter) {
+  const h = ensureHeuristic(login);
+  const ratio = amount > 0 ? amount / (amount + Math.max(balanceAfter, 0.01)) : 0;
+  h.lastBetRatio = ratio;
+}
+
+function recordOutcomeHeuristic(login, won) {
+  const h = ensureHeuristic(login);
+  h.history.push(won ? 1 : -1);
+  if (h.history.length > config.STREAK_WINDOW) h.history.shift();
+  h.streak = h.history.reduce((a, b) => a + b, 0);
+  const tiltDelta = won ? -0.5 * h.lastBetRatio : h.lastBetRatio;
+  h.tilt = Math.max(-3, Math.min(3, (h.tilt || 0) + tiltDelta));
+  h.rounds = (h.rounds || 0) + 1;
+}
+
+function recordTimeoutHeuristic(login) {
+  const h = ensureHeuristic(login);
+  h.timeouts.push(Date.now());
+  if (h.timeouts.length > config.BJ_TIMEOUT_WINDOW) h.timeouts.shift();
+}
+
+function getHeuristics(login) {
+  const h = playerHeuristics[login] || { streak: 0, tilt: 0, rounds: 0, timeouts: [] };
+  const timeouts = Array.isArray(h.timeouts) ? h.timeouts : [];
+  const afk = timeouts.length >= config.BJ_TIMEOUT_THRESHOLD;
+  return { streak: h.streak || 0, tilt: h.tilt || 0, rounds: h.rounds || 0, afk };
+}
+
+function updateHeuristicsAfterPayout(prevBets = {}, payoutPayload, dbInstance) {
+  const payoutMap = (payoutPayload && payoutPayload.payouts) || {};
+  Object.keys(prevBets || {}).forEach(login => {
+    const win = (payoutMap[login] || 0) > 0;
+    recordOutcomeHeuristic(login, win);
+    const heur = getHeuristics(login);
+    const balance = dbInstance ? dbInstance.getBalance(login) : db.getBalance(login);
+    io.emit('playerUpdate', { login, streak: heur.streak, tilt: heur.tilt, balance, bet: 0, afk: heur.afk });
+  });
+}
+
+function getBlackjackTurnDuration(login) {
+  const base = config.BJ_ACTION_DURATION_MS;
+  const heur = getHeuristics(login);
+  let duration = base;
+  const timeouts = (playerHeuristics[login]?.timeouts || []).length;
+  if (timeouts >= config.BJ_TIMEOUT_THRESHOLD) {
+    duration = base * config.BJ_TIMER_MIN_PCT;
+  } else if ((heur.rounds || 0) < config.BJ_NEW_PLAYER_ROUNDS || timeouts === 0) {
+    duration = base * config.BJ_TIMER_MAX_PCT;
+  }
+  duration = Math.max(config.BJ_TIMER_MIN_MS, Math.min(config.BJ_TIMER_MAX_MS, Math.floor(duration)));
+  return duration;
+}
 
 /**
  * Get or init player state
@@ -239,21 +307,35 @@ function placeBet(username, amount) {
   const existingBet = betAmounts[username] || 0;
   const currentBalance = db.getBalance(username);
   const available = currentBalance + existingBet; // refund previous bet to recalc
+  const heur = getHeuristics(username);
+  const tiltClamp = Math.max(config.GAME_MIN_BET, Math.floor(available * config.TILT_BET_CLAMP_RATIO));
+  let targetAmount = amount;
 
-  if (amount > available || available <= 0) {
-    logger.warn('Bet exceeds available balance', { username, amount, available });
+  if (currentMode === 'blackjack') {
+    if (amount > available * config.TILT_BET_WARN_RATIO) {
+      logger.warn('Tilt warning: high bet ratio', { username, amount, available });
+    }
+    if (heur.tilt >= 2 && amount > tiltClamp && tiltClamp >= config.GAME_MIN_BET) {
+      logger.warn('Clamping bet due to tilt', { username, requested: amount, clamped: tiltClamp });
+      targetAmount = tiltClamp;
+    }
+  }
+
+  if (targetAmount > available || available <= 0) {
+    logger.warn('Bet exceeds available balance', { username, amount: targetAmount, available });
     if (!waitingQueue.includes(username)) waitingQueue.push(username);
     return false;
   }
 
   // Deduct new bet
-  const newBalance = available - amount;
+  const newBalance = available - targetAmount;
   db.setBalance(username, newBalance);
-  betAmounts[username] = amount;
+  betAmounts[username] = targetAmount;
   if (currentMode === 'poker') {
-    pokerCurrentBet = Math.max(pokerCurrentBet, amount);
+    pokerCurrentBet = Math.max(pokerCurrentBet, targetAmount);
   }
   waitingQueue = waitingQueue.filter(u => u !== username);
+  recordBetHeuristic(username, targetAmount, newBalance);
 
   // Ensure profile exists
   db.upsertProfile({
@@ -266,6 +348,8 @@ function placeBet(username, amount) {
   getPlayerState(username); // init state
 
   logger.info('Bet placed', { username, amount, remaining: newBalance });
+  const heur = getHeuristics(username);
+  io.emit('playerUpdate', { login: username, bet: amount, balance: newBalance, streak: heur.streak, tilt: heur.tilt });
   emitQueueUpdate();
   return true;
 }
@@ -319,19 +403,22 @@ function advancePokerPhase() {
 
 function settleRound(data) {
   try {
+    const prevBets = { ...betAmounts };
     if (currentMode === 'blackjack') {
-      const { broke, nextWaiting, nextBetAmounts, nextPlayerStates } = settleAndEmitBlackjack(io, dealerState, playerStates, betAmounts, waitingQueue, db);
+      const { broke, nextWaiting, nextBetAmounts, nextPlayerStates, payoutPayload } = settleAndEmitBlackjack(io, dealerState, playerStates, betAmounts, waitingQueue, db);
       waitingQueue = nextWaiting;
       betAmounts = nextBetAmounts;
       playerStates = nextPlayerStates;
+      updateHeuristicsAfterPayout(prevBets, payoutPayload, db);
       broke.forEach(login => {
         if (!waitingQueue.includes(login)) waitingQueue.push(login);
       });
     } else {
-      const { broke, nextWaiting, nextBetAmounts, nextPlayerStates } = settleAndEmitPoker(io, playerStates, communityCards, betAmounts, waitingQueue, db);
+      const { broke, nextWaiting, nextBetAmounts, nextPlayerStates, payoutPayload } = settleAndEmitPoker(io, playerStates, communityCards, betAmounts, waitingQueue, db);
       waitingQueue = nextWaiting;
       betAmounts = nextBetAmounts;
       playerStates = nextPlayerStates;
+      updateHeuristicsAfterPayout(prevBets, payoutPayload, db);
       broke.forEach(login => {
         if (!waitingQueue.includes(login)) waitingQueue.push(login);
       });
@@ -438,7 +525,15 @@ function startRoundInternal() {
       const bj = startBlackjackRound(dealerState, playerStates, activeBettors, MAX_BLACKJACK_PLAYERS);
       currentHand = bj.dealerHand;
       currentDeck = bj.dealerShoe;
-      blackjackHandlers = createBlackjackHandlers(io, dealerState, playerStates, () => settleRound({}), startPlayerTurnCycle);
+      blackjackHandlers = createBlackjackHandlers(
+        io,
+        dealerState,
+        playerStates,
+        () => settleRound({}),
+        startPlayerTurnCycle,
+        getBlackjackTurnDuration,
+        recordTimeoutHeuristic
+      );
       pokerHandlers = null;
     } else {
       const { deck, community } = startPokerRound(playerStates, activeBettors, MAX_POKER_PLAYERS);
@@ -648,18 +743,14 @@ app.post('/admin/user-token', auth.requireAdmin, (req, res) => {
 /**
  * Get/set current game mode (admin)
  */
-app.get('/admin/mode', auth.requireAdmin, (req, res) => {
-  return res.json({ mode: currentMode });
+app.get('/admin/mode', auth.requireAdmin, (_req, res) => {
+  return res.json({ mode: 'blackjack' });
 });
 
-app.post('/admin/mode', auth.requireAdmin, (req, res) => {
-  const mode = (req.body && req.body.mode) || '';
-  if (!['poker', 'blackjack'].includes(mode)) {
-    return res.status(400).json({ error: 'invalid mode' });
-  }
-  currentMode = mode;
-  logger.info('Game mode updated', { mode });
-  return res.json({ mode });
+app.post('/admin/mode', auth.requireAdmin, (_req, res) => {
+  // Lock to blackjack only
+  currentMode = 'blackjack';
+  return res.json({ mode: 'blackjack' });
 });
 
 /**
@@ -699,11 +790,18 @@ app.post('/user/login', async (req, res) => {
   const login = twitchProfile.login;
   const safeAvatar = twitchProfile.avatarUrl ? validation.sanitizeUrl(twitchProfile.avatarUrl) : undefined;
 
+  const role =
+    login === config.STREAMER_LOGIN
+      ? 'streamer'
+      : login === config.BOT_ADMIN_LOGIN
+        ? 'admin'
+        : 'player';
+
   db.upsertProfile({
     login,
     display_name: twitchProfile.display_name || login,
     settings: { startingChips: config.GAME_STARTING_CHIPS, theme: 'dark', avatarUrl: safeAvatar },
-    role: login === config.STREAMER_LOGIN ? 'streamer' : 'player',
+    role,
   });
   db.ensureBalance(login);
   const stats = db.ensureStats(login);
@@ -958,6 +1056,41 @@ app.post('/admin/profile/:login', auth.requireAdmin, (req, res) => {
 });
 
 /**
+ * Adjust player balance (admin only)
+ * Body: { login, amount, mode: 'set' | 'add' }
+ */
+app.post('/admin/balance', auth.requireAdmin, (req, res) => {
+  try {
+    const { login, amount, mode } = req.body || {};
+    if (!validation.validateUsername(login || '')) {
+      return res.status(400).json({ error: 'invalid username' });
+    }
+    if (!Number.isFinite(amount)) {
+      return res.status(400).json({ error: 'amount required' });
+    }
+
+    db.ensureBalance(login);
+    const safeAmount = Math.floor(amount);
+    let newBalance = db.getBalance(login);
+
+    if (mode === 'set') {
+      db.setBalance(login, safeAmount);
+      newBalance = safeAmount;
+    } else {
+      // default to add
+      newBalance = db.addChips(login, safeAmount);
+    }
+
+    io.emit('playerUpdate', { login, balance: newBalance, bet: 0 });
+    logger.info('Admin balance update', { login, amount: safeAmount, mode: mode || 'add', newBalance });
+    return res.json({ login, balance: newBalance });
+  } catch (err) {
+    logger.error('Failed to update balance', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+/**
  * Get audit log (admin only)
  */
 app.get('/admin/audit', auth.requireAdmin, (req, res) => {
@@ -1013,6 +1146,7 @@ io.on('connection', (socket) => {
       bet: betAmounts[login] || 0,
       streetBet: pokerStreetBets[login] || 0,
       avatar: (db.getProfile(login)?.settings && JSON.parse(db.getProfile(login).settings || '{}').avatarUrl) || null,
+      ...getHeuristics(login),
     })),
   });
 
@@ -1261,6 +1395,12 @@ async function initializeTwitch() {
       if (self) return;
 
       const username = tags['display-name'] || tags.username;
+      const loginLower = (username || '').toLowerCase();
+      const isBroadcaster = (tags.badges && tags.badges.broadcaster === '1') || false;
+      const isMod = tags.mod === true || (tags.badges && tags.badges.moderator === '1');
+      const isStreamer = config.STREAMER_LOGIN && loginLower === config.STREAMER_LOGIN.toLowerCase();
+      const isBotAdmin = config.BOT_ADMIN_LOGIN && loginLower === config.BOT_ADMIN_LOGIN.toLowerCase();
+      const canAdjustBalance = isBroadcaster || isMod || isStreamer || isBotAdmin;
       const content = message.trim();
 
       logger.debug('Twitch message', { username, message: content });
@@ -1270,6 +1410,26 @@ async function initializeTwitch() {
         const parts = content.split(/\s+/);
         const amount = parseInt(parts[1], 10);
         placeBet(username, amount);
+      } else if (content.toLowerCase().startsWith('!addchips')) {
+        if (!canAdjustBalance) return;
+        const parts = content.split(/\s+/);
+        const target = (parts[1] || '').trim().toLowerCase();
+        const amt = parseInt(parts[2], 10);
+        if (!validation.validateUsername(target) || !Number.isInteger(amt) || amt <= 0) {
+          tmiClient.say(channel, 'Usage: !addchips <username> <amount>');
+          return;
+        }
+        db.ensureBalance(target);
+        db.upsertProfile({
+          login: target,
+          display_name: target,
+          settings: { startingChips: config.GAME_STARTING_CHIPS, theme: 'dark' },
+          role: 'player',
+        });
+        const newBalance = db.addChips(target, amt);
+        io.emit('playerUpdate', { login: target, balance: newBalance, bet: 0 });
+        logger.info('Chips added via chat', { actor: username, target, amount: amt, newBalance });
+        tmiClient.say(channel, `Added ${amt} chips to ${target}. New balance: ${newBalance}`);
       } else if (content.toLowerCase().startsWith('!joinme ')) {
         const parts = content.split(/\s+/);
         const token = parts[1]?.trim();

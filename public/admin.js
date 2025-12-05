@@ -5,7 +5,12 @@
 let currentEditingProfile = null;
 let adminSocket = null;
 let streamerLogin = '';
+let botAdminLogin = '';
 let useUserToken = false;
+const adjustLoginInput = document.getElementById('adjust-login');
+const adjustAmountInput = document.getElementById('adjust-amount');
+const adjustModeSelect = document.getElementById('adjust-mode');
+const adjustButton = document.getElementById('btn-adjust-balance');
 
 function decodeUserLogin(token) {
   if (!token) return null;
@@ -25,6 +30,7 @@ async function loadPublicConfig() {
     if (res.ok) {
       const cfg = await res.json();
       streamerLogin = (cfg.streamerLogin || '').toLowerCase();
+      botAdminLogin = (cfg.botAdminLogin || '').toLowerCase();
     }
   } catch (e) {
     // ignore
@@ -43,14 +49,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (adminToken) {
     allowed = true;
   } else if (userToken && userLogin) {
-    // Allow if matches configured streamer login
-    if (streamerLogin && userLogin.toLowerCase() === streamerLogin) {
+    const lower = userLogin.toLowerCase();
+    // Allow if matches configured streamer or bot admin login
+    if ((streamerLogin && lower === streamerLogin) || (botAdminLogin && lower === botAdminLogin)) {
       allowed = true;
     } else {
       // Fallback: check profile role via user token
       try {
         const profileRes = await apiCall(`/profile?login=${encodeURIComponent(userLogin)}`, { useUserToken: true });
-        if (profileRes?.profile?.role === 'streamer') {
+        if (profileRes?.profile?.role === 'streamer' || profileRes?.profile?.role === 'admin') {
           allowed = true;
         }
       } catch (e) {
@@ -166,6 +173,33 @@ function setupEventListeners() {
   document.getElementById('modal-cancel')?.addEventListener('click', closeModal);
   document.getElementById('modal-close')?.addEventListener('click', closeModal);
   document.getElementById('modal-save')?.addEventListener('click', saveProfile);
+
+  if (adjustButton) {
+    adjustButton.addEventListener('click', async () => {
+      const login = (adjustLoginInput?.value || '').trim().toLowerCase();
+      const amount = Number(adjustAmountInput?.value || 0);
+      const mode = (adjustModeSelect?.value || 'add').toLowerCase();
+      if (!login) {
+        Toast.error('Player username required');
+        return;
+      }
+      if (!Number.isFinite(amount)) {
+        Toast.error('Amount required');
+        return;
+      }
+      try {
+        const res = await apiCall('/admin/balance', {
+          method: 'POST',
+          body: JSON.stringify({ login, amount, mode }),
+        });
+        Toast.success(`Balance ${mode === 'set' ? 'set' : 'added'} for ${login}: ${res.balance}`);
+        loadProfiles();
+        loadStats();
+      } catch (err) {
+        Toast.error('Balance update failed: ' + err.message);
+      }
+    });
+  }
 
   document.getElementById('btn-save-mode')?.addEventListener('click', saveMode);
 }
@@ -485,14 +519,5 @@ async function loadMode() {
 async function saveMode() {
   const select = document.getElementById('game-mode');
   if (!select) return;
-  const mode = select.value;
-  try {
-    await apiCall('/admin/mode', {
-      method: 'POST',
-      body: JSON.stringify({ mode }),
-    });
-    Toast.success(`Mode set to ${mode}`);
-  } catch (err) {
-    Toast.error('Failed to set mode: ' + err.message);
-  }
+  Toast.info('Mode is locked to blackjack');
 }

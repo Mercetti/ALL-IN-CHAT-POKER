@@ -92,9 +92,9 @@ function isAdminRequest(req) {
         : userToken;
       try {
         const payload = jwt.verify(bearer, config.JWT_SECRET);
-        if (payload && payload.user && config.STREAMER_LOGIN && payload.user.toLowerCase() === config.STREAMER_LOGIN.toLowerCase()) {
-          return true;
-        }
+        const user = payload && payload.user ? payload.user.toLowerCase() : null;
+        if (user && config.STREAMER_LOGIN && user === config.STREAMER_LOGIN.toLowerCase()) return true;
+        if (user && config.BOT_ADMIN_LOGIN && user === config.BOT_ADMIN_LOGIN.toLowerCase()) return true;
       } catch (e) {
         // ignore
       }

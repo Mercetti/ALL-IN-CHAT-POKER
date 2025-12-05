@@ -21,8 +21,21 @@ let countdownTimer = null;
 let countdownEndsAt = null;
 let overlayPlayers = [];
 let currentDealerHand = [];
-let overlayMode = 'poker';
+let overlayMode = 'blackjack';
 let streamerLogin = '';
+let previousCardCounts = new Map();
+let playerBalances = {};
+let currentPot = 0;
+let minBet = 10;
+let potGlowMultiplier = 5;
+const CHIP_DENOMS = [
+  { value: 1000, color: '#f5a524', label: '1k' },
+  { value: 500, color: '#9b59b6', label: '500' },
+  { value: 100, color: '#111', label: '100' },
+  { value: 25, color: '#2ecc71', label: '25' },
+  { value: 5, color: '#e74c3c', label: '5' },
+  { value: 1, color: '#ecf0f1', label: '1' },
+];
 
 async function loadPublicConfig() {
   try {
@@ -30,6 +43,8 @@ async function loadPublicConfig() {
     if (res.ok) {
       const cfg = await res.json();
       streamerLogin = (cfg.streamerLogin || '').toLowerCase();
+      if (typeof cfg.minBet === 'number') minBet = cfg.minBet;
+      if (typeof cfg.potGlowMultiplier === 'number') potGlowMultiplier = cfg.potGlowMultiplier;
       updateUserBadge();
     }
   } catch (e) {
@@ -37,6 +52,20 @@ async function loadPublicConfig() {
   }
 }
 loadPublicConfig();
+loadBalances();
+
+async function loadBalances() {
+  try {
+    const res = await fetch('/balances.json');
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data && typeof data === 'object') {
+      playerBalances = data;
+    }
+  } catch (e) {
+    // ignore
+  }
+}
 
 function decodeLoginFromJwt(token) {
   if (!token || typeof token !== 'string') return null;
@@ -121,8 +150,10 @@ socket.on('state', (data) => {
   overlayPlayers = data.players || [];
   overlayMode = data.mode || overlayMode;
   currentDealerHand = data.dealerHand || currentDealerHand;
+  if (data.phase) currentPhase = data.phase;
   renderPlayerHands(overlayPlayers);
   if (data.mode) setModeBadge(data.mode);
+  renderPot(data);
   updateActionButtons();
 });
 
@@ -143,6 +174,7 @@ socket.on('roundStarted', (data) => {
   renderDealerHand(currentDealerHand);
   renderCommunityCards(data.community || []);
   renderPlayerHands(overlayPlayers);
+  renderPot(data);
   updatePhaseUI('Dealing Cards');
   startCountdown(data.actionEndsAt || null);
   if (data.waiting) renderQueue(data.waiting);
@@ -167,6 +199,8 @@ socket.on('bettingStarted', (data) => {
   console.log('Betting started');
   currentPhase = 'betting';
   updatePhaseUI('Place Your Bets');
+  renderPlayerHands(overlayPlayers);
+  renderPot(data);
 });
 
 socket.on('roundResult', (data) => {
@@ -174,9 +208,11 @@ socket.on('roundResult', (data) => {
   currentPhase = 'result';
   currentDealerHand = data.dealerHand || [];
   overlayPlayers = data.players || [];
+  loadBalances();
   renderDealerHand(currentDealerHand);
   renderCommunityCards(data.community || []);
   renderPlayerHands(overlayPlayers);
+  renderPot(data);
   displayResult(data);
   updatePhaseUI('Round Complete');
   startCountdown(null);
@@ -264,6 +300,7 @@ socket.on('pokerBetting', (data) => {
       bet: (data && data.totalBets && data.totalBets[p.login]) || p.bet || 0,
     }));
     renderPlayerHands(overlayPlayers);
+    renderPot(data);
   }
 });
 
@@ -276,6 +313,7 @@ socket.on('playerUpdate', (data) => {
     overlayPlayers.push(data);
   }
   renderPlayerHands(overlayPlayers);
+  renderPot();
   updateActionButtons();
 });
 
@@ -299,20 +337,38 @@ function renderPlayerHands(players) {
   const container = document.getElementById('player-hands');
   if (!container) return;
   container.innerHTML = '';
+  if (!Array.isArray(players)) return;
 
   players.forEach(player => {
     const hand = player.hand || [];
+    const totalCards = player.hands && Array.isArray(player.hands)
+      ? player.hands.reduce((sum, h) => sum + (h ? h.length : 0), 0)
+      : hand.length;
+    const prevTotal = previousCardCounts.get(player.login) || 0;
+    let newRemaining = Math.max(totalCards - prevTotal, 0);
+    const balance = typeof player.balance === 'number' ? player.balance : playerBalances[player.login] || 0;
+    const betAmount = typeof player.bet === 'number' ? player.bet : 0;
+    const showBetStack = currentPhase === 'betting';
+    const streak = typeof player.streak === 'number' ? player.streak : 0;
+    const tilt = typeof player.tilt === 'number' ? player.tilt : 0;
+    const afk = !!player.afk;
+
     const wrapper = document.createElement('div');
     wrapper.className = 'player-hand';
-    const renderCards = (cards) => cards
-      .map(
-        card => `
-          <div class="card-item">
+    if (streak >= 2) wrapper.classList.add('hot');
+    else if (streak <= -2) wrapper.classList.add('cold');
+    if (tilt >= 2) wrapper.classList.add('tilt');
+    const renderCards = (cards = []) => cards
+      .map((card, idx) => {
+        const isNew = newRemaining > 0 && idx >= cards.length - newRemaining;
+        if (isNew) newRemaining--;
+        return `
+          <div class="card-item ${isNew ? 'deal-in' : ''}">
             <div class="card-rank">${card.rank}</div>
             <div class="card-suit">${card.suit}</div>
           </div>
-        `
-      )
+        `;
+      })
       .join('');
 
     const splitMarkup = player.hands && Array.isArray(player.hands)
@@ -332,25 +388,104 @@ function renderPlayerHands(players) {
         </div>
       `;
 
+    const chipStack = renderChipStack(balance);
+    const betStack = showBetStack ? renderBetChips(betAmount) : '';
+    const streakBadge = renderStreakBadge(streak, tilt, afk);
+
     wrapper.innerHTML = `
       <div class="player-header">
         <img class="player-avatar" src="${player.avatar || 'https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/default-profile_image.png'}" alt="${player.login}">
         <div>
           <div class="player-name">${player.login}</div>
+          ${streakBadge}
           ${player.evaluation ? `<div class="player-result">${player.evaluation.name} (${player.evaluation.payout}x)</div>` : ''}
           <div class="bet-badge" title="Street / Total bet">
             <span>Bet:</span>
             <span class="value">${(player.streetBet || 0).toLocaleString?.() || player.streetBet || 0} / ${(player.bet || 0).toLocaleString?.() || player.bet || 0}</span>
           </div>
+          ${betStack}
+          ${chipStack}
           <div class="player-timer" id="timer-${player.login}"></div>
         </div>
       </div>
       ${splitMarkup}
     `;
     container.appendChild(wrapper);
+
+    previousCardCounts.set(player.login, totalCards);
   });
 
   document.getElementById('btn-draw').disabled = false;
+}
+
+function renderPot(data) {
+  const potWrap = document.getElementById('pot-chips');
+  const potContainer = document.getElementById('table-pot');
+  if (!potWrap) return;
+  const explicitPot = data && typeof data.pot === 'number' ? data.pot : null;
+  const sumBets = overlayPlayers.reduce((sum, p) => sum + (p.bet || 0), 0);
+  const pot = explicitPot !== null ? explicitPot : sumBets;
+  currentPot = pot;
+  const chips = renderChipStack(pot);
+  potWrap.innerHTML = `<div class="pot-total">Total Pot: $${(pot || 0).toLocaleString?.() || pot || 0}</div>${chips}`;
+  if (potContainer) {
+    const glowThreshold = (minBet || 1) * (potGlowMultiplier || 5);
+    potContainer.classList.toggle('pot-glow', pot >= glowThreshold);
+  }
+}
+
+function renderChipStack(amount) {
+  const total = Math.max(0, Math.floor(amount || 0));
+  if (!total) {
+    return `<div class="chip-stack" title="Chips"><div class="chip empty">0</div></div>`;
+  }
+
+  const pieces = [];
+  let remaining = total;
+  CHIP_DENOMS.forEach(denom => {
+    const count = Math.floor(remaining / denom.value);
+    if (count > 0) {
+      pieces.push({ ...denom, count });
+      remaining -= count * denom.value;
+    }
+  });
+
+  const chipsHtml = pieces
+    .map(part => `<div class="chip" style="--chip-color:${part.color};" title="$${part.value} x ${part.count}">
+        <span class="chip-label">${part.label}</span>
+        <span class="chip-count">x${part.count}</span>
+      </div>`)
+    .join('');
+
+  return `
+    <div class="chip-stack" title="Chips: $${total.toLocaleString?.() || total}">
+      <div class="chip-total">Chips: $${total.toLocaleString?.() || total}</div>
+      <div class="chip-row">
+        ${chipsHtml}
+      </div>
+    </div>
+  `;
+}
+
+function renderBetChips(amount) {
+  const bet = Math.max(0, Math.floor(amount || 0));
+  const chips = renderChipStack(bet);
+  return `
+    <div class="player-bet-chips" title="Current Bet">
+      <div class="chip-total">Bet: $${bet.toLocaleString?.() || bet}</div>
+      ${chips}
+    </div>
+  `;
+}
+
+function renderStreakBadge(streak, tilt, afk) {
+  const parts = [];
+  if (streak >= 2) parts.push('<span class="streak-hot">Hot</span>');
+  else if (streak <= -2) parts.push('<span class="streak-cold">Cold</span>');
+  if (tilt >= 2) parts.push('<span class="streak-tilt">Tilt</span>');
+  if (afk) parts.push('<span class="streak-afk">AFK-prone</span>');
+  if (!parts.length) return '';
+  return `<div class="streak-badges">${parts.join('')}</div>`;
 }
 
 function renderDealerHand(hand) {
