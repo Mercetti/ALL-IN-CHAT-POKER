@@ -14,6 +14,10 @@ const adjustLoginInput = document.getElementById('adjust-login');
 const adjustAmountInput = document.getElementById('adjust-amount');
 const adjustModeSelect = document.getElementById('adjust-mode');
 const adjustButton = document.getElementById('btn-adjust-balance');
+const isEventForChannel = (payload) => {
+  if (!payload || !payload.channel) return true;
+  return payload.channel === channelParam;
+};
 
 function decodeUserLogin(token) {
   if (!token) return null;
@@ -434,11 +438,13 @@ function initSocket() {
     Toast.error(typeof err === 'string' ? err : 'Server error');
   });
 
-  adminSocket.on('roundStarted', () => {
+  adminSocket.on('roundStarted', (data) => {
+    if (!isEventForChannel(data)) return;
     Toast.info('Round started');
   });
 
   adminSocket.on('roundResult', (data) => {
+    if (!isEventForChannel(data)) return;
     if (data?.evaluation) {
       Toast.success(`Round result: ${data.evaluation.name}`);
     }
@@ -447,24 +453,29 @@ function initSocket() {
   });
 
   adminSocket.on('queueUpdate', (data) => {
+    if (!isEventForChannel(data)) return;
     updateQueue(data.waiting || []);
   });
 
   adminSocket.on('bettingStarted', (data) => {
+    if (!isEventForChannel(data)) return;
     startAdminCountdown(data.endsAt);
     setAdminPhase('Betting');
   });
 
-  adminSocket.on('actionPhaseEnded', () => {
+  adminSocket.on('actionPhaseEnded', (data) => {
+    if (!isEventForChannel(data)) return;
     startAdminCountdown(null);
     setAdminPhase('Action Ended');
   });
 
   adminSocket.on('pokerPhase', (data) => {
+    if (!isEventForChannel(data)) return;
     if (data?.phase) setAdminPhase(data.phase);
   });
 
   adminSocket.on('pokerBetting', (data) => {
+    if (!isEventForChannel(data)) return;
     const potEl = document.getElementById('admin-pot');
     const betEl = document.getElementById('admin-current-bet');
     const potVal = (data && data.pot) || 0;

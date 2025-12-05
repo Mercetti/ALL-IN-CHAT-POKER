@@ -4,6 +4,10 @@
 
 const SOCKET_URL = typeof getBackendBase === 'function' ? getBackendBase() : '';
 const overlayChannel = typeof getChannelParam === 'function' ? getChannelParam() : '';
+const isEventForChannel = (payload) => {
+  if (!payload || !payload.channel) return true;
+  return payload.channel === overlayChannel;
+};
 const socket = io(SOCKET_URL || undefined, {
   reconnection: true,
   reconnectionDelay: 1000,
@@ -131,21 +135,25 @@ socket.on('disconnect', () => setConnection('disconnected'));
 socket.on('reconnect_attempt', () => setConnection('reconnecting'));
 
 socket.on('state', (data) => {
+  if (!isEventForChannel(data)) return;
   setMode(data?.mode || currentMode);
   updatePlayers(data?.players || []);
 });
 
 socket.on('roundStarted', (data) => {
+  if (!isEventForChannel(data)) return;
   setMode(data?.mode || currentMode);
   updatePlayers(data?.players || []);
 });
 
 socket.on('roundResult', (data) => {
+  if (!isEventForChannel(data)) return;
   setMode(data?.mode || currentMode);
   updatePlayers(data?.players || []);
 });
 
 socket.on('playerUpdate', (data) => {
+  if (!isEventForChannel(data)) return;
   mergePlayer(data);
 });
 

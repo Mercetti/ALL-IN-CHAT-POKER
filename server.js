@@ -148,39 +148,41 @@ let pokerHandlers = null;
 let blackjackHandlers = null;
 const playerHeuristics = {};
 
+function getLegacyStateView() {
+  return {
+    get currentMode() { return currentMode; }, set currentMode(v) { currentMode = v; },
+    get currentDeck() { return currentDeck; }, set currentDeck(v) { currentDeck = v; },
+    get currentHand() { return currentHand; }, set currentHand(v) { currentHand = v; },
+    get roundInProgress() { return roundInProgress; }, set roundInProgress(v) { roundInProgress = v; },
+    get bettingOpen() { return bettingOpen; }, set bettingOpen(v) { bettingOpen = v; },
+    get betAmounts() { return betAmounts; }, set betAmounts(v) { betAmounts = v; },
+    get streamerProfile() { return streamerProfile; }, set streamerProfile(v) { streamerProfile = v; },
+    get playerStates() { return playerStates; }, set playerStates(v) { playerStates = v; },
+    get dealerState() { return dealerState; }, set dealerState(v) { dealerState = v; },
+    get waitingQueue() { return waitingQueue; }, set waitingQueue(v) { waitingQueue = v; },
+    get communityCards() { return communityCards; }, set communityCards(v) { communityCards = v; },
+    get blackjackActionTimer() { return blackjackActionTimer; }, set blackjackActionTimer(v) { blackjackActionTimer = v; },
+    get bettingTimer() { return bettingTimer; }, set bettingTimer(v) { bettingTimer = v; },
+    get pokerActionTimer() { return pokerActionTimer; }, set pokerActionTimer(v) { pokerActionTimer = v; },
+    get pokerPhase() { return pokerPhase; }, set pokerPhase(v) { pokerPhase = v; },
+    get pokerCurrentBet() { return pokerCurrentBet; }, set pokerCurrentBet(v) { pokerCurrentBet = v; },
+    get pokerStreetBets() { return pokerStreetBets; }, set pokerStreetBets(v) { pokerStreetBets = v; },
+    get pokerPot() { return pokerPot; }, set pokerPot(v) { pokerPot = v; },
+    get pokerActed() { return pokerActed; }, set pokerActed(v) { pokerActed = v; },
+    get playerTurnOrder() { return playerTurnOrder; }, set playerTurnOrder(v) { playerTurnOrder = v; },
+    get playerTurnIndex() { return playerTurnIndex; }, set playerTurnIndex(v) { playerTurnIndex = v; },
+    get turnManager() { return turnManager; }, set turnManager(v) { turnManager = v; },
+    get pokerHandlers() { return pokerHandlers; }, set pokerHandlers(v) { pokerHandlers = v; },
+    get blackjackHandlers() { return blackjackHandlers; }, set blackjackHandlers(v) { blackjackHandlers = v; },
+    get playerHeuristics() { return playerHeuristics; }, set playerHeuristics(v) { Object.assign(playerHeuristics, v); },
+  };
+}
+
 // Provide a legacy state view for single-tenant mode so we can conditionally
 // switch to channel-scoped state when MULTITENANT_ENABLED is true.
 function getStateForChannel(channel = DEFAULT_CHANNEL) {
-  if (config.MULTITENANT_ENABLED) {
-    return stateAdapter.getState(normalizeChannelName(channel) || DEFAULT_CHANNEL);
-  }
-  return {
-    currentMode,
-    currentDeck,
-    currentHand,
-    roundInProgress,
-    bettingOpen,
-    betAmounts,
-    playerStates,
-    dealerState,
-    waitingQueue,
-    communityCards,
-    blackjackActionTimer,
-    bettingTimer,
-    pokerActionTimer,
-    pokerPhase,
-    pokerCurrentBet,
-    pokerStreetBets,
-    pokerPot,
-    pokerActed,
-    playerTurnOrder,
-    playerTurnIndex,
-    turnManager,
-    pokerHandlers,
-    blackjackHandlers,
-    playerHeuristics,
-    streamerProfile,
-  };
+  if (!config.MULTITENANT_ENABLED) return getLegacyStateView();
+  return stateAdapter.getState(normalizeChannelName(channel) || DEFAULT_CHANNEL);
 }
 
 function ensureHeuristic(login) {
@@ -249,9 +251,11 @@ function getBlackjackTurnDuration(login) {
  * @param {string} login
  * @returns {Object}
  */
-function getPlayerState(login) {
-  if (!playerStates[login]) {
-    playerStates[login] = {
+function getPlayerState(login, channel = DEFAULT_CHANNEL) {
+  const channelName = normalizeChannelName(channel) || DEFAULT_CHANNEL;
+  const state = getStateForChannel(channelName);
+  if (!state.playerStates[login]) {
+    state.playerStates[login] = {
       deck: [],
       hand: [],
       held: [],
@@ -260,7 +264,7 @@ function getPlayerState(login) {
       folded: false,
     };
   }
-  return playerStates[login];
+  return state.playerStates[login];
 }
 
 // Rate limiting
@@ -352,16 +356,17 @@ function recordLoginAttempt(ip) {
  */
 function placeBet(username, amount, channel = DEFAULT_CHANNEL) {
   const channelName = normalizeChannelName(channel) || DEFAULT_CHANNEL;
-  if (!bettingOpen) {
+  const state = getStateForChannel(channelName);
+  if (!state.bettingOpen) {
     logger.debug('Bet rejected; betting closed', { username, channel: channelName });
     return false;
   }
 
-  const maxPlayers = currentMode === 'blackjack' ? MAX_BLACKJACK_PLAYERS : MAX_POKER_PLAYERS;
-  const isNewPlayer = betAmounts[username] === undefined;
-  const activeCount = Object.keys(betAmounts).length + (isNewPlayer ? 1 : 0);
+  const maxPlayers = state.currentMode === 'blackjack' ? MAX_BLACKJACK_PLAYERS : MAX_POKER_PLAYERS;
+  const isNewPlayer = state.betAmounts[username] === undefined;
+  const activeCount = Object.keys(state.betAmounts).length + (isNewPlayer ? 1 : 0);
   if (isNewPlayer && activeCount > maxPlayers) {
-    if (!waitingQueue.includes(username)) waitingQueue.push(username);
+    if (!state.waitingQueue.includes(username)) state.waitingQueue.push(username);
     logger.warn('Bet rejected; table full, added to queue', { username, maxPlayers, channel: channelName });
     return false;
   }
@@ -376,14 +381,14 @@ function placeBet(username, amount, channel = DEFAULT_CHANNEL) {
     return false;
   }
 
-  const existingBet = betAmounts[username] || 0;
+  const existingBet = state.betAmounts[username] || 0;
   const currentBalance = db.getBalance(username);
   const available = currentBalance + existingBet; // refund previous bet to recalc
-  const heur = getHeuristics(username);
+  const heur = getHeuristics(username, channelName);
   const tiltClamp = Math.max(config.GAME_MIN_BET, Math.floor(available * config.TILT_BET_CLAMP_RATIO));
   let targetAmount = amount;
 
-  if (currentMode === 'blackjack') {
+  if (state.currentMode === 'blackjack') {
     if (amount > available * config.TILT_BET_WARN_RATIO) {
       logger.warn('Tilt warning: high bet ratio', { username, amount, available });
     }
@@ -402,12 +407,12 @@ function placeBet(username, amount, channel = DEFAULT_CHANNEL) {
   // Deduct new bet
   const newBalance = available - targetAmount;
   db.setBalance(username, newBalance);
-  betAmounts[username] = targetAmount;
-  if (currentMode === 'poker') {
-    pokerCurrentBet = Math.max(pokerCurrentBet, targetAmount);
+  state.betAmounts[username] = targetAmount;
+  if (state.currentMode === 'poker') {
+    state.pokerCurrentBet = Math.max(state.pokerCurrentBet, targetAmount);
   }
-  waitingQueue = waitingQueue.filter(u => u !== username);
-  recordBetHeuristic(username, targetAmount, newBalance);
+  state.waitingQueue = state.waitingQueue.filter(u => u !== username);
+  recordBetHeuristic(username, targetAmount, newBalance, channelName);
 
   // Ensure profile exists
   db.upsertProfile({
@@ -417,112 +422,122 @@ function placeBet(username, amount, channel = DEFAULT_CHANNEL) {
     role: 'player',
   });
 
-  getPlayerState(username); // init state
+  getPlayerState(username, channelName); // init state
 
   logger.info('Bet placed', { username, amount, remaining: newBalance });
-  const updatedHeur = getHeuristics(username);
+  const updatedHeur = getHeuristics(username, channelName);
   io.to(channelName).emit('playerUpdate', { login: username, bet: amount, balance: newBalance, streak: updatedHeur.streak, tilt: updatedHeur.tilt, channel: channelName });
   emitQueueUpdate(channelName);
   return true;
 }
 
-function startPokerActionTimer() {
-  if (pokerActionTimer) clearTimeout(pokerActionTimer);
-  pokerActionTimer = startPokerPhaseTimer(
-    io,
-    pokerPhase,
-    communityCards,
+function startPokerActionTimer(channel = DEFAULT_CHANNEL) {
+  const channelName = normalizeChannelName(channel) || DEFAULT_CHANNEL;
+  const state = getStateForChannel(channelName);
+  const emitter = io.to(channelName);
+  if (state.pokerActionTimer) clearTimeout(state.pokerActionTimer);
+  state.pokerActionTimer = startPokerPhaseTimer(
+    emitter,
+    state.pokerPhase,
+    state.communityCards,
     config.POKER_ACTION_DURATION_MS,
-    advancePokerPhase
+    () => advancePokerPhase(channelName),
+    channelName
   );
 }
 
-function advancePokerPhase() {
-  if (!roundInProgress || currentMode === 'blackjack') return;
+function advancePokerPhase(channel = DEFAULT_CHANNEL) {
+  const state = getStateForChannel(channel);
+  if (!state.roundInProgress || state.currentMode === 'blackjack') return;
 
   // Reset street bets/current bet for new street
-  pokerStreetBets = {};
-  pokerCurrentBet = 0;
-  pokerActed = new Set();
-  emitPokerBettingState();
+  state.pokerStreetBets = {};
+  state.pokerCurrentBet = 0;
+  state.pokerActed = new Set();
+  emitPokerBettingState(channel);
 
-  if (pokerPhase === 'preflop') {
+  if (state.pokerPhase === 'preflop') {
     // Deal flop
-    communityCards = communityCards.concat(currentDeck.splice(0, 3));
-    pokerPhase = 'flop';
-    startPokerActionTimer();
+    state.communityCards = state.communityCards.concat(state.currentDeck.splice(0, 3));
+    state.pokerPhase = 'flop';
+    startPokerActionTimer(channel);
     return;
   }
-  if (pokerPhase === 'flop') {
-    communityCards = communityCards.concat(currentDeck.splice(0, 1));
-    pokerPhase = 'turn';
-    startPokerActionTimer();
+  if (state.pokerPhase === 'flop') {
+    state.communityCards = state.communityCards.concat(state.currentDeck.splice(0, 1));
+    state.pokerPhase = 'turn';
+    startPokerActionTimer(channel);
     return;
   }
-  if (pokerPhase === 'turn') {
-    communityCards = communityCards.concat(currentDeck.splice(0, 1));
-    pokerPhase = 'river';
-    startPokerActionTimer();
+  if (state.pokerPhase === 'turn') {
+    state.communityCards = state.communityCards.concat(state.currentDeck.splice(0, 1));
+    state.pokerPhase = 'river';
+    startPokerActionTimer(channel);
     return;
   }
-  if (pokerPhase === 'river') {
-    pokerPhase = 'showdown';
-    if (pokerActionTimer) clearTimeout(pokerActionTimer);
-    settleRound({});
+  if (state.pokerPhase === 'river') {
+    state.pokerPhase = 'showdown';
+    if (state.pokerActionTimer) clearTimeout(state.pokerActionTimer);
+    settleRound({ channel });
     return;
   }
 }
 
 function settleRound(data) {
+  const channel = normalizeChannelName(data?.channel || DEFAULT_CHANNEL) || DEFAULT_CHANNEL;
+  const state = getStateForChannel(channel);
+  const emitter = io.to(channel);
   try {
-    const prevBets = { ...betAmounts };
-    if (currentMode === 'blackjack') {
-      const { broke, nextWaiting, nextBetAmounts, nextPlayerStates, payoutPayload } = settleAndEmitBlackjack(io, dealerState, playerStates, betAmounts, waitingQueue, db);
-      waitingQueue = nextWaiting;
-      betAmounts = nextBetAmounts;
-      playerStates = nextPlayerStates;
-      updateHeuristicsAfterPayout(prevBets, payoutPayload, db);
+    const prevBets = { ...state.betAmounts };
+    if (state.currentMode === 'blackjack') {
+      const { broke, nextWaiting, nextBetAmounts, nextPlayerStates, payoutPayload } = settleAndEmitBlackjack(emitter, state.dealerState, state.playerStates, state.betAmounts, state.waitingQueue, db, channel);
+      state.waitingQueue = nextWaiting;
+      state.betAmounts = nextBetAmounts;
+      state.playerStates = nextPlayerStates;
+      updateHeuristicsAfterPayout(prevBets, payoutPayload, db, channel);
       broke.forEach(login => {
-        if (!waitingQueue.includes(login)) waitingQueue.push(login);
+        if (!state.waitingQueue.includes(login)) state.waitingQueue.push(login);
       });
     } else {
-      const { broke, nextWaiting, nextBetAmounts, nextPlayerStates, payoutPayload } = settleAndEmitPoker(io, playerStates, communityCards, betAmounts, waitingQueue, db);
-      waitingQueue = nextWaiting;
-      betAmounts = nextBetAmounts;
-      playerStates = nextPlayerStates;
-      updateHeuristicsAfterPayout(prevBets, payoutPayload, db);
+      const { broke, nextWaiting, nextBetAmounts, nextPlayerStates, payoutPayload } = settleAndEmitPoker(emitter, state.playerStates, state.communityCards, state.betAmounts, state.waitingQueue, db, channel);
+      state.waitingQueue = nextWaiting;
+      state.betAmounts = nextBetAmounts;
+      state.playerStates = nextPlayerStates;
+      updateHeuristicsAfterPayout(prevBets, payoutPayload, db, channel);
       broke.forEach(login => {
-        if (!waitingQueue.includes(login)) waitingQueue.push(login);
+        if (!state.waitingQueue.includes(login)) state.waitingQueue.push(login);
       });
     }
 
-    cleanupAfterSettle();
+    cleanupAfterSettle(channel);
   } catch (err) {
-    logger.error('Failed to process round settle', { error: err.message });
+    logger.error('Failed to process round settle', { error: err.message, channel });
   }
 }
 
-function cleanupAfterSettle() {
-  betAmounts = {};
-  playerStates = {};
-  pokerCurrentBet = 0;
-  pokerStreetBets = {};
-  pokerPot = 0;
-  pokerActed = new Set();
-  roundInProgress = false;
-  bettingOpen = false;
-  if (bettingTimer) clearTimeout(bettingTimer);
-  if (blackjackActionTimer) clearTimeout(blackjackActionTimer);
-  if (pokerActionTimer) clearTimeout(pokerActionTimer);
-  if (turnManager && turnManager.stop) turnManager.stop();
-  emitQueueUpdate();
+function cleanupAfterSettle(channel = DEFAULT_CHANNEL) {
+  const state = getStateForChannel(channel);
+  state.betAmounts = {};
+  state.playerStates = {};
+  state.pokerCurrentBet = 0;
+  state.pokerStreetBets = {};
+  state.pokerPot = 0;
+  state.pokerActed = new Set();
+  state.roundInProgress = false;
+  state.bettingOpen = false;
+  if (state.bettingTimer) clearTimeout(state.bettingTimer);
+  if (state.blackjackActionTimer) clearTimeout(state.blackjackActionTimer);
+  if (state.pokerActionTimer) clearTimeout(state.pokerActionTimer);
+  if (state.turnManager && state.turnManager.stop) state.turnManager.stop();
+  emitQueueUpdate(channel);
 }
 
 function emitQueueUpdate(channel = DEFAULT_CHANNEL) {
   const channelName = normalizeChannelName(channel) || DEFAULT_CHANNEL;
-  const bets = Object.keys(betAmounts).length;
+  const state = getStateForChannel(channelName);
+  const bets = Object.keys(state.betAmounts).length;
   io.to(channelName).emit('queueUpdate', {
-    waiting: waitingQueue,
+    waiting: state.waitingQueue,
     limits: {
       poker: MAX_POKER_PLAYERS,
       blackjack: MAX_BLACKJACK_PLAYERS,
@@ -534,148 +549,153 @@ function emitQueueUpdate(channel = DEFAULT_CHANNEL) {
 
 function openBettingWindow(channel = DEFAULT_CHANNEL) {
   const channelName = normalizeChannelName(channel) || DEFAULT_CHANNEL;
-  if (roundInProgress) return;
+  const state = getStateForChannel(channelName);
+  if (state.roundInProgress) return;
 
   // Reset round state for new betting window
-  betAmounts = {};
-  playerStates = {};
-  pokerCurrentBet = 0;
-  pokerStreetBets = {};
-  pokerPot = 0;
-  pokerActed = new Set();
-  dealerState = { hand: [], shoe: [] };
-  communityCards = [];
-  pokerPhase = 'preflop';
-  playerTurnOrder = [];
-  playerTurnIndex = 0;
+  state.betAmounts = {};
+  state.playerStates = {};
+  state.pokerCurrentBet = 0;
+  state.pokerStreetBets = {};
+  state.pokerPot = 0;
+  state.pokerActed = new Set();
+  state.dealerState = { hand: [], shoe: [] };
+  state.communityCards = [];
+  state.pokerPhase = 'preflop';
+  state.playerTurnOrder = [];
+  state.playerTurnIndex = 0;
 
-  bettingOpen = true;
-  const duration = currentMode === 'blackjack' ? config.BJ_BETTING_DURATION_MS : config.BETTING_PHASE_DURATION_MS;
+  state.bettingOpen = true;
+  const duration = state.currentMode === 'blackjack' ? config.BJ_BETTING_DURATION_MS : config.BETTING_PHASE_DURATION_MS;
   const endsAt = Date.now() + duration;
 
-  if (bettingTimer) clearTimeout(bettingTimer);
-  bettingTimer = setTimeout(() => {
-    bettingOpen = false;
+  if (state.bettingTimer) clearTimeout(state.bettingTimer);
+  state.bettingTimer = setTimeout(() => {
+    state.bettingOpen = false;
     startRoundInternal(channelName);
   }, duration);
 
-  io.to(channelName).emit('bettingStarted', { duration, endsAt, mode: currentMode, channel: channelName });
+  io.to(channelName).emit('bettingStarted', { duration, endsAt, mode: state.currentMode, channel: channelName });
 }
 
 function startRoundInternal(channel = DEFAULT_CHANNEL) {
   const channelName = normalizeChannelName(channel) || DEFAULT_CHANNEL;
+  const state = getStateForChannel(channelName);
+  const channelEmitter = io.to(channelName);
   try {
-  if (bettingTimer) clearTimeout(bettingTimer);
-  bettingOpen = false;
-  roundInProgress = true;
-  playerStates = {};
-  pokerCurrentBet = 0;
-  pokerStreetBets = {};
-  pokerPot = 0;
-  pokerActed = new Set();
-  dealerState = { hand: [], shoe: dealerState.shoe || [] };
-  communityCards = [];
-  pokerPhase = 'preflop';
-  playerTurnOrder = [];
-  playerTurnIndex = 0;
+    if (state.bettingTimer) clearTimeout(state.bettingTimer);
+    state.bettingOpen = false;
+    state.roundInProgress = true;
+    state.playerStates = {};
+    state.pokerCurrentBet = 0;
+    state.pokerStreetBets = {};
+    state.pokerPot = 0;
+    state.pokerActed = new Set();
+    state.dealerState = { hand: [], shoe: state.dealerState.shoe || [] };
+    state.communityCards = [];
+    state.pokerPhase = 'preflop';
+    state.playerTurnOrder = [];
+    state.playerTurnIndex = 0;
 
-    const bettors = Object.keys(betAmounts);
-    if (bettors.length === 0 && currentMode === 'blackjack') {
+    const bettors = Object.keys(state.betAmounts);
+    if (bettors.length === 0 && state.currentMode === 'blackjack') {
       // Blackjack only: auto-place min bet for first queued player if available
-      const next = waitingQueue.shift();
+      const next = state.waitingQueue.shift();
       if (next) {
         const minBet = config.GAME_MIN_BET;
-        placeBet(next, minBet, DEFAULT_CHANNEL);
+        placeBet(next, minBet, channelName);
         emitQueueUpdate(channelName);
       }
     }
 
-    const activeBettors = Object.keys(betAmounts);
+    const activeBettors = Object.keys(state.betAmounts);
     if (activeBettors.length === 0) {
       io.to(channelName).emit('error', 'No bets placed');
-      roundInProgress = false;
+      state.roundInProgress = false;
       return;
     }
 
-    if (currentMode === 'blackjack') {
-      const bj = startBlackjackRound(dealerState, playerStates, activeBettors, MAX_BLACKJACK_PLAYERS);
-      currentHand = bj.dealerHand;
-      currentDeck = bj.dealerShoe;
-      blackjackHandlers = createBlackjackHandlers(
-        io,
-        dealerState,
-        playerStates,
-        () => settleRound({}),
-        startPlayerTurnCycle,
+    if (state.currentMode === 'blackjack') {
+      const bj = startBlackjackRound(state.dealerState, state.playerStates, activeBettors, MAX_BLACKJACK_PLAYERS);
+      state.currentHand = bj.dealerHand;
+      state.currentDeck = bj.dealerShoe;
+      state.blackjackHandlers = createBlackjackHandlers(
+        channelEmitter,
+        state.dealerState,
+        state.playerStates,
+        () => settleRound({ channel: channelName }),
+        () => startPlayerTurnCycle(channelName),
         getBlackjackTurnDuration,
-        recordTimeoutHeuristic
+        recordTimeoutHeuristic,
+        channelName
       );
-      pokerHandlers = null;
+      state.pokerHandlers = null;
     } else {
-      const { deck, community } = startPokerRound(playerStates, activeBettors, MAX_POKER_PLAYERS);
-      currentDeck = deck;
-      communityCards = community;
-      pokerCurrentBet = Math.max(...activeBettors.map(b => betAmounts[b] || 0), 0);
-      pokerStreetBets = {};
-      pokerPot = 0;
+      const { deck, community } = startPokerRound(state.playerStates, activeBettors, MAX_POKER_PLAYERS);
+      state.currentDeck = deck;
+      state.communityCards = community;
+      state.pokerCurrentBet = Math.max(...activeBettors.map(b => state.betAmounts[b] || 0), 0);
+      state.pokerStreetBets = {};
+      state.pokerPot = 0;
       activeBettors.forEach(login => {
-        const amt = betAmounts[login] || 0;
-        pokerStreetBets[login] = amt;
-        pokerPot += amt;
+        const amt = state.betAmounts[login] || 0;
+        state.pokerStreetBets[login] = amt;
+        state.pokerPot += amt;
       });
-      pokerActed = new Set(activeBettors.filter(login => (pokerStreetBets[login] || 0) >= pokerCurrentBet));
-      emitPokerBettingState();
-      pokerHandlers = createPokerHandlers(
-        io,
-        playerStates,
-        communityCards,
-        () => settleRound({}),
+      state.pokerActed = new Set(activeBettors.filter(login => (state.pokerStreetBets[login] || 0) >= state.pokerCurrentBet));
+      emitPokerBettingState(channelName);
+      state.pokerHandlers = createPokerHandlers(
+        channelEmitter,
+        state.playerStates,
+        state.communityCards,
+        () => settleRound({ channel: channelName }),
         (login) => {
-          const streetBet = pokerStreetBets[login] || 0;
-          return streetBet < pokerCurrentBet;
-        }
+          const streetBet = state.pokerStreetBets[login] || 0;
+          return streetBet < state.pokerCurrentBet;
+        },
+        channelName
       );
-      blackjackHandlers = null;
+      state.blackjackHandlers = null;
     }
-    playerTurnOrder = activeBettors.slice(0, currentMode === 'blackjack' ? MAX_BLACKJACK_PLAYERS : MAX_POKER_PLAYERS);
-    playerTurnIndex = 0;
+    state.playerTurnOrder = activeBettors.slice(0, state.currentMode === 'blackjack' ? MAX_BLACKJACK_PLAYERS : MAX_POKER_PLAYERS);
+    state.playerTurnIndex = 0;
 
     logger.info('New round started', { channel: channelName });
     io.to(channelName).emit('roundStarted', {
-      dealerHand: currentMode === 'blackjack' ? currentHand : null,
-      players: Object.entries(playerStates).map(([login, state]) => ({
+      dealerHand: state.currentMode === 'blackjack' ? state.currentHand : null,
+      players: Object.entries(state.playerStates).map(([login, pState]) => ({
         login,
-        hand: state.hand || state.hole || [],
-        hands: state.hands,
-        activeHand: state.activeHand,
-        split: state.isSplit,
-        insurance: state.insurance,
-        insurancePlaced: state.insurancePlaced,
-        bet: betAmounts[login] || 0,
-        streetBet: pokerStreetBets[login] || 0,
+        hand: pState.hand || pState.hole || [],
+        hands: pState.hands,
+        activeHand: pState.activeHand,
+        split: pState.isSplit,
+        insurance: pState.insurance,
+        insurancePlaced: pState.insurancePlaced,
+        bet: state.betAmounts[login] || 0,
+        streetBet: state.pokerStreetBets[login] || 0,
         avatar: (db.getProfile(login)?.settings && JSON.parse(db.getProfile(login).settings || '{}').avatarUrl) || null,
       })),
-      waiting: waitingQueue,
-      community: communityCards,
-      actionEndsAt: currentMode === 'blackjack' ? Date.now() + config.BJ_ACTION_DURATION_MS : null,
-      mode: currentMode,
-      pot: pokerPot,
-      currentBet: pokerCurrentBet,
+      waiting: state.waitingQueue,
+      community: state.communityCards,
+      actionEndsAt: state.currentMode === 'blackjack' ? Date.now() + config.BJ_ACTION_DURATION_MS : null,
+      mode: state.currentMode,
+      pot: state.pokerPot,
+      currentBet: state.pokerCurrentBet,
       channel: channelName,
     });
 
     // Blackjack action timer -> auto settle
-    if (currentMode === 'blackjack') {
-      if (blackjackActionTimer) clearTimeout(blackjackActionTimer);
-      blackjackActionTimer = blackjackHandlers?.actionTimer?.();
+    if (state.currentMode === 'blackjack') {
+      if (state.blackjackActionTimer) clearTimeout(state.blackjackActionTimer);
+      state.blackjackActionTimer = state.blackjackHandlers?.actionTimer?.();
     } else {
       // Poker action timer -> auto advance phase
-      startPokerActionTimer();
+      startPokerActionTimer(channelName);
     }
-    startPlayerTurnCycle();
+    startPlayerTurnCycle(channelName);
   } catch (err) {
-    logger.error('Failed to start round', { error: err.message });
-    roundInProgress = false;
+    logger.error('Failed to start round', { error: err.message, channel: channelName });
+    state.roundInProgress = false;
   }
 }
 
@@ -824,9 +844,12 @@ app.get('/admin/mode', auth.requireAdmin, (_req, res) => {
   return res.json({ mode: 'blackjack' });
 });
 
-app.post('/admin/mode', auth.requireAdmin, (_req, res) => {
+app.post('/admin/mode', auth.requireAdmin, (req, res) => {
   // Lock to blackjack only
   currentMode = 'blackjack';
+  const channel = getChannelFromReq(req);
+  const state = getStateForChannel(channel);
+  state.currentMode = 'blackjack';
   return res.json({ mode: 'blackjack' });
 });
 
@@ -837,13 +860,14 @@ app.post('/admin/mode', auth.requireAdmin, (_req, res) => {
 app.post('/admin/start-round', auth.requireAdmin, (req, res) => {
   try {
     const channel = getChannelFromReq(req);
+    const state = getStateForChannel(channel);
     const startNow = !!(req.body && req.body.startNow);
     if (startNow) {
       startRoundInternal(channel);
-      return res.json({ started: true, mode: currentMode });
+      return res.json({ started: true, mode: state.currentMode });
     }
     openBettingWindow(channel);
-    return res.json({ betting: true, mode: currentMode });
+    return res.json({ betting: true, mode: state.currentMode });
   } catch (err) {
     logger.error('Failed to start round (admin)', { error: err.message });
     return res.status(500).json({ error: 'internal_error' });
@@ -1215,7 +1239,9 @@ app.post('/admin/balance', auth.requireAdmin, (req, res) => {
       newBalance = db.addChips(login, safeAmount);
     }
 
-    io.to(DEFAULT_CHANNEL).emit('playerUpdate', { login, balance: newBalance, bet: 0, channel: DEFAULT_CHANNEL });
+    const channel = getChannelFromReq(req);
+    const channelName = normalizeChannelName(channel) || DEFAULT_CHANNEL;
+    io.to(channelName).emit('playerUpdate', { login, balance: newBalance, bet: 0, channel: channelName });
     logger.info('Admin balance update', { login, amount: safeAmount, mode: mode || 'add', newBalance });
     return res.json({ login, balance: newBalance });
   } catch (err) {
@@ -1303,19 +1329,20 @@ io.on('connection', (socket) => {
    */
   socket.on('startRound', (data) => {
     const channelName = socket.data.channel || DEFAULT_CHANNEL;
+    const state = getStateForChannel(channelName);
     if (!auth.isAdminRequest(socket.handshake)) {
       logger.warn('Unauthorized round start attempt', { socketId: socket.id, channel: channelName });
       return;
     }
 
-    if (roundInProgress) {
+    if (state.roundInProgress) {
       socket.emit('error', 'Round already in progress');
       return;
     }
 
     if (data && data.startNow) {
       startRoundInternal(channelName);
-    } else if (bettingOpen) {
+    } else if (state.bettingOpen) {
       startRoundInternal(channelName);
     } else {
       openBettingWindow(channelName);
@@ -1326,20 +1353,22 @@ io.on('connection', (socket) => {
    * Force a draw/discard decision
    */
   socket.on('forceDraw', (data) => {
+    const channelName = socket.data.channel || DEFAULT_CHANNEL;
+    const state = getStateForChannel(channelName);
     if (!auth.isAdminRequest(socket.handshake)) {
       logger.warn('Unauthorized draw attempt', { socketId: socket.id });
       return;
     }
 
-    if (!roundInProgress) {
+    if (!state.roundInProgress) {
       socket.emit('error', 'No round in progress');
       return;
     }
 
-    if (currentMode === 'blackjack') {
-      settleRound(data);
+    if (state.currentMode === 'blackjack') {
+      settleRound({ ...data, channel: channelName });
     } else {
-      advancePokerPhase();
+      advancePokerPhase(channelName);
     }
   });
 
@@ -1353,7 +1382,8 @@ io.on('connection', (socket) => {
       return;
     }
     const held = Array.isArray(data.held) ? data.held : [];
-    const state = getPlayerState(login);
+    const channelName = socket.data.channel || DEFAULT_CHANNEL;
+    const state = getPlayerState(login, channelName);
     state.held = held.slice(0, 5);
   });
 
@@ -1361,125 +1391,147 @@ io.on('connection', (socket) => {
    * Poker betting: check
    */
   socket.on('playerCheck', () => {
-    if (currentMode !== 'poker' || !roundInProgress) return;
+    const channelName = socket.data.channel || DEFAULT_CHANNEL;
+    const state = getStateForChannel(channelName);
+    if (state.currentMode !== 'poker' || !state.roundInProgress) return;
     const login = socket.data.login;
     if (!validation.validateUsername(login || '')) return;
-    pokerCheckAction(login);
+    pokerCheckAction(login, channelName);
   });
 
   /**
    * Poker betting: call
    */
   socket.on('playerCall', () => {
-    if (currentMode !== 'poker' || !roundInProgress) return;
+    const channelName = socket.data.channel || DEFAULT_CHANNEL;
+    const state = getStateForChannel(channelName);
+    if (state.currentMode !== 'poker' || !state.roundInProgress) return;
     const login = socket.data.login;
     if (!validation.validateUsername(login || '')) return;
-    pokerCallAction(login);
+    pokerCallAction(login, channelName);
   });
 
   /**
    * Poker betting: raise/bet
    */
   socket.on('playerRaise', (data) => {
-    if (currentMode !== 'poker' || !roundInProgress) return;
+    const channelName = socket.data.channel || DEFAULT_CHANNEL;
+    const state = getStateForChannel(channelName);
+    if (state.currentMode !== 'poker' || !state.roundInProgress) return;
     const login = socket.data.login;
     if (!validation.validateUsername(login || '')) return;
     const amount = Number.isInteger(data?.amount) ? data.amount : null;
     if (amount === null) return;
-    pokerRaiseAction(login, amount);
+    pokerRaiseAction(login, amount, channelName);
   });
 
   /**
    * Poker betting: fold
    */
   socket.on('playerFold', () => {
-    if (currentMode !== 'poker' || !roundInProgress) return;
+    const channelName = socket.data.channel || DEFAULT_CHANNEL;
+    const state = getStateForChannel(channelName);
+    if (state.currentMode !== 'poker' || !state.roundInProgress) return;
     const login = socket.data.login;
     if (!validation.validateUsername(login || '')) return;
-    pokerFoldAction(login);
+    pokerFoldAction(login, channelName);
   });
 
   /**
    * Blackjack: player requests a hit
    */
   socket.on('playerHit', (data) => {
-    if (currentMode !== 'blackjack') return;
+    const channelName = socket.data.channel || DEFAULT_CHANNEL;
+    const state = getStateForChannel(channelName);
+    if (state.currentMode !== 'blackjack') return;
     const login = socket.data.login;
     if (!validation.validateUsername(login || '')) {
       logger.warn('Unauthorized playerHit: missing/invalid login', { socketId: socket.id });
       return;
     }
-    blackjackHandlers.hit(login);
+    state.blackjackHandlers?.hit?.(login);
   });
 
   /**
    * Blackjack: player stands
    */
   socket.on('playerStand', (data) => {
-    if (currentMode !== 'blackjack') return;
+    const channelName = socket.data.channel || DEFAULT_CHANNEL;
+    const state = getStateForChannel(channelName);
+    if (state.currentMode !== 'blackjack') return;
     const login = socket.data.login;
     if (!validation.validateUsername(login || '')) {
       logger.warn('Unauthorized playerStand: missing/invalid login', { socketId: socket.id });
       return;
     }
-    blackjackHandlers.stand(login);
+    state.blackjackHandlers?.stand?.(login);
   });
 
   /**
    * Blackjack: player double down
    */
   socket.on('playerDouble', () => {
-    if (currentMode !== 'blackjack') return;
+    const channelName = socket.data.channel || DEFAULT_CHANNEL;
+    const state = getStateForChannel(channelName);
+    if (state.currentMode !== 'blackjack') return;
     const login = socket.data.login;
     if (!validation.validateUsername(login || '')) {
       logger.warn('Unauthorized playerDouble: missing/invalid login', { socketId: socket.id });
       return;
     }
-    blackjackHandlers.doubleDown(login, betAmounts, db);
+    state.blackjackHandlers?.doubleDown?.(login, state.betAmounts, db);
   });
 
   /**
    * Blackjack: player surrender (forfeit half bet)
    */
   socket.on('playerSurrender', () => {
-    if (currentMode !== 'blackjack') return;
+    const channelName = socket.data.channel || DEFAULT_CHANNEL;
+    const state = getStateForChannel(channelName);
+    if (state.currentMode !== 'blackjack') return;
     const login = socket.data.login;
     if (!validation.validateUsername(login || '')) {
       logger.warn('Unauthorized playerSurrender: missing/invalid login', { socketId: socket.id });
       return;
     }
-    blackjackHandlers.surrender(login, betAmounts, db);
+    state.blackjackHandlers?.surrender?.(login, state.betAmounts, db);
   });
 
   /**
    * Blackjack: player insurance (max 50% of bet when dealer shows Ace)
    */
   socket.on('playerInsurance', (data) => {
-    if (currentMode !== 'blackjack') return;
+    const channelName = socket.data.channel || DEFAULT_CHANNEL;
+    const state = getStateForChannel(channelName);
+    if (state.currentMode !== 'blackjack') return;
     const login = socket.data.login;
     const amount = data && Number(data.amount);
     if (!validation.validateUsername(login || '')) {
       logger.warn('Unauthorized playerInsurance: missing/invalid login', { socketId: socket.id });
       return;
     }
-    blackjackHandlers.insurance(login, amount, betAmounts, db);
+    state.blackjackHandlers?.insurance?.(login, amount, state.betAmounts, db);
   });
 
   /**
    * Blackjack: player split (duplicates bet and plays two hands)
    */
   socket.on('playerSplit', () => {
-    if (currentMode !== 'blackjack') return;
+    const channelName = socket.data.channel || DEFAULT_CHANNEL;
+    const state = getStateForChannel(channelName);
+    if (state.currentMode !== 'blackjack') return;
     const login = socket.data.login;
     if (!validation.validateUsername(login || '')) {
       logger.warn('Unauthorized playerSplit: missing/invalid login', { socketId: socket.id });
       return;
     }
-    blackjackHandlers.split(login, betAmounts, db);
+    state.blackjackHandlers?.split?.(login, state.betAmounts, db);
   });
 
   socket.on('playerSwitchHand', (data) => {
-    if (currentMode !== 'blackjack') return;
+    const channelName = socket.data.channel || DEFAULT_CHANNEL;
+    const state = getStateForChannel(channelName);
+    if (state.currentMode !== 'blackjack') return;
     const login = socket.data.login;
     if (!validation.validateUsername(login || '')) {
       logger.warn('Unauthorized playerSwitchHand: missing/invalid login', { socketId: socket.id });
@@ -1487,7 +1539,7 @@ io.on('connection', (socket) => {
     }
     const index = Number.isInteger(data?.index) ? data.index : null;
     if (index !== null) {
-      blackjackHandlers.switchHand(login, index);
+      state.blackjackHandlers?.switchHand?.(login, index);
     }
   });
 
@@ -1542,6 +1594,8 @@ async function initializeTwitch() {
       const isBotAdmin = config.BOT_ADMIN_LOGIN && loginLower === config.BOT_ADMIN_LOGIN.toLowerCase();
       const canAdjustBalance = isBroadcaster || isMod || isStreamer || isBotAdmin;
       const content = message.trim();
+      const channelName = normalizeChannelName(channel) || DEFAULT_CHANNEL;
+      const channelState = getStateForChannel(channelName);
 
       logger.debug('Twitch message', { username, message: content });
 
@@ -1549,7 +1603,7 @@ async function initializeTwitch() {
       if (content.startsWith('!bet ')) {
         const parts = content.split(/\s+/);
         const amount = parseInt(parts[1], 10);
-        placeBet(username, amount, DEFAULT_CHANNEL);
+        placeBet(username, amount, channelName);
       } else if (content.toLowerCase().startsWith('!addchips')) {
         if (!canAdjustBalance) return;
         const parts = content.split(/\s+/);
@@ -1567,7 +1621,7 @@ async function initializeTwitch() {
           role: 'player',
         });
         const newBalance = db.addChips(target, amt);
-        io.to(DEFAULT_CHANNEL).emit('playerUpdate', { login: target, balance: newBalance, bet: 0, channel: DEFAULT_CHANNEL });
+        io.to(channelName).emit('playerUpdate', { login: target, balance: newBalance, bet: 0, channel: channelName });
         logger.info('Chips added via chat', { actor: username, target, amount: amt, newBalance });
         tmiClient.say(channel, `Added ${amt} chips to ${target}. New balance: ${newBalance}`);
       } else if (content.toLowerCase().startsWith('!joinme ')) {
@@ -1585,12 +1639,12 @@ async function initializeTwitch() {
         joinBotChannel(requestedChannel);
         tmiClient.say(channel, `Bot joining ${requestedChannel}`);
       } else if (content === '!hit') {
-        if (currentMode === 'blackjack') {
-          blackjackHandlers.hit(username);
+        if (channelState.currentMode === 'blackjack') {
+          channelState.blackjackHandlers?.hit?.(username);
         }
       } else if (content === '!stand') {
-        if (currentMode === 'blackjack') {
-          blackjackHandlers.stand(username);
+        if (channelState.currentMode === 'blackjack') {
+          channelState.blackjackHandlers?.stand?.(username);
         }
       } else if (content.startsWith('!hold ')) {
         const indices = content
@@ -1598,7 +1652,7 @@ async function initializeTwitch() {
           .split(',')
           .map(n => parseInt(n, 10))
           .filter(n => Number.isInteger(n) && n >= 0 && n < 5);
-        const state = getPlayerState(username);
+        const state = getPlayerState(username, channelName);
         state.held = indices.slice(0, 5);
       }
     });
@@ -1700,123 +1754,134 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Start server
 start();
-function startPlayerTurnCycle() {
-  if (turnManager && turnManager.stop) turnManager.stop();
-  if (!playerTurnOrder.length) return;
+function startPlayerTurnCycle(channel = DEFAULT_CHANNEL) {
+  const state = getStateForChannel(channel);
+  if (state.turnManager && state.turnManager.stop) state.turnManager.stop();
+  if (!state.playerTurnOrder.length) return;
 
-  const activeOrder = playerTurnOrder.filter(login => {
-    const state = getPlayerState(login);
-    if (currentMode === 'blackjack') {
-      return !state.stood && !state.busted;
+  const activeOrder = state.playerTurnOrder.filter(login => {
+    const pState = getPlayerState(login, channel);
+    if (state.currentMode === 'blackjack') {
+      return !pState.stood && !pState.busted;
     }
-    return !state.folded;
+    return !pState.folded;
   });
 
   if (!activeOrder.length) {
-    settleRound({});
+    settleRound({ channel });
     return;
   }
 
-  if (currentMode === 'blackjack') {
-    turnManager = blackjackHandlers?.turnManager?.(activeOrder);
+  if (state.currentMode === 'blackjack') {
+    state.turnManager = state.blackjackHandlers?.turnManager?.(activeOrder);
   } else {
     const duration = config.POKER_ACTION_DURATION_MS;
-    turnManager = pokerHandlers?.turnManager?.(activeOrder, duration, (login) => {
+    state.turnManager = state.pokerHandlers?.turnManager?.(activeOrder, duration, (login) => {
       if (!login) return;
-      const streetBet = pokerStreetBets[login] || 0;
-      if (streetBet >= pokerCurrentBet) {
-        pokerActed.add(login);
-        emitPokerBettingState();
-        maybeAdvanceAfterAction();
+      const streetBet = state.pokerStreetBets[login] || 0;
+      if (streetBet >= state.pokerCurrentBet) {
+        state.pokerActed.add(login);
+        emitPokerBettingState(channel);
+        maybeAdvanceAfterAction(channel);
       } else {
-        pokerFoldAction(login);
+        pokerFoldAction(login, channel);
       }
     });
   }
 
-  if (turnManager && turnManager.start) {
-    turnManager.start();
+  if (state.turnManager && state.turnManager.start) {
+    state.turnManager.start();
   }
 }
 
-function emitPokerBettingState() {
-  const channel = DEFAULT_CHANNEL;
-  io.to(channel).emit('pokerBetting', {
-    pot: pokerPot,
-    currentBet: pokerCurrentBet,
-    streetBets: pokerStreetBets,
-    totalBets: betAmounts,
-    phase: pokerPhase,
-    channel,
+function emitPokerBettingState(channel = DEFAULT_CHANNEL) {
+  const state = getStateForChannel(channel);
+  const normalized = normalizeChannelName(channel) || DEFAULT_CHANNEL;
+  io.to(normalized).emit('pokerBetting', {
+    pot: state.pokerPot,
+    currentBet: state.pokerCurrentBet,
+    streetBets: state.pokerStreetBets,
+    totalBets: state.betAmounts,
+    phase: state.pokerPhase,
+    channel: normalized,
   });
 }
 
-function maybeAdvanceAfterAction() {
-  const active = playerTurnOrder.filter(login => !getPlayerState(login).folded);
+function maybeAdvanceAfterAction(channel = DEFAULT_CHANNEL) {
+  const state = getStateForChannel(channel);
+  const active = state.playerTurnOrder.filter(login => !getPlayerState(login, channel).folded);
   if (active.length <= 1) {
-    settleRound({});
+    settleRound({ channel });
     return;
   }
 
-  const allMatched = active.every(login => (pokerStreetBets[login] || 0) >= pokerCurrentBet);
-  const allActed = active.every(login => pokerActed.has(login));
+  const allMatched = active.every(login => (state.pokerStreetBets[login] || 0) >= state.pokerCurrentBet);
+  const allActed = active.every(login => state.pokerActed.has(login));
   if (allMatched && allActed) {
-    advancePokerPhase();
+    advancePokerPhase(channel);
   }
 }
 
-function pokerFoldAction(login) {
-  const state = getPlayerState(login);
-  if (!state || state.folded) return;
-  state.folded = true;
-  pokerActed.add(login);
-  io.to(DEFAULT_CHANNEL).emit('playerUpdate', { login, folded: true, channel: DEFAULT_CHANNEL });
-  maybeAdvanceAfterAction();
-  startPlayerTurnCycle();
+function pokerFoldAction(login, channel = DEFAULT_CHANNEL) {
+  const channelName = normalizeChannelName(channel) || DEFAULT_CHANNEL;
+  const state = getStateForChannel(channelName);
+  const playerState = getPlayerState(login, channelName);
+  if (!playerState || playerState.folded) return;
+  playerState.folded = true;
+  state.pokerActed.add(login);
+  io.to(channelName).emit('playerUpdate', { login, folded: true, channel: channelName });
+  maybeAdvanceAfterAction(channelName);
+  startPlayerTurnCycle(channelName);
 }
 
-function pokerCheckAction(login) {
-  const streetBet = pokerStreetBets[login] || 0;
-  if (streetBet < pokerCurrentBet) return;
-  pokerActed.add(login);
-  emitPokerBettingState();
-  maybeAdvanceAfterAction();
-  startPlayerTurnCycle();
+function pokerCheckAction(login, channel = DEFAULT_CHANNEL) {
+  const channelName = normalizeChannelName(channel) || DEFAULT_CHANNEL;
+  const state = getStateForChannel(channelName);
+  const streetBet = state.pokerStreetBets[login] || 0;
+  if (streetBet < state.pokerCurrentBet) return;
+  state.pokerActed.add(login);
+  emitPokerBettingState(channelName);
+  maybeAdvanceAfterAction(channelName);
+  startPlayerTurnCycle(channelName);
 }
 
-function pokerCallAction(login) {
-  const streetBet = pokerStreetBets[login] || 0;
-  const needed = Math.max(0, pokerCurrentBet - streetBet);
+function pokerCallAction(login, channel = DEFAULT_CHANNEL) {
+  const channelName = normalizeChannelName(channel) || DEFAULT_CHANNEL;
+  const state = getStateForChannel(channelName);
+  const streetBet = state.pokerStreetBets[login] || 0;
+  const needed = Math.max(0, state.pokerCurrentBet - streetBet);
   if (needed === 0) {
-    pokerCheckAction(login);
+    pokerCheckAction(login, channelName);
     return;
   }
   const balance = db.getBalance(login);
   if (needed > balance) return;
   db.setBalance(login, balance - needed);
-  betAmounts[login] = (betAmounts[login] || 0) + needed;
-  pokerStreetBets[login] = streetBet + needed;
-  pokerPot += needed;
-  pokerActed.add(login);
-  emitPokerBettingState();
-  maybeAdvanceAfterAction();
-  startPlayerTurnCycle();
+  state.betAmounts[login] = (state.betAmounts[login] || 0) + needed;
+  state.pokerStreetBets[login] = streetBet + needed;
+  state.pokerPot += needed;
+  state.pokerActed.add(login);
+  emitPokerBettingState(channelName);
+  maybeAdvanceAfterAction(channelName);
+  startPlayerTurnCycle(channelName);
 }
 
-function pokerRaiseAction(login, amount) {
-  const streetBet = pokerStreetBets[login] || 0;
-  if (!Number.isInteger(amount) || amount <= pokerCurrentBet || amount < config.GAME_MIN_BET || amount > config.GAME_MAX_BET) {
+function pokerRaiseAction(login, amount, channel = DEFAULT_CHANNEL) {
+  const channelName = normalizeChannelName(channel) || DEFAULT_CHANNEL;
+  const state = getStateForChannel(channelName);
+  const streetBet = state.pokerStreetBets[login] || 0;
+  if (!Number.isInteger(amount) || amount <= state.pokerCurrentBet || amount < config.GAME_MIN_BET || amount > config.GAME_MAX_BET) {
     return;
   }
   const needed = amount - streetBet;
   const balance = db.getBalance(login);
   if (needed > balance) return;
   db.setBalance(login, balance - needed);
-  betAmounts[login] = (betAmounts[login] || 0) + needed;
-  pokerStreetBets[login] = amount;
-  pokerCurrentBet = amount;
-  pokerPot += needed;
-  pokerActed = new Set([login]); // others must respond
-  emitPokerBettingState();
-  startPlayerTurnCycle();
+  state.betAmounts[login] = (state.betAmounts[login] || 0) + needed;
+  state.pokerStreetBets[login] = amount;
+  state.pokerCurrentBet = amount;
+  state.pokerPot += needed;
+  state.pokerActed = new Set([login]); // others must respond
+  emitPokerBettingState(channelName);
+  startPlayerTurnCycle(channelName);
 }

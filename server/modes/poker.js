@@ -99,12 +99,14 @@ function settlePokerRound(playerStates, communityCards, betAmounts, waitingQueue
  * @param {Array} communityCards
  * @param {Object} betAmounts
  * @param {Array<string>} waitingQueue
+ * @param {string} channel
  * @returns {{broke:Array<string>}}
  */
-function settleAndEmit(io, playerStates, communityCards, betAmounts, waitingQueue) {
+function settleAndEmit(io, playerStates, communityCards, betAmounts, waitingQueue, channel) {
   const { roundResult, payoutPayload } = settlePokerRound(playerStates, communityCards, betAmounts, waitingQueue, db);
-  io.emit('roundResult', roundResult);
-  io.emit('payouts', payoutPayload);
+  const chan = channel || undefined;
+  io.emit('roundResult', { ...roundResult, channel: chan });
+  io.emit('payouts', { ...payoutPayload, channel: chan });
 
   const broke = [];
   Object.keys(playerStates).forEach(login => {
@@ -129,11 +131,12 @@ function settleAndEmit(io, playerStates, communityCards, betAmounts, waitingQueu
  * @param {Array} communityCards
  * @param {number} durationMs
  * @param {Function} onExpire - callback to advance phase
+ * @param {string} channel
  * @returns {NodeJS.Timeout}
  */
-function startPokerPhaseTimer(io, phase, communityCards, durationMs, onExpire) {
+function startPokerPhaseTimer(io, phase, communityCards, durationMs, onExpire, channel) {
   const endsAt = Date.now() + durationMs;
-  io.emit('pokerPhase', { phase, community: communityCards, actionEndsAt: endsAt });
+  io.emit('pokerPhase', { phase, community: communityCards, actionEndsAt: endsAt, channel: channel || undefined });
   const timer = setTimeout(onExpire, durationMs);
   return timer;
 }
@@ -144,12 +147,14 @@ function startPokerPhaseTimer(io, phase, communityCards, durationMs, onExpire) {
  * @param {Array<string>} turnOrder
  * @param {number} durationMs
  * @param {Function} onTimeout(login)
+ * @param {string} channel
  * @returns {{start: Function, stop: Function}}
  */
-function createPokerTurnManager(io, turnOrder, durationMs, onTimeout, playerStates = {}) {
+function createPokerTurnManager(io, turnOrder, durationMs, onTimeout, playerStates = {}, channel) {
   const order = Array.from(turnOrder);
   let index = 0;
   let timer = null;
+  const chan = channel || undefined;
 
   const scheduleNext = () => {
     // Skip folded players as we walk the order
@@ -162,7 +167,7 @@ function createPokerTurnManager(io, turnOrder, durationMs, onTimeout, playerStat
       }
 
       const endsAt = Date.now() + durationMs;
-      io.emit('playerTurn', { login, endsAt });
+      io.emit('playerTurn', { login, endsAt, channel: chan });
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => {
         onTimeout && onTimeout(login, false);
@@ -202,9 +207,12 @@ function foldPlayerState(playerStates, login) {
  * @param {Object} playerStates
  * @param {Array} communityCards
  * @param {Function} onSettle
+ * @param {Function} shouldFoldOnTimeout
+ * @param {string} channel
  * @returns {Object} handlers
  */
-function createPokerHandlers(io, playerStates, communityCards, onSettle = () => {}, shouldFoldOnTimeout = () => true) {
+function createPokerHandlers(io, playerStates, communityCards, onSettle = () => {}, shouldFoldOnTimeout = () => true, channel) {
+  const chan = channel || undefined;
   const settleIfDone = () => {
     const activeCount = Object.values(playerStates).filter(state => !state.folded).length;
     if (activeCount <= 1) {
@@ -214,7 +222,7 @@ function createPokerHandlers(io, playerStates, communityCards, onSettle = () => 
 
   const fold = (login) => {
     foldPlayerState(playerStates, login);
-    io.emit('playerUpdate', { login, folded: true });
+    io.emit('playerUpdate', { login, folded: true, channel: chan });
     settleIfDone();
   };
 
@@ -226,13 +234,13 @@ function createPokerHandlers(io, playerStates, communityCards, onSettle = () => 
             if (shouldFoldOnTimeout(login)) {
               fold(login);
             } else {
-              io.emit('playerUpdate', { login, checked: true });
+              io.emit('playerUpdate', { login, checked: true, channel: chan });
             }
           }
           if (empty) onSettle();
           else settleIfDone();
         };
-    return createPokerTurnManager(io, order, durationMs, timeoutHandler, playerStates);
+    return createPokerTurnManager(io, order, durationMs, timeoutHandler, playerStates, channel);
   };
 
   return {

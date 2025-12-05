@@ -4,6 +4,10 @@
 
 const SOCKET_URL = typeof getBackendBase === 'function' ? getBackendBase() : '';
 const overlayChannel = typeof getChannelParam === 'function' ? getChannelParam() : '';
+const isEventForChannel = (payload) => {
+  if (!payload || !payload.channel) return true;
+  return payload.channel === overlayChannel;
+};
 const socket = io(SOCKET_URL || undefined, {
   reconnection: true,
   reconnectionDelay: 1000,
@@ -147,6 +151,7 @@ socket.on('disconnect', () => {
 });
 
 socket.on('state', (data) => {
+  if (!isEventForChannel(data)) return;
   console.log('State received:', data);
   updateUI(data);
   overlayPlayers = data.players || [];
@@ -168,6 +173,7 @@ socket.on('profile', (profile) => {
 });
 
 socket.on('roundStarted', (data) => {
+  if (!isEventForChannel(data)) return;
   console.log('Round started:', data);
   currentPhase = 'dealing';
   currentDealerHand = data.dealerHand || [];
@@ -198,6 +204,7 @@ socket.on('roundStarted', (data) => {
 });
 
 socket.on('bettingStarted', (data) => {
+  if (!isEventForChannel(data)) return;
   console.log('Betting started');
   currentPhase = 'betting';
   updatePhaseUI('Place Your Bets');
@@ -206,6 +213,7 @@ socket.on('bettingStarted', (data) => {
 });
 
 socket.on('roundResult', (data) => {
+  if (!isEventForChannel(data)) return;
   console.log('Round result:', data);
   currentPhase = 'result';
   currentDealerHand = data.dealerHand || [];
@@ -227,6 +235,7 @@ socket.on('roundResult', (data) => {
 });
 
 socket.on('payouts', (data) => {
+  if (!isEventForChannel(data)) return;
   console.log('Payouts:', data);
   const winners = data.winners || [];
   if (winners.length > 0) {
@@ -283,6 +292,7 @@ socket.on('payouts', (data) => {
 });
 
 socket.on('pokerBetting', (data) => {
+  if (!isEventForChannel(data)) return;
   const potEl = document.getElementById('pot-value');
   const betEl = document.getElementById('current-bet');
   const potVal = (data && data.pot) || 0;
@@ -307,6 +317,7 @@ socket.on('pokerBetting', (data) => {
 });
 
 socket.on('playerUpdate', (data) => {
+  if (!isEventForChannel(data)) return;
   if (!data || !data.login) return;
   const idx = overlayPlayers.findIndex(p => p.login === data.login);
   if (idx !== -1) {
@@ -558,10 +569,12 @@ function renderQueue(waiting) {
 }
 
 socket.on('queueUpdate', (data) => {
+  if (!isEventForChannel(data)) return;
   renderQueue(data.waiting || []);
 });
 
 socket.on('bettingStarted', (data) => {
+  if (!isEventForChannel(data)) return;
   startCountdown(Date.now() + (data.duration || 0));
   updatePhaseUI('Betting');
   setPhaseLabel('Betting');
@@ -569,12 +582,14 @@ socket.on('bettingStarted', (data) => {
   startPlayerActionTimer(data.endsAt || Date.now() + (data.duration || 0));
 });
 
-socket.on('actionPhaseEnded', () => {
+socket.on('actionPhaseEnded', (data) => {
+  if (!isEventForChannel(data)) return;
   updatePhaseUI('Action Ended');
   startPlayerActionTimer(null);
 });
 
 socket.on('pokerPhase', (data) => {
+  if (!isEventForChannel(data)) return;
   setPhaseLabel(data.phase || '');
   renderCommunityCards(data.community || []);
   if (data.actionEndsAt) {
@@ -588,6 +603,7 @@ socket.on('pokerPhase', (data) => {
 });
 
 socket.on('playerTurn', (data) => {
+  if (!isEventForChannel(data)) return;
   const login = data.login;
   const endsAt = data.endsAt;
   highlightPlayer(login);
