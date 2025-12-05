@@ -836,7 +836,8 @@ app.post('/profile', (req, res) => {
   }
 
   if (avatarUrl && typeof avatarUrl === 'string') {
-    safeSettings.avatarUrl = validation.sanitizeString(avatarUrl);
+    const sanitized = validation.sanitizeUrl(avatarUrl);
+    if (sanitized) safeSettings.avatarUrl = sanitized;
   }
 
   try {

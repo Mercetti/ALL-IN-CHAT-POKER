@@ -50,6 +50,7 @@ function updateForm() {
   document.getElementById('profile-display-name').value = profileData.display_name || profileData.username;
   document.getElementById('profile-theme').value = profileData.theme || 'dark';
   document.getElementById('profile-starting-chips').value = profileData.startingChips || 1000;
+  document.getElementById('profile-avatar').value = profileData.avatarUrl || '';
 }
 
 function updatePreview() {
@@ -106,6 +107,10 @@ function updateLivePreview() {
   document.getElementById('preview-display-name').textContent = document.getElementById('profile-display-name').value || profileData.username;
   document.getElementById('preview-theme').textContent = document.getElementById('profile-theme').value;
   document.getElementById('preview-chips').textContent = document.getElementById('profile-starting-chips').value;
+  const avatar = document.getElementById('preview-avatar');
+  if (avatar) {
+    avatar.src = document.getElementById('profile-avatar').value || 'https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/default-profile_image.png';
+  }
 }
 
 function updateUnsavedWarning() {
@@ -130,14 +135,17 @@ async function saveProfile(e) {
     await apiCall('/profile', {
       method: 'POST',
       body: JSON.stringify(updatedData),
+      useUserToken: true,
     });
 
     profileData.display_name = updatedData.display_name;
     profileData.theme = updatedData.settings.theme;
     profileData.startingChips = updatedData.settings.startingChips;
+    profileData.avatarUrl = updatedData.settings.avatarUrl;
 
     hasUnsavedChanges = false;
     updateUnsavedWarning();
+    updatePreview();
     Toast.success('Profile saved successfully');
   } catch (err) {
     Toast.error('Save failed: ' + err.message);
