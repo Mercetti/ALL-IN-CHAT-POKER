@@ -782,7 +782,16 @@ app.get('/export', auth.requireAdmin, (req, res) => {
  */
 app.get('/profile', (req, res) => {
   try {
-    const login = auth.extractUserLogin(req);
+    const tokenLogin = auth.extractUserLogin(req);
+    const queryLogin = (req.query && req.query.login) || null;
+    const isAdmin = auth.isAdminRequest(req);
+
+    // Determine which login to serve
+    let login = tokenLogin;
+    if (isAdmin && validation.validateUsername(queryLogin || '')) {
+      login = queryLogin;
+    }
+
     if (!validation.validateUsername(login || '')) {
       return res.status(401).json({ error: 'unauthorized' });
     }

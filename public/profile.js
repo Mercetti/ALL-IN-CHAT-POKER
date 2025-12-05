@@ -11,13 +11,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
   const username = params.get('user') || 'guest';
 
+  // Require user token; redirect to login if missing
+  const token = getUserToken();
+  if (!token) {
+    window.location.href = '/login.html';
+    return;
+  }
+
   await loadProfile(username);
   setupEventListeners();
 });
 
 async function loadProfile(username) {
   try {
-    const data = await apiCall(`/profile?login=${encodeURIComponent(username)}`);
+    const data = await apiCall(`/profile?login=${encodeURIComponent(username)}`, { useUserToken: true });
 
     profileData = {
       username: data?.profile?.login || username,
