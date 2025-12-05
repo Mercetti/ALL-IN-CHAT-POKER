@@ -348,8 +348,8 @@ function placeBet(username, amount) {
   getPlayerState(username); // init state
 
   logger.info('Bet placed', { username, amount, remaining: newBalance });
-  const heur = getHeuristics(username);
-  io.emit('playerUpdate', { login: username, bet: amount, balance: newBalance, streak: heur.streak, tilt: heur.tilt });
+  const updatedHeur = getHeuristics(username);
+  io.emit('playerUpdate', { login: username, bet: amount, balance: newBalance, streak: updatedHeur.streak, tilt: updatedHeur.tilt });
   emitQueueUpdate();
   return true;
 }
