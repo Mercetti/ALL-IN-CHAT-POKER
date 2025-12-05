@@ -85,8 +85,10 @@ const logoutBtn = document.getElementById('logout-btn');
 if (logoutBtn) {
   logoutBtn.addEventListener('click', () => {
     clearUserToken && clearUserToken();
+    clearToken && clearToken();
     updateUserBadge();
     Toast.info('Signed out');
+    window.location.href = '/login.html';
   });
 }
 

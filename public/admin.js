@@ -107,6 +107,7 @@ function setupEventListeners() {
   // Logout
   document.getElementById('btn-logout')?.addEventListener('click', () => {
     clearToken();
+    clearUserToken();
     window.location.href = '/login.html';
   });
 
