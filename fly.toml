@@ -50,4 +50,5 @@ primary_region = "iad"
 
 # Optional bot process group (run separately with a machine or scaling group)
 [processes]
+  app = "node server.js"
   bot = "node bot/bot.js"
