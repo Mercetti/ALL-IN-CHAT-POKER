@@ -102,7 +102,10 @@ function checkDatabase() {
  * @returns {Object}
  */
 function checkRedis() {
-  if (!config.REDIS_URL) {
+  const redisUrl = (config.REDIS_URL || '').trim();
+
+  // Treat empty/whitespace as not configured
+  if (!redisUrl) {
     return {
       ok: true,
       details: { configured: false },
@@ -111,10 +114,10 @@ function checkRedis() {
 
   // Just verify URL format, actual connection tested when client initializes
   try {
-    new URL(config.REDIS_URL);
+    new URL(redisUrl);
     return {
       ok: true,
-      details: { configured: true, url: config.REDIS_URL },
+      details: { configured: true, url: redisUrl },
     };
   } catch (err) {
     return {
