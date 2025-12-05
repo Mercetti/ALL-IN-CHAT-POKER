@@ -663,6 +663,25 @@ app.post('/admin/mode', auth.requireAdmin, (req, res) => {
 });
 
 /**
+ * Start a round (admin)
+ * If startNow is true, starts immediately; otherwise opens betting window.
+ */
+app.post('/admin/start-round', auth.requireAdmin, (req, res) => {
+  try {
+    const startNow = !!(req.body && req.body.startNow);
+    if (startNow) {
+      startRoundInternal();
+      return res.json({ started: true, mode: currentMode });
+    }
+    openBettingWindow();
+    return res.json({ betting: true, mode: currentMode });
+  } catch (err) {
+    logger.error('Failed to start round (admin)', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+/**
  * Player login via Twitch user access token -> user JWT
  */
 app.post('/user/login', async (req, res) => {

@@ -23,3 +23,6 @@ node bot/bot.js
 Commands in chat:
 - `!ping` -> replies `pong`
 - `!status` -> calls `/health` with admin token and reports OK/failed
+- `!start` -> opens betting window (admin token required)
+- `!startnow` -> starts round immediately (admin token required)
+- `!mode poker|blackjack` -> sets game mode (admin token required)
