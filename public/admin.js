@@ -7,6 +7,8 @@ let adminSocket = null;
 let streamerLogin = '';
 let botAdminLogin = '';
 let useUserToken = false;
+let adminSocketReady = false;
+const NOT_CONNECTED_MSG = 'Not connected to server. Please refresh and try again.';
 const adjustLoginInput = document.getElementById('adjust-login');
 const adjustAmountInput = document.getElementById('adjust-amount');
 const adjustModeSelect = document.getElementById('adjust-mode');
@@ -89,11 +91,51 @@ document.addEventListener('DOMContentLoaded', async () => {
   setInterval(loadAuditLog, 60000);
 });
 
+async function ensureSocketConnected() {
+  if (!adminSocket) initSocket();
+  if (adminSocket?.connected) return true;
+
+  return new Promise((resolve) => {
+    if (!adminSocket) {
+      resolve(false);
+      return;
+    }
+    const socket = adminSocket;
+    const cleanup = () => {
+      socket.off('connect', onConnect);
+      socket.off('connect_error', onError);
+      clearTimeout(timeout);
+    };
+    const onConnect = () => {
+      cleanup();
+      resolve(true);
+    };
+    const onError = () => {
+      cleanup();
+      resolve(false);
+    };
+    const timeout = setTimeout(() => {
+      cleanup();
+      resolve(false);
+    }, 4000);
+    socket.once('connect', onConnect);
+    socket.once('connect_error', onError);
+    try {
+      socket.connect();
+      Toast.info('Connecting to server...');
+    } catch (e) {
+      cleanup();
+      resolve(false);
+    }
+  });
+}
+
 function setupEventListeners() {
   // Start round
-  document.getElementById('btn-admin-start-round')?.addEventListener('click', () => {
-    if (!adminSocket || !adminSocket.connected) {
-      Toast.error('Not connected to server');
+  document.getElementById('btn-admin-start-round')?.addEventListener('click', async () => {
+    const ready = await ensureSocketConnected();
+    if (!ready) {
+      Toast.error(NOT_CONNECTED_MSG);
       return;
     }
     adminSocket.emit('startRound', {});
@@ -101,9 +143,10 @@ function setupEventListeners() {
   });
 
   // Start now (skip timer)
-  document.getElementById('btn-admin-start-now')?.addEventListener('click', () => {
-    if (!adminSocket || !adminSocket.connected) {
-      Toast.error('Not connected to server');
+  document.getElementById('btn-admin-start-now')?.addEventListener('click', async () => {
+    const ready = await ensureSocketConnected();
+    if (!ready) {
+      Toast.error(NOT_CONNECTED_MSG);
       return;
     }
     adminSocket.emit('startRound', { startNow: true });
@@ -111,9 +154,10 @@ function setupEventListeners() {
   });
 
   // Process draw
-  document.getElementById('btn-admin-draw')?.addEventListener('click', () => {
-    if (!adminSocket || !adminSocket.connected) {
-      Toast.error('Not connected to server');
+  document.getElementById('btn-admin-draw')?.addEventListener('click', async () => {
+    const ready = await ensureSocketConnected();
+    if (!ready) {
+      Toast.error(NOT_CONNECTED_MSG);
       return;
     }
     adminSocket.emit('forceDraw', { held: [] });
@@ -121,9 +165,10 @@ function setupEventListeners() {
   });
 
   // Reset game
-  document.getElementById('btn-reset-game')?.addEventListener('click', () => {
-    if (!adminSocket || !adminSocket.connected) {
-      Toast.error('Not connected to server');
+  document.getElementById('btn-reset-game')?.addEventListener('click', async () => {
+    const ready = await ensureSocketConnected();
+    if (!ready) {
+      Toast.error(NOT_CONNECTED_MSG);
       return;
     }
     if (!confirm('Are you sure you want to reset the game state?')) return;
@@ -372,10 +417,12 @@ function initSocket() {
   });
 
   adminSocket.on('connect', () => {
+    adminSocketReady = true;
     Toast.success('Admin socket connected');
   });
 
   adminSocket.on('disconnect', () => {
+    adminSocketReady = false;
     Toast.warning('Admin socket disconnected');
   });
 
