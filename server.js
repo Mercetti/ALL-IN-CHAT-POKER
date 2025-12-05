@@ -656,7 +656,7 @@ app.post('/user/login', async (req, res) => {
     }
 
   const login = twitchProfile.login;
-  const safeAvatar = twitchProfile.avatarUrl ? validation.sanitizeString(twitchProfile.avatarUrl) : undefined;
+  const safeAvatar = twitchProfile.avatarUrl ? validation.sanitizeUrl(twitchProfile.avatarUrl) : undefined;
 
   db.upsertProfile({
     login,

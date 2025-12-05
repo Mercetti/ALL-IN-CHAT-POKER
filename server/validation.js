@@ -72,10 +72,19 @@ function sanitizeString(str) {
   return str
     .trim()
     .replace(/[<>]/g, '') // Remove angle brackets
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;')
     .substring(0, 1000); // Limit length
+}
+
+/**
+ * Sanitize a URL (simple allowlist for http/https)
+ * @param {string} url
+ * @returns {string}
+ */
+function sanitizeUrl(url) {
+  if (typeof url !== 'string') return '';
+  const trimmed = url.trim();
+  if (!/^https?:\/\//i.test(trimmed)) return '';
+  return trimmed.substring(0, 1000);
 }
 
 /**
@@ -98,5 +107,6 @@ module.exports = {
   validateTwitchLogin,
   validateNumber,
   sanitizeString,
+  sanitizeUrl,
   validateObject,
 };
