@@ -43,9 +43,9 @@ const io = socketIO(server, {
 
 // Middleware
 app.use(express.json());
-// Serve overlay by default at root
+// Serve welcome page at root
 app.get('/', (_req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'welcome.html'));
 });
 // Expose minimal public config for the frontend (no secrets)
 app.get('/public-config.json', (req, res) => {
