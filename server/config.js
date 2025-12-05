@@ -79,4 +79,7 @@ module.exports = {
 
   // Shutdown
   SHUTDOWN_FORCE_TIMEOUT_MS: parseInt(process.env.SHUTDOWN_FORCE_TIMEOUT_MS || '10000', 10),
+
+  // Multi-tenant (feature-flagged)
+  MULTITENANT_ENABLED: (process.env.MULTITENANT_ENABLED || 'false').toLowerCase() === 'true',
 };
