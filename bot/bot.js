@@ -53,8 +53,7 @@ async function bootstrap() {
   const backendChannels = await getBackendChannels();
   const channels = Array.from(new Set([...TARGET_CHANNELS, ...backendChannels])).filter(Boolean);
   if (!channels.length) {
-    console.error('No channels configured to join. Set TARGET_CHANNELS or configure backend channels.');
-    process.exit(1);
+    console.warn('No channels configured to join. Set TARGET_CHANNELS or backend bot channels.');
   }
 
   client = new tmi.Client({
