@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setup | All-In Chat Poker</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="style-theme.css">
+  <link rel="stylesheet" href="style-setup.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <div class="tag">Setup Guide</div>
+      <h1>OBS + Bot Quickstart</h1>
+      <p class="lede">
+        Drop the overlay into OBS, point it at the live backend, then let chat join with <code>!join</code> or bet with <code>!bet &lt;amount&gt;</code>. Use the bot to mirror chat into the game without leaving Twitch.
+      </p>
+      <div class="button-row">
+        <a class="btn" href="/obs-overlay.html" target="_blank" rel="noopener">Open OBS Overlay</a>
+        <a class="btn" href="/admin2.html" target="_blank" rel="noopener">Admin Dashboard</a>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>1) OBS Browser Source</h2>
+        <p class="muted">Add a browser source and point it at the overlay URL.</p>
+        <ol>
+          <li>URL: <code>https://all-in-chat-poker.fly.dev/obs-overlay.html</code></li>
+          <li>Width: 1920 · Height: 1080 (or your canvas)</li>
+          <li>Enable hardware accel if available; set FPS to 60.</li>
+          <li>Place above your background, below webcam.</li>
+        </ol>
+        <p class="muted">If you use a custom domain, replace the host in the URL.</p>
+      </div>
+
+      <div class="card">
+        <h2>2) Bot Environment</h2>
+        <p class="muted">Run the Twitch bot so chat can sit with <code>!join</code> / <code>!bet</code>.</p>
+        <div class="pill">Required env</div>
+        <ul>
+          <li><code>BOT_USERNAME</code> – Twitch bot username</li>
+          <li><code>BOT_OAUTH_TOKEN</code> – Twitch IRC token (oauth:...)</li>
+          <li><code>TARGET_CHANNELS</code> – comma list (no #)</li>
+          <li><code>ADMIN_TOKEN</code> – backend admin bearer</li>
+          <li><code>BOT_JOIN_SECRET</code> – must match Fly secret</li>
+          <li><code>BACKEND_URL</code> – e.g. <code>https://all-in-chat-poker.fly.dev</code></li>
+        </ul>
+        <div class="pill">Start locally</div>
+        <code>npm run bot</code>
+      </div>
+
+      <div class="card">
+        <h2>3) Bot Commands (chat)</h2>
+        <ul>
+          <li><code>!join</code> – seats user with min bet if betting is open</li>
+          <li><code>!bet &lt;amount&gt;</code> – places a bet for the user</li>
+          <li><code>!start</code> / <code>!startnow</code> – admin-only round control</li>
+          <li><code>!leaderboard</code>, <code>!rules</code>, <code>!status</code> – utility</li>
+        </ul>
+        <p class="muted">Ensure <code>BOT_JOIN_SECRET</code> matches the server secret so chat bets are accepted.</p>
+      </div>
+
+      <div class="card">
+        <h2>4) Twitch OAuth Redirect</h2>
+        <p class="muted">Configured to <code>https://all-in-chat-poker.fly.dev/login.html</code>. Match this in the Twitch app settings (add your custom domain too).</p>
+      </div>
+
+      <div class="card">
+        <h2>5) Admin Tips</h2>
+        <ul>
+          <li>Use the Admin dashboard to start rounds or reset the game.</li>
+          <li>Overlay buttons on the admin header open both overlay pages.</li>
+          <li>OBS overlay mirrors player state; use <code>!join</code> to populate quickly.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>6) Troubleshooting</h2>
+        <div class="two-col">
+          <div>
+            <p class="muted"><strong>Overlay empty?</strong><br>Check socket connection in the browser console; ensure the backend URL is reachable.</p>
+            <p class="muted"><strong>Bot not joining?</strong><br>Verify <code>BOT_JOIN_SECRET</code> matches server and betting is open.</p>
+          </div>
+          <div>
+            <p class="muted"><strong>OAuth redirect mismatch?</strong><br>Update Twitch app redirect to exactly match the deployed login URL.</p>
+            <p class="muted"><strong>OBS lag?</strong><br>Lower browser source FPS or disable hardware accel toggle.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
