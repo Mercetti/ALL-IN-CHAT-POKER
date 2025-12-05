@@ -6,14 +6,15 @@
  * Resolve backend base URL (Render in production, same-origin locally)
  */
 function getBackendBase() {
-  if (typeof window === 'undefined') return '';
+ if (typeof window === 'undefined') return '';
   const override = window.__BACKEND_URL || window.BACKEND_URL;
-  const defaultProd =
-    window.location.hostname.endsWith('github.io') || window.location.hostname.endsWith('all-in-chat-poker.com')
-      ? 'https://all-in-chat-poker.onrender.com'
-      : window.location.origin;
-  const base = override || defaultProd;
-  return base ? base.replace(/\/$/, '') : '';
+  if (override) return override.replace(/\/$/, '');
+
+  // Prefer same-origin backend (Fly deployment). Fallback to Render only for GitHub Pages.
+  const origin = window.location.origin;
+  if (origin) return origin.replace(/\/$/, '');
+  if (window.location.hostname.endsWith('github.io')) return 'https://all-in-chat-poker.onrender.com';
+  return '';
 }
 
 function buildApiUrl(endpoint) {
