@@ -79,6 +79,18 @@ const quips = {
     "Sup {user}? I'm watching the table.",
     "Hey {user}, bot at your service.",
     "What's good, {user}? Want me to start a round?",
+    "Hey {user}, I'm all ears. Need chips or hype?",
+    "Howdy {user}! Dealer bot online.",
+  ],
+  curious: [
+    "Good question, {user}. Mostly, I keep the table flowing and hype high.",
+    "I don't have all the answers, {user}, but I can start a round or drop rules.",
+    "I'm just a humble bot, {user}, but I can nudge the dealer and cheer you on.",
+  ],
+  vibes: [
+    "Feeling good vibes. Keep 'em coming.",
+    "Stacking chips and good energy.",
+    "Bots can't feel luck, but I'm sensing a heater.",
   ],
 };
 
@@ -89,6 +101,18 @@ const rules = {
 
 function pick(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
+}
+
+const replyCooldownMs = 8000;
+const lastReplyAt = {};
+
+function shouldReply(channel) {
+  const now = Date.now();
+  if (!lastReplyAt[channel] || now - lastReplyAt[channel] > replyCooldownMs) {
+    lastReplyAt[channel] = now;
+    return true;
+  }
+  return false;
 }
 
 client.on('message', async (channel, tags, message, self) => {
@@ -171,6 +195,10 @@ client.on('message', async (channel, tags, message, self) => {
   // Mention trigger
   if (raw.toLowerCase().includes(`@${BOT_NAME_LOWER}`) || raw.toLowerCase().includes(BOT_NAME_LOWER)) {
     client.say(channel, pick(quips.mention).replace('{user}', user));
+  } else if (raw.endsWith('?') && shouldReply(channel)) {
+    client.say(channel, pick(quips.curious).replace('{user}', user));
+  } else if (/cool|awesome|bot/.test(content) && shouldReply(channel)) {
+    client.say(channel, pick(quips.vibes));
   }
 });
 
