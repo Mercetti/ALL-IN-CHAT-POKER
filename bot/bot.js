@@ -367,10 +367,3 @@ async function callAdminPost(path, body) {
     return false;
   }
 }
-
-client.connect().catch(err => {
-  console.error('Failed to connect to Twitch', err);
-  process.exit(1);
-});
-
-console.log(`Bot starting as ${BOT_USERNAME}, channels: ${TARGET_CHANNELS.join(', ')}`);
