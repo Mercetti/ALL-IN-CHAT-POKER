@@ -8,8 +8,9 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends python3 make g++ sqlite3 \
   && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies
-COPY package*.json ./
+# Install dependencies (force inclusion of package-lock.json)
+COPY package.json package-lock.json ./
+RUN test -f package-lock.json
 RUN npm ci --omit=dev
 
 # Copy source
