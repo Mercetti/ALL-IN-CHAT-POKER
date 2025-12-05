@@ -21,6 +21,8 @@ const TARGET_CHANNELS = (process.env.TARGET_CHANNELS || process.env.TWITCH_CHANN
   .map(c => c.trim().toLowerCase())
   .filter(Boolean);
 const BOT_NAME_LOWER = BOT_USERNAME.toLowerCase();
+const BOT_JOIN_SECRET = process.env.BOT_JOIN_SECRET || '';
+let MIN_BET_CACHE = null;
 
 if (!BOT_USERNAME || !BOT_OAUTH_TOKEN) {
   console.error('BOT_USERNAME and BOT_OAUTH_TOKEN are required.');
@@ -191,6 +193,29 @@ client.on('message', async (channel, tags, message, self) => {
     }
   }
 
+  if (content === '!join') {
+    const login = (tags.username || '').toLowerCase();
+    const minBet = await getMinBet();
+    const ok = await callChatBet(login, minBet);
+    if (ok?.success) {
+      client.say(channel, `${login} joined with ${minBet} chips.`);
+    } else {
+      client.say(channel, 'Join failed. Betting may be closed or invalid bet.');
+    }
+  }
+
+  const betMatch = content.match(/^!bet\s+(\d+)/);
+  if (betMatch) {
+    const amount = parseInt(betMatch[1], 10);
+    const login = (tags.username || '').toLowerCase();
+    const ok = await callChatBet(login, amount);
+    if (ok?.success) {
+      client.say(channel, `${login} bet ${amount}. Balance: ${ok.balance}`);
+    } else {
+      client.say(channel, 'Bet failed. Check amount or betting window.');
+    }
+  }
+
   // Game control (admin token required)
   if (content === '!start') {
     const ok = await callAdminPost('/admin/start-round', { startNow: false });
@@ -257,6 +282,40 @@ async function callPublic(path) {
     return await res.json();
   } catch (e) {
     console.error('Public call failed', e);
+    return null;
+  }
+}
+
+async function getMinBet() {
+  if (MIN_BET_CACHE !== null) return MIN_BET_CACHE;
+  try {
+    const res = await fetch(`${BACKEND_URL}/public-config.json`);
+    if (res.ok) {
+      const cfg = await res.json();
+      MIN_BET_CACHE = cfg?.minBet || 10;
+      return MIN_BET_CACHE;
+    }
+  } catch (e) {
+    console.error('Failed to load min bet', e);
+  }
+  MIN_BET_CACHE = 10;
+  return MIN_BET_CACHE;
+}
+
+async function callChatBet(login, amount) {
+  if (!BOT_JOIN_SECRET) return null;
+  try {
+    const res = await fetch(`${BACKEND_URL}/chat/bet`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ login, amount, secret: BOT_JOIN_SECRET }),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    console.error('Chat bet failed', e);
     return null;
   }
 }

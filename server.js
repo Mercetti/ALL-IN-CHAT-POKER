@@ -1004,6 +1004,40 @@ app.post('/profile', (req, res) => {
 });
 
 /**
+ * Chat-initiated bet (used by the Twitch bot)
+ */
+app.post('/chat/bet', (req, res) => {
+  try {
+    const { login, amount, secret } = req.body || {};
+    if (!config.BOT_JOIN_SECRET || secret !== config.BOT_JOIN_SECRET) {
+      return res.status(403).json({ error: 'not authorized' });
+    }
+
+    const normalizedLogin = (login || '').toLowerCase();
+    const betAmount = parseInt(amount, 10);
+
+    if (!validation.validateUsername(normalizedLogin)) {
+      return res.status(400).json({ error: 'invalid username' });
+    }
+    if (!Number.isInteger(betAmount)) {
+      return res.status(400).json({ error: 'invalid amount' });
+    }
+
+    db.ensureBalance(normalizedLogin);
+    const ok = placeBet(normalizedLogin, betAmount);
+    if (!ok) {
+      return res.status(400).json({ error: 'bet_rejected' });
+    }
+
+    const balance = db.getBalance(normalizedLogin);
+    return res.json({ success: true, balance, bet: betAmount });
+  } catch (err) {
+    logger.error('Chat bet failed', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+/**
  * Get all profiles (admin only)
  */
 app.get('/admin/profiles', auth.requireAdmin, (req, res) => {
