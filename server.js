@@ -385,8 +385,8 @@ function placeBet(username, amount, channel = DEFAULT_CHANNEL) {
 
   logger.info('Bet placed', { username, amount, remaining: newBalance });
   const updatedHeur = getHeuristics(username);
-  io.emit('playerUpdate', { login: username, bet: amount, balance: newBalance, streak: updatedHeur.streak, tilt: updatedHeur.tilt });
-  emitQueueUpdate();
+  io.to(channelName).emit('playerUpdate', { login: username, bet: amount, balance: newBalance, streak: updatedHeur.streak, tilt: updatedHeur.tilt, channel: channelName });
+  emitQueueUpdate(channelName);
   return true;
 }
 
@@ -482,15 +482,17 @@ function cleanupAfterSettle() {
   emitQueueUpdate();
 }
 
-function emitQueueUpdate() {
+function emitQueueUpdate(channel = DEFAULT_CHANNEL) {
+  const channelName = normalizeChannelName(channel) || DEFAULT_CHANNEL;
   const bets = Object.keys(betAmounts).length;
-  io.emit('queueUpdate', {
+  io.to(channelName).emit('queueUpdate', {
     waiting: waitingQueue,
     limits: {
       poker: MAX_POKER_PLAYERS,
       blackjack: MAX_BLACKJACK_PLAYERS,
     },
     activeBets: bets,
+    channel: channelName,
   });
 }
 
@@ -521,7 +523,7 @@ function openBettingWindow(channel = DEFAULT_CHANNEL) {
     startRoundInternal(channelName);
   }, duration);
 
-  io.emit('bettingStarted', { duration, endsAt, mode: currentMode, channel: channelName });
+  io.to(channelName).emit('bettingStarted', { duration, endsAt, mode: currentMode, channel: channelName });
 }
 
 function startRoundInternal(channel = DEFAULT_CHANNEL) {
@@ -548,13 +550,13 @@ function startRoundInternal(channel = DEFAULT_CHANNEL) {
       if (next) {
         const minBet = config.GAME_MIN_BET;
         placeBet(next, minBet, DEFAULT_CHANNEL);
-        emitQueueUpdate();
+        emitQueueUpdate(channelName);
       }
     }
 
     const activeBettors = Object.keys(betAmounts);
     if (activeBettors.length === 0) {
-      io.emit('error', 'No bets placed');
+      io.to(channelName).emit('error', 'No bets placed');
       roundInProgress = false;
       return;
     }
@@ -603,7 +605,7 @@ function startRoundInternal(channel = DEFAULT_CHANNEL) {
     playerTurnIndex = 0;
 
     logger.info('New round started', { channel: channelName });
-    io.emit('roundStarted', {
+    io.to(channelName).emit('roundStarted', {
       dealerHand: currentMode === 'blackjack' ? currentHand : null,
       players: Object.entries(playerStates).map(([login, state]) => ({
         login,
