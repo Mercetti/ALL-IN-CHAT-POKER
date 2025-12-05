@@ -155,3 +155,22 @@ ul {
   background: var(--panel-2);
   text-align: center;
 }
+
+.suggestion-form {
+  display: grid;
+  gap: 10px;
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+}
+
+.form-control:focus {
+  outline: 2px solid rgba(68, 255, 210, 0.4);
+  border-color: rgba(68, 255, 210, 0.6);
+}
