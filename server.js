@@ -1223,6 +1223,7 @@ app.delete('/admin/audit/:id', auth.requireAdmin, (req, res) => {
 io.on('connection', (socket) => {
   const channel = getChannelFromSocket(socket);
   socket.data.channel = channel;
+  socket.join(channel);
   logger.debug('Client connected', { socketId: socket.id, channel });
 
   // Send current state
