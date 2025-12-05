@@ -240,12 +240,12 @@ client.on('message', async (channel, tags, message, self) => {
 
   // Game control (admin token required)
   if (content === '!start') {
-    const ok = await callAdminPost('/admin/start-round', { startNow: false });
+    const ok = await callAdminPost('/admin/start-round', { startNow: false, channel });
     client.say(channel, ok ? 'Betting window opened.' : 'Failed to open betting window.');
   }
 
   if (content === '!startnow') {
-    const ok = await callAdminPost('/admin/start-round', { startNow: true });
+    const ok = await callAdminPost('/admin/start-round', { startNow: true, channel });
     client.say(channel, ok ? 'Round starting now.' : 'Failed to start round.');
   }
 
@@ -254,7 +254,7 @@ client.on('message', async (channel, tags, message, self) => {
     if (!mode || !['poker', 'blackjack'].includes(mode)) {
       client.say(channel, 'Mode must be poker or blackjack.');
     } else {
-      const ok = await callAdminPost('/admin/mode', { mode });
+      const ok = await callAdminPost('/admin/mode', { mode, channel });
       client.say(channel, ok ? `Mode set to ${mode}.` : 'Failed to set mode.');
     }
   }

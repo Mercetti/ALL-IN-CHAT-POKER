@@ -155,6 +155,7 @@ function setThemeButtonLabel(btn) {
 async function apiCall(endpoint, options = {}) {
   const useUserToken = options.useUserToken !== undefined ? options.useUserToken : !!window.__DEFAULT_USE_USER_TOKEN;
   const token = useUserToken ? getUserToken() : getToken();
+  const channel = typeof getChannelParam === 'function' ? getChannelParam() : '';
   const headers = {
     'Content-Type': 'application/json',
     ...options.headers,
@@ -162,6 +163,9 @@ async function apiCall(endpoint, options = {}) {
 
   if (token) {
     headers.Authorization = `Bearer ${token}`;
+  }
+  if (channel) {
+    headers['x-channel'] = channel;
   }
 
   try {
