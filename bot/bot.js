@@ -32,12 +32,25 @@ if (!TARGET_CHANNELS.length) {
 }
 
 const client = new tmi.Client({
+  options: { debug: true },
   identity: {
     username: BOT_USERNAME,
     password: BOT_OAUTH_TOKEN,
   },
   channels: TARGET_CHANNELS,
   connection: { reconnect: true, secure: true },
+});
+
+client.on('connected', (addr, port) => {
+  console.log(`Connected to Twitch IRC at ${addr}:${port} as ${BOT_USERNAME}`);
+});
+
+client.on('disconnected', (reason) => {
+  console.error('Disconnected from Twitch IRC', reason);
+});
+
+client.on('notice', (channel, msgid, message) => {
+  console.warn('IRC notice', { channel, msgid, message });
 });
 
 const quips = {
