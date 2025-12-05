@@ -202,6 +202,16 @@ function setupEventListeners() {
   }
 
   document.getElementById('btn-save-mode')?.addEventListener('click', saveMode);
+
+  // Open overlays (new tabs)
+  document.getElementById('btn-open-overlay')?.addEventListener('click', () => {
+    const base = typeof getBackendBase === 'function' ? getBackendBase() : window.location.origin;
+    window.open(`${base}/index.html`, '_blank', 'noopener');
+  });
+  document.getElementById('btn-open-obs-overlay')?.addEventListener('click', () => {
+    const base = typeof getBackendBase === 'function' ? getBackendBase() : window.location.origin;
+    window.open(`${base}/obs-overlay.html`, '_blank', 'noopener');
+  });
 }
 
 async function loadStats() {
