@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All-In Chat Poker | Setup Guide</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="style-theme.css">
+  <link rel="stylesheet" href="style-login.css">
+  <style>
+    .help-container { max-width: 960px; margin: 32px auto; padding: 24px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; }
+    .help-container h1 { margin-bottom: 12px; }
+    .help-container h2 { margin-top: 24px; margin-bottom: 8px; }
+    .help-container code { background: rgba(0,0,0,0.35); padding: 2px 4px; border-radius: 4px; }
+    .help-container pre { background: rgba(0,0,0,0.35); padding: 10px 12px; border-radius: 8px; overflow-x: auto; }
+    .pill { display: inline-block; padding: 4px 8px; border-radius: 999px; background: rgba(255,255,255,0.08); margin-left: 6px; font-size: 12px; }
+    .section { margin-top: 18px; }
+    a.btn-link { color: var(--accent); text-decoration: underline; }
+  </style>
+</head>
+<body class="login-page">
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-brand">
+        <img src="logo.png" alt="All-In Chat Poker logo" class="brand-logo">
+        <div>
+          <h1>All-In Chat Poker</h1>
+          <p class="subtitle">Setup walkthrough</p>
+        </div>
+      </div>
+      <div class="help-container">
+        <h2>1) Create a Twitch app</h2>
+        <p>In <a href="https://dev.twitch.tv/console/apps" target="_blank" rel="noreferrer">Twitch Developer Console</a>:</p>
+        <ul>
+          <li>Register an app, set <strong>Redirect URL</strong> to <code>https://all-in-chat-poker.fly.dev/login.html</code>.</li>
+          <li>Copy the Client ID and generate a Client Secret.</li>
+        </ul>
+
+        <h2>2) Set Fly secrets</h2>
+        <p>From your machine (replace values):</p>
+        <pre><code>flyctl secrets set \
+TWITCH_CLIENT_ID="your_client_id" \
+TWITCH_CLIENT_SECRET="your_client_secret" \
+TWITCH_CHANNEL="your_twitch_channel" \
+TWITCH_BOT_USERNAME="your_bot_username" \
+TWITCH_OAUTH_TOKEN="oauth:your_bot_token" \
+STREAMER_LOGIN="your_twitch_login" \
+ADMIN_PASSWORD="strong_admin_password" \
+JWT_SECRET="long_random_secret" \
+ADMIN_TOKEN="optional_permanent_admin_token"</code></pre>
+
+        <h2>3) Deploy</h2>
+        <pre><code>flyctl deploy --config fly.toml --app all-in-chat-poker</code></pre>
+        <p>Visit <code>https://all-in-chat-poker.fly.dev/</code>.</p>
+
+        <h2>4) Sign in</h2>
+        <ul>
+          <li><strong>Streamer / Mods:</strong> Click <em>Sign In</em> → <em>Link Twitch Account</em>. Streamer login (matches <code>STREAMER_LOGIN</code>) unlocks Streamer Panel.</li>
+          <li><strong>Admin:</strong> Use admin password on the login page.</li>
+        </ul>
+
+        <h2>5) Use the Streamer Panel</h2>
+        <ul>
+          <li>Open <code>Streamer Panel</code> button on the main page.</li>
+          <li>Start rounds, switch game mode, manage profiles/balances, view stats.</li>
+        </ul>
+
+        <h2>6) Viewers</h2>
+        <ul>
+          <li>Chat can place bets and act when rounds are open.</li>
+          <li>Overlay at <code>/</code> updates live via Socket.IO.</li>
+        </ul>
+
+        <h2>Troubleshooting</h2>
+        <ul>
+          <li><strong>Twitch “invalid client”:</strong> Redirect URL mismatch or wrong Client ID/Secret.</li>
+          <li><strong>Streamer loop to login:</strong> Set <code>STREAMER_LOGIN</code> to the exact Twitch login.</li>
+          <li><strong>Bot not in chat:</strong> Ensure <code>TWITCH_CHANNEL</code>, <code>TWITCH_BOT_USERNAME</code>, <code>TWITCH_OAUTH_TOKEN</code> are set.</li>
+        </ul>
+
+        <p class="subtitle">Need more? Reach out via your repo issues.</p>
+        <p><a class="btn-link" href="/index.html">Back to overlay</a> · <a class="btn-link" href="/login.html">Sign In</a></p>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container" class="toast-container"></div>
+  <script src="client.js"></script>
+</body>
+</html>
