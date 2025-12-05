@@ -18,6 +18,10 @@ const db = require('./server/db');
 const game = require('./server/game');
 const blackjack = require('./server/blackjack');
 const {
+  normalizeChannelName: normalizeChannelNameScoped,
+  getDefaultChannel,
+} = require('./server/channel-state');
+const {
   startBlackjackRound,
   createBlackjackHandlers,
   settleAndEmit: settleAndEmitBlackjack,
@@ -33,6 +37,7 @@ const fetch = global.fetch;
 const logger = new Logger('server');
 let currentMode = 'blackjack';
 let tmiClient = null;
+const DEFAULT_CHANNEL = getDefaultChannel();
 
 // Initialize app
 const app = express();
@@ -61,13 +66,39 @@ app.get('/public-config.json', (req, res) => {
     botAdminLogin: config.BOT_ADMIN_LOGIN || '',
     minBet: config.GAME_MIN_BET || 0,
     potGlowMultiplier: config.POT_GLOW_MULTIPLIER || 5,
+    defaultChannel: DEFAULT_CHANNEL,
   });
 });
 app.use(express.static('public'));
 
 function normalizeChannelName(name) {
-  if (!name || typeof name !== 'string') return '';
-  return name.trim().toLowerCase().replace(/^#/, '');
+  return normalizeChannelNameScoped(name);
+}
+
+function getChannelFromReq(req) {
+  const bodyChannel = req && req.body && req.body.channel;
+  const queryChannel = req && req.query && req.query.channel;
+  const headerChannel = req && req.headers && (req.headers['x-channel'] || req.headers['x-streamer']);
+  const channel =
+    bodyChannel ||
+    queryChannel ||
+    headerChannel ||
+    config.TWITCH_CHANNEL ||
+    config.STREAMER_LOGIN ||
+    DEFAULT_CHANNEL;
+  return normalizeChannelName(channel);
+}
+
+function getChannelFromSocket(socket) {
+  const authChannel = socket?.handshake?.auth?.channel;
+  const queryChannel = socket?.handshake?.query?.channel;
+  const channel =
+    authChannel ||
+    queryChannel ||
+    config.TWITCH_CHANNEL ||
+    config.STREAMER_LOGIN ||
+    DEFAULT_CHANNEL;
+  return normalizeChannelName(channel);
 }
 
 async function joinBotChannel(channelName) {
@@ -280,11 +311,13 @@ function recordLoginAttempt(ip) {
  * Place or adjust a bet for a username, handling balance deductions
  * @param {string} username
  * @param {number} amount
+ * @param {string} channel
  * @returns {boolean} success
  */
-function placeBet(username, amount) {
+function placeBet(username, amount, channel = DEFAULT_CHANNEL) {
+  const channelName = normalizeChannelName(channel) || DEFAULT_CHANNEL;
   if (!bettingOpen) {
-    logger.debug('Bet rejected; betting closed', { username });
+    logger.debug('Bet rejected; betting closed', { username, channel: channelName });
     return false;
   }
 
@@ -293,17 +326,17 @@ function placeBet(username, amount) {
   const activeCount = Object.keys(betAmounts).length + (isNewPlayer ? 1 : 0);
   if (isNewPlayer && activeCount > maxPlayers) {
     if (!waitingQueue.includes(username)) waitingQueue.push(username);
-    logger.warn('Bet rejected; table full, added to queue', { username, maxPlayers });
+    logger.warn('Bet rejected; table full, added to queue', { username, maxPlayers, channel: channelName });
     return false;
   }
 
   if (!validation.validateUsername(username)) {
-    logger.debug('Rejected bet with invalid username', { username });
+    logger.debug('Rejected bet with invalid username', { username, channel: channelName });
     return false;
   }
 
   if (!Number.isInteger(amount) || amount < config.GAME_MIN_BET || amount > config.GAME_MAX_BET) {
-    logger.debug('Rejected bet with invalid amount', { username, amount });
+    logger.debug('Rejected bet with invalid amount', { username, amount, channel: channelName });
     return false;
   }
 
@@ -461,7 +494,8 @@ function emitQueueUpdate() {
   });
 }
 
-function openBettingWindow() {
+function openBettingWindow(channel = DEFAULT_CHANNEL) {
+  const channelName = normalizeChannelName(channel) || DEFAULT_CHANNEL;
   if (roundInProgress) return;
 
   // Reset round state for new betting window
@@ -484,13 +518,14 @@ function openBettingWindow() {
   if (bettingTimer) clearTimeout(bettingTimer);
   bettingTimer = setTimeout(() => {
     bettingOpen = false;
-    startRoundInternal();
+    startRoundInternal(channelName);
   }, duration);
 
-  io.emit('bettingStarted', { duration, endsAt, mode: currentMode });
+  io.emit('bettingStarted', { duration, endsAt, mode: currentMode, channel: channelName });
 }
 
-function startRoundInternal() {
+function startRoundInternal(channel = DEFAULT_CHANNEL) {
+  const channelName = normalizeChannelName(channel) || DEFAULT_CHANNEL;
   try {
   if (bettingTimer) clearTimeout(bettingTimer);
   bettingOpen = false;
@@ -512,7 +547,7 @@ function startRoundInternal() {
       const next = waitingQueue.shift();
       if (next) {
         const minBet = config.GAME_MIN_BET;
-        placeBet(next, minBet);
+        placeBet(next, minBet, DEFAULT_CHANNEL);
         emitQueueUpdate();
       }
     }
@@ -567,7 +602,7 @@ function startRoundInternal() {
     playerTurnOrder = activeBettors.slice(0, currentMode === 'blackjack' ? MAX_BLACKJACK_PLAYERS : MAX_POKER_PLAYERS);
     playerTurnIndex = 0;
 
-    logger.info('New round started');
+    logger.info('New round started', { channel: channelName });
     io.emit('roundStarted', {
       dealerHand: currentMode === 'blackjack' ? currentHand : null,
       players: Object.entries(playerStates).map(([login, state]) => ({
@@ -588,6 +623,7 @@ function startRoundInternal() {
       mode: currentMode,
       pot: pokerPot,
       currentBet: pokerCurrentBet,
+      channel: channelName,
     });
 
     // Blackjack action timer -> auto settle
@@ -762,12 +798,13 @@ app.post('/admin/mode', auth.requireAdmin, (_req, res) => {
  */
 app.post('/admin/start-round', auth.requireAdmin, (req, res) => {
   try {
+    const channel = getChannelFromReq(req);
     const startNow = !!(req.body && req.body.startNow);
     if (startNow) {
-      startRoundInternal();
+      startRoundInternal(channel);
       return res.json({ started: true, mode: currentMode });
     }
-    openBettingWindow();
+    openBettingWindow(channel);
     return res.json({ betting: true, mode: currentMode });
   } catch (err) {
     logger.error('Failed to start round (admin)', { error: err.message });
@@ -1009,6 +1046,7 @@ app.post('/profile', (req, res) => {
 app.post('/chat/bet', (req, res) => {
   try {
     const { login, amount, secret } = req.body || {};
+    const channel = getChannelFromReq(req);
     if (!config.BOT_JOIN_SECRET || secret !== config.BOT_JOIN_SECRET) {
       return res.status(403).json({ error: 'not authorized' });
     }
@@ -1024,13 +1062,13 @@ app.post('/chat/bet', (req, res) => {
     }
 
     db.ensureBalance(normalizedLogin);
-    const ok = placeBet(normalizedLogin, betAmount);
+    const ok = placeBet(normalizedLogin, betAmount, channel);
     if (!ok) {
       return res.status(400).json({ error: 'bet_rejected' });
     }
 
     const balance = db.getBalance(normalizedLogin);
-    return res.json({ success: true, balance, bet: betAmount });
+    return res.json({ success: true, balance, bet: betAmount, channel });
   } catch (err) {
     logger.error('Chat bet failed', { error: err.message });
     return res.status(500).json({ error: 'internal_error' });
@@ -1183,7 +1221,9 @@ app.delete('/admin/audit/:id', auth.requireAdmin, (req, res) => {
 // ============ SOCKET.IO EVENTS ============
 
 io.on('connection', (socket) => {
-  logger.debug('Client connected', { socketId: socket.id });
+  const channel = getChannelFromSocket(socket);
+  socket.data.channel = channel;
+  logger.debug('Client connected', { socketId: socket.id, channel });
 
   // Send current state
   socket.emit('state', {
@@ -1193,6 +1233,7 @@ io.on('connection', (socket) => {
     mode: currentMode,
     pot: pokerPot,
     currentBet: pokerCurrentBet,
+    channel,
     players: Object.entries(playerStates).map(([login, state]) => ({
       login,
       hand: state.hand,
@@ -1218,25 +1259,26 @@ io.on('connection', (socket) => {
   }
 
   /**
- * Start a new round
- */
-socket.on('startRound', (data) => {
-  if (!auth.isAdminRequest(socket.handshake)) {
-    logger.warn('Unauthorized round start attempt', { socketId: socket.id });
-    return;
-  }
+   * Start a new round
+   */
+  socket.on('startRound', (data) => {
+    const channelName = socket.data.channel || DEFAULT_CHANNEL;
+    if (!auth.isAdminRequest(socket.handshake)) {
+      logger.warn('Unauthorized round start attempt', { socketId: socket.id, channel: channelName });
+      return;
+    }
 
-  if (roundInProgress) {
+    if (roundInProgress) {
       socket.emit('error', 'Round already in progress');
       return;
     }
 
     if (data && data.startNow) {
-      startRoundInternal();
+      startRoundInternal(channelName);
     } else if (bettingOpen) {
-      startRoundInternal();
+      startRoundInternal(channelName);
     } else {
-      openBettingWindow();
+      openBettingWindow(channelName);
     }
   });
 
@@ -1467,7 +1509,7 @@ async function initializeTwitch() {
       if (content.startsWith('!bet ')) {
         const parts = content.split(/\s+/);
         const amount = parseInt(parts[1], 10);
-        placeBet(username, amount);
+        placeBet(username, amount, DEFAULT_CHANNEL);
       } else if (content.toLowerCase().startsWith('!addchips')) {
         if (!canAdjustBalance) return;
         const parts = content.split(/\s+/);

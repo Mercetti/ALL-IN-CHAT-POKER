@@ -218,7 +218,7 @@ client.on('message', async (channel, tags, message, self) => {
   if (content === '!join') {
     const login = (tags.username || '').toLowerCase();
     const minBet = await getMinBet();
-    const ok = await callChatBet(login, minBet);
+    const ok = await callChatBet(login, minBet, channel);
     if (ok?.success) {
       client.say(channel, `${login} joined with ${minBet} chips.`);
     } else {
@@ -230,7 +230,7 @@ client.on('message', async (channel, tags, message, self) => {
   if (betMatch) {
     const amount = parseInt(betMatch[1], 10);
     const login = (tags.username || '').toLowerCase();
-    const ok = await callChatBet(login, amount);
+    const ok = await callChatBet(login, amount, channel);
     if (ok?.success) {
       client.say(channel, `${login} bet ${amount}. Balance: ${ok.balance}`);
     } else {
@@ -327,7 +327,7 @@ async function getMinBet() {
   return MIN_BET_CACHE;
 }
 
-async function callChatBet(login, amount) {
+async function callChatBet(login, amount, channel) {
   if (!BOT_JOIN_SECRET) return null;
   try {
     const res = await fetch(`${BACKEND_URL}/chat/bet`, {
@@ -335,7 +335,7 @@ async function callChatBet(login, amount) {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ login, amount, secret: BOT_JOIN_SECRET }),
+      body: JSON.stringify({ login, amount, secret: BOT_JOIN_SECRET, channel }),
     });
     if (!res.ok) return null;
     return await res.json();
