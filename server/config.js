@@ -41,6 +41,7 @@ module.exports = {
   TWITCH_CLIENT_SECRET: process.env.TWITCH_CLIENT_SECRET || '',
   BOT_JOIN_SECRET: process.env.BOT_JOIN_SECRET || '', // optional secret for chat-based join
   BOT_ADMIN_LOGIN: process.env.BOT_ADMIN_LOGIN || 'allinchatpokerbot',
+  TWITCH_REDIRECT_URI: process.env.TWITCH_REDIRECT_URI || '',
 
   // Game settings
   GAME_STARTING_CHIPS: 1000,

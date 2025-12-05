@@ -51,9 +51,12 @@ app.get('/', (_req, res) => {
 app.get('/public-config.json', (req, res) => {
   const forwardedProto = (req.headers['x-forwarded-proto'] || '').split(',')[0].trim();
   const proto = forwardedProto || req.protocol || 'https';
+  const redirectUri =
+    config.TWITCH_REDIRECT_URI ||
+    `${proto}://${req.get('host')}/login.html`;
   res.json({
     twitchClientId: config.TWITCH_CLIENT_ID || '',
-    redirectUri: `${proto}://${req.get('host')}/login.html`,
+    redirectUri,
     streamerLogin: config.STREAMER_LOGIN || '',
     botAdminLogin: config.BOT_ADMIN_LOGIN || '',
     minBet: config.GAME_MIN_BET || 0,
