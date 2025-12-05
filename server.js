@@ -31,6 +31,7 @@ const fetch = global.fetch;
 
 const logger = new Logger('server');
 let currentMode = config.GAME_MODE || 'poker';
+let tmiClient = null;
 
 // Initialize app
 const app = express();
@@ -54,6 +55,27 @@ app.get('/public-config.json', (req, res) => {
   });
 });
 app.use(express.static('public'));
+
+function normalizeChannelName(name) {
+  if (!name || typeof name !== 'string') return '';
+  return name.trim().toLowerCase().replace(/^#/, '');
+}
+
+async function joinBotChannel(channelName) {
+  const channel = normalizeChannelName(channelName);
+  if (!channel) return;
+  if (!tmiClient) {
+    logger.warn('Cannot join channel; tmi client not ready', { channel });
+    return;
+  }
+  db.addBotChannel(channel);
+  try {
+    await tmiClient.join(channel);
+    logger.info('Bot joined channel', { channel });
+  } catch (err) {
+    logger.error('Failed to join channel', { channel, error: err.message });
+  }
+}
 
 // ============ STATE MANAGEMENT ============
 
@@ -667,6 +689,11 @@ app.post('/user/login', async (req, res) => {
   db.ensureBalance(login);
   const stats = db.ensureStats(login);
 
+  // Auto-join the streamer's channel when they log in via Twitch
+  if (login === config.STREAMER_LOGIN) {
+    joinBotChannel(login);
+  }
+
   const token = auth.signUserJWT(login);
   return res.json({ token, login, avatarUrl: safeAvatar, expiresIn: config.USER_JWT_TTL_SECONDS, stats });
   } catch (err) {
@@ -1213,18 +1240,6 @@ async function initializeTwitch() {
       channels: botChannels,
     });
 
-    async function joinChannel(channelName) {
-      const channel = channelName.replace(/^#/, '').toLowerCase();
-      if (!channel) return;
-      db.addBotChannel(channel);
-      try {
-        await tmiClient.join(channel);
-        logger.info('Joined channel', { channel });
-      } catch (err) {
-        logger.error('Failed to join channel', { channel, error: err.message });
-      }
-    }
-
     tmiClient.on('message', (channel, tags, message, self) => {
       if (self) return;
 
@@ -1250,7 +1265,7 @@ async function initializeTwitch() {
           return;
         }
         const requestedChannel = channel.replace(/^#/, '');
-        joinChannel(requestedChannel);
+        joinBotChannel(requestedChannel);
         tmiClient.say(channel, `Bot joining ${requestedChannel}`);
       } else if (content === '!hit') {
         if (currentMode === 'blackjack') {
