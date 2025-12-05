@@ -183,14 +183,14 @@ function getHeuristics(login) {
   return { streak: h.streak || 0, tilt: h.tilt || 0, rounds: h.rounds || 0, afk };
 }
 
-function updateHeuristicsAfterPayout(prevBets = {}, payoutPayload, dbInstance) {
+function updateHeuristicsAfterPayout(prevBets = {}, payoutPayload, dbInstance, channel = DEFAULT_CHANNEL) {
   const payoutMap = (payoutPayload && payoutPayload.payouts) || {};
   Object.keys(prevBets || {}).forEach(login => {
     const win = (payoutMap[login] || 0) > 0;
     recordOutcomeHeuristic(login, win);
     const heur = getHeuristics(login);
     const balance = dbInstance ? dbInstance.getBalance(login) : db.getBalance(login);
-    io.emit('playerUpdate', { login, streak: heur.streak, tilt: heur.tilt, balance, bet: 0, afk: heur.afk });
+    io.to(channel || DEFAULT_CHANNEL).emit('playerUpdate', { login, streak: heur.streak, tilt: heur.tilt, balance, bet: 0, afk: heur.afk, channel: channel || DEFAULT_CHANNEL });
   });
 }
 
@@ -1179,7 +1179,7 @@ app.post('/admin/balance', auth.requireAdmin, (req, res) => {
       newBalance = db.addChips(login, safeAmount);
     }
 
-    io.emit('playerUpdate', { login, balance: newBalance, bet: 0 });
+    io.to(DEFAULT_CHANNEL).emit('playerUpdate', { login, balance: newBalance, bet: 0, channel: DEFAULT_CHANNEL });
     logger.info('Admin balance update', { login, amount: safeAmount, mode: mode || 'add', newBalance });
     return res.json({ login, balance: newBalance });
   } catch (err) {
@@ -1530,7 +1530,7 @@ async function initializeTwitch() {
           role: 'player',
         });
         const newBalance = db.addChips(target, amt);
-        io.emit('playerUpdate', { login: target, balance: newBalance, bet: 0 });
+        io.to(DEFAULT_CHANNEL).emit('playerUpdate', { login: target, balance: newBalance, bet: 0, channel: DEFAULT_CHANNEL });
         logger.info('Chips added via chat', { actor: username, target, amount: amt, newBalance });
         tmiClient.say(channel, `Added ${amt} chips to ${target}. New balance: ${newBalance}`);
       } else if (content.toLowerCase().startsWith('!joinme ')) {
@@ -1703,12 +1703,14 @@ function startPlayerTurnCycle() {
 }
 
 function emitPokerBettingState() {
-  io.emit('pokerBetting', {
+  const channel = DEFAULT_CHANNEL;
+  io.to(channel).emit('pokerBetting', {
     pot: pokerPot,
     currentBet: pokerCurrentBet,
     streetBets: pokerStreetBets,
     totalBets: betAmounts,
     phase: pokerPhase,
+    channel,
   });
 }
 
@@ -1731,7 +1733,7 @@ function pokerFoldAction(login) {
   if (!state || state.folded) return;
   state.folded = true;
   pokerActed.add(login);
-  io.emit('playerUpdate', { login, folded: true });
+  io.to(DEFAULT_CHANNEL).emit('playerUpdate', { login, folded: true, channel: DEFAULT_CHANNEL });
   maybeAdvanceAfterAction();
   startPlayerTurnCycle();
 }
