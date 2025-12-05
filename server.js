@@ -17,6 +17,7 @@ const startup = require('./server/startup');
 const db = require('./server/db');
 const game = require('./server/game');
 const blackjack = require('./server/blackjack');
+const stateAdapter = require('./server/state-adapter');
 const {
   normalizeChannelName: normalizeChannelNameScoped,
   getDefaultChannel,
@@ -146,6 +147,41 @@ let turnManager = null;
 let pokerHandlers = null;
 let blackjackHandlers = null;
 const playerHeuristics = {};
+
+// Provide a legacy state view for single-tenant mode so we can conditionally
+// switch to channel-scoped state when MULTITENANT_ENABLED is true.
+function getStateForChannel(channel = DEFAULT_CHANNEL) {
+  if (config.MULTITENANT_ENABLED) {
+    return stateAdapter.getState(normalizeChannelName(channel) || DEFAULT_CHANNEL);
+  }
+  return {
+    currentMode,
+    currentDeck,
+    currentHand,
+    roundInProgress,
+    bettingOpen,
+    betAmounts,
+    playerStates,
+    dealerState,
+    waitingQueue,
+    communityCards,
+    blackjackActionTimer,
+    bettingTimer,
+    pokerActionTimer,
+    pokerPhase,
+    pokerCurrentBet,
+    pokerStreetBets,
+    pokerPot,
+    pokerActed,
+    playerTurnOrder,
+    playerTurnIndex,
+    turnManager,
+    pokerHandlers,
+    blackjackHandlers,
+    playerHeuristics,
+    streamerProfile,
+  };
+}
 
 function ensureHeuristic(login) {
   if (!playerHeuristics[login]) {
@@ -1229,26 +1265,27 @@ io.on('connection', (socket) => {
   logger.debug('Client connected', { socketId: socket.id, channel });
 
   // Send current state
+  const stateView = getStateForChannel(channel);
   socket.emit('state', {
-    bettingOpen,
-    roundInProgress,
-    deck: currentDeck.length,
-    mode: currentMode,
-    pot: pokerPot,
-    currentBet: pokerCurrentBet,
+    bettingOpen: stateView.bettingOpen,
+    roundInProgress: stateView.roundInProgress,
+    deck: (stateView.currentDeck || []).length,
+    mode: stateView.currentMode,
+    pot: stateView.pokerPot,
+    currentBet: stateView.pokerCurrentBet,
     channel,
-    players: Object.entries(playerStates).map(([login, state]) => ({
+    players: Object.entries(stateView.playerStates || {}).map(([login, st]) => ({
       login,
-      hand: state.hand,
-      hands: state.hands,
-      activeHand: state.activeHand,
-      split: state.isSplit,
-      insurance: state.insurance,
-      insurancePlaced: state.insurancePlaced,
-      bet: betAmounts[login] || 0,
-      streetBet: pokerStreetBets[login] || 0,
+      hand: st.hand,
+      hands: st.hands,
+      activeHand: st.activeHand,
+      split: st.isSplit,
+      insurance: st.insurance,
+      insurancePlaced: st.insurancePlaced,
+      bet: (stateView.betAmounts && stateView.betAmounts[login]) || 0,
+      streetBet: (stateView.pokerStreetBets && stateView.pokerStreetBets[login]) || 0,
       avatar: (db.getProfile(login)?.settings && JSON.parse(db.getProfile(login).settings || '{}').avatarUrl) || null,
-      ...getHeuristics(login),
+      ...getHeuristics(login, channel),
     })),
   });
 
