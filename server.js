@@ -1205,8 +1205,6 @@ socket.on('startRound', (data) => {
 
 // ============ TWITCH CHAT INTEGRATION ============
 
-let tmiClient = null;
-
 async function initializeTwitch() {
   if (!config.TWITCH_OAUTH_TOKEN || !config.TWITCH_BOT_USERNAME) {
     logger.warn('Twitch configuration incomplete, skipping chat integration');
