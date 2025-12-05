@@ -38,7 +38,28 @@ document.addEventListener('DOMContentLoaded', async () => {
   const adminToken = getToken();
   const userToken = getUserToken();
   const userLogin = decodeUserLogin(userToken || '');
-  if (!adminToken && !(userToken && streamerLogin && userLogin && userLogin.toLowerCase() === streamerLogin)) {
+  let allowed = false;
+
+  if (adminToken) {
+    allowed = true;
+  } else if (userToken && userLogin) {
+    // Allow if matches configured streamer login
+    if (streamerLogin && userLogin.toLowerCase() === streamerLogin) {
+      allowed = true;
+    } else {
+      // Fallback: check profile role via user token
+      try {
+        const profileRes = await apiCall(`/profile?login=${encodeURIComponent(userLogin)}`, { useUserToken: true });
+        if (profileRes?.profile?.role === 'streamer') {
+          allowed = true;
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+  }
+
+  if (!allowed) {
     window.location.href = '/login.html';
     return;
   }
