@@ -26,3 +26,6 @@ Commands in chat:
 - `!start` -> opens betting window (admin token required)
 - `!startnow` -> starts round immediately (admin token required)
 - `!mode poker|blackjack` -> sets game mode (admin token required)
+- `!rules [poker|blackjack]` -> quick rules summary
+- `!commands` -> list bot commands
+- `!leaderboard` -> shows top players (public endpoint)

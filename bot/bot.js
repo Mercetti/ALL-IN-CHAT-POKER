@@ -62,6 +62,11 @@ const quips = {
   ],
 };
 
+const rules = {
+  poker: "Video poker: bet with !bet, hold cards, best hand wins after draw. Min bet applies, match the current bet to stay in. Payouts follow standard poker hand ranks.",
+  blackjack: "Blackjack: bet with !bet, dealer hits to 17. Use !hit, !stand, !double, !split (pairs), !insurance (when dealer shows Ace). Closest to 21 without busting wins; blackjack pays 3:2 unless otherwise stated.",
+};
+
 function pick(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
@@ -84,6 +89,27 @@ client.on('message', async (channel, tags, message, self) => {
 
   if (content === '!bothelp') {
     client.say(channel, pick(quips.help));
+  }
+
+  if (content.startsWith('!rules')) {
+    const parts = content.split(/\s+/);
+    const mode = parts[1] || 'poker';
+    const text = rules[mode] || `${rules.poker} | ${rules.blackjack}`;
+    client.say(channel, text);
+  }
+
+  if (content === '!commands') {
+    client.say(channel, "Commands: !ping, !status, !start, !startnow, !mode poker|blackjack, !rules [poker|blackjack], !leaderboard, !bothelp");
+  }
+
+  if (content === '!leaderboard') {
+    const top = await callPublic('/leaderboard.json');
+    if (top && Array.isArray(top) && top.length) {
+      const snippet = top.slice(0, 3).map((e, i) => `#${i + 1} ${e.username}: ${e.totalWon}`).join(' | ');
+      client.say(channel, `Top players: ${snippet}`);
+    } else {
+      client.say(channel, 'No leaderboard data yet.');
+    }
   }
 
   // Game control (admin token required)
@@ -133,6 +159,17 @@ async function callAdmin(path) {
   } catch (e) {
     console.error('Admin call failed', e);
     return false;
+  }
+}
+
+async function callPublic(path) {
+  try {
+    const res = await fetch(`${BACKEND_URL}${path}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    console.error('Public call failed', e);
+    return null;
   }
 }
 
