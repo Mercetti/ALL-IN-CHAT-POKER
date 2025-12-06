@@ -72,6 +72,11 @@ module.exports = {
 
   // Logging
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
+
+  // PayPal
+  PAYPAL_CLIENT_ID: process.env.PAYPAL_CLIENT_ID || '',
+  PAYPAL_CLIENT_SECRET: process.env.PAYPAL_CLIENT_SECRET || '',
+  PAYPAL_ENV: (process.env.PAYPAL_ENV || 'sandbox').toLowerCase(),
   
   // Ephemeral tokens
   EPHEMERAL_TOKEN_TTL_SECONDS: parseInt(process.env.EPHEMERAL_TOKEN_TTL_SECONDS || '300', 10),

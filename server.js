@@ -80,6 +80,7 @@ app.get('/public-config.json', (req, res) => {
     redirectUri,
     streamerLogin: config.STREAMER_LOGIN || '',
     botAdminLogin: config.BOT_ADMIN_LOGIN || '',
+    paypalClientId: config.PAYPAL_CLIENT_ID || '',
     minBet: config.GAME_MIN_BET || 0,
     potGlowMultiplier: config.POT_GLOW_MULTIPLIER || 5,
     defaultChannel: DEFAULT_CHANNEL,
@@ -98,6 +99,77 @@ function generateLobbyCode() {
     code += chars[Math.floor(Math.random() * chars.length)];
   }
   return code.toLowerCase();
+}
+
+// ============ PAYPAL HELPERS ============
+const PAYPAL_API_BASE =
+  config.PAYPAL_ENV === 'live'
+    ? 'https://api-m.paypal.com'
+    : 'https://api-m.sandbox.paypal.com';
+
+async function getPayPalAccessToken() {
+  if (!config.PAYPAL_CLIENT_ID || !config.PAYPAL_CLIENT_SECRET) {
+    throw new Error('paypal_not_configured');
+  }
+  const credentials = Buffer.from(
+    `${config.PAYPAL_CLIENT_ID}:${config.PAYPAL_CLIENT_SECRET}`
+  ).toString('base64');
+  const res = await fetch(`${PAYPAL_API_BASE}/v1/oauth2/token`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Basic ${credentials}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: 'grant_type=client_credentials',
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`paypal_token_failed: ${res.status} ${text}`);
+  }
+  const data = await res.json();
+  return data.access_token;
+}
+
+async function createPayPalOrder(amount = '5.00', description = 'All-In Chat Poker support') {
+  const accessToken = await getPayPalAccessToken();
+  const res = await fetch(`${PAYPAL_API_BASE}/v2/checkout/orders`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      intent: 'CAPTURE',
+      purchase_units: [
+        {
+          amount: { currency_code: 'USD', value: amount },
+          description,
+        },
+      ],
+    }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`paypal_create_failed: ${res.status} ${text}`);
+  }
+  return res.json();
+}
+
+async function capturePayPalOrder(orderId) {
+  const accessToken = await getPayPalAccessToken();
+  const res = await fetch(`${PAYPAL_API_BASE}/v2/checkout/orders/${orderId}/capture`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({}),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`paypal_capture_failed: ${res.status} ${text}`);
+  }
+  return res.json();
 }
 
 function sanitizeColor(color = '') {
@@ -1060,6 +1132,37 @@ app.post('/user/role', (req, res) => {
   } catch (err) {
     logger.error('Failed to set user role', { error: err.message });
     return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+/**
+ * PayPal: create order (donation)
+ */
+app.post('/paypal/order', async (req, res) => {
+  try {
+    if (!config.PAYPAL_CLIENT_ID || !config.PAYPAL_CLIENT_SECRET) {
+      return res.status(400).json({ error: 'paypal_not_configured' });
+    }
+    const amount = req.body && req.body.amount ? String(req.body.amount) : '5.00';
+    const order = await createPayPalOrder(amount);
+    return res.json({ id: order.id });
+  } catch (err) {
+    logger.error('PayPal create order failed', { error: err.message });
+    return res.status(500).json({ error: 'paypal_create_failed' });
+  }
+});
+
+/**
+ * PayPal: capture order
+ */
+app.post('/paypal/order/:id/capture', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const capture = await capturePayPalOrder(id);
+    return res.json(capture);
+  } catch (err) {
+    logger.error('PayPal capture order failed', { error: err.message });
+    return res.status(500).json({ error: 'paypal_capture_failed' });
   }
 });
 

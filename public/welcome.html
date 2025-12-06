@@ -44,6 +44,12 @@
         </ul>
       </div>
 
+      <div class="card">
+        <h2>Support the table</h2>
+        <p class="muted">If you’re vibing with All-In Chat Poker (powered by allinchatpokerbot), toss a tip to keep the felt glowing.</p>
+        <div id="paypal-donate" style="max-width:320px;"></div>
+      </div>
+
     </div>
 
     <div class="card" style="margin-top:18px;">
@@ -96,6 +102,48 @@
         const body = encodeURIComponent(bodyLines.join('\n'));
         window.location.href = 'mailto:allinchatpoker@gmail.com?subject=' + subject + '&body=' + body;
       });
+    })();
+
+    // PayPal donation setup (uses server-side order create/capture)
+    (async function setupPayPalDonate() {
+      try {
+        const cfgRes = await fetch('/public-config.json');
+        const cfg = cfgRes.ok ? await cfgRes.json() : {};
+        if (!cfg.paypalClientId) return;
+
+        const donateContainer = document.getElementById('paypal-donate');
+        if (!donateContainer) return;
+
+        const sdkScript = document.createElement('script');
+        sdkScript.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(cfg.paypalClientId)}&currency=USD`;
+        sdkScript.async = true;
+        sdkScript.onload = () => {
+          if (!window.paypal) return;
+          window.paypal.Buttons({
+            style: { shape: 'pill', color: 'gold', layout: 'vertical', label: 'donate' },
+            createOrder: async () => {
+              const res = await fetch('/paypal/order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount: '5.00' }),
+              });
+              const data = await res.json();
+              return data.id;
+            },
+            onApprove: async (data) => {
+              await fetch(`/paypal/order/${data.orderID}/capture`, { method: 'POST' });
+              alert('Thanks for supporting the table!');
+            },
+            onError: (err) => {
+              console.error('PayPal error', err);
+              alert('PayPal donation failed. Please try again.');
+            },
+          }).render(donateContainer);
+        };
+        document.body.appendChild(sdkScript);
+      } catch (e) {
+        // ignore
+      }
     })();
   </script>
 </body>
