@@ -174,6 +174,18 @@ socket.on('profile', (profile) => {
 
 socket.on('roundStarted', (data) => {
   if (!isEventForChannel(data)) return;
+  try {
+    document.body.classList.add('shuffle-anim');
+    if (window.__shuffleTimeout) clearTimeout(window.__shuffleTimeout);
+    window.__shuffleTimeout = setTimeout(() => document.body.classList.remove('shuffle-anim'), 1200);
+    if (!window.__shuffleAudio) {
+      window.__shuffleAudio = new Audio('/assets/shuffle.mp3');
+      window.__shuffleAudio.volume = 0.4;
+    }
+    window.__shuffleAudio?.play()?.catch(() => {});
+  } catch (e) {
+    // ignore
+  }
   console.log('Round started:', data);
   currentPhase = 'dealing';
   currentDealerHand = data.dealerHand || [];

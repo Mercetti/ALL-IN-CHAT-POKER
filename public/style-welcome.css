@@ -100,6 +100,16 @@ h1 {
   background: rgba(68, 255, 210, 0.08);
 }
 
+.btn-ghost {
+  background: transparent;
+  border-color: rgba(68, 255, 210, 0.6);
+  color: var(--text);
+}
+
+.btn-ghost:hover {
+  background: rgba(68, 255, 210, 0.08);
+}
+
 .grid {
   margin-top: 28px;
   display: grid;
@@ -146,6 +156,45 @@ ul {
   border-radius: 12px;
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
+}
+
+.gallery-box {
+  background: #0d1f1f;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.fake-table {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0,1fr));
+  gap: 8px;
+  background: radial-gradient(circle at 50% 50%, rgba(68,255,210,0.12), transparent 55%), #0a1212;
+  border: 1px solid rgba(68,255,210,0.3);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.fake-seat {
+  background: linear-gradient(135deg, #122c2c, #0d1f1f);
+  border: 1px solid rgba(68,255,210,0.25);
+  border-radius: 8px;
+  color: #e3f7f3;
+  font-weight: 700;
+  text-align: center;
+  padding: 10px 6px;
+}
+
+.status-pill {
+  display: inline-flex;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  color: #fff;
+  font-weight: 700;
+  margin: 10px 0;
+  letter-spacing: 0.02em;
 }
 
 .ad-block {
