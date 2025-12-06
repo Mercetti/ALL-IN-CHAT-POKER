@@ -91,6 +91,13 @@ function normalizeChannelName(name) {
   return normalizeChannelNameScoped(name);
 }
 
+function sanitizeColor(color = '') {
+  if (typeof color !== 'string') return null;
+  const trimmed = color.trim();
+  if (/^#[0-9a-fA-F]{6}$/.test(trimmed)) return trimmed.toLowerCase();
+  return null;
+}
+
 function hashLogin(login = '') {
   let hash = 0;
   for (let i = 0; i < login.length; i += 1) {
@@ -100,10 +107,11 @@ function hashLogin(login = '') {
   return Math.abs(hash);
 }
 
-function getDefaultAvatarForLogin(login = '') {
+function getDefaultAvatarForLogin(login = '', colorOverride = null) {
   const base = login || 'player';
   const idx = hashLogin(base) % DEFAULT_AVATAR_COLORS.length;
-  const color = DEFAULT_AVATAR_COLORS[idx].replace('#', '');
+  const chosen = sanitizeColor(colorOverride) || DEFAULT_AVATAR_COLORS[idx];
+  const color = chosen.replace('#', '');
   const letter = encodeURIComponent(base.charAt(0).toUpperCase() || 'P');
   // Simple SVG data URI with solid background and initial
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='128' height='128'><rect width='128' height='128' fill='%23${color}'/><text x='50%' y='55%' font-size='64' text-anchor='middle' fill='white' font-family='Arial, sans-serif' dominant-baseline='middle'>${letter}</text></svg>`;
@@ -300,6 +308,32 @@ function getPlayerState(login, channel = DEFAULT_CHANNEL) {
     };
   }
   return state.playerStates[login];
+}
+
+function updatePlayerAvatar(login, color, channel = DEFAULT_CHANNEL) {
+  if (!validation.validateUsername(login || '')) return null;
+  const profile = db.getProfile(login);
+  const safeColor = sanitizeColor(color);
+  let parsed = {};
+  try {
+    parsed = profile?.settings ? JSON.parse(profile.settings) : {};
+  } catch {
+    parsed = {};
+  }
+  parsed.avatarColor = safeColor || parsed.avatarColor;
+  parsed.avatarUrl = getDefaultAvatarForLogin(login, parsed.avatarColor);
+  db.upsertProfile({
+    login,
+    display_name: profile?.display_name || login,
+    settings: parsed,
+    role: profile?.role || 'player',
+  });
+  const channelName = normalizeChannelName(channel) || DEFAULT_CHANNEL;
+  const state = getStateForChannel(channelName);
+  const pState = getPlayerState(login, channelName);
+  pState.avatarUrl = parsed.avatarUrl;
+  io.to(channelName).emit('playerUpdate', { login, avatar: parsed.avatarUrl, channel: channelName });
+  return parsed.avatarUrl;
 }
 
 // Rate limiting
@@ -926,18 +960,19 @@ app.post('/user/login', async (req, res) => {
 
   const login = twitchProfile.login;
   const existingProfile = db.getProfile(login);
-  const safeAvatar = twitchProfile.avatarUrl ? validation.sanitizeUrl(twitchProfile.avatarUrl) : getDefaultAvatarForLogin(login);
+  let parsedSettings = {};
+  try {
+    parsedSettings = existingProfile?.settings ? JSON.parse(existingProfile.settings) : {};
+  } catch {
+    parsedSettings = {};
+  }
+  const safeAvatar = twitchProfile.avatarUrl ? validation.sanitizeUrl(twitchProfile.avatarUrl) : getDefaultAvatarForLogin(login, parsedSettings.avatarColor);
   const mergedSettings = (() => {
-    let parsed = {};
-    try {
-      parsed = existingProfile?.settings ? JSON.parse(existingProfile.settings) : {};
-    } catch {
-      parsed = {};
-    }
     return {
-      startingChips: parsed.startingChips || config.GAME_STARTING_CHIPS,
-      theme: parsed.theme || 'dark',
-      avatarUrl: safeAvatar || parsed.avatarUrl || getDefaultAvatarForLogin(login),
+      startingChips: parsedSettings.startingChips || config.GAME_STARTING_CHIPS,
+      theme: parsedSettings.theme || 'dark',
+      avatarColor: sanitizeColor(parsedSettings.avatarColor),
+      avatarUrl: safeAvatar || parsedSettings.avatarUrl || getDefaultAvatarForLogin(login, parsedSettings.avatarColor),
     };
   })();
 
@@ -1332,6 +1367,27 @@ app.post('/admin/balance', auth.requireAdmin, (req, res) => {
 });
 
 /**
+ * Set player avatar color (admin/streamer)
+ */
+app.post('/admin/player-color', auth.requireAdmin, (req, res) => {
+  try {
+    const { login, color } = req.body || {};
+    if (!validation.validateUsername(login || '')) {
+      return res.status(400).json({ error: 'invalid username' });
+    }
+    const safeColor = sanitizeColor(color);
+    if (!safeColor) {
+      return res.status(400).json({ error: 'invalid color (use #rrggbb)' });
+    }
+    const avatar = updatePlayerAvatar(login, safeColor);
+    return res.json({ login, avatar, color: safeColor });
+  } catch (err) {
+    logger.error('Failed to set player color', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+/**
  * Get audit log (admin only)
  */
 app.get('/admin/audit', auth.requireAdmin, (req, res) => {
@@ -1719,6 +1775,18 @@ async function initializeTwitch() {
         const requestedChannel = channel.replace(/^#/, '');
         joinBotChannel(requestedChannel);
         tmiClient.say(channel, `Bot joining ${requestedChannel}`);
+      } else if (content.toLowerCase().startsWith('!color ')) {
+        if (!canAdjustBalance) return;
+        const parts = content.split(/\s+/);
+        const target = (parts[1] || '').trim().toLowerCase();
+        const color = (parts[2] || '').trim();
+        if (!validation.validateUsername(target) || !sanitizeColor(color)) {
+          tmiClient.say(channel, 'Usage: !color <username> #rrggbb');
+          return;
+        }
+        const chanName = channel.replace(/^#/, '') || DEFAULT_CHANNEL;
+        const avatar = updatePlayerAvatar(target, color, chanName);
+        tmiClient.say(channel, `Set ${target}'s color to ${color}`);
       } else if (content === '!hit') {
         if (channelState.currentMode === 'blackjack') {
           channelState.blackjackHandlers?.hit?.(username);
