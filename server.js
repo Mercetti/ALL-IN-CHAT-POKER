@@ -892,6 +892,19 @@ app.post('/user/login', async (req, res) => {
   const login = twitchProfile.login;
   const existingProfile = db.getProfile(login);
   const safeAvatar = twitchProfile.avatarUrl ? validation.sanitizeUrl(twitchProfile.avatarUrl) : undefined;
+  const mergedSettings = (() => {
+    let parsed = {};
+    try {
+      parsed = existingProfile?.settings ? JSON.parse(existingProfile.settings) : {};
+    } catch {
+      parsed = {};
+    }
+    return {
+      startingChips: parsed.startingChips || config.GAME_STARTING_CHIPS,
+      theme: parsed.theme || 'dark',
+      avatarUrl: safeAvatar || parsed.avatarUrl,
+    };
+  })();
 
   const role =
     (existingProfile && existingProfile.role) ||
@@ -904,7 +917,7 @@ app.post('/user/login', async (req, res) => {
   db.upsertProfile({
     login,
     display_name: twitchProfile.display_name || login,
-    settings: { startingChips: config.GAME_STARTING_CHIPS, theme: 'dark', avatarUrl: safeAvatar },
+    settings: mergedSettings,
     role,
   });
   db.ensureBalance(login);
