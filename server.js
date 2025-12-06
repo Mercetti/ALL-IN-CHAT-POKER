@@ -35,6 +35,20 @@ const {
 } = require('./server/modes/poker');
 const fetch = global.fetch;
 const DEFAULT_AVATAR = 'https://all-in-chat-poker.fly.dev/logo.png';
+const DEFAULT_AVATAR_COLORS = [
+  '#1abc9c',
+  '#3498db',
+  '#9b59b6',
+  '#e67e22',
+  '#e74c3c',
+  '#f39c12',
+  '#16a085',
+  '#2ecc71',
+  '#2980b9',
+  '#8e44ad',
+  '#c0392b',
+  '#d35400',
+];
 
 const logger = new Logger('server');
 let currentMode = 'blackjack';
@@ -75,6 +89,25 @@ app.use(express.static('public'));
 
 function normalizeChannelName(name) {
   return normalizeChannelNameScoped(name);
+}
+
+function hashLogin(login = '') {
+  let hash = 0;
+  for (let i = 0; i < login.length; i += 1) {
+    hash = (hash << 5) - hash + login.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+function getDefaultAvatarForLogin(login = '') {
+  const base = login || 'player';
+  const idx = hashLogin(base) % DEFAULT_AVATAR_COLORS.length;
+  const color = DEFAULT_AVATAR_COLORS[idx].replace('#', '');
+  const letter = encodeURIComponent(base.charAt(0).toUpperCase() || 'P');
+  // Simple SVG data URI with solid background and initial
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='128' height='128'><rect width='128' height='128' fill='%23${color}'/><text x='50%' y='55%' font-size='64' text-anchor='middle' fill='white' font-family='Arial, sans-serif' dominant-baseline='middle'>${letter}</text></svg>`;
+  return `data:image/svg+xml;utf8,${svg}`;
 }
 
 function getChannelFromReq(req) {
@@ -263,7 +296,7 @@ function getPlayerState(login, channel = DEFAULT_CHANNEL) {
       stood: false,
       busted: false,
       folded: false,
-      avatarUrl: DEFAULT_AVATAR,
+      avatarUrl: getDefaultAvatarForLogin(login),
     };
   }
   return state.playerStates[login];
@@ -893,7 +926,7 @@ app.post('/user/login', async (req, res) => {
 
   const login = twitchProfile.login;
   const existingProfile = db.getProfile(login);
-  const safeAvatar = twitchProfile.avatarUrl ? validation.sanitizeUrl(twitchProfile.avatarUrl) : DEFAULT_AVATAR;
+  const safeAvatar = twitchProfile.avatarUrl ? validation.sanitizeUrl(twitchProfile.avatarUrl) : getDefaultAvatarForLogin(login);
   const mergedSettings = (() => {
     let parsed = {};
     try {
@@ -904,7 +937,7 @@ app.post('/user/login', async (req, res) => {
     return {
       startingChips: parsed.startingChips || config.GAME_STARTING_CHIPS,
       theme: parsed.theme || 'dark',
-      avatarUrl: safeAvatar || parsed.avatarUrl || DEFAULT_AVATAR,
+      avatarUrl: safeAvatar || parsed.avatarUrl || getDefaultAvatarForLogin(login),
     };
   })();
 
