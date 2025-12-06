@@ -91,6 +91,15 @@ function normalizeChannelName(name) {
   return normalizeChannelNameScoped(name);
 }
 
+function generateLobbyCode() {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  let code = 'lobby-';
+  for (let i = 0; i < 6; i += 1) {
+    code += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return code.toLowerCase();
+}
+
 function sanitizeColor(color = '') {
   if (typeof color !== 'string') return null;
   const trimmed = color.trim();
@@ -904,6 +913,23 @@ app.post('/admin/user-token', auth.requireAdmin, (req, res) => {
 
   const token = auth.signUserJWT(login);
   return res.json({ token, login, expiresIn: config.USER_JWT_TTL_SECONDS });
+});
+
+/**
+ * Create a shared lobby code for multi-stream games (admin/streamer)
+ */
+app.post('/admin/lobby', auth.requireAdmin, (req, res) => {
+  try {
+    const code = generateLobbyCode();
+    const lobby = normalizeChannelName(code);
+    const base = `${req.protocol}://${req.get('host')}`;
+    const adminUrl = `${base}/admin2.html?channel=${encodeURIComponent(lobby)}`;
+    const overlayUrl = `${base}/obs-overlay.html?channel=${encodeURIComponent(lobby)}`;
+    return res.json({ code: lobby, adminUrl, overlayUrl });
+  } catch (err) {
+    logger.error('Failed to create lobby code', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
 });
 
 /**

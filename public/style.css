@@ -374,6 +374,17 @@
   position: relative;
 }
 
+.card-item.card-back {
+  background: url('/assets/card-back.png') center/cover no-repeat, #0b1b1b;
+  border-color: #1abc9c;
+  color: transparent;
+}
+
+.card-item.card-back .card-rank,
+.card-item.card-back .card-suit {
+  visibility: hidden;
+}
+
 @keyframes deal-in {
   0% {
     opacity: 0;

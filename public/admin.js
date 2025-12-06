@@ -18,6 +18,9 @@ const isEventForChannel = (payload) => {
   if (!payload || !payload.channel) return true;
   return payload.channel === channelParam;
 };
+const lobbyCodeOutput = document.getElementById('lobby-code-output');
+const lobbyLinks = document.getElementById('lobby-links');
+const lobbyJoinInput = document.getElementById('lobby-join-input');
 
 function decodeUserLogin(token) {
   if (!token) return null;
@@ -257,6 +260,40 @@ function setupEventListeners() {
   document.getElementById('btn-open-obs-overlay')?.addEventListener('click', () => {
     const base = typeof getBackendBase === 'function' ? getBackendBase() : window.location.origin;
     window.open(`${base}/obs-overlay.html`, '_blank', 'noopener');
+  });
+
+  // Create lobby
+  document.getElementById('btn-create-lobby')?.addEventListener('click', async () => {
+    try {
+      const res = await apiCall('/admin/lobby', { method: 'POST' });
+      if (res?.code) {
+        if (lobbyCodeOutput) lobbyCodeOutput.value = res.code;
+        if (lobbyLinks) {
+          lobbyLinks.innerHTML = `Admin: <a href="${res.adminUrl}" target="_blank" rel="noopener">${res.adminUrl}</a> | Overlay: <a href="${res.overlayUrl}" target="_blank" rel="noopener">${res.overlayUrl}</a>`;
+        }
+      }
+    } catch (err) {
+      Toast.error('Failed to create lobby: ' + err.message);
+    }
+  });
+
+  // Copy lobby code
+  document.getElementById('btn-copy-lobby')?.addEventListener('click', () => {
+    if (lobbyCodeOutput && lobbyCodeOutput.value) {
+      navigator.clipboard?.writeText(lobbyCodeOutput.value);
+      Toast.success('Lobby code copied');
+    }
+  });
+
+  // Join lobby
+  document.getElementById('btn-join-lobby')?.addEventListener('click', () => {
+    const code = (lobbyJoinInput?.value || '').trim();
+    if (!code) {
+      Toast.error('Enter a lobby code');
+      return;
+    }
+    const target = `/admin2.html?channel=${encodeURIComponent(code)}`;
+    window.location.href = target;
   });
 }
 

@@ -56,6 +56,25 @@
         </div>
       </section>
 
+      <!-- Lobby Controls -->
+      <section class="control-panel">
+        <h2>Shared Lobby (Multi-stream)</h2>
+        <div class="control-card">
+          <h4>Create Lobby Code</h4>
+          <p class="muted">Generate a shared lobby code for multiple streamers. Overlays use the same code in the URL (?channel=&lt;code&gt;).</p>
+          <div class="form-grid">
+            <button id="btn-create-lobby" class="btn btn-primary btn-sm">Create Lobby</button>
+            <input id="lobby-code-output" class="form-input" type="text" readonly placeholder="lobby code will appear here">
+            <button id="btn-copy-lobby" class="btn btn-secondary btn-sm">Copy Code</button>
+          </div>
+          <div class="form-grid" style="margin-top:8px;">
+            <input id="lobby-join-input" class="form-input" type="text" placeholder="Enter lobby code to join">
+            <button id="btn-join-lobby" class="btn btn-success btn-sm">Join Lobby</button>
+          </div>
+          <small id="lobby-links" class="muted"></small>
+        </div>
+      </section>
+
       <!-- Control Panel -->
       <section class="control-panel">
         <h2>Game Controls</h2>
