@@ -377,6 +377,7 @@ function renderPlayerHands(players) {
     const streak = typeof player.streak === 'number' ? player.streak : 0;
     const tilt = typeof player.tilt === 'number' ? player.tilt : 0;
     const afk = !!player.afk;
+    const isSelf = userLogin && player.login && userLogin.toLowerCase() === player.login.toLowerCase();
 
     const wrapper = document.createElement('div');
     wrapper.className = 'player-hand';
@@ -387,10 +388,11 @@ function renderPlayerHands(players) {
       .map((card, idx) => {
         const isNew = newRemaining > 0 && idx >= cards.length - newRemaining;
         if (isNew) newRemaining--;
+        const hidden = !isSelf;
         return `
-          <div class="card-item ${isNew ? 'deal-in' : ''}">
-            <div class="card-rank">${card.rank}</div>
-            <div class="card-suit">${card.suit}</div>
+          <div class="card-item ${isNew ? 'deal-in' : ''} ${hidden ? 'card-back' : ''}">
+            <div class="card-rank">${hidden ? '' : card.rank}</div>
+            <div class="card-suit">${hidden ? '' : card.suit}</div>
           </div>
         `;
       })
