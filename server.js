@@ -34,6 +34,7 @@ const {
   settleAndEmit: settleAndEmitPoker,
 } = require('./server/modes/poker');
 const fetch = global.fetch;
+const DEFAULT_AVATAR = 'https://all-in-chat-poker.fly.dev/logo.png';
 
 const logger = new Logger('server');
 let currentMode = 'blackjack';
@@ -262,6 +263,7 @@ function getPlayerState(login, channel = DEFAULT_CHANNEL) {
       stood: false,
       busted: false,
       folded: false,
+      avatarUrl: DEFAULT_AVATAR,
     };
   }
   return state.playerStates[login];
@@ -891,7 +893,7 @@ app.post('/user/login', async (req, res) => {
 
   const login = twitchProfile.login;
   const existingProfile = db.getProfile(login);
-  const safeAvatar = twitchProfile.avatarUrl ? validation.sanitizeUrl(twitchProfile.avatarUrl) : undefined;
+  const safeAvatar = twitchProfile.avatarUrl ? validation.sanitizeUrl(twitchProfile.avatarUrl) : DEFAULT_AVATAR;
   const mergedSettings = (() => {
     let parsed = {};
     try {
@@ -902,7 +904,7 @@ app.post('/user/login', async (req, res) => {
     return {
       startingChips: parsed.startingChips || config.GAME_STARTING_CHIPS,
       theme: parsed.theme || 'dark',
-      avatarUrl: safeAvatar || parsed.avatarUrl,
+      avatarUrl: safeAvatar || parsed.avatarUrl || DEFAULT_AVATAR,
     };
   })();
 
