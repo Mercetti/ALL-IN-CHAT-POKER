@@ -890,14 +890,16 @@ app.post('/user/login', async (req, res) => {
     }
 
   const login = twitchProfile.login;
+  const existingProfile = db.getProfile(login);
   const safeAvatar = twitchProfile.avatarUrl ? validation.sanitizeUrl(twitchProfile.avatarUrl) : undefined;
 
   const role =
-    login === config.STREAMER_LOGIN
+    (existingProfile && existingProfile.role) ||
+    (login === config.STREAMER_LOGIN
       ? 'streamer'
       : login === config.BOT_ADMIN_LOGIN
         ? 'admin'
-        : 'player';
+        : 'player');
 
   db.upsertProfile({
     login,
@@ -914,9 +916,40 @@ app.post('/user/login', async (req, res) => {
   }
 
   const token = auth.signUserJWT(login);
-  return res.json({ token, login, avatarUrl: safeAvatar, expiresIn: config.USER_JWT_TTL_SECONDS, stats });
+  return res.json({ token, login, avatarUrl: safeAvatar, expiresIn: config.USER_JWT_TTL_SECONDS, stats, role });
   } catch (err) {
     logger.error('User login failed', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+/**
+ * Set user role (streamer/player) on first login
+ */
+app.post('/user/role', (req, res) => {
+  try {
+    const login = auth.extractUserLogin(req);
+    if (!validation.validateUsername(login || '')) {
+      return res.status(401).json({ error: 'unauthorized' });
+    }
+    const requested = (req.body && req.body.role || '').toLowerCase();
+    if (!['streamer', 'player'].includes(requested)) {
+      return res.status(400).json({ error: 'invalid role' });
+    }
+    const profile = db.getProfile(login);
+    const currentRole = (profile && profile.role) || 'player';
+    if (currentRole === 'streamer' || currentRole === 'admin') {
+      return res.json({ role: currentRole });
+    }
+    const updated = db.upsertProfile({
+      login,
+      display_name: profile?.display_name || login,
+      settings: profile?.settings || { startingChips: config.GAME_STARTING_CHIPS, theme: 'dark' },
+      role: requested,
+    });
+    return res.json({ role: updated.role || requested });
+  } catch (err) {
+    logger.error('Failed to set user role', { error: err.message });
     return res.status(500).json({ error: 'internal_error' });
   }
 });

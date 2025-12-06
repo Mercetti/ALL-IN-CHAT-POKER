@@ -4,6 +4,7 @@
 
 const jwt = require('jsonwebtoken');
 const config = require('./config');
+const db = require('./db');
 const Logger = require('./logger');
 
 const logger = new Logger('auth');
@@ -95,6 +96,11 @@ function isAdminRequest(req) {
         const user = payload && payload.user ? payload.user.toLowerCase() : null;
         if (user && config.STREAMER_LOGIN && user === config.STREAMER_LOGIN.toLowerCase()) return true;
         if (user && config.BOT_ADMIN_LOGIN && user === config.BOT_ADMIN_LOGIN.toLowerCase()) return true;
+        if (user) {
+          const profile = db.getProfile(user);
+          const role = (profile && profile.role || '').toLowerCase();
+          if (role === 'streamer' || role === 'admin') return true;
+        }
       } catch (e) {
         // ignore
       }
