@@ -24,93 +24,149 @@
     </header>
 
     <main class="profile-main">
-      <div class="profile-content">
-        <!-- Profile Editor -->
-        <section class="profile-editor">
-          <h2>Profile Settings</h2>
-          <form id="profile-form" class="form">
-            <div class="form-group">
-              <label for="profile-username">Username</label>
-              <input type="text" id="profile-username" readonly class="form-input" disabled>
-            </div>
-
-            <div class="form-group">
-              <label for="profile-display-name">Display Name</label>
-              <input type="text" id="profile-display-name" class="form-input" placeholder="Your display name">
-            </div>
-
-            <div class="form-group">
-              <label for="profile-theme">Theme</label>
-              <select id="profile-theme" class="form-input">
-                <option value="dark">Dark</option>
-                <option value="light">Light</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="profile-starting-chips">Starting Chips</label>
-              <input type="number" id="profile-starting-chips" class="form-input" min="100" max="10000" value="1000">
-            </div>
-
-            <div class="form-group">
-              <label for="profile-avatar">Avatar URL (Twitch image)</label>
-              <input type="url" id="profile-avatar" class="form-input" placeholder="https://static-cdn.jtvnw.net/...">
-            </div>
-
-            <button type="submit" class="btn btn-primary">Save Changes</button>
-          </form>
-
-          <div id="unsaved-warning" class="warning-banner" style="display: none;">
-            ⚠️ You have unsaved changes
-          </div>
-        </section>
-
-        <!-- Profile Preview -->
-        <aside class="profile-preview">
-          <h2>Preview</h2>
-          <div class="preview-card">
-            <div class="preview-avatar">
-              <img id="preview-avatar" src="" alt="avatar">
-            </div>
-            <div class="preview-item">
-              <span>Username:</span>
-              <strong id="preview-username">—</strong>
-            </div>
-            <div class="preview-item">
-              <span>Display Name:</span>
-              <strong id="preview-display-name">—</strong>
-            </div>
-            <div class="preview-item">
-              <span>Theme:</span>
-              <strong id="preview-theme">Dark</strong>
-            </div>
-            <div class="preview-item">
-              <span>Starting Chips:</span>
-              <strong id="preview-chips">1000</strong>
-            </div>
-          </div>
-
-          <div class="profile-stats">
-            <h3>Your Stats</h3>
-            <div class="preview-item">
-              <span>Rounds Played:</span>
-              <strong id="preview-rounds-played">0</strong>
-            </div>
-            <div class="preview-item">
-              <span>Rounds Won:</span>
-              <strong id="preview-rounds-won">0</strong>
-            </div>
-            <div class="preview-item">
-              <span>Total Won:</span>
-              <strong id="preview-total-won">0</strong>
-            </div>
-            <div class="preview-item">
-              <span>Biggest Win:</span>
-              <strong id="preview-biggest-win">0</strong>
-            </div>
-          </div>
-        </aside>
+      <div class="tab-nav">
+        <button class="tab-btn active" data-tab="settings">Settings</button>
+        <button class="tab-btn" data-tab="customize">Customize</button>
       </div>
+
+      <section id="tab-settings" class="tab-pane active">
+        <div class="profile-content">
+          <!-- Profile Editor -->
+          <section class="profile-editor">
+            <h2>Profile Settings</h2>
+            <form id="profile-form" class="form">
+              <div class="form-group">
+                <label for="profile-username">Username</label>
+                <input type="text" id="profile-username" readonly class="form-input" disabled>
+              </div>
+
+              <div class="form-group">
+                <label for="profile-display-name">Display Name</label>
+                <input type="text" id="profile-display-name" class="form-input" placeholder="Your display name">
+              </div>
+
+              <div class="form-group">
+                <label for="profile-theme">Theme</label>
+                <select id="profile-theme" class="form-input">
+                  <option value="dark">Dark</option>
+                  <option value="light">Light</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="profile-starting-chips">Starting Chips</label>
+                <input type="number" id="profile-starting-chips" class="form-input" min="100" max="10000" value="1000">
+              </div>
+
+              <div class="form-group">
+                <label for="profile-avatar">Avatar URL (Twitch image)</label>
+                <input type="url" id="profile-avatar" class="form-input" placeholder="https://static-cdn.jtvnw.net/...">
+              </div>
+
+              <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+
+            <div id="unsaved-warning" class="warning-banner" style="display: none;">
+              ⚠️ You have unsaved changes
+            </div>
+          </section>
+
+          <!-- Profile Preview -->
+          <aside class="profile-preview">
+            <h2>Preview</h2>
+            <div class="preview-card">
+              <div class="preview-avatar">
+                <img id="preview-avatar" src="" alt="avatar">
+              </div>
+              <div class="preview-item">
+                <span>Username:</span>
+                <strong id="preview-username">—</strong>
+              </div>
+              <div class="preview-item">
+                <span>Display Name:</span>
+                <strong id="preview-display-name">—</strong>
+              </div>
+              <div class="preview-item">
+                <span>Theme:</span>
+                <strong id="preview-theme">Dark</strong>
+              </div>
+              <div class="preview-item">
+                <span>Starting Chips:</span>
+                <strong id="preview-chips">1000</strong>
+              </div>
+            </div>
+
+            <div class="profile-stats">
+              <h3>Your Stats</h3>
+              <div class="preview-item">
+                <span>Rounds Played:</span>
+                <strong id="preview-rounds-played">0</strong>
+              </div>
+              <div class="preview-item">
+                <span>Rounds Won:</span>
+                <strong id="preview-rounds-won">0</strong>
+              </div>
+              <div class="preview-item">
+                <span>Total Won:</span>
+                <strong id="preview-total-won">0</strong>
+              </div>
+              <div class="preview-item">
+                <span>Biggest Win:</span>
+                <strong id="preview-biggest-win">0</strong>
+              </div>
+            </div>
+
+            <section class="stream-links">
+              <h3>Streaming links</h3>
+              <p class="muted">Channel-scoped URLs for your overlays and admin panel.</p>
+
+              <div class="link-row">
+                <div class="link-meta">
+                  <div class="link-label">OBS overlay</div>
+                  <a id="overlay-url" class="link-code" href="#" target="_blank" rel="noopener">loading...</a>
+                </div>
+                <button class="btn btn-secondary btn-sm copy-btn" data-copy-target="overlay-url">Copy</button>
+              </div>
+
+              <div class="link-row">
+                <div class="link-meta">
+                  <div class="link-label">Admin dashboard</div>
+                  <a id="admin-url" class="link-code" href="#" target="_blank" rel="noopener">loading...</a>
+                </div>
+                <button class="btn btn-secondary btn-sm copy-btn" data-copy-target="admin-url">Copy</button>
+              </div>
+
+              <div class="link-row">
+                <div class="link-meta">
+                  <div class="link-label">Leaderboard overlay</div>
+                  <a id="leaderboard-url" class="link-code" href="#" target="_blank" rel="noopener">loading...</a>
+                </div>
+                <button class="btn btn-secondary btn-sm copy-btn" data-copy-target="leaderboard-url">Copy</button>
+              </div>
+
+              <p class="muted hint">These use your profile login as the <code>channel</code> query parameter for multi-stream support.</p>
+            </section>
+          </aside>
+        </div>
+      </section>
+
+      <section id="tab-customize" class="tab-pane">
+        <div class="customize-card">
+          <div class="section-header">
+            <h3>Skins &amp; Cosmetics</h3>
+            <span class="pill pill-muted">Coming soon</span>
+          </div>
+          <p class="muted">Preview card backs, table skins, avatar rings, and profile frames. Buy is disabled for alpha; you can equip owned defaults.</p>
+          <div id="cosmetic-grid" class="cosmetic-grid">
+            <div class="cosmetic-loading">Loading catalog...</div>
+          </div>
+          <div class="customize-actions">
+            <a class="btn btn-secondary btn-sm" href="/market.html" target="_blank" rel="noopener">Open marketplace</a>
+            <button id="btn-refresh-cosmetics" class="btn btn-secondary btn-sm">Refresh cosmetics</button>
+            <p class="muted support-note">All purchases are cosmetic only and do not affect gameplay or odds. Purchase issue? Email <a href="mailto:allinchatpoker@gmail.com?subject=Purchase%20help&body=Describe%20the%20issue%20and%20include%20your%20username%20and%20item%20name.">allinchatpoker@gmail.com</a> with your username and item name.</p>
+          </div>
+        </div>
+      </section>
     </main>
   </div>
 

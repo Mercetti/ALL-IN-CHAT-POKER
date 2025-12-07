@@ -120,6 +120,14 @@
           </div>
           <button id="btn-adjust-balance" class="btn btn-primary btn-sm" style="margin-top:8px;">Apply</button>
         </div>
+        <div class="rules-card">
+          <h4>Poker availability</h4>
+          <ul>
+            <li>Blackjack is the default for single-channel games.</li>
+            <li>Poker is enabled only in shared lobbies (codes starting with <code>lobby-</code>) for Stream Together sessions.</li>
+            <li>Use the lobby creator above to generate a shared code for multi-stream play.</li>
+          </ul>
+        </div>
         <div class="queue-display">
           <h4>Waiting Queue <span class="phase-chip subtle" id="queue-count">0</span></h4>
           <ol id="queue-list" class="leaderboard">
@@ -130,6 +138,91 @@
           <h4>Last Payouts</h4>
           <ul id="admin-payouts" class="payouts-list">
             <li>None</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Developer Controls -->
+      <section class="control-panel">
+        <h2>Developer / Overlay Tuning</h2>
+        <div class="control-card">
+          <p class="muted">Adjust live overlay feel for this channel: dealing speed, chip audio, and pot glow threshold.</p>
+          <div class="form-grid dev-grid">
+            <label>
+              Deal delay per player
+              <input id="dev-deal-base" type="range" min="0" max="0.6" step="0.02" value="0.18">
+              <small class="muted">Current: <span id="dev-deal-base-val">0.18</span>s</small>
+            </label>
+            <label>
+              Deal delay per card
+              <input id="dev-deal-card" type="range" min="0" max="0.3" step="0.02" value="0.08">
+              <small class="muted">Current: <span id="dev-deal-card-val">0.08</span>s</small>
+            </label>
+            <label>
+              Chip sound volume
+              <input id="dev-chip-volume" type="range" min="0" max="0.6" step="0.02" value="0.16">
+              <small class="muted">Current: <span id="dev-chip-volume-val">0.16</span></small>
+            </label>
+            <label>
+              Pot glow multiplier
+              <input id="dev-pot-glow" type="range" min="1" max="20" step="0.5" value="5">
+              <small class="muted">Current: <span id="dev-pot-glow-val">5</span>x min bet</small>
+            </label>
+            <label>
+              Card back variant
+              <select id="dev-card-variant" class="form-input">
+                <option value="default">Default</option>
+                <option value="emerald">Emerald</option>
+                <option value="azure">Azure</option>
+                <option value="magenta">Magenta</option>
+                <option value="gold">Gold</option>
+                <option value="custom">Custom tint</option>
+              </select>
+            </label>
+            <label>
+              Card back tint (custom)
+              <input id="dev-card-tint" type="color" value="#0f7a62">
+              <small class="muted">Used when variant is set to custom.</small>
+            </label>
+            <label>
+              Avatar ring color
+              <input id="dev-avatar-ring" type="color" value="#00d4a6">
+            </label>
+            <label>
+              Profile card border
+              <input id="dev-profile-border" type="color" value="#00d4a6">
+            </label>
+            <label>
+              Table felt tint
+              <input id="dev-table-tint" type="color" value="#0b4a3e">
+            </label>
+            <label>
+              Table logo color
+              <input id="dev-table-logo" type="color" value="#8ef5d0">
+            </label>
+          </div>
+          <div class="control-row" style="margin-top:12px;">
+            <button id="btn-apply-overlay-settings" class="btn btn-primary btn-sm">Push to overlays</button>
+            <small class="muted">Applies to overlays using this channel/lobby.</small>
+          </div>
+          <div class="control-row">
+            <button id="btn-refresh-catalog" class="btn btn-secondary btn-sm">Reload cosmetics catalog</button>
+            <small class="muted">For QA: reloads catalog/ownership cache.</small>
+          </div>
+        </div>
+      </section>
+
+      <section class="control-panel">
+        <h2>Alpha Test Checklist</h2>
+        <div class="control-card">
+          <ul class="rules-list">
+            <li>Auth/roles: streamer/admin login works; admin endpoints blocked for normal users.</li>
+            <li>Lobbies: create/join lobby; poker hidden on single-channel, visible on lobby- channels.</li>
+            <li>Blackjack flow: start/end round; hit/stand/double/split/insurance; payouts and balances update.</li>
+            <li>Overlay: deal/flip/chip animations; cosmetics render (card back, avatar ring, profile border, table tint/texture/logo).</li>
+            <li>Cosmetics API: grant via admin, equip via profile; catalog loads.</li>
+            <li>Pages: rules (blackjack/poker/hold’em), profile customize, marketplace, support mailto.</li>
+            <li>Deploy: flyctl deploy --config fly.toml --no-cache after local smoke.</li>
           </ul>
         </div>
       </section>

@@ -21,6 +21,22 @@ const isEventForChannel = (payload) => {
 const lobbyCodeOutput = document.getElementById('lobby-code-output');
 const lobbyLinks = document.getElementById('lobby-links');
 const lobbyJoinInput = document.getElementById('lobby-join-input');
+const devDealBaseInput = document.getElementById('dev-deal-base');
+const devDealCardInput = document.getElementById('dev-deal-card');
+const devChipVolumeInput = document.getElementById('dev-chip-volume');
+const devPotGlowInput = document.getElementById('dev-pot-glow');
+const devDisplay = {
+  base: document.getElementById('dev-deal-base-val'),
+  card: document.getElementById('dev-deal-card-val'),
+  vol: document.getElementById('dev-chip-volume-val'),
+  glow: document.getElementById('dev-pot-glow-val'),
+};
+const devCardVariant = document.getElementById('dev-card-variant');
+const devCardTint = document.getElementById('dev-card-tint');
+const devAvatarRing = document.getElementById('dev-avatar-ring');
+const devProfileBorder = document.getElementById('dev-profile-border');
+const devTableTint = document.getElementById('dev-table-tint');
+const devTableLogo = document.getElementById('dev-table-logo');
 
 function decodeUserLogin(token) {
   if (!token) return null;
@@ -92,6 +108,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Setup event listeners
   setupEventListeners();
   initSocket();
+  updateDevDisplays();
 
   // Refresh data every 30 seconds
   setInterval(loadStats, 30000);
@@ -294,6 +311,26 @@ function setupEventListeners() {
     }
     const target = `/admin2.html?channel=${encodeURIComponent(code)}`;
     window.location.href = target;
+  });
+
+  // Developer overlay tuning inputs
+  [devDealBaseInput, devDealCardInput, devChipVolumeInput, devPotGlowInput].forEach((input) => {
+    if (input) input.addEventListener('input', updateDevDisplays);
+  });
+  [devCardVariant, devCardTint, devAvatarRing, devProfileBorder, devTableTint, devTableLogo].forEach((input) => {
+    if (input && input.tagName === 'SELECT') input.addEventListener('change', updateDevDisplays);
+    else if (input) input.addEventListener('input', updateDevDisplays);
+  });
+
+  document.getElementById('btn-apply-overlay-settings')?.addEventListener('click', async () => {
+    const ready = await ensureSocketConnected();
+    if (!ready) {
+      Toast.error(NOT_CONNECTED_MSG);
+      return;
+    }
+    const settings = getDevSettingsFromInputs();
+    adminSocket.emit('overlaySettings', settings);
+    Toast.success('Overlay settings pushed');
   });
 }
 
@@ -551,6 +588,20 @@ function initSocket() {
     }
   });
 
+  adminSocket.on('overlaySettings', (data) => {
+    if (!isEventForChannel(data)) return;
+    setDevInputs(data?.settings || {});
+  });
+
+  document.getElementById('btn-refresh-catalog')?.addEventListener('click', async () => {
+    try {
+      await apiCall('/catalog', { method: 'GET' });
+      Toast.success('Catalog reloaded from server');
+    } catch (err) {
+      Toast.error('Catalog reload failed: ' + err.message);
+    }
+  });
+
   // Apply saved theme on load and toggle
   applyTheme();
   setThemeButtonLabel(document.getElementById('admin-theme-toggle'));
@@ -618,6 +669,43 @@ async function loadMode() {
   } catch (err) {
     console.error('Failed to load mode', err);
   }
+}
+
+function updateDevDisplays() {
+  if (devDealBaseInput && devDisplay.base) devDisplay.base.textContent = Number(devDealBaseInput.value).toFixed(2);
+  if (devDealCardInput && devDisplay.card) devDisplay.card.textContent = Number(devDealCardInput.value).toFixed(2);
+  if (devChipVolumeInput && devDisplay.vol) devDisplay.vol.textContent = Number(devChipVolumeInput.value).toFixed(2);
+  if (devPotGlowInput && devDisplay.glow) devDisplay.glow.textContent = Number(devPotGlowInput.value).toFixed(1);
+  // no display spans for colors; input UI shows current value
+}
+
+function setDevInputs(settings = {}) {
+  if (devDealBaseInput && typeof settings.dealDelayBase === 'number') devDealBaseInput.value = settings.dealDelayBase;
+  if (devDealCardInput && typeof settings.dealDelayPerCard === 'number') devDealCardInput.value = settings.dealDelayPerCard;
+  if (devChipVolumeInput && typeof settings.chipVolume === 'number') devChipVolumeInput.value = settings.chipVolume;
+  if (devPotGlowInput && typeof settings.potGlowMultiplier === 'number') devPotGlowInput.value = settings.potGlowMultiplier;
+  if (devCardVariant && typeof settings.cardBackVariant === 'string') devCardVariant.value = settings.cardBackVariant;
+  if (devCardTint && typeof settings.cardBackTint === 'string') devCardTint.value = settings.cardBackTint;
+  if (devAvatarRing && typeof settings.avatarRingColor === 'string') devAvatarRing.value = settings.avatarRingColor;
+  if (devProfileBorder && typeof settings.profileCardBorder === 'string') devProfileBorder.value = settings.profileCardBorder;
+  if (devTableTint && typeof settings.tableTint === 'string') devTableTint.value = settings.tableTint;
+  if (devTableLogo && typeof settings.tableLogoColor === 'string') devTableLogo.value = settings.tableLogoColor;
+  updateDevDisplays();
+}
+
+function getDevSettingsFromInputs() {
+  return {
+    dealDelayBase: Number(devDealBaseInput?.value || 0.18),
+    dealDelayPerCard: Number(devDealCardInput?.value || 0.08),
+    chipVolume: Number(devChipVolumeInput?.value || 0.16),
+    potGlowMultiplier: Number(devPotGlowInput?.value || 5),
+    cardBackVariant: (devCardVariant?.value || 'default').toLowerCase(),
+    cardBackTint: devCardTint?.value || undefined,
+    avatarRingColor: devAvatarRing?.value || undefined,
+    profileCardBorder: devProfileBorder?.value || undefined,
+    tableTint: devTableTint?.value || undefined,
+    tableLogoColor: devTableLogo?.value || undefined,
+  };
 }
 
 async function saveMode() {

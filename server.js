@@ -54,6 +54,61 @@ const logger = new Logger('server');
 let currentMode = 'blackjack';
 let tmiClient = null;
 const DEFAULT_CHANNEL = getDefaultChannel();
+const overlaySettingsByChannel = {};
+const COSMETIC_CATALOG = [
+  { id: 'card-default', type: 'cardBack', name: 'Default Emerald', price_cents: 0, rarity: 'common', preview: '/assets/card-back.png', tint: '#0b1b1b' },
+  { id: 'card-azure', type: 'cardBack', name: 'Azure Edge', price_cents: 300, rarity: 'rare', preview: '/assets/card-back.png', tint: '#2d9cff' },
+  { id: 'card-magenta', type: 'cardBack', name: 'Magenta Bloom', price_cents: 300, rarity: 'rare', preview: '/assets/card-back.png', tint: '#c94cff' },
+  { id: 'table-default', type: 'tableSkin', name: 'Default Felt', price_cents: 0, rarity: 'common', preview: '/assets/table-texture.svg', tint: '#0c4c3b', color: '#8ef5d0', texture_url: '/assets/table-texture.svg' },
+  { id: 'table-night', type: 'tableSkin', name: 'Night Felt', price_cents: 400, rarity: 'rare', preview: '/assets/table-texture.svg', tint: '#0a2c2c', color: '#6fffd3', texture_url: '/assets/table-texture.svg' },
+  { id: 'table-neon', type: 'tableSkin', name: 'Neon Felt', price_cents: 500, rarity: 'rare', preview: '/assets/table-texture.svg', tint: '#0f5d4f', color: '#8ef5d0', texture_url: '/assets/table-texture.svg' },
+  { id: 'ring-default', type: 'avatarRing', name: 'Emerald Ring', price_cents: 0, rarity: 'common', preview: '/logo.png', color: '#00d4a6' },
+  { id: 'ring-gold', type: 'avatarRing', name: 'Gold Ring', price_cents: 250, rarity: 'rare', preview: '/logo.png', color: '#f5a524' },
+  { id: 'frame-default', type: 'profileFrame', name: 'Emerald Frame', price_cents: 0, rarity: 'common', preview: '/logo.png', color: '#00d4a6' },
+  { id: 'frame-ice', type: 'profileFrame', name: 'Ice Frame', price_cents: 250, rarity: 'rare', preview: '/logo.png', color: '#6dd2ff' },
+  { id: 'bundle-neon-night', type: 'bundle', name: 'Neon Night Bundle', price_cents: 799, rarity: 'epic', preview: '/assets/table-texture.svg', tint: '#0f5d4f', color: '#8ef5d0', texture_url: '/assets/table-texture.svg' },
+];
+const DEFAULT_COSMETIC_DEFAULTS = ['card-default', 'table-default', 'ring-default', 'frame-default'];
+const DEFAULT_COSMETIC_SLOTS = {
+  cardBack: 'card-default',
+  tableSkin: 'table-default',
+  avatarRing: 'ring-default',
+  profileFrame: 'frame-default',
+};
+
+function isMultiStreamChannel(name = '') {
+  return typeof name === 'string' && name.toLowerCase().startsWith('lobby-');
+}
+
+function getUserInventory(login = '') {
+  db.ensureDefaultCosmetics(login, DEFAULT_COSMETIC_DEFAULTS);
+  const inv = db.getUserInventory(login);
+  const owned = new Set([...DEFAULT_COSMETIC_DEFAULTS, ...Array.from(inv.owned)]);
+  const equipped = { ...DEFAULT_COSMETIC_SLOTS, ...inv.equipped };
+  return { owned, equipped };
+}
+
+function getCosmeticsForLogin(login = '') {
+  const inv = getUserInventory(login);
+  const catalog = db.getCatalog();
+  const map = {};
+  catalog.forEach((item) => { map[item.id] = item; });
+
+  const cardBackItem = map[inv.equipped.cardBack] || map['card-default'];
+  const tableItem = map[inv.equipped.tableSkin] || map['table-default'];
+  const ringItem = map[inv.equipped.avatarRing] || map['ring-default'];
+  const frameItem = map[inv.equipped.profileFrame] || map['frame-default'];
+
+  return {
+    cardBackId: cardBackItem?.id || 'card-default',
+    cardBackTint: cardBackItem?.tint || null,
+    tableTint: tableItem?.tint || null,
+    tableTexture: tableItem?.texture_url || null,
+    tableLogoColor: tableItem?.color || null,
+    avatarRingColor: ringItem?.color || null,
+    profileCardBorder: frameItem?.color || null,
+  };
+}
 
 // Initialize app
 const app = express();
@@ -87,6 +142,11 @@ app.get('/public-config.json', (req, res) => {
   });
 });
 app.use(express.static('public'));
+
+// Public cosmetic catalog (read-only)
+app.get('/catalog', (_req, res) => {
+  res.json(db.getCatalog());
+});
 
 function normalizeChannelName(name) {
   return normalizeChannelNameScoped(name);
@@ -197,6 +257,50 @@ function getDefaultAvatarForLogin(login = '', colorOverride = null) {
   // Simple SVG data URI with solid background and initial
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='128' height='128'><rect width='128' height='128' fill='%23${color}'/><text x='50%' y='55%' font-size='64' text-anchor='middle' fill='white' font-family='Arial, sans-serif' dominant-baseline='middle'>${letter}</text></svg>`;
   return `data:image/svg+xml;utf8,${svg}`;
+}
+
+function sanitizeOverlaySettings(raw = {}) {
+  const safe = {};
+  const clamp = (val, min, max) => {
+    const num = Number(val);
+    if (!Number.isFinite(num)) return null;
+    return Math.min(max, Math.max(min, num));
+  };
+
+  const dealBase = clamp(raw.dealDelayBase, 0, 0.6);
+  if (dealBase !== null) safe.dealDelayBase = Number(dealBase.toFixed(3));
+
+  const dealCard = clamp(raw.dealDelayPerCard, 0, 0.3);
+  if (dealCard !== null) safe.dealDelayPerCard = Number(dealCard.toFixed(3));
+
+  const chipVol = clamp(raw.chipVolume, 0, 0.6);
+  if (chipVol !== null) safe.chipVolume = Number(chipVol.toFixed(3));
+
+  const potGlow = clamp(raw.potGlowMultiplier, 1, 20);
+  if (potGlow !== null) safe.potGlowMultiplier = Number(potGlow.toFixed(2));
+
+  if (typeof raw.cardBackVariant === 'string') {
+    const variant = raw.cardBackVariant.toLowerCase();
+    const allowed = ['default', 'emerald', 'azure', 'magenta', 'gold', 'custom'];
+    if (allowed.includes(variant)) safe.cardBackVariant = variant;
+  }
+
+  const tint = sanitizeColor(raw.cardBackTint);
+  if (tint) safe.cardBackTint = tint;
+
+  const avatarRing = sanitizeColor(raw.avatarRingColor);
+  if (avatarRing) safe.avatarRingColor = avatarRing;
+
+  const profileBorder = sanitizeColor(raw.profileCardBorder);
+  if (profileBorder) safe.profileCardBorder = profileBorder;
+
+  const tableTint = sanitizeColor(raw.tableTint);
+  if (tableTint) safe.tableTint = tableTint;
+
+  const tableLogo = sanitizeColor(raw.tableLogoColor);
+  if (tableLogo) safe.tableLogoColor = tableLogo;
+
+  return safe;
 }
 
 function getChannelFromReq(req) {
@@ -1486,13 +1590,93 @@ app.post('/admin/balance', auth.requireAdmin, (req, res) => {
 
     const channel = getChannelFromReq(req);
     const channelName = normalizeChannelName(channel) || DEFAULT_CHANNEL;
-    io.to(channelName).emit('playerUpdate', { login, balance: newBalance, bet: 0, channel: channelName });
+  io.to(channelName).emit('playerUpdate', { login, balance: newBalance, bet: 0, channel: channelName, cosmetics: getCosmeticsForLogin(login) });
     logger.info('Admin balance update', { login, amount: safeAmount, mode: mode || 'add', newBalance });
     return res.json({ login, balance: newBalance });
   } catch (err) {
     logger.error('Failed to update balance', { error: err.message });
     return res.status(500).json({ error: 'internal_error' });
   }
+});
+
+/**
+ * Grant cosmetic item to a user (admin only)
+ * Body: { login, itemId }
+ */
+app.post('/admin/grant-item', auth.requireAdmin, (req, res) => {
+  const { login, itemId } = req.body || {};
+  if (!validation.validateUsername(login || '')) {
+    return res.status(400).json({ error: 'invalid username' });
+  }
+  const inv = db.grantCosmetic(login, itemId);
+  if (!inv) return res.status(400).json({ error: 'invalid itemId' });
+  return res.json({
+    success: true,
+    owned: Array.from(inv.owned || []),
+    equipped: inv.equipped || {},
+  });
+});
+
+/**
+ * Dev/admin purchase stub (records + grants). Restricted to admins.
+ */
+app.post('/admin/dev-purchase', auth.requireAdmin, (req, res) => {
+  const { login, itemId } = req.body || {};
+  if (!validation.validateUsername(login || '')) {
+    return res.status(400).json({ error: 'invalid username' });
+  }
+  const item = db.getCosmeticById(itemId);
+  if (!item) return res.status(400).json({ error: 'invalid itemId' });
+
+  db.recordPurchase({
+    login,
+    itemId,
+    provider: 'dev',
+    amount_cents: item.price_cents || 0,
+    status: 'completed',
+    note: 'dev/admin purchase stub',
+  });
+  const inv = db.grantCosmetic(login, itemId);
+  return res.json({
+    success: true,
+    purchased: itemId,
+    owned: Array.from(inv?.owned || []),
+    equipped: inv?.equipped || {},
+  });
+});
+
+/**
+ * Get user cosmetics (requires user token)
+ */
+app.get('/user/items', (req, res) => {
+  const login = auth.extractUserLogin(req);
+  if (!validation.validateUsername(login || '')) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+  const inv = getUserInventory(login);
+  return res.json({
+    owned: Array.from(inv.owned || []),
+    equipped: inv.equipped,
+  });
+});
+
+/**
+ * Equip a cosmetic item (requires user token)
+ * Body: { itemId }
+ */
+app.post('/user/equip', (req, res) => {
+  const login = auth.extractUserLogin(req);
+  if (!validation.validateUsername(login || '')) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+  const itemId = req.body?.itemId;
+  const updated = db.equipCosmetic(login, itemId);
+  if (!updated) return res.status(400).json({ error: 'invalid itemId or not owned' });
+  const inv = getUserInventory(login);
+  return res.json({
+    success: true,
+    equipped: inv.equipped || {},
+  });
 });
 
 /**
@@ -1577,9 +1761,13 @@ io.on('connection', (socket) => {
       bet: (stateView.betAmounts && stateView.betAmounts[login]) || 0,
       streetBet: (stateView.pokerStreetBets && stateView.pokerStreetBets[login]) || 0,
       avatar: (db.getProfile(login)?.settings && JSON.parse(db.getProfile(login).settings || '{}').avatarUrl) || null,
+      cosmetics: getCosmeticsForLogin(login),
       ...getHeuristics(login, channel),
     })),
   });
+  if (overlaySettingsByChannel[channel]) {
+    socket.emit('overlaySettings', { settings: overlaySettingsByChannel[channel], channel });
+  }
 
   const socketLogin = auth.extractUserLogin(socket.handshake);
   socket.data.login = socketLogin;
@@ -1639,6 +1827,24 @@ io.on('connection', (socket) => {
   });
 
   /**
+   * Overlay tuning (admin only)
+   */
+  socket.on('overlaySettings', (data) => {
+    if (!auth.isAdminRequest(socket.handshake)) {
+      logger.warn('Unauthorized overlaySettings attempt', { socketId: socket.id });
+      return;
+    }
+    const channelName = socket.data.channel || DEFAULT_CHANNEL;
+    const safe = sanitizeOverlaySettings(data || {});
+    overlaySettingsByChannel[channelName] = {
+      ...overlaySettingsByChannel[channelName],
+      ...safe,
+    };
+    io.to(channelName).emit('overlaySettings', { settings: overlaySettingsByChannel[channelName], channel: channelName });
+    logger.info('Overlay settings updated', { channel: channelName, settings: overlaySettingsByChannel[channelName] });
+  });
+
+  /**
    * Player selects held cards (poker)
    */
   socket.on('playerHold', (data) => {
@@ -1659,7 +1865,7 @@ io.on('connection', (socket) => {
   socket.on('playerCheck', () => {
     const channelName = socket.data.channel || DEFAULT_CHANNEL;
     const state = getStateForChannel(channelName);
-    if (state.currentMode !== 'poker' || !state.roundInProgress) return;
+    if (!isMultiStreamChannel(channelName) || state.currentMode !== 'poker' || !state.roundInProgress) return;
     const login = socket.data.login;
     if (!validation.validateUsername(login || '')) return;
     pokerCheckAction(login, channelName);
@@ -1671,7 +1877,7 @@ io.on('connection', (socket) => {
   socket.on('playerCall', () => {
     const channelName = socket.data.channel || DEFAULT_CHANNEL;
     const state = getStateForChannel(channelName);
-    if (state.currentMode !== 'poker' || !state.roundInProgress) return;
+    if (!isMultiStreamChannel(channelName) || state.currentMode !== 'poker' || !state.roundInProgress) return;
     const login = socket.data.login;
     if (!validation.validateUsername(login || '')) return;
     pokerCallAction(login, channelName);
@@ -1683,7 +1889,7 @@ io.on('connection', (socket) => {
   socket.on('playerRaise', (data) => {
     const channelName = socket.data.channel || DEFAULT_CHANNEL;
     const state = getStateForChannel(channelName);
-    if (state.currentMode !== 'poker' || !state.roundInProgress) return;
+    if (!isMultiStreamChannel(channelName) || state.currentMode !== 'poker' || !state.roundInProgress) return;
     const login = socket.data.login;
     if (!validation.validateUsername(login || '')) return;
     const amount = Number.isInteger(data?.amount) ? data.amount : null;
@@ -1697,7 +1903,7 @@ io.on('connection', (socket) => {
   socket.on('playerFold', () => {
     const channelName = socket.data.channel || DEFAULT_CHANNEL;
     const state = getStateForChannel(channelName);
-    if (state.currentMode !== 'poker' || !state.roundInProgress) return;
+    if (!isMultiStreamChannel(channelName) || state.currentMode !== 'poker' || !state.roundInProgress) return;
     const login = socket.data.login;
     if (!validation.validateUsername(login || '')) return;
     pokerFoldAction(login, channelName);
@@ -1960,6 +2166,7 @@ async function start() {
 
     // Initialize database
     db.init();
+    db.seedCosmetics(COSMETIC_CATALOG);
 
     // Ensure streamer profile exists
     if (validation.validateUsername(config.STREAMER_LOGIN)) {

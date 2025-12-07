@@ -234,6 +234,27 @@
   font-weight: 600;
 }
 
+.dev-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.dev-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.dev-grid input[type="range"] {
+  width: 100%;
+}
+
+.dev-grid input[type="color"],
+.dev-grid select {
+  width: 100%;
+}
+
 .mode-select {
   display: flex;
   align-items: center;

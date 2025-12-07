@@ -4,6 +4,7 @@
 
 const SOCKET_URL = typeof getBackendBase === 'function' ? getBackendBase() : '';
 const overlayChannel = typeof getChannelParam === 'function' ? getChannelParam() : '';
+const isMultiStream = overlayChannel && overlayChannel.toLowerCase().startsWith('lobby-');
 const isEventForChannel = (payload) => {
   if (!payload || !payload.channel) return true;
   return payload.channel === overlayChannel;
@@ -34,6 +35,19 @@ let playerBalances = {};
 let currentPot = 0;
 let minBet = 10;
 let potGlowMultiplier = 5;
+let overlayTuning = {
+  dealDelayBase: 0.18,
+  dealDelayPerCard: 0.08,
+  chipVolume: 0.16,
+  potGlowMultiplier: 0,
+  cardBackVariant: 'default',
+  cardBackTint: null,
+  avatarRingColor: null,
+  profileCardBorder: null,
+  tableTint: null,
+  tableLogoColor: null,
+  tableTexture: null,
+};
 const CHIP_DENOMS = [
   { value: 1000, color: '#f5a524', label: '1k' },
   { value: 500, color: '#9b59b6', label: '500' },
@@ -49,13 +63,16 @@ async function loadPublicConfig() {
     if (res.ok) {
       const cfg = await res.json();
       streamerLogin = (cfg.streamerLogin || '').toLowerCase();
-      if (typeof cfg.minBet === 'number') minBet = cfg.minBet;
-      if (typeof cfg.potGlowMultiplier === 'number') potGlowMultiplier = cfg.potGlowMultiplier;
-      updateUserBadge();
+    if (typeof cfg.minBet === 'number') minBet = cfg.minBet;
+    if (typeof cfg.potGlowMultiplier === 'number') {
+      potGlowMultiplier = cfg.potGlowMultiplier;
+      overlayTuning.potGlowMultiplier = cfg.potGlowMultiplier;
     }
-  } catch (e) {
-    // ignore
+    updateUserBadge();
   }
+} catch (e) {
+  // ignore
+}
 }
 loadPublicConfig();
 loadBalances();
@@ -363,8 +380,11 @@ function renderPlayerHands(players) {
   if (!container) return;
   container.innerHTML = '';
   if (!Array.isArray(players)) return;
+  const isRevealPhase = ['result', 'showdown', 'reveal'].includes((currentPhase || '').toLowerCase());
 
-  players.forEach(player => {
+  updateTableSkinFromPlayers(players);
+
+  players.forEach((player, playerIdx) => {
     const hand = player.hand || [];
     const totalCards = player.hands && Array.isArray(player.hands)
       ? player.hands.reduce((sum, h) => sum + (h ? h.length : 0), 0)
@@ -378,9 +398,13 @@ function renderPlayerHands(players) {
     const tilt = typeof player.tilt === 'number' ? player.tilt : 0;
     const afk = !!player.afk;
     const isSelf = userLogin && player.login && userLogin.toLowerCase() === player.login.toLowerCase();
+    const cosmetics = player.cosmetics || {};
 
     const wrapper = document.createElement('div');
     wrapper.className = 'player-hand';
+    if (player.login) wrapper.dataset.login = player.login;
+    if (cosmetics.avatarRingColor) wrapper.style.setProperty('--avatar-ring', cosmetics.avatarRingColor);
+    if (cosmetics.profileCardBorder) wrapper.style.setProperty('--profile-card-border', cosmetics.profileCardBorder);
     if (streak >= 2) wrapper.classList.add('hot');
     else if (streak <= -2) wrapper.classList.add('cold');
     if (tilt >= 2) wrapper.classList.add('tilt');
@@ -389,8 +413,22 @@ function renderPlayerHands(players) {
         const isNew = newRemaining > 0 && idx >= cards.length - newRemaining;
         if (isNew) newRemaining--;
         const hidden = !isSelf;
+        const seatOffset = (playerIdx - Math.floor(players.length / 2)) * 26;
+        const dealFromY = 220; // dealer/front-center of the table
+        const delay = (playerIdx * (overlayTuning.dealDelayBase || 0.18)) + (idx * (overlayTuning.dealDelayPerCard || 0.08));
+        const rotate = (playerIdx % 2 ? 5 : -5) + idx * 1.5;
+        const styleParts = [];
+        if (isNew) {
+          styleParts.push(`--deal-from-x:${seatOffset}px`, `--deal-from-y:${dealFromY}px`, `--deal-rot:${rotate.toFixed(1)}deg`, `animation-delay:${delay.toFixed(2)}s`);
+        }
+        const tint = cosmetics.cardBackTint || overlayTuning.cardBackTint || null;
+        if (tint) {
+          styleParts.push(`--card-back-tint:${tint}`);
+        }
+        const style = styleParts.length ? `style="${styleParts.join(';')}"` : '';
+        const flipClass = !hidden && isRevealPhase ? 'flip-in' : '';
         return `
-          <div class="card-item ${isNew ? 'deal-in' : ''} ${hidden ? 'card-back' : ''}">
+          <div class="card-item ${isNew ? 'deal-in' : ''} ${flipClass} ${hidden ? 'card-back' : ''}" ${style}>
             <div class="card-rank">${hidden ? '' : card.rank}</div>
             <div class="card-suit">${hidden ? '' : card.suit}</div>
           </div>
@@ -445,6 +483,19 @@ function renderPlayerHands(players) {
   document.getElementById('btn-draw').disabled = false;
 }
 
+function updateTableSkinFromPlayers(players = []) {
+  if (!Array.isArray(players) || !players.length) return;
+  // Prefer streamer cosmetics if present
+  const streamer = players.find(p => p.login && p.login.toLowerCase() === streamerLogin);
+  const chosen = streamer || players[0];
+  if (chosen && chosen.cosmetics) {
+    if (chosen.cosmetics.tableTint) overlayTuning.tableTint = chosen.cosmetics.tableTint;
+    if (chosen.cosmetics.tableTexture) overlayTuning.tableTexture = chosen.cosmetics.tableTexture;
+    if (chosen.cosmetics.tableLogoColor) overlayTuning.tableLogoColor = chosen.cosmetics.tableLogoColor;
+    applyVisualSettings();
+  }
+}
+
 function renderPot(data) {
   const potWrap = document.getElementById('pot-chips');
   const potContainer = document.getElementById('table-pot');
@@ -452,12 +503,16 @@ function renderPot(data) {
   const explicitPot = data && typeof data.pot === 'number' ? data.pot : null;
   const sumBets = overlayPlayers.reduce((sum, p) => sum + (p.bet || 0), 0);
   const pot = explicitPot !== null ? explicitPot : sumBets;
+  const prevPot = currentPot;
   currentPot = pot;
   const chips = renderChipStack(pot);
   potWrap.innerHTML = `<div class="pot-total">Total Pot: $${(pot || 0).toLocaleString?.() || pot || 0}</div>${chips}`;
   if (potContainer) {
-    const glowThreshold = (minBet || 1) * (potGlowMultiplier || 5);
+    const glowThreshold = (minBet || 1) * ((overlayTuning.potGlowMultiplier || potGlowMultiplier || 5));
     potContainer.classList.toggle('pot-glow', pot >= glowThreshold);
+    if (prevPot !== pot) {
+      bumpChips(potContainer);
+    }
   }
 }
 
@@ -624,6 +679,81 @@ socket.on('playerTurn', (data) => {
   startPerPlayerTimers([{ login }], endsAt);
 });
 
+// Subtle chip bump + sound
+function bumpChips(el) {
+  if (!el) return;
+  el.classList.add('chip-bump');
+  setTimeout(() => el.classList.remove('chip-bump'), 420);
+  playChipSound();
+}
+
+function bumpPlayerChips(login) {
+  if (!login) return;
+  const hand = document.querySelector(`.player-hand[data-login="${login}"]`);
+  if (!hand) return;
+  const stack = hand.querySelector('.chip-stack');
+  bumpChips(stack || hand);
+}
+
+let chipAudioCtx = null;
+function playChipSound() {
+  try {
+    const ctx = chipAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    chipAudioCtx = ctx;
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(520, now);
+    const vol = overlayTuning.chipVolume ?? 0.16;
+    gain.gain.setValueAtTime(vol, now);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.001, vol * 0.0125), now + 0.18);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.2);
+  } catch (e) {
+    // ignore audio errors (e.g., autoplay policies)
+  }
+}
+
+socket.on('overlaySettings', (data) => {
+  if (!isEventForChannel(data)) return;
+  const settings = data?.settings || {};
+  overlayTuning = { ...overlayTuning, ...settings };
+  if (settings.potGlowMultiplier) {
+    potGlowMultiplier = settings.potGlowMultiplier;
+  }
+  applyVisualSettings();
+});
+
+function applyVisualSettings() {
+  const root = document.documentElement;
+  const tint = resolveCardBackTint(overlayTuning);
+  if (tint) root.style.setProperty('--card-back-tint', tint);
+  if (overlayTuning.avatarRingColor) root.style.setProperty('--avatar-ring', overlayTuning.avatarRingColor);
+  if (overlayTuning.profileCardBorder) root.style.setProperty('--profile-card-border', overlayTuning.profileCardBorder);
+  const felt = overlayTuning.tableTint || '#0c4c3b';
+  const baseBg = `radial-gradient(ellipse at center, ${felt} 0%, #0a352f 58%, #061f1d 100%)`;
+  const tex = overlayTuning.tableTexture;
+  const bg = tex ? `url('${tex}') center/cover no-repeat, ${baseBg}` : baseBg;
+  root.style.setProperty('--table-bg', bg);
+  root.style.setProperty('--table-felt', felt);
+  if (overlayTuning.tableLogoColor) root.style.setProperty('--table-logo', overlayTuning.tableLogoColor);
+}
+
+function resolveCardBackTint(opts = {}) {
+  const variant = (opts.cardBackVariant || 'default').toLowerCase();
+  if (variant === 'custom' && opts.cardBackTint) return opts.cardBackTint;
+  const palette = {
+    default: '#0b1b1b',
+    emerald: '#00d4a6',
+    azure: '#2d9cff',
+    magenta: '#c94cff',
+    gold: '#f5a524',
+  };
+  return palette[variant] || palette.default;
+}
+
 function startCountdown(endsAt) {
   countdownEndsAt = endsAt ? new Date(endsAt).getTime() : null;
   const badge = document.getElementById('phase-countdown');
@@ -664,8 +794,9 @@ function setPhaseLabel(label) {
 function setModeBadge(mode) {
   const el = document.getElementById('mode-badge');
   if (!el) return;
-  const label = mode || 'poker';
-  el.textContent = `Mode: ${label}`;
+  let label = mode || 'poker';
+  if (!isMultiStream) label = 'blackjack';
+  el.textContent = `Mode: ${label}${!isMultiStream ? ' (single-channel)' : ''}`;
   el.className = 'badge badge-secondary';
   if (label === 'blackjack') {
     el.className = 'badge badge-warning';
@@ -727,6 +858,7 @@ function highlightPlayer(login) {
   document.querySelectorAll('.player-hand').forEach(card => card.classList.remove('active-turn'));
   const el = document.getElementById(`timer-${login}`)?.closest('.player-hand');
   if (el) el.classList.add('active-turn');
+  bumpPlayerChips(login);
 }
 
 function displayResult(data) {
@@ -869,6 +1001,10 @@ const btnPokerRaise = document.getElementById('poker-raise');
 const btnPokerFold = document.getElementById('poker-fold');
 const inputPokerRaise = document.getElementById('poker-raise-amount');
 const btnThemeToggle = document.getElementById('theme-toggle');
+const pokerActions = document.querySelector('.poker-actions');
+if (!isMultiStream && pokerActions) {
+  pokerActions.style.display = 'none';
+}
 
 if (btnHit) {
   btnHit.addEventListener('click', () => {
@@ -1075,3 +1211,4 @@ function initUserFromToken() {
 }
 
 initUserFromToken();
+applyVisualSettings();

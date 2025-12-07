@@ -121,6 +121,49 @@ class DBHelper {
     } catch (err) {
       // Ignore if column already exists
     }
+
+    // Cosmetics catalog
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS cosmetics (
+        id TEXT PRIMARY KEY,
+        type TEXT,
+        name TEXT,
+        price_cents INTEGER DEFAULT 0,
+        rarity TEXT,
+        preview TEXT,
+        tint TEXT,
+        color TEXT,
+        texture_url TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // User cosmetics ownership/equipped
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS user_cosmetics (
+        login TEXT,
+        item_id TEXT,
+        slot TEXT,
+        equipped INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (login, item_id)
+      )
+    `);
+
+    // Purchases audit
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS purchases (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        login TEXT,
+        item_id TEXT,
+        provider TEXT,
+        amount_cents INTEGER,
+        status TEXT,
+        txn_id TEXT,
+        note TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
   }
 
   // ============ BALANCES ============
@@ -445,6 +488,93 @@ class DBHelper {
       this.db = null;
       this.initialized = false;
     }
+  }
+
+  // ============ COSMETICS ============
+
+  seedCosmetics(catalog = []) {
+    const stmt = this.db.prepare(`
+      INSERT OR IGNORE INTO cosmetics (id, type, name, price_cents, rarity, preview, tint, color, texture_url)
+      VALUES (@id, @type, @name, @price_cents, @rarity, @preview, @tint, @color, @texture_url)
+    `);
+    const tx = this.db.transaction((items) => {
+      items.forEach(item => {
+        stmt.run({
+          id: item.id,
+          type: item.type,
+          name: item.name,
+          price_cents: item.price_cents || item.price || 0,
+          rarity: item.rarity || 'common',
+          preview: item.preview || '',
+          tint: item.tint || null,
+          color: item.color || null,
+          texture_url: item.texture_url || null,
+        });
+      });
+    });
+    tx(catalog);
+  }
+
+  getCatalog() {
+    return this.db.prepare('SELECT * FROM cosmetics ORDER BY type, rarity, name').all();
+  }
+
+  getCosmeticById(id) {
+    return this.db.prepare('SELECT * FROM cosmetics WHERE id = ?').get(id);
+  }
+
+  grantCosmetic(login, itemId) {
+    const item = this.getCosmeticById(itemId);
+    if (!item) return null;
+    this.db.prepare(`
+      INSERT OR IGNORE INTO user_cosmetics (login, item_id, slot, equipped)
+      VALUES (?, ?, ?, 0)
+    `).run(login, itemId, item.type);
+    return this.getUserInventory(login);
+  }
+
+  equipCosmetic(login, itemId) {
+    const item = this.getCosmeticById(itemId);
+    if (!item) return null;
+    const owned = this.db.prepare('SELECT 1 FROM user_cosmetics WHERE login = ? AND item_id = ?').get(login, itemId);
+    if (!owned) return null;
+    const slot = item.type;
+    const tx = this.db.transaction(() => {
+      this.db.prepare('UPDATE user_cosmetics SET equipped = 0 WHERE login = ? AND slot = ?').run(login, slot);
+      this.db.prepare('UPDATE user_cosmetics SET equipped = 1 WHERE login = ? AND item_id = ?').run(login, itemId);
+    });
+    tx();
+    return this.getUserInventory(login);
+  }
+
+  ensureDefaultCosmetics(login, defaults = []) {
+    defaults.forEach(itemId => {
+      const item = this.getCosmeticById(itemId);
+      if (!item) return;
+      this.db.prepare(`
+        INSERT OR IGNORE INTO user_cosmetics (login, item_id, slot, equipped)
+        VALUES (?, ?, ?, 0)
+      `).run(login, itemId, item.type);
+    });
+  }
+
+  getUserInventory(login) {
+    const rows = this.db.prepare('SELECT * FROM user_cosmetics WHERE login = ?').all(login);
+    const owned = new Set(rows.map(r => r.item_id));
+    const equipped = {};
+    rows.forEach(r => {
+      if (r.equipped) {
+        equipped[r.slot] = r.item_id;
+      }
+    });
+    return { owned, equipped };
+  }
+
+  recordPurchase({ login, itemId, provider = 'dev', amount_cents = 0, status = 'completed', txn_id = null, note = '' }) {
+    this.db.prepare(`
+      INSERT INTO purchases (login, item_id, provider, amount_cents, status, txn_id, note)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(login, itemId, provider, amount_cents, status, txn_id, note);
   }
 }
 
