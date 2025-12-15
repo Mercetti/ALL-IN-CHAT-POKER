@@ -11,7 +11,8 @@ RUN apt-get update \
 # Install dependencies (force inclusion of package-lock.json)
 COPY package.json package-lock.json ./
 RUN test -f package-lock.json
-RUN npm ci --omit=dev
+# Prefer deterministic install; fall back to npm install if lock is absent
+RUN if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit=dev; fi
 
 # Copy source
 COPY . .
