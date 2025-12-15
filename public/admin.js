@@ -37,6 +37,19 @@ const devAvatarRing = document.getElementById('dev-avatar-ring');
 const devProfileBorder = document.getElementById('dev-profile-border');
 const devTableTint = document.getElementById('dev-table-tint');
 const devTableLogo = document.getElementById('dev-table-logo');
+const devAutoFillAi = document.getElementById('dev-auto-fill-ai');
+const connectSubsBtn = document.getElementById('btn-connect-subs');
+const overlayModal = document.getElementById('overlay-modal');
+const overlayModalOpen = document.getElementById('btn-open-overlay-modal');
+const overlayModalClose = document.getElementById('overlay-modal-close');
+const addAiButton = document.getElementById('btn-add-ai');
+const addAiStartButton = document.getElementById('btn-add-ai-start');
+const quickModal = document.getElementById('quick-modal');
+const quickModalClose = document.getElementById('quick-modal-close');
+const quickModalTitle = document.getElementById('quick-modal-title');
+const quickModalBody = document.getElementById('quick-modal-body');
+let quickModalSection = null;
+const originalPlacement = {};
 
 function decodeUserLogin(token) {
   if (!token) return null;
@@ -70,24 +83,27 @@ document.addEventListener('DOMContentLoaded', async () => {
   const adminToken = getToken();
   const userToken = getUserToken();
   const userLogin = decodeUserLogin(userToken || '');
-  let allowed = false;
 
-  if (adminToken) {
-    allowed = true;
-  } else if (userToken && userLogin) {
+  // Loosen gate: if either token exists, let the page load and let API calls/auth enforce server-side.
+  // This avoids redirect loops when Twitch login succeeds but role lookup fails temporarily.
+  let allowed = !!(adminToken || userToken);
+  let roleWarning = '';
+
+  if (!adminToken && userToken && userLogin) {
     const lower = userLogin.toLowerCase();
-    // Allow if matches configured streamer or bot admin login
     if ((streamerLogin && lower === streamerLogin) || (botAdminLogin && lower === botAdminLogin)) {
       allowed = true;
     } else {
-      // Fallback: check profile role via user token
       try {
         const profileRes = await apiCall(`/profile?login=${encodeURIComponent(userLogin)}`, { useUserToken: true });
         if (profileRes?.profile?.role === 'streamer' || profileRes?.profile?.role === 'admin') {
           allowed = true;
+        } else {
+          roleWarning = 'Viewer role token; some admin actions may be blocked.';
         }
       } catch (e) {
-        // ignore
+        // Permit but warn; server will enforce if unauthorized.
+        roleWarning = 'Role check unavailable; continuing with viewer token.';
       }
     }
   }
@@ -99,6 +115,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   useUserToken = !adminToken && !!userToken;
   window.__DEFAULT_USE_USER_TOKEN = useUserToken;
+  if (roleWarning) {
+    Toast.warning(roleWarning, 4000);
+  }
 
   // Load initial data
   await loadStats();
@@ -178,6 +197,26 @@ function setupEventListeners() {
     Toast.success('Round starting now');
   });
 
+  addAiButton?.addEventListener('click', async () => {
+    const ready = await ensureSocketConnected();
+    if (!ready) {
+      Toast.error(NOT_CONNECTED_MSG);
+      return;
+    }
+    adminSocket.emit('addTestBots', { count: 3 });
+    Toast.info('Added AI test players (3)');
+  });
+
+  addAiStartButton?.addEventListener('click', async () => {
+    const ready = await ensureSocketConnected();
+    if (!ready) {
+      Toast.error(NOT_CONNECTED_MSG);
+      return;
+    }
+    adminSocket.emit('addTestBots', { count: 3, startNow: true });
+    Toast.success('AI players added and round starting');
+  });
+
   // Process draw
   document.getElementById('btn-admin-draw')?.addEventListener('click', async () => {
     const ready = await ensureSocketConnected();
@@ -202,11 +241,151 @@ function setupEventListeners() {
     Toast.warning('Game reset initiated');
   });
 
+  // Tournament helpers
+  document.getElementById('btn-gen-bracket')?.addEventListener('click', async () => {
+    const ready = await ensureSocketConnected();
+    if (!ready) return Toast.error(NOT_CONNECTED_MSG);
+    const round = Number(document.getElementById('t-round')?.value || 1);
+    const tableSize = Number(document.getElementById('t-table-size')?.value || 6);
+    const playersRaw = document.getElementById('t-players')?.value || '';
+    const players = playersRaw.split(',').map(p => p.trim()).filter(Boolean);
+    try {
+      const res = await apiCall('/admin/tournaments/' + encodeURIComponent(getChannelParam() || 't') + '/bracket', {
+        method: 'POST',
+        body: JSON.stringify({ round, tableSize, players }),
+      });
+      Toast.success('Bracket generated');
+      console.log('Bracket', res);
+    } catch (e) {
+      Toast.error('Bracket failed: ' + e.message);
+    }
+  });
+
+  document.getElementById('btn-bootstrap-round')?.addEventListener('click', async () => {
+    const ready = await ensureSocketConnected();
+    if (!ready) return Toast.error(NOT_CONNECTED_MSG);
+    const round = Number(document.getElementById('t-round')?.value || 1);
+    const tableSize = Number(document.getElementById('t-table-size')?.value || 6);
+    try {
+      const res = await apiCall('/admin/tournaments/' + encodeURIComponent(getChannelParam() || 't') + '/bootstrap-round', {
+        method: 'POST',
+        body: JSON.stringify({ round, tableSize }),
+      });
+      Toast.success('Round bootstrapped');
+      console.log('Bootstrap', res);
+    } catch (e) {
+      Toast.error('Bootstrap failed: ' + e.message);
+    }
+  });
+
+  document.getElementById('btn-bind-table')?.addEventListener('click', async () => {
+    const ready = await ensureSocketConnected();
+    if (!ready) return Toast.error(NOT_CONNECTED_MSG);
+    const channel = document.getElementById('t-channel')?.value || '';
+    const table = Number(document.getElementById('t-table-num')?.value || 1);
+    try {
+      const res = await apiCall('/admin/tournaments/' + encodeURIComponent(getChannelParam() || 't') + '/table/' + table + '/bind', {
+        method: 'POST',
+        body: JSON.stringify({ channel }),
+      });
+      Toast.success('Table bound to channel');
+      console.log('Bind', res);
+    } catch (e) {
+      Toast.error('Bind failed: ' + e.message);
+    }
+  });
+
+  document.getElementById('btn-ready-ping')?.addEventListener('click', async () => {
+    const channel = document.getElementById('t-ready-channel')?.value || '';
+    if (!channel) return Toast.error('Channel required');
+    try {
+      const res = await apiCall('/table/ready', {
+        method: 'POST',
+        body: JSON.stringify({ channel }),
+        useUserToken: true,
+      });
+      const el = document.getElementById('ready-status');
+      if (el) el.textContent = `Ready: ${res.ready} (${res.readyCount}/${res.required})${res.started ? ' · started' : ''}`;
+      Toast.info(res.started ? 'All ready - round starting' : 'Ready submitted');
+    } catch (e) {
+      Toast.error('Ready failed: ' + e.message);
+    }
+  });
+
   // Logout
   document.getElementById('btn-logout')?.addEventListener('click', () => {
     clearToken();
     clearUserToken();
     window.location.href = '/login.html';
+  });
+
+  document.getElementById('btn-reset-session')?.addEventListener('click', () => {
+    clearToken();
+    clearUserToken();
+    Toast.info('Session cleared; please sign in again.');
+    window.location.href = '/login.html';
+  });
+
+  document.querySelectorAll('[data-open-section]')?.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.dataset.openSection;
+      // Overlay button: open the existing overlay modal directly
+      if (targetId === 'overlay-details') {
+        overlayModalOpen?.click();
+        return;
+      }
+
+      const section = document.getElementById(targetId);
+      if (!section || !quickModal || !quickModalBody) return;
+
+      // If something is already mounted in the modal, put it back first
+      if (quickModalSection) {
+        const prevId = quickModalSection.id;
+        const placement = originalPlacement[prevId];
+        if (placement && placement.parent) {
+          placement.parent.insertBefore(quickModalSection, placement.next || null);
+        }
+        quickModalSection = null;
+      }
+
+      // Store original placement
+      if (!originalPlacement[targetId]) {
+        originalPlacement[targetId] = {
+          parent: section.parentNode,
+          next: section.nextSibling,
+        };
+      }
+
+      // Ensure details are open inside modal
+      if (section.tagName.toLowerCase() === 'details') {
+        section.open = true;
+      }
+
+      quickModalBody.innerHTML = '';
+      quickModalBody.appendChild(section);
+      quickModalSection = section;
+      if (quickModalTitle) {
+        const label = section.querySelector('summary')?.textContent?.trim() || section.dataset.title || 'Section';
+        quickModalTitle.textContent = label;
+      }
+      quickModal.classList.add('active');
+    });
+  });
+
+  const closeQuickModal = () => {
+    if (quickModalSection) {
+      const placement = originalPlacement[quickModalSection.id];
+      if (placement && placement.parent) {
+        placement.parent.insertBefore(quickModalSection, placement.next || null);
+      }
+      quickModalSection = null;
+    }
+    if (quickModal) quickModal.classList.remove('active');
+  };
+
+  quickModalClose?.addEventListener('click', closeQuickModal);
+  quickModal?.addEventListener('click', (e) => {
+    if (e.target === quickModal) closeQuickModal();
   });
 
   // Export
@@ -331,6 +510,22 @@ function setupEventListeners() {
     const settings = getDevSettingsFromInputs();
     adminSocket.emit('overlaySettings', settings);
     Toast.success('Overlay settings pushed');
+  });
+
+  connectSubsBtn?.addEventListener('click', () => {
+    const url = `/auth/twitch/subs?channel=${encodeURIComponent(channelParam || '')}`;
+    window.open(url, '_blank', 'width=700,height=800');
+    Toast.info('Opening Twitch consent in a new window...');
+  });
+
+  overlayModalOpen?.addEventListener('click', () => {
+    if (overlayModal) overlayModal.classList.add('active');
+  });
+  overlayModalClose?.addEventListener('click', () => {
+    if (overlayModal) overlayModal.classList.remove('active');
+  });
+  overlayModal?.addEventListener('click', (e) => {
+    if (e.target === overlayModal) overlayModal.classList.remove('active');
   });
 }
 
@@ -690,6 +885,7 @@ function setDevInputs(settings = {}) {
   if (devProfileBorder && typeof settings.profileCardBorder === 'string') devProfileBorder.value = settings.profileCardBorder;
   if (devTableTint && typeof settings.tableTint === 'string') devTableTint.value = settings.tableTint;
   if (devTableLogo && typeof settings.tableLogoColor === 'string') devTableLogo.value = settings.tableLogoColor;
+  if (devAutoFillAi && typeof settings.autoFillAi === 'boolean') devAutoFillAi.checked = settings.autoFillAi;
   updateDevDisplays();
 }
 
@@ -705,6 +901,7 @@ function getDevSettingsFromInputs() {
     profileCardBorder: devProfileBorder?.value || undefined,
     tableTint: devTableTint?.value || undefined,
     tableLogoColor: devTableLogo?.value || undefined,
+    autoFillAi: !!devAutoFillAi?.checked,
   };
 }
 

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Code Proposals</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="style-theme.css">
+  <link rel="stylesheet" href="style-admin.css">
+  <style>
+    .code-shell { max-width: 1100px; margin: 28px auto 40px; }
+    .code-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 16px; }
+    .full-grid { display: grid; gap: 12px; }
+    .textarea { min-height: 320px; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; }
+    .proposal-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+    .proposal-card { padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.04); }
+    .muted-line { font-size: 13px; color: #b7c4d6; margin-top: 4px; }
+    .badge { display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 12px; background: #0ad5a5; color: #041311; font-weight: 700; }
+    .badge.pending { background: #ffc14d; color: #4c3100; }
+    .badge.applied { background: #0ad5a5; color: #041311; }
+    .proposal-actions { display: flex; gap: 8px; margin-top: 8px; }
+    @media (max-width: 920px) { .code-grid { grid-template-columns: 1fr; } }
+    .progress-bar { width: 100%; background: rgba(255,255,255,0.08); height: 10px; border-radius: 8px; overflow: hidden; margin-top: 10px; }
+    .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #0ad5a5, #2bb3ff); transition: width 0.2s ease; }
+  </style>
+</head>
+<body>
+  <div class="container code-shell">
+    <header class="admin-header">
+      <div class="admin-brand">
+        <img src="logo.png" alt="All-In Chat Poker logo" class="brand-logo">
+        <div>
+          <h1>Code Proposals</h1>
+          <p class="brand-subtitle">Submit and apply bot-generated patches (admin only)</p>
+          <p class="muted small">AI suggestions require OPENAI_API_KEY/AI_MODEL on the server.</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="code-theme-toggle" class="btn btn-secondary btn-sm">Theme</button>
+        <a class="btn btn-secondary btn-sm" href="/admin2.html">Admin</a>
+        <button id="code-logout" class="btn btn-danger btn-sm">Logout</button>
+      </div>
+    </header>
+
+    <main class="control-panel">
+      <div class="section-header">
+        <h2>New Proposal</h2>
+        <p class="muted small">Path is relative to project root (excluding node_modules). We store content and apply after review.</p>
+      </div>
+      <div class="code-grid">
+        <div class="full-grid">
+          <label>
+            <span class="muted small">File path (e.g., server/newfile.js)</span>
+            <input id="code-file" class="form-input" placeholder="path/to/file.js">
+          </label>
+          <label>
+            <span class="muted small">Note (optional)</span>
+            <input id="code-note" class="form-input" placeholder="what this change does">
+          </label>
+          <label>
+            <span class="muted small">Content (full file)</span>
+            <textarea id="code-content" class="form-input textarea" placeholder="// new file content"></textarea>
+          </label>
+          <div>
+            <button id="code-submit" class="btn btn-primary">Submit Proposal</button>
+            <button id="review-file" class="btn btn-secondary">Review File</button>
+            <button id="auto-review-suggest" class="btn btn-secondary">Auto Review + Suggest</button>
+            <button id="test-run" class="btn btn-secondary">Run Tests</button>
+            <button id="test-run-custom" class="btn btn-secondary btn-sm">Run Custom</button>
+            <button id="apply-patch" class="btn btn-secondary btn-sm">Apply Patch (diff)</button>
+            <button id="structured-edit" class="btn btn-secondary btn-sm">Structured Edit</button>
+            <span class="muted small" id="code-status"></span>
+          </div>
+          <pre id="test-output" class="muted-line" style="white-space:pre-wrap; max-height:260px; overflow-y:auto;"></pre>
+          <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+        </div>
+        <div>
+          <div class="section-header">
+            <h3>Pending / Applied</h3>
+            <button id="code-refresh" class="btn btn-secondary btn-sm">Refresh</button>
+          </div>
+          <ul id="proposal-list" class="proposal-list"></ul>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="toast-container" class="toast-container"></div>
+  <script src="client.js"></script>
+  <script src="admin-code.js"></script>
+</body>
+</html>

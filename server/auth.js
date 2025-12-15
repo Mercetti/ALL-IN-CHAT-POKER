@@ -8,6 +8,10 @@ const db = require('./db');
 const Logger = require('./logger');
 
 const logger = new Logger('auth');
+const adminAllowList = (config.ADMIN_ALLOW_LOGINS || '')
+  .split(',')
+  .map(s => s.trim().toLowerCase())
+  .filter(Boolean);
 
 /**
  * Read a header from either an Express request or a Socket.IO handshake
@@ -96,6 +100,7 @@ function isAdminRequest(req) {
         const user = payload && payload.user ? payload.user.toLowerCase() : null;
         if (user && config.STREAMER_LOGIN && user === config.STREAMER_LOGIN.toLowerCase()) return true;
         if (user && config.BOT_ADMIN_LOGIN && user === config.BOT_ADMIN_LOGIN.toLowerCase()) return true;
+        if (user && adminAllowList.includes(user)) return true;
         if (user) {
           const profile = db.getProfile(user);
           const role = (profile && profile.role || '').toLowerCase();
@@ -210,6 +215,18 @@ function extractUserLogin(req) {
   return null;
 }
 
+function requireUser(req, res, next) {
+  try {
+    const login = extractUserLogin(req);
+    if (!login) return res.status(401).json({ error: 'unauthorized' });
+    req.userLogin = login;
+    return next();
+  } catch (err) {
+    logger.warn('User auth failed', { error: err.message });
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+}
+
 module.exports = {
   getHeader,
   extractAdminToken,
@@ -221,4 +238,5 @@ module.exports = {
   getAdminCookieOptions,
   requireAdmin,
   extractUserLogin,
+  requireUser,
 };

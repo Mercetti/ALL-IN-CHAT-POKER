@@ -30,7 +30,7 @@
       <div class="card">
         <h2>Why it's fun</h2>
         <ul>
-          <li>Chat becomes the table—viewers jump in with one command.</li>
+          <li>Chat becomes the table: viewers jump in with one command.</li>
           <li>Bold OBS overlay with avatars, seating, and live pot glow.</li>
           <li>Blackjack and poker flows you control from one panel.</li>
           <li>Poker is for multi-stream lobbies only; see the <a href="/poker-rules.html">poker rules</a>.</li>
@@ -49,27 +49,21 @@
 
       <div class="card">
         <h2>Support the table</h2>
-        <p class="muted">If you’re vibing with All-In Chat Poker (powered by allinchatpokerbot), toss a tip to keep the felt glowing.</p>
-        <div id="paypal-donate" style="max-width:320px;"></div>
+        <p class="muted">If you're vibing with All-In Chat Poker (powered by allinchatpokerbot), toss a tip to keep the felt glowing.</p>
+        <a class="btn" href="https://paypal.me/allinchatpoker" target="_blank" rel="noopener">Send a PayPal tip</a>
       </div>
 
     </div>
 
     <div class="card" style="margin-top:18px;">
       <h2>Vibes from the felt</h2>
-      <p class="muted">Game stills from the overlay—card backs, default avatars, and the neon table energy.</p>
+      <p class="muted">Live assets the overlay already ships with: card backs, chip stacks, deal and win FX, plus the neon table frame.</p>
       <div class="gallery">
-        <div class="gallery-cardback" aria-label="Card back preview"></div>
-        <div class="gallery-box">
-          <div class="fake-table">
-            <div class="fake-seat">Riley</div>
-            <div class="fake-seat">Nova</div>
-            <div class="fake-seat">Kai</div>
-            <div class="fake-seat">Ember</div>
-            <div class="fake-seat">Jax</div>
-          </div>
-          <small class="muted">Sample table with default avatar colors + made-up names.</small>
-        </div>
+        <img src="/assets/cosmetics/cards/basic/card-back-purple.png" alt="Purple neon card back">
+        <img src="/assets/cosmetics/effects/chips/chip-100-top.png" alt="Chip stack top view">
+        <img src="/assets/cosmetics/effects/deals/face-down/horizontal_card_deal_sprite.png" alt="Face-down deal animation sheet">
+        <img src="/assets/cosmetics/effects/win/cosmic_win_sprite_horizontal_512.png" alt="Cosmic win burst sprite">
+        <div class="sprite-preview" style="background-image:url('/assets/cosmetics/effects/all-in/allin_burst_horizontal_sheet.png'); --frames:6;" aria-label="All-in burst sprite preview"></div>
         <div class="gallery-table-preview" aria-label="Neon table preview">
           <div class="table-center">All streamers vs allinchatpokerbot</div>
           <div class="table-cards">
@@ -112,49 +106,6 @@
         window.location.href = 'mailto:allinchatpoker@gmail.com?subject=' + subject + '&body=' + body;
       });
     })();
-
-    // PayPal donation setup (uses server-side order create/capture)
-    (async function setupPayPalDonate() {
-      try {
-        const cfgRes = await fetch('/public-config.json');
-        const cfg = cfgRes.ok ? await cfgRes.json() : {};
-        if (!cfg.paypalClientId) return;
-
-        const donateContainer = document.getElementById('paypal-donate');
-        if (!donateContainer) return;
-
-        const sdkScript = document.createElement('script');
-        sdkScript.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(cfg.paypalClientId)}&currency=USD`;
-        sdkScript.async = true;
-        sdkScript.onload = () => {
-          if (!window.paypal) return;
-          window.paypal.Buttons({
-            style: { shape: 'pill', color: 'gold', layout: 'vertical', label: 'donate' },
-            createOrder: async () => {
-              const res = await fetch('/paypal/order', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ amount: '5.00' }),
-              });
-              const data = await res.json();
-              return data.id;
-            },
-            onApprove: async (data) => {
-              await fetch(`/paypal/order/${data.orderID}/capture`, { method: 'POST' });
-              alert('Thanks for supporting the table!');
-            },
-            onError: (err) => {
-              console.error('PayPal error', err);
-              alert('PayPal donation failed. Please try again.');
-            },
-          }).render(donateContainer);
-        };
-        document.body.appendChild(sdkScript);
-      } catch (e) {
-        // ignore
-      }
-    })();
   </script>
 </body>
 </html>
-

@@ -7,6 +7,9 @@ const http = require('http');
 const tmi = require('tmi.js');
 const socketIO = require('socket.io');
 const path = require('path');
+const fs = require('fs');
+const { createTwoFilesPatch } = require('diff');
+const { spawn } = require('child_process');
 
 // Import utilities
 const config = require('./server/config');
@@ -18,6 +21,7 @@ const db = require('./server/db');
 const game = require('./server/game');
 const blackjack = require('./server/blackjack');
 const stateAdapter = require('./server/state-adapter');
+const ai = require('./server/ai');
 const {
   normalizeChannelName: normalizeChannelNameScoped,
   getDefaultChannel,
@@ -33,6 +37,7 @@ const {
   createPokerHandlers,
   settleAndEmit: settleAndEmitPoker,
 } = require('./server/modes/poker');
+const { applyPatchFile } = require('./server/patch');
 const fetch = global.fetch;
 const DEFAULT_AVATAR = 'https://all-in-chat-poker.fly.dev/logo.png';
 const DEFAULT_AVATAR_COLORS = [
@@ -55,10 +60,40 @@ let currentMode = 'blackjack';
 let tmiClient = null;
 const DEFAULT_CHANNEL = getDefaultChannel();
 const overlaySettingsByChannel = {};
+const tournamentTimers = {};
+const COIN_PACKS = [
+  { id: 'coins-500', coins: 500, amount_cents: 499, name: '500 Coins', bonus: 0 },
+  { id: 'coins-1200', coins: 1200, amount_cents: 999, name: '1,200 Coins', bonus: 200 },
+  { id: 'coins-2600', coins: 2600, amount_cents: 1999, name: '2,600 Coins', bonus: 600 },
+  { id: 'coins-5500', coins: 5500, amount_cents: 3999, name: '5,500 Coins', bonus: 1500 },
+];
+const TOURNAMENT_DEFAULTS = {
+  starting_chips: 5000,
+  buyin: 0,
+  level_seconds: 600,
+  rounds: 3,
+  advance_config: [12, 6, 0], // per round cutoff (last round 0 => final)
+  decks: 6,
+  blinds: [
+    { level: 1, small: 50, big: 100, seconds: 600 },
+    { level: 2, small: 100, big: 200, seconds: 600 },
+    { level: 3, small: 200, big: 400, seconds: 600 },
+    { level: 4, small: 400, big: 800, seconds: 600 },
+  ],
+};
 const COSMETIC_CATALOG = [
   { id: 'card-default', type: 'cardBack', name: 'Default Emerald', price_cents: 0, rarity: 'common', preview: '/assets/card-back.png', tint: '#0b1b1b' },
   { id: 'card-azure', type: 'cardBack', name: 'Azure Edge', price_cents: 300, rarity: 'rare', preview: '/assets/card-back.png', tint: '#2d9cff' },
   { id: 'card-magenta', type: 'cardBack', name: 'Magenta Bloom', price_cents: 300, rarity: 'rare', preview: '/assets/card-back.png', tint: '#c94cff' },
+  { id: 'card-back-black', type: 'cardBack', name: 'Onyx Back', price_cents: 0, rarity: 'common', preview: '/assets/cosmetics/cards/basic/card-back-black.png', image_url: '/assets/cosmetics/cards/basic/card-back-black.png' },
+  { id: 'card-back-blue', type: 'cardBack', name: 'Blue Steel Back', price_cents: 100, rarity: 'uncommon', preview: '/assets/cosmetics/cards/basic/card-back-blue.png', image_url: '/assets/cosmetics/cards/basic/card-back-blue.png' },
+  { id: 'card-back-green', type: 'cardBack', name: 'Verdant Back', price_cents: 100, rarity: 'uncommon', preview: '/assets/cosmetics/cards/basic/card-back-green.png', image_url: '/assets/cosmetics/cards/basic/card-back-green.png' },
+  { id: 'card-back-orange', type: 'cardBack', name: 'Ember Back', price_cents: 150, rarity: 'rare', preview: '/assets/cosmetics/cards/basic/card-back-orange.png', image_url: '/assets/cosmetics/cards/basic/card-back-orange.png' },
+  { id: 'card-back-purple', type: 'cardBack', name: 'Amethyst Back', price_cents: 150, rarity: 'rare', preview: '/assets/cosmetics/cards/basic/card-back-purple.png', image_url: '/assets/cosmetics/cards/basic/card-back-purple.png' },
+  { id: 'card-back-red', type: 'cardBack', name: 'Crimson Back', price_cents: 200, rarity: 'epic', preview: '/assets/cosmetics/cards/basic/card-back-red.png', image_url: '/assets/cosmetics/cards/basic/card-back-red.png' },
+  { id: 'card-back-drop', type: 'cardBack', name: 'Glitch Drop Back', price_cents: 0, rarity: 'rare', preview: '/assets/cosmetics/cards/drops/card-back-drop.png', image_url: '/assets/cosmetics/cards/drops/card-back-drop.png', unlock_type: 'twitch_drop', unlock_note: 'Earned via Twitch Drops' },
+  { id: 'card-back-streamer', type: 'cardBack', name: 'Streamer Neon Back', price_cents: 0, rarity: 'legendary', preview: '/assets/cosmetics/cards/streamer/card-back-streamer.png', image_url: '/assets/cosmetics/cards/streamer/card-back-streamer.png', unlock_type: 'streamer_goal', unlock_value: 60, unlock_note: 'Streamer: unlock after 60 hands or 30 minutes played' },
+  { id: 'card-face-classic', type: 'cardFace', name: 'Classic Face Deck', price_cents: 0, rarity: 'common', preview: '/assets/cosmetics/cards/faces/classic/ace_of_spades.png', image_url: '/assets/cosmetics/cards/faces/classic', unlock_type: 'basic', unlock_note: 'Available to all players' },
   { id: 'table-default', type: 'tableSkin', name: 'Default Felt', price_cents: 0, rarity: 'common', preview: '/assets/table-texture.svg', tint: '#0c4c3b', color: '#8ef5d0', texture_url: '/assets/table-texture.svg' },
   { id: 'table-night', type: 'tableSkin', name: 'Night Felt', price_cents: 400, rarity: 'rare', preview: '/assets/table-texture.svg', tint: '#0a2c2c', color: '#6fffd3', texture_url: '/assets/table-texture.svg' },
   { id: 'table-neon', type: 'tableSkin', name: 'Neon Felt', price_cents: 500, rarity: 'rare', preview: '/assets/table-texture.svg', tint: '#0f5d4f', color: '#8ef5d0', texture_url: '/assets/table-texture.svg' },
@@ -67,14 +102,424 @@ const COSMETIC_CATALOG = [
   { id: 'frame-default', type: 'profileFrame', name: 'Emerald Frame', price_cents: 0, rarity: 'common', preview: '/logo.png', color: '#00d4a6' },
   { id: 'frame-ice', type: 'profileFrame', name: 'Ice Frame', price_cents: 250, rarity: 'rare', preview: '/logo.png', color: '#6dd2ff' },
   { id: 'bundle-neon-night', type: 'bundle', name: 'Neon Night Bundle', price_cents: 799, rarity: 'epic', preview: '/assets/table-texture.svg', tint: '#0f5d4f', color: '#8ef5d0', texture_url: '/assets/table-texture.svg' },
+  { id: 'ring-basic-extra1', type: 'avatarRing', name: 'Emerald Pulse', price_cents: 0, rarity: 'common', preview: '/assets/cosmetics/avatar/basic-extra1.png', image_url: '/assets/cosmetics/avatar/basic-extra1.png', unlock_type: 'basic', unlock_note: 'Available to all players' },
+  { id: 'ring-basic-extra2', type: 'avatarRing', name: 'Carbon Glow', price_cents: 0, rarity: 'uncommon', preview: '/assets/cosmetics/avatar/basic-extra2.png', image_url: '/assets/cosmetics/avatar/basic-extra2.png', unlock_type: 'basic', unlock_note: 'Available to all players' },
+  { id: 'ring-streamer-cosmic', type: 'avatarRing', name: 'Streamer Cosmic Ring', price_cents: 0, rarity: 'legendary', preview: '/assets/cosmetics/avatar/streamer-cosmic.png', image_url: '/assets/cosmetics/avatar/streamer-cosmic.png', unlock_type: 'streamer_goal', unlock_value: 50, unlock_note: 'Streamer: unlock after 50 hands or 30 minutes played' },
+  { id: 'ring-streamer-glitch', type: 'avatarRing', name: 'Streamer Glitch Ring', price_cents: 0, rarity: 'legendary', preview: '/assets/cosmetics/avatar/streamer-glitch.png', image_url: '/assets/cosmetics/avatar/streamer-glitch.png', unlock_type: 'streamer_goal', unlock_value: 75, unlock_note: 'Streamer: unlock after 75 hands' },
+  { id: 'ring-streamer-gold', type: 'avatarRing', name: 'Streamer Gold Ring', price_cents: 0, rarity: 'legendary', preview: '/assets/cosmetics/avatar/streamer-gold.png', image_url: '/assets/cosmetics/avatar/streamer-gold.png', unlock_type: 'streamer_goal', unlock_value: 100, unlock_note: 'Streamer: unlock after 100 hands' },
+  { id: 'ring-streamer-neon', type: 'avatarRing', name: 'Streamer Neon Ring', price_cents: 0, rarity: 'legendary', preview: '/assets/cosmetics/avatar/streamer-neon.png', image_url: '/assets/cosmetics/avatar/streamer-neon.png', unlock_type: 'streamer_goal', unlock_value: 120, unlock_note: 'Streamer: unlock after 120 hands' },
+  { id: 'ring-subscriber-purple', type: 'avatarRing', name: 'Subscriber Neon Aura', price_cents: 0, rarity: 'epic', preview: '/assets/cosmetics/avatar/subscriber-purple-neon.png', image_url: '/assets/cosmetics/avatar/subscriber-purple-neon.png', unlock_type: 'subscriber', unlock_note: 'Subscriber perk (tier/length required)' },
+  { id: 'ring-subscriber-sparkle', type: 'avatarRing', name: 'Subscriber Sparkle', price_cents: 0, rarity: 'epic', preview: '/assets/cosmetics/avatar/subscriber-sparkle.png', image_url: '/assets/cosmetics/avatar/subscriber-sparkle.png', unlock_type: 'subscriber', unlock_note: 'Subscriber perk (tier/length required)' },
+  { id: 'ring-subscriber-cosmic', type: 'avatarRing', name: 'Subscriber Cosmic Bloom', price_cents: 0, rarity: 'legendary', preview: '/assets/cosmetics/avatar/subscriber-cosmic.png', image_url: '/assets/cosmetics/avatar/subscriber-cosmic.png', unlock_type: 'subscriber', unlock_note: 'Subscriber perk (tier/length required)' },
+  { id: 'ring-subscriber-frost', type: 'avatarRing', name: 'Subscriber Frost Edge', price_cents: 0, rarity: 'epic', preview: '/assets/cosmetics/avatar/subscriber-frost.png', image_url: '/assets/cosmetics/avatar/subscriber-frost.png', unlock_type: 'subscriber', unlock_note: 'Subscriber perk (tier/length required)' },
+  { id: 'ring-drop-pink-neon', type: 'avatarRing', name: 'Twitch Drop: Pink Neon', price_cents: 0, rarity: 'rare', preview: '/assets/cosmetics/avatar/drop-pink-neon.png', image_url: '/assets/cosmetics/avatar/drop-pink-neon.png', unlock_type: 'twitch_drop', unlock_note: 'Earned via Twitch Drops' },
+  { id: 'table-streamer-cosmic-moon', type: 'tableSkin', name: 'Streamer Cosmic Moon', price_cents: 0, rarity: 'legendary', preview: '/assets/cosmetics/table/table-streamer-cosmic-moon.png', image_url: '/assets/cosmetics/table/table-streamer-cosmic-moon.png', unlock_type: 'streamer_goal', unlock_value: 50, unlock_note: 'Streamer: unlock after 50 hands or 30 minutes played' },
+  { id: 'table-streamer-gold-crown', type: 'tableSkin', name: 'Streamer Gold Crown', price_cents: 0, rarity: 'legendary', preview: '/assets/cosmetics/table/table-streamer-gold-crown.png', image_url: '/assets/cosmetics/table/table-streamer-gold-crown.png', unlock_type: 'streamer_goal', unlock_value: 75, unlock_note: 'Streamer: unlock after 75 hands' },
+  { id: 'table-streamer-gold-star', type: 'tableSkin', name: 'Streamer Gold Star', price_cents: 0, rarity: 'legendary', preview: '/assets/cosmetics/table/table-streamer-gold-star.png', image_url: '/assets/cosmetics/table/table-streamer-gold-star.png', unlock_type: 'streamer_goal', unlock_value: 100, unlock_note: 'Streamer: unlock after 100 hands' },
+  { id: 'table-streamer-neon-twitch', type: 'tableSkin', name: 'Streamer Neon Twitch', price_cents: 0, rarity: 'legendary', preview: '/assets/cosmetics/table/table-streamer-neon-twitch.png', image_url: '/assets/cosmetics/table/table-streamer-neon-twitch.png', unlock_type: 'streamer_goal', unlock_value: 120, unlock_note: 'Streamer: unlock after 120 hands' },
+  { id: 'table-drop-glitch-twitch', type: 'tableSkin', name: 'Twitch Drop: Glitch Table', price_cents: 0, rarity: 'epic', preview: '/assets/cosmetics/table/table-drop-glitch-twitch.png', image_url: '/assets/cosmetics/table/table-drop-glitch-twitch.png', unlock_type: 'twitch_drop', unlock_note: 'Earned via Twitch Drops' },
 ];
-const DEFAULT_COSMETIC_DEFAULTS = ['card-default', 'table-default', 'ring-default', 'frame-default'];
+const DEFAULT_COSMETIC_DEFAULTS = ['card-default', 'table-default', 'ring-default', 'frame-default', 'card-face-classic'];
 const DEFAULT_COSMETIC_SLOTS = {
   cardBack: 'card-default',
   tableSkin: 'table-default',
   avatarRing: 'ring-default',
   profileFrame: 'frame-default',
+  cardFace: 'card-face-classic',
 };
+const MDN_BASE_URL = 'https://developer.mozilla.org';
+const MDN_SEARCH_URL = `${MDN_BASE_URL}/api/v1/search`;
+const mdnCache = new Map();
+const codeProposalFile = path.join(__dirname, 'data', 'code-proposals.json');
+const projectRoot = path.resolve(__dirname);
+const knowledgeFile = path.join(__dirname, 'data', 'knowledge.json');
+const knowledgeSources = (config.KNOWLEDGE_SOURCES || '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
+const KNOWLEDGE_MAX_BYTES = 512 * 1024; // 512KB guardrail
+const KNOWLEDGE_FETCH_TIMEOUT_MS = 7000;
+const KNOWLEDGE_REFRESH_MS = 1000 * 60 * 60 * 6; // 6 hours
+let knowledgeLastIngestAt = 0;
+const TEST_TIMEOUT_MS = 1000 * 60; // 1 minute default
+const lintCommands = {
+  eslint: 'npm run lint || npx eslint .',
+  prettier: 'npm run fmt || npx prettier -c .',
+  stylelint: 'npx stylelint "**/*.css"',
+  markdownlint: 'npx markdownlint "**/*.md"',
+  htmlhint: 'npm run lint:html || npx htmlhint "**/*.html"',
+  tsc: 'npx tsc --noEmit',
+  pycompile: (file) => `python -m py_compile "${file}"`,
+  ruff: 'ruff check .',
+  black: 'black --check .',
+  flake8: 'flake8 .',
+};
+
+function compressWhitespace(text = '') {
+  return text.replace(/\s+/g, ' ').trim();
+}
+
+function truncateText(text = '', max = 220) {
+  if (!text) return '';
+  if (text.length <= max) return text;
+  return `${text.slice(0, Math.max(0, max - 3))}...`;
+}
+
+async function searchMdn(query) {
+  const key = (query || '').trim().toLowerCase();
+  if (!key) return null;
+  if (mdnCache.has(key)) return mdnCache.get(key);
+
+  try {
+    const params = new URLSearchParams({
+      q: query,
+      locale: 'en-US',
+      highlight: 'false',
+      size: '1',
+    });
+    const res = await fetch(`${MDN_SEARCH_URL}?${params.toString()}`);
+    if (!res.ok) throw new Error(`MDN search failed with ${res.status}`);
+    const data = await res.json();
+    const doc = Array.isArray(data?.documents) && data.documents.length ? data.documents[0] : null;
+    if (!doc) {
+      mdnCache.set(key, null);
+      return null;
+    }
+    const summary = truncateText(compressWhitespace(doc.summary || ''), 240);
+    const result = {
+      title: doc.title || 'MDN',
+      summary: summary || 'See docs for details.',
+      url: `${MDN_BASE_URL}${doc.mdn_url || ''}`,
+    };
+    mdnCache.set(key, result);
+    return result;
+  } catch (err) {
+    logger.warn('MDN lookup failed', { error: err.message });
+    return null;
+  }
+}
+
+function buildMdnReply(result) {
+  if (!result) return null;
+  const base = `MDN: ${result.title} — ${result.summary}`;
+  const reply = truncateText(base, 420);
+  return {
+    title: result.title,
+    summary: result.summary,
+    url: result.url,
+    reply: `${reply} ${result.url}`,
+  };
+}
+
+function stripHtml(html = '') {
+  const withoutScripts = html.replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<style[\s\S]*?<\/style>/gi, '');
+  const text = withoutScripts.replace(/<[^>]+>/g, ' ');
+  return compressWhitespace(text);
+}
+
+async function fetchMdnContent(url) {
+  if (!url || !url.startsWith(MDN_BASE_URL)) return null;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`MDN content fetch failed: ${res.status}`);
+    const html = await res.text();
+    const text = stripHtml(html);
+    return truncateText(text, 1800);
+  } catch (err) {
+    logger.warn('MDN content fetch failed', { error: err.message });
+    return null;
+  }
+}
+
+function ensureProposalStore() {
+  const dir = path.dirname(codeProposalFile);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  if (!fs.existsSync(codeProposalFile)) {
+    fs.writeFileSync(codeProposalFile, JSON.stringify({ proposals: [] }, null, 2));
+  }
+}
+
+function loadProposals() {
+  ensureProposalStore();
+  try {
+    const raw = fs.readFileSync(codeProposalFile, 'utf-8');
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed.proposals) ? parsed.proposals : [];
+  } catch (e) {
+    logger.warn('Failed to read code proposals', { error: e.message });
+    return [];
+  }
+}
+
+function saveProposals(list) {
+  ensureProposalStore();
+  fs.writeFileSync(codeProposalFile, JSON.stringify({ proposals: list || [] }, null, 2));
+}
+
+function applyStructuredEdit(filePath, startLine, endLine, replacement) {
+  const original = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf-8') : '';
+  const lines = original.split(/\r?\n/);
+  const startIdx = Math.max(0, startLine - 1);
+  const endIdx = Math.max(startIdx, endLine);
+  const before = lines.slice(0, startIdx);
+  const after = lines.slice(endIdx);
+  const replacementLines = typeof replacement === 'string' ? replacement.split(/\r?\n/) : [];
+  const updated = [...before, ...replacementLines, ...after].join('\n');
+  fs.writeFileSync(filePath, updated, 'utf-8');
+  return updated;
+}
+
+function createProposalEntry(filePath, content, note) {
+  const proposals = loadProposals();
+  const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const createdAt = new Date().toISOString();
+  const entry = {
+    id,
+    filePath,
+    note: (note || '').toString().slice(0, 400),
+    status: 'pending',
+    createdAt,
+    content,
+  };
+  proposals.unshift(entry);
+  saveProposals(proposals);
+  return entry;
+}
+
+function validatePath(targetPath) {
+  const resolved = path.resolve(projectRoot, targetPath);
+  if (!resolved.startsWith(projectRoot)) return null;
+  if (resolved.includes(`${path.sep}node_modules${path.sep}`)) return null;
+  return resolved;
+}
+
+function backupFile(filePath) {
+  const ts = Date.now();
+  const dir = path.dirname(filePath);
+  const base = path.basename(filePath);
+  const backupName = `${base}.bak-${ts}`;
+  const backupPath = path.join(dir, backupName);
+  try {
+    if (fs.existsSync(filePath)) {
+      fs.copyFileSync(filePath, backupPath);
+      return backupPath;
+    }
+  } catch (e) {
+    logger.warn('Failed to backup file', { filePath, error: e.message });
+  }
+  return null;
+}
+
+function generateDiff(proposal, currentContent) {
+  const oldLabel = `${proposal.filePath} (current)`;
+  const newLabel = `${proposal.filePath} (proposal)`;
+  const oldText = currentContent || '';
+  const newText = proposal.content || '';
+  try {
+    return createTwoFilesPatch(oldLabel, newLabel, oldText, newText, '', '');
+  } catch (e) {
+    logger.warn('Failed to generate diff', { error: e.message });
+    return null;
+  }
+}
+
+function runCommand(cmd, options = {}) {
+  return new Promise((resolve) => {
+    const {
+      cwd = projectRoot,
+      env = process.env,
+      timeoutMs = TEST_TIMEOUT_MS,
+    } = options;
+    const started = Date.now();
+    const child = spawn(cmd, {
+      shell: true,
+      cwd,
+      env,
+    });
+    let output = '';
+    let completed = false;
+    const timer = setTimeout(() => {
+      if (!completed) {
+        child.kill();
+      }
+    }, timeoutMs);
+
+    child.stdout.on('data', (data) => { output += data.toString(); });
+    child.stderr.on('data', (data) => { output += data.toString(); });
+
+    child.on('close', (code, signal) => {
+      completed = true;
+      clearTimeout(timer);
+      resolve({ code, signal: signal || null, output, durationMs: Date.now() - started });
+    });
+  });
+}
+
+function ensureKnowledgeStore() {
+  const dir = path.dirname(knowledgeFile);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  if (!fs.existsSync(knowledgeFile)) {
+    fs.writeFileSync(knowledgeFile, JSON.stringify({ entries: [] }, null, 2));
+  }
+}
+
+function loadKnowledge() {
+  ensureKnowledgeStore();
+  try {
+    const raw = fs.readFileSync(knowledgeFile, 'utf-8');
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed.entries) ? parsed.entries : [];
+  } catch (e) {
+    logger.warn('Failed to read knowledge store', { error: e.message });
+    return [];
+  }
+}
+
+function saveKnowledge(entries) {
+  ensureKnowledgeStore();
+  fs.writeFileSync(knowledgeFile, JSON.stringify({ entries: entries || [] }, null, 2));
+}
+
+function isUrlAllowed(url) {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    return knowledgeSources.some(src => {
+      try {
+        const s = new URL(src);
+        return parsed.hostname === s.hostname && parsed.href.startsWith(s.href);
+      } catch {
+        return false;
+      }
+    });
+  } catch (e) {
+    return false;
+  }
+}
+
+async function fetchAndSummarize(url) {
+  if (!isUrlAllowed(url)) {
+    throw new Error('url not whitelisted');
+  }
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), KNOWLEDGE_FETCH_TIMEOUT_MS);
+  const res = await fetch(url, { signal: controller.signal });
+  clearTimeout(timeout);
+  if (!res.ok) throw new Error(`fetch failed: ${res.status}`);
+  const lenHeader = res.headers.get('content-length');
+  if (lenHeader && Number(lenHeader) > KNOWLEDGE_MAX_BYTES) {
+    throw new Error('content too large');
+  }
+  const html = await res.text();
+  const text = stripHtml(html);
+  const titleMatch = html.match(/<title>([^<]+)<\/title>/i);
+  const title = titleMatch ? compressWhitespace(titleMatch[1]) : url;
+  const summary = truncateText(text, 600);
+  const snippet = truncateText(text, 320);
+  return { url, title, summary, snippet };
+}
+
+function searchKnowledge(query) {
+  const list = loadKnowledge();
+  const q = (query || '').toLowerCase();
+  if (!q) return null;
+  let best = null;
+  for (const entry of list) {
+    const hay = `${entry.title || ''} ${entry.summary || ''}`.toLowerCase();
+    if (hay.includes(q)) {
+      best = entry;
+      break;
+    }
+  }
+  return best;
+}
+
+async function ingestAllowedSources(force = false) {
+  if (!knowledgeSources.length) return [];
+  const now = Date.now();
+  const existing = loadKnowledge();
+  if (!force && existing.length && now - knowledgeLastIngestAt < KNOWLEDGE_REFRESH_MS) {
+    return existing;
+  }
+  const merged = [...existing];
+  for (const src of knowledgeSources) {
+    try {
+      const summary = await fetchAndSummarize(src);
+      const idx = merged.findIndex(e => e.url === summary.url);
+      if (idx !== -1) {
+        merged[idx] = summary;
+      } else {
+        merged.push(summary);
+      }
+    } catch (e) {
+      logger.warn('Knowledge ingest failed for source', { source: src, error: e.message });
+    }
+  }
+  saveKnowledge(merged);
+  knowledgeLastIngestAt = Date.now();
+  return merged;
+}
+
+function commandExists(cmd) {
+  try {
+    const check = process.platform === 'win32' ? `where ${cmd}` : `command -v ${cmd}`;
+    const res = require('child_process').execSync(check, { stdio: 'pipe' });
+    return !!res;
+  } catch {
+    return false;
+  }
+}
+
+async function runLintSet(filePath) {
+  const tasks = [];
+  const results = [];
+  const ext = path.extname(filePath).toLowerCase();
+  const hasLocalBin = (name) => {
+    const bin = process.platform === 'win32' ? `${name}.cmd` : name;
+    return fs.existsSync(path.join(projectRoot, 'node_modules', '.bin', bin));
+  };
+  const addTask = (name, cmd) => tasks.push({ name, cmd });
+
+  // JS/TS: eslint/prettier
+  if (['.js', '.mjs', '.cjs', '.ts', '.tsx'].includes(ext)) {
+    if (hasLocalBin('eslint')) addTask('eslint', `"${path.join(projectRoot, 'node_modules', '.bin', process.platform === 'win32' ? 'eslint.cmd' : 'eslint')}" "${filePath}"`);
+    if (hasLocalBin('prettier')) addTask('prettier', `"${path.join(projectRoot, 'node_modules', '.bin', process.platform === 'win32' ? 'prettier.cmd' : 'prettier')}" -c "${filePath}"`);
+  }
+  // TS: tsc
+  if (['.ts', '.tsx'].includes(ext) && fs.existsSync(path.join(projectRoot, 'tsconfig.json')) && hasLocalBin('tsc')) {
+    addTask('tsc', `"${path.join(projectRoot, 'node_modules', '.bin', process.platform === 'win32' ? 'tsc.cmd' : 'tsc')}" --noEmit`);
+  }
+  // CSS
+  if (['.css', '.scss', '.sass'].includes(ext) && hasLocalBin('stylelint')) {
+    addTask('stylelint', `"${path.join(projectRoot, 'node_modules', '.bin', process.platform === 'win32' ? 'stylelint.cmd' : 'stylelint')}" "${filePath}"`);
+  }
+  // HTML
+  if (['.html', '.htm'].includes(ext) && hasLocalBin('htmlhint')) {
+    addTask('htmlhint', `"${path.join(projectRoot, 'node_modules', '.bin', process.platform === 'win32' ? 'htmlhint.cmd' : 'htmlhint')}" "${filePath}"`);
+  }
+  // Markdown
+  if (['.md', '.markdown'].includes(ext) && hasLocalBin('markdownlint')) {
+    addTask('markdownlint', `"${path.join(projectRoot, 'node_modules', '.bin', process.platform === 'win32' ? 'markdownlint.cmd' : 'markdownlint')}" "${filePath}"`);
+  }
+  // Python
+  if (ext === '.py') {
+    if (typeof lintCommands.pycompile === 'function') addTask('py_compile', lintCommands.pycompile(filePath));
+    if (hasLocalBin('ruff')) addTask('ruff', `"${path.join(projectRoot, 'node_modules', '.bin', process.platform === 'win32' ? 'ruff.cmd' : 'ruff')}" check "${filePath}"`);
+    if (hasLocalBin('black')) addTask('black', `"${path.join(projectRoot, 'node_modules', '.bin', process.platform === 'win32' ? 'black.cmd' : 'black')}" --check "${filePath}"`);
+    if (hasLocalBin('flake8')) addTask('flake8', `"${path.join(projectRoot, 'node_modules', '.bin', process.platform === 'win32' ? 'flake8.cmd' : 'flake8')}" "${filePath}"`);
+  }
+
+  for (const task of tasks) {
+    try {
+      const res = await runCommand(task.cmd, { timeoutMs: TEST_TIMEOUT_MS });
+      results.push({ name: task.name, code: res.code, output: res.output, durationMs: res.durationMs });
+    } catch (e) {
+      results.push({ name: task.name, code: -1, output: e.message, durationMs: null });
+    }
+  }
+
+  return results;
+}
 
 function isMultiStreamChannel(name = '') {
   return typeof name === 'string' && name.toLowerCase().startsWith('lobby-');
@@ -82,6 +527,7 @@ function isMultiStreamChannel(name = '') {
 
 function getUserInventory(login = '') {
   db.ensureDefaultCosmetics(login, DEFAULT_COSMETIC_DEFAULTS);
+  db.addCoins(login, 0);
   const inv = db.getUserInventory(login);
   const owned = new Set([...DEFAULT_COSMETIC_DEFAULTS, ...Array.from(inv.owned)]);
   const equipped = { ...DEFAULT_COSMETIC_SLOTS, ...inv.equipped };
@@ -98,16 +544,82 @@ function getCosmeticsForLogin(login = '') {
   const tableItem = map[inv.equipped.tableSkin] || map['table-default'];
   const ringItem = map[inv.equipped.avatarRing] || map['ring-default'];
   const frameItem = map[inv.equipped.profileFrame] || map['frame-default'];
+  const faceItem = map[inv.equipped.cardFace] || map['card-face-classic'];
 
   return {
     cardBackId: cardBackItem?.id || 'card-default',
     cardBackTint: cardBackItem?.tint || null,
+    cardBackImage: cardBackItem?.image_url || cardBackItem?.preview || null,
     tableTint: tableItem?.tint || null,
-    tableTexture: tableItem?.texture_url || null,
+    tableTexture: tableItem?.image_url || tableItem?.texture_url || null,
     tableLogoColor: tableItem?.color || null,
     avatarRingColor: ringItem?.color || null,
+    avatarRingImage: ringItem?.image_url || null,
     profileCardBorder: frameItem?.color || null,
+    cardFaceBase: faceItem?.image_url || null,
+    cardFaceId: faceItem?.id || 'card-face-classic',
   };
+}
+
+function meetsUnlockRequirement(item, stats = {}, profile = {}) {
+  const type = (item.unlock_type || '').toLowerCase();
+  const val = Number(item.unlock_value) || 0;
+  if (!type) return { ok: true };
+  if (type === 'basic') return { ok: true };
+  if (type === 'hands') return { ok: (stats.handsPlayed || 0) >= val };
+  if (type === 'playtime') return { ok: (stats.playSeconds || 0) >= val };
+  if (type === 'streamer_goal') {
+    const isStreamer = (profile.role || '').toLowerCase() === 'streamer';
+    return { ok: isStreamer && ((stats.handsPlayed || 0) >= val || (stats.playSeconds || 0) >= val) };
+  }
+  // Subscriber, twitch_drop, etc. require external validation
+  return { ok: false };
+}
+
+async function maybeAutoUnlockCosmetics(login = '', channel = DEFAULT_CHANNEL) {
+  if (!login) return [];
+  const inv = getUserInventory(login);
+  const owned = new Set(inv.owned);
+  const stats = db.getStats(login);
+  const profile = db.getProfile(login) || {};
+  const unlocked = [];
+  const catalog = db.getCatalog();
+  for (const item of catalog) {
+    if (!item) continue;
+    if (owned.has(item.id)) continue;
+    const type = (item.unlock_type || '').toLowerCase();
+    if ((type === 'basic' || !type) && (item.price_cents === 0 || item.price === 0)) {
+      db.grantCosmetic(login, item.id);
+      unlocked.push(item.id);
+      continue;
+    }
+    if (['hands', 'playtime', 'streamer_goal'].includes(type)) {
+      const { ok } = meetsUnlockRequirement(item, stats, profile);
+      if (ok) {
+        db.grantCosmetic(login, item.id);
+        unlocked.push(item.id);
+      }
+    } else if (type === 'subscriber') {
+      const ok = await isUserSubscribedTo(channel, login, channel);
+      if (ok) {
+        db.grantCosmetic(login, item.id);
+        unlocked.push(item.id);
+      }
+    } else if (type === 'vip') {
+      const ok = await isUserVipOf(channel, login, channel);
+      if (ok) {
+        db.grantCosmetic(login, item.id);
+        unlocked.push(item.id);
+      }
+    } else if (type === 'follower') {
+      const ok = await isUserFollowerOf(channel, login, channel);
+      if (ok) {
+        db.grantCosmetic(login, item.id);
+        unlocked.push(item.id);
+      }
+    }
+  }
+  return unlocked;
 }
 
 // Initialize app
@@ -127,9 +639,10 @@ app.get('/', (_req, res) => {
 app.get('/public-config.json', (req, res) => {
   const forwardedProto = (req.headers['x-forwarded-proto'] || '').split(',')[0].trim();
   const proto = forwardedProto || req.protocol || 'https';
-  const redirectUri =
+  const redirectUriRaw =
     config.TWITCH_REDIRECT_URI ||
     `${proto}://${req.get('host')}/login.html`;
+  const redirectUri = (redirectUriRaw || '').trim().replace(/\\+$/, '');
   res.json({
     twitchClientId: config.TWITCH_CLIENT_ID || '',
     redirectUri,
@@ -140,6 +653,89 @@ app.get('/public-config.json', (req, res) => {
     potGlowMultiplier: config.POT_GLOW_MULTIPLIER || 5,
     defaultChannel: DEFAULT_CHANNEL,
   });
+});
+
+// Admin-only bot chat page
+app.get('/admin-chat.html', auth.requireAdmin, (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin-chat.html'));
+});
+
+app.get('/admin-chat', auth.requireAdmin, (_req, res) => {
+  res.redirect('/admin-chat.html');
+});
+
+app.get('/admin-code.html', auth.requireAdmin, (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin-code.html'));
+});
+
+app.get('/admin-code', auth.requireAdmin, (_req, res) => {
+  res.redirect('/admin-code.html');
+});
+
+/**
+ * Admin: begin Twitch subs OAuth (redirect to Twitch)
+ * Query: channel (optional)
+ */
+app.get('/auth/twitch/subs', auth.requireAdmin, (req, res) => {
+  try {
+    if (!config.TWITCH_CLIENT_ID) {
+      return res.status(400).send('Missing TWITCH_CLIENT_ID');
+    }
+    const channel = (req.query?.channel || DEFAULT_CHANNEL);
+    const redirectUri = config.TWITCH_REDIRECT_URI || `${req.protocol}://${req.get('host')}/auth/twitch/subs/callback`;
+    const state = encodeURIComponent(`subauth:${channel}`);
+    const scopes = [
+      'channel:read:subscriptions',
+      'channel:read:vips',
+      'moderator:read:followers',
+    ];
+    const scope = encodeURIComponent(scopes.join(' '));
+    const authUrl = `https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=${config.TWITCH_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&state=${state}`;
+    return res.redirect(authUrl);
+  } catch (err) {
+    logger.error('twitch sub auth redirect failed', { error: err.message });
+    return res.status(500).send('auth_failed');
+  }
+});
+
+/**
+ * OAuth callback for Twitch subs
+ * Query: code, state=subauth:<channel>
+ */
+app.get('/auth/twitch/subs/callback', async (req, res) => {
+  const { code, state } = req.query || {};
+  try {
+    if (!code) return res.status(400).send('Missing code');
+    const parsedState = decodeURIComponent(state || '');
+    const channel = (parsedState.startsWith('subauth:') ? parsedState.replace('subauth:', '') : DEFAULT_CHANNEL) || DEFAULT_CHANNEL;
+    const redirectUri = config.TWITCH_REDIRECT_URI || `${req.protocol}://${req.get('host')}/auth/twitch/subs/callback`;
+    const tokenRes = await fetch('https://id.twitch.tv/oauth2/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        client_id: config.TWITCH_CLIENT_ID,
+        client_secret: config.TWITCH_CLIENT_SECRET,
+        code,
+        grant_type: 'authorization_code',
+        redirect_uri: redirectUri,
+      }),
+    });
+    if (!tokenRes.ok) {
+      const text = await tokenRes.text();
+      logger.warn('twitch token exchange failed', { status: tokenRes.status, text });
+      return res.status(400).send('Token exchange failed');
+    }
+    const tokenData = await tokenRes.json();
+    db.setTwitchSubToken(channel, {
+      access_token: tokenData.access_token,
+      refresh_token: tokenData.refresh_token,
+      expires_at: tokenData.expires_in ? (Date.now() / 1000 + tokenData.expires_in) : null,
+    });
+    return res.send('Twitch subscription access saved. You can close this window.');
+  } catch (err) {
+    logger.error('twitch sub auth callback failed', { error: err.message });
+    return res.status(500).send('auth_failed');
+  }
 });
 app.use(express.static('public'));
 
@@ -159,6 +755,104 @@ function generateLobbyCode() {
     code += chars[Math.floor(Math.random() * chars.length)];
   }
   return code.toLowerCase();
+}
+
+function shuffle(array = []) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function parseJsonSafe(str, fallback) {
+  try {
+    return JSON.parse(str);
+  } catch (e) {
+    return fallback;
+  }
+}
+
+function generateBracketAssignments(tournamentId, round = 1, roster = [], tableSize = 6) {
+  const cleanSize = Math.min(Math.max(Number(tableSize) || 6, 2), 10);
+  const shuffled = shuffle(roster);
+  db.clearBracket(tournamentId, round);
+  const tables = new Set();
+  shuffled.forEach((login, idx) => {
+    const tableNum = Math.floor(idx / cleanSize) + 1;
+    const seatNum = (idx % cleanSize) + 1;
+    db.upsertBracketSeat(tournamentId, round, tableNum, login);
+    db.updateTournamentSeat(tournamentId, login, seatNum);
+    tables.add(tableNum);
+  });
+  const bracket = db.listBracket(tournamentId, round);
+  const tableChannels = Array.from(tables).sort((a, b) => a - b).map(tn => `t-${tournamentId}-r${round}-table-${tn}`);
+  return { bracket, tableChannels, tableSize: cleanSize };
+}
+
+function getCurrentBlinds(state) {
+  const t = state.tournamentId ? db.getTournament(state.tournamentId) : null;
+  const levels = t ? parseJsonSafe(t.blind_config || '[]', []) : [];
+  const idx = Math.max(0, (t?.current_level || 1) - 1);
+  const level = levels[idx] || {};
+  return {
+    small: level.small || 50,
+    big: level.big || 100,
+  };
+}
+
+function applyTournamentPayouts(state, payoutPayload = {}) {
+  if (!state.tournamentId) return [];
+  const stacks = state.tournamentStacks || {};
+  Object.entries(payoutPayload.payouts || {}).forEach(([login, amt]) => {
+    stacks[login] = (stacks[login] || 0) + (amt || 0);
+  });
+  Object.keys(stacks).forEach(login => {
+    db.updateTournamentPlayerChips(state.tournamentId, login, Math.max(0, stacks[login]));
+  });
+  state.tournamentStacks = stacks;
+  return Object.keys(stacks).filter(login => (stacks[login] || 0) <= 0);
+}
+
+function bindTournamentTable(tournamentId, round, tableNum, channelName, players = []) {
+  const state = getStateForChannel(channelName);
+  const t = db.getTournament(tournamentId);
+  const gameMode = (t?.game || 'poker').toLowerCase();
+  state.tournamentId = tournamentId;
+  state.tournamentTable = tableNum;
+  state.tournamentRound = round;
+  state.currentMode = gameMode === 'blackjack' ? 'blackjack' : 'poker';
+  state.readyPlayers = new Set();
+  state.roundInProgress = false;
+  state.betAmounts = {};
+  state.playerStates = {};
+  state.waitingQueue = [];
+  state.playerTurnOrder = [];
+  state.playerTurnIndex = 0;
+  state.pokerActed = new Set();
+  state.pokerStreetBets = {};
+  state.pokerPot = 0;
+  state.pokerCurrentBet = 0;
+  state.communityCards = [];
+  state.tournamentStacks = state.tournamentStacks || {};
+  players.forEach((login) => {
+    const tp = db.getTournamentPlayer(tournamentId, login);
+    const chips = tp?.chips ?? TOURNAMENT_DEFAULTS.starting_chips;
+    state.tournamentStacks[login] = chips;
+    state.playerStates[login] = {
+      hand: [],
+      hole: [],
+      stood: false,
+      busted: false,
+      folded: false,
+      split: false,
+      hands: [],
+      activeHand: 0,
+      seat: tp?.seat || null,
+    };
+  });
+  return state;
 }
 
 // ============ PAYPAL HELPERS ============
@@ -300,6 +994,10 @@ function sanitizeOverlaySettings(raw = {}) {
   const tableLogo = sanitizeColor(raw.tableLogoColor);
   if (tableLogo) safe.tableLogoColor = tableLogo;
 
+  if (typeof raw.autoFillAi !== 'undefined') {
+    safe.autoFillAi = !!raw.autoFillAi;
+  }
+
   return safe;
 }
 
@@ -374,6 +1072,7 @@ let turnManager = null;
 let pokerHandlers = null;
 let blackjackHandlers = null;
 const playerHeuristics = {};
+let roundStartedAt = null;
 
 function getLegacyStateView() {
   return {
@@ -402,6 +1101,7 @@ function getLegacyStateView() {
     get pokerHandlers() { return pokerHandlers; }, set pokerHandlers(v) { pokerHandlers = v; },
     get blackjackHandlers() { return blackjackHandlers; }, set blackjackHandlers(v) { blackjackHandlers = v; },
     get playerHeuristics() { return playerHeuristics; }, set playerHeuristics(v) { Object.assign(playerHeuristics, v); },
+    get roundStartedAt() { return roundStartedAt; }, set roundStartedAt(v) { roundStartedAt = v; },
   };
 }
 
@@ -439,6 +1139,221 @@ function recordTimeoutHeuristic(login) {
   const h = ensureHeuristic(login);
   h.timeouts.push(Date.now());
   if (h.timeouts.length > config.BJ_TIMEOUT_WINDOW) h.timeouts.shift();
+}
+
+function isAiPlayer(login = '') {
+  if (!login) return false;
+  const profile = db.getProfile(login);
+  if (profile && profile.role === 'ai') return true;
+  return login.toLowerCase().startsWith('ai_bot');
+}
+
+function aiBlackjackAction(login, channel = DEFAULT_CHANNEL) {
+  const channelName = normalizeChannelName(channel) || DEFAULT_CHANNEL;
+  const state = getStateForChannel(channelName);
+  const pState = getPlayerState(login, channelName);
+  if (!pState || pState.stood || pState.busted) return false;
+  const dealerUp = (state.dealerState?.hand && state.dealerState.hand[0]) || null;
+  const dealerVal = (() => {
+    if (!dealerUp) return 10;
+    if (dealerUp.rank === 'A') return 11;
+    if (['K', 'Q', 'J', '10'].includes(dealerUp.rank)) return 10;
+    return parseInt(dealerUp.rank, 10) || 10;
+  })();
+  const bet = state.betAmounts[login] || config.GAME_MIN_BET;
+  const balance = db.getBalance(login);
+  const canDouble = balance >= bet;
+
+  const getHand = () => (pState.isSplit && Array.isArray(pState.hands)
+    ? (pState.hands[pState.activeHand] || pState.hand)
+    : pState.hand);
+
+  const isSoft = (cards) => {
+    const val = blackjack.handValue(cards || []);
+    const hasAce = (cards || []).some(c => c.rank === 'A');
+    return hasAce && val <= 21 && val - 10 <= 11;
+  };
+
+  const act = () => {
+    const hand = getHand() || [];
+    const total = blackjack.handValue(hand);
+    const soft = isSoft(hand);
+
+    // Simple basic-strategy-ish rules
+    if (hand.length === 2 && hand[0]?.rank === hand[1]?.rank && ['A', '8'].includes(hand[0].rank)) {
+      state.blackjackHandlers?.split?.(login, state.betAmounts, db);
+      return;
+    }
+    if (soft) {
+      if (total <= 17) return state.blackjackHandlers?.hit?.(login);
+      if (total === 18) {
+        if (dealerVal >= 9) return state.blackjackHandlers?.hit?.(login);
+        if (dealerVal <= 6 && canDouble) return state.blackjackHandlers?.doubleDown?.(login, state.betAmounts, db);
+        return state.blackjackHandlers?.stand?.(login);
+      }
+      return state.blackjackHandlers?.stand?.(login);
+    }
+    if (total <= 8) return state.blackjackHandlers?.hit?.(login);
+    if (total === 9 && dealerVal >= 3 && dealerVal <= 6 && canDouble) return state.blackjackHandlers?.doubleDown?.(login, state.betAmounts, db);
+    if (total === 10 && dealerVal <= 9 && canDouble) return state.blackjackHandlers?.doubleDown?.(login, state.betAmounts, db);
+    if (total === 11 && canDouble) return state.blackjackHandlers?.doubleDown?.(login, state.betAmounts, db);
+    if (total === 12) {
+      if (dealerVal >= 4 && dealerVal <= 6) return state.blackjackHandlers?.stand?.(login);
+      return state.blackjackHandlers?.hit?.(login);
+    }
+    if (total >= 13 && total <= 16) {
+      if (dealerVal >= 7) return state.blackjackHandlers?.hit?.(login);
+      return state.blackjackHandlers?.stand?.(login);
+    }
+    return state.blackjackHandlers?.stand?.(login);
+  };
+
+  // resolve current hand; if split, step through hands
+  const hands = pState.isSplit && Array.isArray(pState.hands) ? pState.hands : [pState.hand];
+  for (let i = pState.activeHand || 0; i < hands.length; i += 1) {
+    pState.activeHand = i;
+    let guard = 0;
+    while (!pState.stood && !pState.busted && guard < 6) {
+      act();
+      guard += 1;
+    }
+  }
+
+  return true;
+}
+
+function rankNumber(rank) {
+  if (!rank) return 0;
+  const raw = typeof rank === 'string' ? rank.toUpperCase() : rank;
+  const map = { A: 14, K: 13, Q: 12, J: 11, T: 10 };
+  if (map[raw]) return map[raw];
+  if (typeof raw === 'number') return raw;
+  const parsed = parseInt(raw, 10);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function scorePreflopStrength(hole = []) {
+  if (!hole || hole.length < 2) return 0.25;
+  const v1 = rankNumber(hole[0].rank);
+  const v2 = rankNumber(hole[1].rank);
+  const suited = hole[0].suit && hole[1].suit && hole[0].suit === hole[1].suit;
+  const isPair = v1 === v2;
+  const gap = Math.abs(v1 - v2);
+  const connectors = gap === 0 ? 0.18 : gap === 1 ? 0.12 : gap === 2 ? 0.08 : 0;
+  const highCards = [v1, v2].filter(v => v >= 11).length;
+  const pairBoost = isPair ? (v1 >= 10 ? 0.55 : 0.38) : 0;
+  const suitedBoost = suited ? 0.1 : 0;
+  const highBoost = highCards * 0.08;
+  return Math.min(0.9, 0.25 + highBoost + pairBoost + connectors + suitedBoost);
+}
+
+function computeDrawScore(cards = []) {
+  if (!Array.isArray(cards) || !cards.length) return 0;
+  const suits = cards.reduce((m, c) => {
+    const key = c.suit || c;
+    m[key] = (m[key] || 0) + 1;
+    return m;
+  }, {});
+  const maxSuit = Math.max(...Object.values(suits), 0);
+  const flushDraw = maxSuit >= 5 ? 0.35 : maxSuit === 4 ? 0.18 : maxSuit === 3 ? 0.08 : 0;
+
+  const values = Array.from(new Set(cards.map(c => rankNumber(c.rank || c))));
+  values.sort((a, b) => a - b);
+  const withWheel = values.includes(14) ? values.concat([1]) : values.slice();
+  let bestRun = 1;
+  let run = 1;
+  for (let i = 1; i < withWheel.length; i += 1) {
+    if (withWheel[i] === withWheel[i - 1] + 1) run += 1;
+    else run = 1;
+    if (run > bestRun) bestRun = run;
+  }
+  const straightDraw = bestRun >= 5 ? 0.32 : bestRun === 4 ? 0.16 : bestRun === 3 ? 0.08 : 0;
+
+  const counts = cards.reduce((m, c) => {
+    const r = c.rank || c;
+    m[r] = (m[r] || 0) + 1;
+    return m;
+  }, {});
+  const pairish = Object.values(counts).some(v => v >= 2) ? 0.08 : 0;
+  return flushDraw + straightDraw + pairish;
+}
+
+function scorePokerStrength(hole = [], community = []) {
+  if (!hole || !hole.length) return 0.2;
+  if (!community || !community.length) return scorePreflopStrength(hole);
+  const known = hole.concat(community);
+  const evalScore = typeof game.evaluateBestOfSeven === 'function' ? game.evaluateBestOfSeven(known) : { rank: 0 };
+  const madeScore = Math.min(0.95, (evalScore.rank || 0) / 8);
+  const drawScore = computeDrawScore(known);
+  const preflop = scorePreflopStrength(hole);
+  return Math.min(0.98, Math.max(preflop * 0.3, madeScore + drawScore));
+}
+
+function aiPokerAction(login, channel = DEFAULT_CHANNEL) {
+  const channelName = normalizeChannelName(channel) || DEFAULT_CHANNEL;
+  const state = getStateForChannel(channelName);
+  const pState = getPlayerState(login, channelName);
+  if (!pState || pState.folded) return false;
+
+  const streetBet = state.pokerStreetBets[login] || 0;
+  const needed = Math.max(0, state.pokerCurrentBet - streetBet);
+  const balance = state.tournamentId && state.tournamentStacks ? (state.tournamentStacks[login] || 0) : db.getBalance(login);
+  const pot = state.pokerPot || 0;
+  const stackRatio = balance > 0 ? needed / balance : 1;
+  const community = state.communityCards || [];
+  const hole = pState.hole || [];
+
+  const strength = scorePokerStrength(hole, community);
+  const potOdds = needed > 0 ? needed / Math.max((pot || 0) + needed, 1) : 0;
+  const aggression = 0.12 + (strength * 0.55);
+  const bluff = pot > balance * 0.5 && Math.random() < 0.12 && strength < 0.55;
+
+  if (needed === 0) {
+    const raiseDelta = Math.max(config.GAME_MIN_BET, Math.floor(((pot || config.GAME_MIN_BET) * (0.25 + aggression))));
+    const raiseTo = Math.min(balance, state.pokerCurrentBet + raiseDelta);
+    if (strength > 0.65 || bluff) {
+      if (raiseTo > state.pokerCurrentBet) pokerRaiseAction(login, raiseTo, channelName);
+      else pokerCheckAction(login, channelName);
+    } else pokerCheckAction(login, channelName);
+    return true;
+  }
+
+  if (balance <= needed) {
+    pokerCallAction(login, channelName); // all-in
+    return true;
+  }
+
+  if (strength > 0.82 && stackRatio < 0.65) {
+    const raiseTo = Math.min(balance, state.pokerCurrentBet + Math.max(needed, Math.floor((pot || config.GAME_MIN_BET) * 0.5)));
+    if (raiseTo > state.pokerCurrentBet) pokerRaiseAction(login, raiseTo, channelName);
+    else pokerCallAction(login, channelName);
+    return true;
+  }
+
+  const affordable = stackRatio <= 0.4 || needed <= Math.max(config.GAME_MIN_BET, Math.floor(balance * (0.2 + strength * 0.35)));
+  if (strength > 0.55 && (potOdds < 0.5 || stackRatio < 0.35) && affordable) {
+    if (Math.random() < aggression && balance > needed + config.GAME_MIN_BET) {
+      const bump = Math.max(config.GAME_MIN_BET, Math.floor((pot || config.GAME_MIN_BET) * 0.2));
+      const raiseTo = Math.min(balance, state.pokerCurrentBet + bump);
+      if (raiseTo > state.pokerCurrentBet) pokerRaiseAction(login, raiseTo, channelName);
+      else pokerCallAction(login, channelName);
+    } else pokerCallAction(login, channelName);
+    return true;
+  }
+
+  if (bluff && stackRatio < 0.45 && balance > needed + config.GAME_MIN_BET) {
+    const raiseTo = state.pokerCurrentBet + Math.max(config.GAME_MIN_BET, needed);
+    pokerRaiseAction(login, Math.min(balance, raiseTo), channelName);
+    return true;
+  }
+
+  if (strength > 0.35 && stackRatio < 0.25) {
+    pokerCallAction(login, channelName);
+    return true;
+  }
+
+  pokerFoldAction(login, channelName);
+  return true;
 }
 
 function getHeuristics(login) {
@@ -636,7 +1551,8 @@ function placeBet(username, amount, channel = DEFAULT_CHANNEL) {
   }
 
   const existingBet = state.betAmounts[username] || 0;
-  const currentBalance = db.getBalance(username);
+  const usingTournamentStack = state.tournamentId && state.tournamentStacks && typeof state.tournamentStacks[username] === 'number';
+  const currentBalance = usingTournamentStack ? state.tournamentStacks[username] : db.getBalance(username);
   const available = currentBalance + existingBet; // refund previous bet to recalc
   const heur = getHeuristics(username, channelName);
   const tiltClamp = Math.max(config.GAME_MIN_BET, Math.floor(available * config.TILT_BET_CLAMP_RATIO));
@@ -660,7 +1576,11 @@ function placeBet(username, amount, channel = DEFAULT_CHANNEL) {
 
   // Deduct new bet
   const newBalance = available - targetAmount;
-  db.setBalance(username, newBalance);
+  if (usingTournamentStack) {
+    state.tournamentStacks[username] = newBalance;
+  } else {
+    db.setBalance(username, newBalance);
+  }
   state.betAmounts[username] = targetAmount;
   if (state.currentMode === 'poker') {
     state.pokerCurrentBet = Math.max(state.pokerCurrentBet, targetAmount);
@@ -743,25 +1663,40 @@ function settleRound(data) {
   const emitter = io.to(channel);
   try {
     const prevBets = { ...state.betAmounts };
+    const elapsedSec = state.roundStartedAt ? Math.max(1, Math.round((Date.now() - state.roundStartedAt) / 1000)) : 0;
+    const statsMeta = { playSeconds: elapsedSec, hands: 1 };
+    let broke = [];
     if (state.currentMode === 'blackjack') {
-      const { broke, nextWaiting, nextBetAmounts, nextPlayerStates, payoutPayload } = settleAndEmitBlackjack(emitter, state.dealerState, state.playerStates, state.betAmounts, state.waitingQueue, db, channel);
+      const { broke: brokeBj, nextWaiting, nextBetAmounts, nextPlayerStates, payoutPayload } = settleAndEmitBlackjack(emitter, state.dealerState, state.playerStates, state.betAmounts, state.waitingQueue, db, channel, statsMeta);
       state.waitingQueue = nextWaiting;
       state.betAmounts = nextBetAmounts;
       state.playerStates = nextPlayerStates;
-      updateHeuristicsAfterPayout(prevBets, payoutPayload, db, channel);
-      broke.forEach(login => {
-        if (!state.waitingQueue.includes(login)) state.waitingQueue.push(login);
-      });
+      if (state.tournamentId) {
+        broke = applyTournamentPayouts(state, payoutPayload);
+      } else {
+        updateHeuristicsAfterPayout(prevBets, payoutPayload, db, channel);
+        broke = brokeBj;
+      }
     } else {
-      const { broke, nextWaiting, nextBetAmounts, nextPlayerStates, payoutPayload } = settleAndEmitPoker(emitter, state.playerStates, state.communityCards, state.betAmounts, state.waitingQueue, db, channel);
+      const { broke: brokePk, nextWaiting, nextBetAmounts, nextPlayerStates, payoutPayload } = settleAndEmitPoker(emitter, state.playerStates, state.communityCards, state.betAmounts, state.waitingQueue, db, channel, statsMeta);
       state.waitingQueue = nextWaiting;
       state.betAmounts = nextBetAmounts;
       state.playerStates = nextPlayerStates;
-      updateHeuristicsAfterPayout(prevBets, payoutPayload, db, channel);
-      broke.forEach(login => {
-        if (!state.waitingQueue.includes(login)) state.waitingQueue.push(login);
-      });
+      if (state.tournamentId) {
+        broke = applyTournamentPayouts(state, payoutPayload);
+      } else {
+        updateHeuristicsAfterPayout(prevBets, payoutPayload, db, channel);
+        broke = brokePk;
+      }
     }
+
+    broke.forEach(login => {
+      if (!state.waitingQueue.includes(login)) state.waitingQueue.push(login);
+    });
+
+    Object.keys(prevBets).forEach(async (login) => {
+      await maybeAutoUnlockCosmetics(login, channel);
+    });
 
     cleanupAfterSettle(channel);
   } catch (err) {
@@ -779,11 +1714,35 @@ function cleanupAfterSettle(channel = DEFAULT_CHANNEL) {
   state.pokerActed = new Set();
   state.roundInProgress = false;
   state.bettingOpen = false;
+  state.roundStartedAt = null;
+  state.readyPlayers = new Set();
   if (state.bettingTimer) clearTimeout(state.bettingTimer);
   if (state.blackjackActionTimer) clearTimeout(state.blackjackActionTimer);
   if (state.pokerActionTimer) clearTimeout(state.pokerActionTimer);
   if (state.turnManager && state.turnManager.stop) state.turnManager.stop();
   emitQueueUpdate(channel);
+  emitReadyStatus(channel);
+}
+
+function emitReadyStatus(channel = DEFAULT_CHANNEL) {
+  const channelName = normalizeChannelName(channel) || DEFAULT_CHANNEL;
+  const state = getStateForChannel(channelName);
+  const ready = Array.from(state.readyPlayers || []).map(r => r.toLowerCase());
+  const round = state.tournamentRound || 1;
+  const tableNum = state.tournamentTable || 1;
+  let required = [];
+  if (state.tournamentId) {
+    required = getBracketSeats(state.tournamentId, round, tableNum).map(s => s.toLowerCase());
+  }
+  const allReady = required.length > 0 && required.every(r => ready.includes(r));
+  io.to(channelName).emit('readyStatus', {
+    channel: channelName,
+    ready,
+    required,
+    readyCount: ready.length,
+    requiredCount: required.length,
+    allReady,
+  });
 }
 
 function emitQueueUpdate(channel = DEFAULT_CHANNEL) {
@@ -818,6 +1777,7 @@ function openBettingWindow(channel = DEFAULT_CHANNEL) {
   state.pokerPhase = 'preflop';
   state.playerTurnOrder = [];
   state.playerTurnIndex = 0;
+  state.roundStartedAt = null;
 
   state.bettingOpen = true;
   const duration = state.currentMode === 'blackjack' ? config.BJ_BETTING_DURATION_MS : config.BETTING_PHASE_DURATION_MS;
@@ -832,7 +1792,8 @@ function openBettingWindow(channel = DEFAULT_CHANNEL) {
   io.to(channelName).emit('bettingStarted', { duration, endsAt, mode: state.currentMode, channel: channelName });
 }
 
-function startRoundInternal(channel = DEFAULT_CHANNEL) {
+function startRoundInternal(channel = DEFAULT_CHANNEL, opts = {}) {
+  const preserveBets = opts.preserveBets || false;
   const channelName = normalizeChannelName(channel) || DEFAULT_CHANNEL;
   const state = getStateForChannel(channelName);
   const channelEmitter = io.to(channelName);
@@ -840,6 +1801,7 @@ function startRoundInternal(channel = DEFAULT_CHANNEL) {
     if (state.bettingTimer) clearTimeout(state.bettingTimer);
     state.bettingOpen = false;
     state.roundInProgress = true;
+    const preservedBets = preserveBets ? { ...state.betAmounts } : {};
     state.playerStates = {};
     state.pokerCurrentBet = 0;
     state.pokerStreetBets = {};
@@ -851,7 +1813,24 @@ function startRoundInternal(channel = DEFAULT_CHANNEL) {
     state.playerTurnOrder = [];
     state.playerTurnIndex = 0;
 
-    const bettors = Object.keys(state.betAmounts);
+    const maxSeats = state.currentMode === 'blackjack' ? MAX_BLACKJACK_PLAYERS : MAX_POKER_PLAYERS;
+    if (preserveBets && Object.keys(preservedBets).length) {
+      state.betAmounts = preservedBets;
+    } else {
+      state.betAmounts = {};
+    }
+
+    let bettors = Object.keys(state.betAmounts);
+    if (overlaySettingsByChannel[channelName]?.autoFillAi) {
+      const needed = Math.max(0, maxSeats - bettors.length);
+      if (needed > 0) {
+        const prevOpen = state.bettingOpen;
+        state.bettingOpen = true;
+        addTestBots(channelName, needed, maxSeats);
+        state.bettingOpen = prevOpen;
+        bettors = Object.keys(state.betAmounts);
+      }
+    }
     if (bettors.length === 0 && state.currentMode === 'blackjack') {
       // Blackjack only: auto-place min bet for first queued player if available
       const next = state.waitingQueue.shift();
@@ -928,6 +1907,7 @@ function startRoundInternal(channel = DEFAULT_CHANNEL) {
         bet: state.betAmounts[login] || 0,
         streetBet: state.pokerStreetBets[login] || 0,
         avatar: (db.getProfile(login)?.settings && JSON.parse(db.getProfile(login).settings || '{}').avatarUrl) || null,
+        cosmetics: getCosmeticsForLogin(login),
       })),
       waiting: state.waitingQueue,
       community: state.communityCards,
@@ -951,6 +1931,46 @@ function startRoundInternal(channel = DEFAULT_CHANNEL) {
     logger.error('Failed to start round', { error: err.message, channel: channelName });
     state.roundInProgress = false;
   }
+}
+
+/**
+ * QA helper: add AI bots into the betting window for this channel
+ * @param {string} channel
+ * @param {number} count
+ */
+function addTestBots(channel = DEFAULT_CHANNEL, count = 3, maxSeats = MAX_BLACKJACK_PLAYERS) {
+  const channelName = normalizeChannelName(channel) || DEFAULT_CHANNEL;
+  const state = getStateForChannel(channelName);
+  if (state.roundInProgress) return [];
+
+  const safeCount = Math.max(1, Math.min(count || 3, maxSeats));
+  // Ensure betting window is open so bets land
+  if (!state.bettingOpen) {
+    openBettingWindow(channelName);
+  }
+
+  const added = [];
+  for (let i = 1; i <= safeCount; i += 1) {
+    const login = `ai_bot${i}`;
+    // Ensure profile/balance exists
+    db.upsertProfile({
+      login,
+      display_name: `AI Bot ${i}`,
+      settings: { startingChips: config.GAME_STARTING_CHIPS, theme: 'dark' },
+      role: 'ai',
+    });
+    const currentBalance = db.getBalance(login);
+    if (currentBalance < config.GAME_MIN_BET * 10) {
+      db.setBalance(login, config.GAME_STARTING_CHIPS * 5);
+    }
+
+    // Force betting window flag in case timer just closed
+    state.bettingOpen = true;
+    placeBet(login, config.GAME_MIN_BET, channelName);
+    added.push(login);
+  }
+  emitQueueUpdate(channelName);
+  return added;
 }
 
 /**
@@ -993,6 +2013,137 @@ async function fetchTwitchUser(token) {
   }
 
   return { login, user_id, display_name, avatarUrl };
+}
+
+/**
+ * Get sanitized Helix token (strip oauth: prefix)
+ */
+function getHelixToken(channel) {
+  if (channel) {
+    const saved = db.getTwitchSubToken(channel);
+    if (saved && saved.access_token) {
+      return saved.access_token;
+    }
+  }
+  const raw = config.TWITCH_OAUTH_TOKEN || '';
+  if (!raw) return null;
+  return raw.replace(/^oauth:/i, '').trim();
+}
+
+/**
+ * Fetch Twitch user IDs for logins via Helix
+ * @param {string[]} logins
+ * @returns {Promise<Object>} map of login -> id
+ */
+async function fetchTwitchUsersByLogin(logins = [], channel) {
+  const token = getHelixToken(channel);
+  if (!token || !config.TWITCH_CLIENT_ID) return {};
+  const qs = logins.map(l => `login=${encodeURIComponent(l)}`).join('&');
+  const res = await fetch(`https://api.twitch.tv/helix/users?${qs}`, {
+    headers: {
+      'Client-ID': config.TWITCH_CLIENT_ID,
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) {
+    logger.warn('Helix users failed', { status: res.status });
+    return {};
+  }
+  const data = await res.json();
+  const map = {};
+  (data.data || []).forEach(u => { map[u.login.toLowerCase()] = u.id; });
+  return map;
+}
+
+/**
+ * Check if user is subscribed to broadcaster using bot token with channel:read:subscriptions
+ * @param {string} broadcasterLogin
+ * @param {string} userLogin
+ * @returns {Promise<boolean>}
+ */
+async function isUserSubscribedTo(broadcasterLogin, userLogin, channel) {
+  if (!broadcasterLogin || !userLogin) return false;
+  const token = getHelixToken(channel || broadcasterLogin);
+  if (!token || !config.TWITCH_CLIENT_ID) return false;
+  const ids = await fetchTwitchUsersByLogin([broadcasterLogin, userLogin], channel || broadcasterLogin);
+  const bId = ids[broadcasterLogin.toLowerCase()];
+  const uId = ids[userLogin.toLowerCase()];
+  if (!bId || !uId) return false;
+  const url = `https://api.twitch.tv/helix/subscriptions?broadcaster_id=${bId}&user_id=${uId}`;
+  const res = await fetch(url, {
+    headers: {
+      'Client-ID': config.TWITCH_CLIENT_ID,
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) {
+    logger.warn('Helix subscription check failed', { status: res.status });
+    return false;
+  }
+  const data = await res.json();
+  return Array.isArray(data.data) && data.data.length > 0;
+}
+
+/**
+ * Grant all subscriber cosmetics to a user
+ */
+function grantSubscriberCosmetics(login) {
+  const catalog = db.getCatalog();
+  const granted = [];
+  catalog.forEach(item => {
+    if ((item.unlock_type || '').toLowerCase() === 'subscriber') {
+      db.grantCosmetic(login, item.id);
+      granted.push(item.id);
+    }
+  });
+  return granted;
+}
+
+/**
+ * Grant VIP cosmetics
+ */
+function grantVipCosmetics(login) {
+  const catalog = db.getCatalog();
+  const granted = [];
+  catalog.forEach(item => {
+    if ((item.unlock_type || '').toLowerCase() === 'vip') {
+      db.grantCosmetic(login, item.id);
+      granted.push(item.id);
+    }
+  });
+  return granted;
+}
+
+/**
+ * Grant follower cosmetics
+ */
+function grantFollowerCosmetics(login) {
+  const catalog = db.getCatalog();
+  const granted = [];
+  catalog.forEach(item => {
+    if ((item.unlock_type || '').toLowerCase() === 'follower') {
+      db.grantCosmetic(login, item.id);
+      granted.push(item.id);
+    }
+  });
+  return granted;
+}
+
+/**
+ * Validate the configured bot token against Twitch /validate
+ * @returns {Promise<{ok:boolean, scopes?:Array, client_id?:string, login?:string, status?:number}>}
+ */
+async function validateBotToken() {
+  const token = getHelixToken();
+  if (!token) return { ok: false, status: 401 };
+  const res = await fetch('https://id.twitch.tv/oauth2/validate', {
+    headers: { Authorization: `OAuth ${token}` },
+  });
+  if (!res.ok) {
+    return { ok: false, status: res.status };
+  }
+  const data = await res.json();
+  return { ok: true, scopes: data.scopes || [], client_id: data.client_id, login: data.login, status: 200 };
 }
 
 // ============ HTTP ENDPOINTS ============
@@ -1068,6 +2219,374 @@ app.post('/admin/token', auth.requireAdmin, (req, res) => {
   const token = db.createToken('admin_overlay', req.ip, ttl);
   logger.info('Ephemeral token created', { ip: req.ip, ttl });
   res.json({ token, ttl });
+});
+
+/**
+ * Admin-only bot chat (MDN lookup)
+ */
+app.post('/admin/bot-chat', auth.requireAdmin, async (req, res) => {
+  try {
+    const message = (req.body && req.body.message) || '';
+    const scrape = !!(req.body && req.body.scrape);
+    const query = (typeof message === 'string' ? message : '').trim();
+    if (!query) {
+      return res.status(400).json({ error: 'message required' });
+    }
+
+    // Refresh knowledge cache opportunistically
+    await ingestAllowedSources(false);
+
+    const cached = searchKnowledge(query);
+    const mdnDoc = await searchMdn(query);
+    const contextParts = [];
+    if (cached) {
+      contextParts.push(`Knowledge: ${cached.title} – ${cached.summary} ${cached.url}`);
+      if (cached.snippet) contextParts.push(`Snippet: ${cached.snippet}`);
+    }
+    let mdnSnippet = null;
+    if (mdnDoc) {
+      contextParts.push(`MDN: ${mdnDoc.title} – ${mdnDoc.summary} ${mdnDoc.url}`);
+      if (scrape && mdnDoc.url) {
+        mdnSnippet = await fetchMdnContent(mdnDoc.url);
+        if (mdnSnippet) contextParts.push(`MDN snippet: ${truncateText(mdnSnippet, 260)}`);
+      }
+    }
+
+    if (!config.OPENAI_API_KEY) {
+      return res.status(400).json({ error: 'ai_not_configured' });
+    }
+
+    const systemPrompt = 'You are a concise coding assistant for the All-In Chat Poker admin. Answer in <=3 sentences, cite important URLs when present, and keep responses factual and actionable.';
+    const contextText = contextParts.join('\n\n') || 'No extra context.';
+    const reply = await ai.chat([
+      { role: 'system', content: systemPrompt },
+      {
+        role: 'user',
+        content: `User message: ${query}\n\nContext:\n${contextText}\n\nIf context is missing, answer from general knowledge.`,
+      },
+    ], { temperature: 0.35 });
+
+    return res.json({
+      found: true,
+      query,
+      source: 'ai',
+      reply,
+      mdn: mdnDoc || null,
+      knowledge: cached || null,
+      scraped: !!mdnSnippet,
+    });
+  } catch (err) {
+    logger.error('Admin bot chat failed', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+/**
+ * Admin-only code proposals (submit + apply)
+ */
+app.get('/admin/code-proposals', auth.requireAdmin, (_req, res) => {
+  const proposals = loadProposals();
+  res.json({ proposals });
+});
+
+app.post('/admin/code-proposals', auth.requireAdmin, (req, res) => {
+  try {
+    const { filePath, content, note } = req.body || {};
+    if (!filePath || typeof filePath !== 'string') return res.status(400).json({ error: 'filePath required' });
+    if (typeof content !== 'string') return res.status(400).json({ error: 'content required' });
+    const resolved = validatePath(filePath);
+    if (!resolved) return res.status(400).json({ error: 'invalid file path' });
+
+    const entry = createProposalEntry(filePath, content, note);
+    logger.info('Code proposal created', { id: entry.id, filePath });
+    res.json({ proposal: { ...entry, contentPreview: truncateText(content, 240) } });
+  } catch (err) {
+    logger.error('Failed to create code proposal', { error: err.message });
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+app.get('/admin/code-proposals/:id/diff', auth.requireAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+    const proposals = loadProposals();
+    const proposal = proposals.find(p => p.id === id);
+    if (!proposal) return res.status(404).json({ error: 'not found' });
+
+    const targetPath = validatePath(proposal.filePath);
+    if (!targetPath) return res.status(400).json({ error: 'invalid file path' });
+    const currentContent = fs.existsSync(targetPath) ? fs.readFileSync(targetPath, 'utf-8') : '';
+    const diff = generateDiff(proposal, currentContent);
+    return res.json({
+      diff,
+      hasCurrent: !!currentContent,
+      filePath: proposal.filePath,
+    });
+  } catch (err) {
+    logger.error('Failed to get code proposal diff', { error: err.message });
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+app.post('/admin/bot-suggest', auth.requireAdmin, (req, res) => {
+  try {
+    const { filePath, content, note } = req.body || {};
+    if (!filePath || typeof filePath !== 'string') return res.status(400).json({ error: 'filePath required' });
+    if (typeof content !== 'string') return res.status(400).json({ error: 'content required' });
+    const resolved = validatePath(filePath);
+    if (!resolved) return res.status(400).json({ error: 'invalid file path' });
+
+    const entry = createProposalEntry(filePath, content, note || 'bot suggestion');
+    logger.info('Bot suggestion stored', { id: entry.id, filePath });
+    res.json({ proposal: { ...entry, contentPreview: truncateText(content, 240) } });
+  } catch (err) {
+    logger.error('Failed to store bot suggestion', { error: err.message });
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+app.post('/admin/knowledge/ingest', auth.requireAdmin, async (req, res) => {
+  try {
+    if (!knowledgeSources.length) {
+      return res.status(400).json({ error: 'no knowledge sources configured' });
+    }
+    const entries = await ingestAllowedSources(true);
+    res.json({ ingested: entries.length, sources: knowledgeSources.length });
+  } catch (err) {
+    logger.error('Knowledge ingest failed', { error: err.message });
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+app.get('/admin/knowledge', auth.requireAdmin, (_req, res) => {
+  const entries = loadKnowledge();
+  res.json({ entries });
+});
+
+app.post('/admin/code-proposals/:id/apply', auth.requireAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+    const proposals = loadProposals();
+    const idx = proposals.findIndex(p => p.id === id);
+    if (idx === -1) return res.status(404).json({ error: 'not found' });
+    const proposal = proposals[idx];
+    const targetPath = validatePath(proposal.filePath);
+    if (!targetPath) return res.status(400).json({ error: 'invalid file path' });
+    const dir = path.dirname(targetPath);
+    fs.mkdirSync(dir, { recursive: true });
+    const backup = backupFile(targetPath);
+    fs.writeFileSync(targetPath, proposal.content, 'utf-8');
+    proposal.status = 'applied';
+    proposal.appliedAt = new Date().toISOString();
+    proposals[idx] = proposal;
+    saveProposals(proposals);
+    logger.info('Code proposal applied', { id, filePath: proposal.filePath, backup });
+    res.json({ applied: true, backup });
+  } catch (err) {
+    logger.error('Failed to apply code proposal', { error: err.message });
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+app.post('/admin/run-tests', auth.requireAdmin, async (req, res) => {
+  try {
+    const cmd = (req.body && req.body.command) || 'npm test';
+    const timeoutMs = Math.min(Math.max((req.body && req.body.timeoutMs) || TEST_TIMEOUT_MS, 5000), 1000 * 60 * 5);
+    const result = await runCommand(cmd, { timeoutMs });
+    res.json(result);
+  } catch (err) {
+    logger.error('Test run failed', { error: err.message });
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+app.post('/admin/review-and-suggest', auth.requireAdmin, async (req, res) => {
+  try {
+    const { filePath, runTests = false, testCommand } = req.body || {};
+    if (!filePath || typeof filePath !== 'string') return res.status(400).json({ error: 'filePath required' });
+    const resolved = validatePath(filePath);
+    if (!resolved) return res.status(400).json({ error: 'invalid file path' });
+    if (!fs.existsSync(resolved)) return res.status(404).json({ error: 'file not found' });
+    const content = fs.readFileSync(resolved, 'utf-8');
+    const ext = path.extname(resolved).toLowerCase();
+    let checkResult = null;
+    let testResult = null;
+    let lintResults = [];
+
+    if (['.js', '.mjs', '.cjs'].includes(ext)) {
+      checkResult = await runCommand(`node --check "${resolved}"`, { timeoutMs: 15000 });
+    }
+
+    lintResults = await runLintSet(resolved);
+
+    if (runTests) {
+      testResult = await runCommand(testCommand || 'npm test', { timeoutMs: TEST_TIMEOUT_MS });
+    }
+
+    await ingestAllowedSources(false);
+    const knowledgeTip = searchKnowledge(path.basename(resolved)) || searchKnowledge('javascript') || null;
+    const mdnDoc = await searchMdn(path.basename(resolved));
+    const mdnContent = mdnDoc && mdnDoc.url ? await fetchMdnContent(mdnDoc.url) : null;
+
+    if (!config.OPENAI_API_KEY) {
+      return res.status(400).json({ error: 'ai_not_configured' });
+    }
+
+    const noteParts = [];
+    if (checkResult) {
+      noteParts.push(`node --check exit: ${checkResult.code}`);
+    } else {
+      noteParts.push('Syntax check skipped (non-JS file).');
+    }
+    if (testResult) {
+      noteParts.push(`Tests exit: ${testResult.code}`);
+    }
+    if (lintResults.length) {
+      const failed = lintResults.filter(l => l.code !== 0);
+      if (failed.length) {
+        noteParts.push(`Lint issues: ${failed.map(f => f.name).join(', ')}`);
+      } else {
+        noteParts.push('Lint clean.');
+      }
+    }
+    if (knowledgeTip) {
+      noteParts.push(`Knowledge: ${knowledgeTip.title}`);
+    }
+    if (mdnDoc) noteParts.push(`MDN: ${mdnDoc.title}`);
+    noteParts.push(`AI model: ${config.AI_MODEL}`);
+    const note = noteParts.join(' | ');
+
+    const contextChunks = [];
+    const short = (txt, max = 320) => truncateText(txt || '', max);
+    if (checkResult) {
+      contextChunks.push(`node --check: exit ${checkResult.code}${checkResult.signal ? ` (signal ${checkResult.signal})` : ''}\n${short(checkResult.output, 420)}`);
+    }
+    if (lintResults.length) {
+      contextChunks.push(`lint results:\n${lintResults.map(l => `${l.name}: ${l.code}`).join('\n')}`);
+    }
+    if (testResult) {
+      contextChunks.push(`tests: exit ${testResult.code}\n${short(testResult.output, 420)}`);
+    }
+    if (knowledgeTip) {
+      contextChunks.push(`knowledge: ${knowledgeTip.title} – ${knowledgeTip.summary} ${knowledgeTip.url}`);
+    }
+    if (mdnDoc) {
+      contextChunks.push(`mdn: ${mdnDoc.title} – ${mdnDoc.summary} ${mdnDoc.url}`);
+    }
+    if (mdnContent) {
+      contextChunks.push(`mdn snippet: ${short(mdnContent, 360)}`);
+    }
+
+    const systemPrompt = 'You are a senior engineer assisting with a Twitch poker/blackjack app. Given a file, return the full updated file content only (no fences). Keep behavior intact, improve clarity, and address issues hinted by the context. Prefer minimal, safe edits.';
+    const userPrompt = `File: ${filePath}\n\nCurrent content:\n${content}\n\nContext:\n${contextChunks.join('\n\n') || 'No extra context.'}\n\nReturn the full updated file content. If no change is needed, return the original content exactly.`;
+    const maxTokens = Math.min(4096, Math.max(config.AI_MAX_TOKENS || 1200, Math.ceil(content.length / 3)));
+    const aiReplyRaw = await ai.chat([
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ], { temperature: 0.25, maxTokens });
+
+    const cleanReply = (aiReplyRaw || '').replace(/^```[\s\S]*?\n/, '').replace(/```$/, '').trim();
+    const proposalContent = cleanReply || content;
+
+    const entry = createProposalEntry(filePath, proposalContent, note || 'auto review suggestion');
+    logger.info('Auto review suggestion stored', { id: entry.id, filePath, model: config.AI_MODEL });
+    res.json({
+      proposal: { ...entry, contentPreview: truncateText(proposalContent, 240) },
+      check: checkResult,
+      tests: testResult,
+      lint: lintResults,
+      knowledge: knowledgeTip,
+      mdn: mdnDoc || null,
+    });
+  } catch (err) {
+    logger.error('Review and suggest failed', { error: err.message });
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+app.post('/admin/code-review', auth.requireAdmin, async (req, res) => {
+  try {
+    const { filePath } = req.body || {};
+    if (!filePath || typeof filePath !== 'string') return res.status(400).json({ error: 'filePath required' });
+    const resolved = validatePath(filePath);
+    if (!resolved) return res.status(400).json({ error: 'invalid file path' });
+    if (!fs.existsSync(resolved)) return res.status(404).json({ error: 'file not found' });
+    const ext = path.extname(resolved).toLowerCase();
+    let checkResult = null;
+    const suggestions = [];
+
+    if (['.js', '.mjs', '.cjs'].includes(ext)) {
+      checkResult = await runCommand(`node --check "${resolved}"`, { timeoutMs: 15000 });
+      if (checkResult.code === 0) {
+        suggestions.push('No syntax errors detected by node --check.');
+      } else {
+        suggestions.push('Fix syntax errors reported by node --check (see output).');
+      }
+    } else {
+      suggestions.push('Syntax check skipped (unsupported extension).');
+    }
+
+    const lintResults = await runLintSet(resolved);
+    if (lintResults.length) {
+      const failed = lintResults.filter(l => l.code !== 0);
+      if (failed.length) {
+        suggestions.push(`Lint issues in: ${failed.map(f => f.name).join(', ')}`);
+      } else {
+        suggestions.push('Lint clean.');
+      }
+    }
+
+    res.json({
+      filePath,
+      check: checkResult,
+      lint: lintResults,
+      suggestions,
+    });
+  } catch (err) {
+    logger.error('Code review failed', { error: err.message });
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+app.post('/admin/code-patch', auth.requireAdmin, (req, res) => {
+  try {
+    const { filePath, patch } = req.body || {};
+    if (!filePath || typeof filePath !== 'string') return res.status(400).json({ error: 'filePath required' });
+    if (!patch || typeof patch !== 'string') return res.status(400).json({ error: 'patch required' });
+    const targetPath = validatePath(filePath);
+    if (!targetPath) return res.status(400).json({ error: 'invalid file path' });
+    const backup = backupFile(targetPath);
+    applyPatchFile(targetPath, patch);
+    const content = fs.readFileSync(targetPath, 'utf-8');
+    const entry = createProposalEntry(filePath, content, 'patch applied via endpoint');
+    logger.info('Patch applied', { filePath, backup, id: entry.id });
+    res.json({ applied: true, backup, proposalId: entry.id });
+  } catch (err) {
+    logger.error('Patch apply failed', { error: err.message });
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+app.post('/admin/code-edit', auth.requireAdmin, (req, res) => {
+  try {
+    const { filePath, startLine, endLine, replacement, note } = req.body || {};
+    if (!filePath || typeof filePath !== 'string') return res.status(400).json({ error: 'filePath required' });
+    const s = Number(startLine);
+    const e = Number(endLine);
+    if (!Number.isInteger(s) || !Number.isInteger(e) || s < 1 || e < s) {
+      return res.status(400).json({ error: 'invalid line range' });
+    }
+    const targetPath = validatePath(filePath);
+    if (!targetPath) return res.status(400).json({ error: 'invalid file path' });
+    const backup = backupFile(targetPath);
+    const updated = applyStructuredEdit(targetPath, s, e, replacement || '');
+    const entry = createProposalEntry(filePath, updated, note || `edit ${s}-${e}`);
+    logger.info('Structured edit applied', { filePath, backup, id: entry.id, range: `${s}-${e}` });
+    res.json({ applied: true, backup, proposalId: entry.id });
+  } catch (err) {
+    logger.error('Structured edit failed', { error: err.message });
+    res.status(500).json({ error: 'internal_error' });
+  }
 });
 
 /**
@@ -1270,6 +2789,560 @@ app.post('/paypal/order/:id/capture', async (req, res) => {
   }
 });
 
+// Soft currency: coin packs and purchases
+app.get('/coin-packs', (_req, res) => {
+  res.json(COIN_PACKS);
+});
+
+app.get('/user/coins', (req, res) => {
+  const login = auth.extractUserLogin(req);
+  if (!validation.validateUsername(login || '')) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+  const coins = db.getCoins(login);
+  return res.json({ coins });
+});
+
+app.post('/coins/paypal/order', async (req, res) => {
+  try {
+    const login = auth.extractUserLogin(req);
+    if (!validation.validateUsername(login || '')) {
+      return res.status(401).json({ error: 'unauthorized' });
+    }
+    if (!config.PAYPAL_CLIENT_ID || !config.PAYPAL_CLIENT_SECRET) {
+      return res.status(400).json({ error: 'paypal_not_configured' });
+    }
+    const packId = req.body?.packId;
+    const pack = COIN_PACKS.find(p => p.id === packId);
+    if (!pack) return res.status(400).json({ error: 'invalid_pack' });
+    const dollars = (pack.amount_cents / 100).toFixed(2);
+    const order = await createPayPalOrder(dollars, `${pack.name} (${pack.coins} coins)`);
+    return res.json({ id: order.id, pack });
+  } catch (err) {
+    logger.error('PayPal coin order failed', { error: err.message });
+    return res.status(500).json({ error: 'paypal_create_failed' });
+  }
+});
+
+app.post('/coins/paypal/capture', async (req, res) => {
+  try {
+    const login = auth.extractUserLogin(req);
+    if (!validation.validateUsername(login || '')) {
+      return res.status(401).json({ error: 'unauthorized' });
+    }
+    const { orderId, packId } = req.body || {};
+    const pack = COIN_PACKS.find(p => p.id === packId);
+    if (!pack) return res.status(400).json({ error: 'invalid_pack' });
+    const capture = await capturePayPalOrder(orderId);
+    const coins = db.addCoins(login, pack.coins);
+    db.recordCurrencyPurchase({
+      login,
+      packId,
+      coins: pack.coins,
+      amount_cents: pack.amount_cents,
+      provider: 'paypal',
+      status: 'completed',
+      txn_id: orderId,
+      note: 'coins purchase',
+    });
+    return res.json({ success: true, coins, capture });
+  } catch (err) {
+    logger.error('PayPal coin capture failed', { error: err.message });
+    return res.status(500).json({ error: 'paypal_capture_failed' });
+  }
+});
+
+// ============ TOURNAMENTS (BACKEND ONLY) ============
+
+app.get('/admin/tournaments', auth.requireAdmin, (_req, res) => {
+  const list = db.listTournaments();
+  return res.json(list);
+});
+
+app.get('/admin/tournaments/:id/blinds', auth.requireAdmin, (req, res) => {
+  const tid = req.params.id;
+  const t = db.getTournament(tid);
+  if (!t) return res.status(404).json({ error: 'not_found' });
+  return res.json({ blinds: db.getBlindConfig(tid) });
+});
+
+app.post('/admin/tournaments/:id/blinds', auth.requireAdmin, (req, res) => {
+  try {
+    const tid = req.params.id;
+    const t = db.getTournament(tid);
+    if (!t) return res.status(404).json({ error: 'not_found' });
+    const levels = Array.isArray(req.body?.levels) ? req.body.levels : [];
+    const updated = db.setBlindConfig(tid, levels);
+    return res.json({ blinds: db.getBlindConfig(tid), tournament: updated });
+  } catch (err) {
+    logger.error('Set blinds failed', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+app.post('/admin/tournaments', auth.requireAdmin, (req, res) => {
+  try {
+    const {
+      id,
+      name,
+      channel = DEFAULT_CHANNEL,
+      buyin = TOURNAMENT_DEFAULTS.buyin,
+      starting_chips = TOURNAMENT_DEFAULTS.starting_chips,
+      level_seconds = TOURNAMENT_DEFAULTS.level_seconds,
+      rounds = TOURNAMENT_DEFAULTS.rounds,
+      advance_config = TOURNAMENT_DEFAULTS.advance_config,
+      decks = TOURNAMENT_DEFAULTS.decks,
+      blinds = TOURNAMENT_DEFAULTS.blinds,
+    } = req.body || {};
+    const tid = (id || `t-${Date.now()}`).toLowerCase();
+    const next_level_at = new Date(Date.now() + level_seconds * 1000).toISOString();
+    const tourney = db.upsertTournament({
+      id: tid,
+      name: name || tid,
+      game: 'poker',
+      state: 'pending',
+      channel,
+      buyin,
+      starting_chips,
+      level_seconds,
+      current_level: 1,
+      next_level_at,
+      rounds,
+      advance_config: Array.isArray(advance_config) ? advance_config : TOURNAMENT_DEFAULTS.advance_config,
+      decks,
+      blind_config: Array.isArray(blinds) ? blinds : TOURNAMENT_DEFAULTS.blinds,
+    });
+    return res.json(tourney);
+  } catch (err) {
+    logger.error('Create tournament failed', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+app.post('/admin/tournaments/:id/players', auth.requireAdmin, (req, res) => {
+  try {
+    const tid = req.params.id;
+    const { login, seat } = req.body || {};
+    if (!validation.validateUsername(login || '')) return res.status(400).json({ error: 'invalid login' });
+    const player = db.addTournamentPlayer(tid, login, seat);
+    return res.json(player);
+  } catch (err) {
+    logger.error('Add tournament player failed', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+app.post('/admin/tournaments/:id/advance', auth.requireAdmin, (req, res) => {
+  try {
+    const tid = req.params.id;
+    const t = db.getTournament(tid);
+    if (!t) return res.status(404).json({ error: 'not_found' });
+    const level = (t.current_level || 1) + 1;
+    const next = new Date(Date.now() + (t.level_seconds || TOURNAMENT_DEFAULTS.level_seconds) * 1000).toISOString();
+    const updated = db.upsertTournament({ ...t, current_level: level, next_level_at: next });
+    return res.json(updated);
+  } catch (err) {
+    logger.error('Advance tournament failed', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+app.post('/admin/tournaments/:id/start', auth.requireAdmin, (req, res) => {
+  try {
+    const tid = req.params.id;
+    const t = db.getTournament(tid);
+    if (!t) return res.status(404).json({ error: 'not_found' });
+    const now = Date.now();
+    const nextLevelMs = (t.blind_config && JSON.parse(t.blind_config || '[]')[0]?.seconds)
+      ? JSON.parse(t.blind_config)[0].seconds * 1000
+      : (t.level_seconds || TOURNAMENT_DEFAULTS.level_seconds) * 1000;
+    const next_level_at = new Date(now + nextLevelMs).toISOString();
+    const updated = db.upsertTournament({ ...t, state: 'active', current_level: 1, next_level_at });
+    scheduleTournamentBlinds(updated.id);
+    return res.json(updated);
+  } catch (err) {
+    logger.error('Start tournament failed', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+app.get('/admin/tournaments/:id', auth.requireAdmin, (req, res) => {
+  const tid = req.params.id;
+  const t = db.getTournament(tid);
+  if (!t) return res.status(404).json({ error: 'not_found' });
+  const players = db.listTournamentPlayers(tid);
+  const bracket = db.listBracket(tid);
+  const results = db.listRoundResults(tid);
+  return res.json({ ...t, players, bracket, results });
+});
+
+// Blackjack tournament variant (backend only)
+app.post('/admin/bj-tournaments', auth.requireAdmin, (req, res) => {
+  try {
+    const {
+      id,
+      name,
+      buyin = TOURNAMENT_DEFAULTS.buyin,
+      starting_chips = 5000,
+      rounds = TOURNAMENT_DEFAULTS.rounds,
+      advance_config = TOURNAMENT_DEFAULTS.advance_config,
+      decks = TOURNAMENT_DEFAULTS.decks,
+    } = req.body || {};
+    if (buyin > 250) return res.status(400).json({ error: 'buyin_exceeds_cap' });
+    const tid = (id || `bj-${Date.now()}`).toLowerCase();
+    const tourney = db.upsertTournament({
+      id: tid,
+      name: name || tid,
+      game: 'blackjack',
+      state: 'pending',
+      buyin,
+      starting_chips,
+      level_seconds: 0,
+      current_level: 1,
+      rounds,
+      advance_config: Array.isArray(advance_config) ? advance_config : TOURNAMENT_DEFAULTS.advance_config,
+      decks,
+      blind_config: db.getBlindConfig(tid),
+    });
+    return res.json(tourney);
+  } catch (err) {
+    logger.error('Create blackjack tournament failed', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+app.post('/bj-tournaments/:id/join', auth.requireUser, (req, res) => {
+  try {
+    const tid = req.params.id;
+    const tourney = db.getTournament(tid);
+    if (!tourney || tourney.game !== 'blackjack') return res.status(404).json({ error: 'not_found' });
+    const login = auth.extractUserLogin(req);
+    if (!validation.validateUsername(login || '')) return res.status(401).json({ error: 'unauthorized' });
+    if (tourney.buyin > 250) return res.status(400).json({ error: 'buyin_exceeds_cap' });
+    const currentPlayers = db.listTournamentPlayers(tid) || [];
+    const seat = currentPlayers.length + 1;
+    const player = db.addTournamentPlayer(tid, login, seat, tourney.starting_chips);
+    return res.json(player);
+  } catch (err) {
+    logger.error('Join blackjack tournament failed', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+app.post('/admin/bj-tournaments/:id/rounds/:round/results', auth.requireAdmin, (req, res) => {
+  try {
+    const tid = req.params.id;
+    const round = Number(req.params.round);
+    if (!Number.isInteger(round) || round <= 0) return res.status(400).json({ error: 'invalid_round' });
+    const tourney = db.getTournament(tid);
+    if (!tourney || tourney.game !== 'blackjack') return res.status(404).json({ error: 'not_found' });
+    const advanceCfg = Array.isArray(tourney.advance_config) ? tourney.advance_config : JSON.parse(tourney.advance_config || '[]');
+    const cutoff = advanceCfg[round - 1] || 0;
+    const results = Array.isArray(req.body?.results) ? req.body.results : [];
+    // Expect results sorted by chips desc; assign rank if missing
+    const sorted = results
+      .filter(r => validation.validateUsername(r.login || ''))
+      .map((r, idx) => ({ ...r, chips_end: Number(r.chips_end) || 0, rank: Number.isInteger(r.rank) ? r.rank : idx + 1 }));
+    sorted.forEach((r, idx) => {
+      const adv = cutoff === 0 ? 0 : (idx < cutoff ? 1 : 0);
+      db.recordRoundResult(tid, round, r.login, r.chips_end, r.rank, adv);
+      if (!adv) {
+        db.eliminateTournamentPlayer(tid, r.login, r.rank);
+      }
+    });
+    let newState = tourney.state;
+    if (round >= tourney.rounds) {
+      newState = 'complete';
+    } else if (round >= 1) {
+      newState = 'active';
+    }
+    const updated = db.upsertTournament({ ...tourney, state: newState });
+    const respResults = db.listRoundResults(tid, round);
+    return res.json({ tournament: updated, results: respResults });
+  } catch (err) {
+    logger.error('Record blackjack round failed', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+app.get('/bj-tournaments/:id', auth.requireAdmin, (req, res) => {
+  const tid = req.params.id;
+  const t = db.getTournament(tid);
+  if (!t || t.game !== 'blackjack') return res.status(404).json({ error: 'not_found' });
+  const players = db.listTournamentPlayers(tid);
+  const results = db.listRoundResults(tid);
+  return res.json({ ...t, players, results });
+});
+
+app.post('/admin/tournaments/:id/bracket', auth.requireAdmin, (req, res) => {
+  try {
+    const tid = req.params.id;
+    const round = Number(req.body?.round) || 1;
+    const tableSize = Math.min(Math.max(Number(req.body?.tableSize) || 6, 2), 10);
+    const t = db.getTournament(tid);
+    if (!t) return res.status(404).json({ error: 'not_found' });
+    const roster = Array.isArray(req.body?.players) && req.body.players.length
+      ? req.body.players.filter(p => validation.validateUsername(p || ''))
+      : (db.listTournamentPlayers(tid) || []).filter(p => !p.eliminated).map(p => p.login);
+    if (!roster.length) return res.status(400).json({ error: 'no_players' });
+    const { bracket, tableChannels } = generateBracketAssignments(tid, round, roster, tableSize);
+    return res.json({ round, tableSize, bracket, tableChannels });
+  } catch (err) {
+    logger.error('Generate bracket failed', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+app.post('/admin/tournaments/:id/advance-round', auth.requireAdmin, (req, res) => {
+  try {
+    const tid = req.params.id;
+    const round = Number(req.body?.round);
+    const tableSize = Math.min(Math.max(Number(req.body?.tableSize) || 6, 2), 10);
+    const includeTies = req.body?.includeTies !== false;
+    if (!Number.isInteger(round) || round <= 0) return res.status(400).json({ error: 'invalid_round' });
+    const t = db.getTournament(tid);
+    if (!t) return res.status(404).json({ error: 'not_found' });
+    const advanceCfg = Array.isArray(t.advance_config) ? t.advance_config : parseJsonSafe(t.advance_config || '[]', []);
+    const cutoff = advanceCfg[round - 1] || 0;
+    const results = db.listRoundResults(tid, round);
+    if (!results || !results.length) return res.status(400).json({ error: 'no_results' });
+    const sorted = results.sort((a, b) => (b.chips_end || 0) - (a.chips_end || 0));
+    let advancers = [];
+    if (cutoff === 0) {
+      // final round: rank and complete
+      sorted.forEach((r, idx) => {
+        db.eliminateTournamentPlayer(tid, r.login, r.rank || idx + 1);
+      });
+      const updated = db.upsertTournament({ ...t, state: 'complete' });
+      return res.json({ tournament: updated, advanced: [], bracket: [] });
+    }
+    const threshold = sorted[Math.min(cutoff - 1, sorted.length - 1)]?.chips_end ?? 0;
+    advancers = sorted.filter((r, idx) => {
+      if (idx < cutoff) return true;
+      if (includeTies && (r.chips_end || 0) === threshold) return true;
+      return false;
+    }).map(r => r.login);
+    const advancedSet = new Set(advancers.map(a => a.toLowerCase()));
+    sorted.forEach(r => {
+      if (!advancedSet.has((r.login || '').toLowerCase())) {
+        db.eliminateTournamentPlayer(tid, r.login, r.rank);
+      }
+    });
+    const nextRound = round + 1;
+    if (nextRound > (t.rounds || 1)) {
+      const updated = db.upsertTournament({ ...t, state: 'complete' });
+      return res.json({ tournament: updated, advanced: advancers, bracket: [] });
+    }
+    if (!advancers.length) return res.status(400).json({ error: 'no_advancers' });
+    const { bracket, tableChannels } = generateBracketAssignments(tid, nextRound, advancers, tableSize);
+    const updated = db.upsertTournament({ ...t, state: 'active' });
+    return res.json({ tournament: updated, advanced: advancers, bracket, tableChannels, round: nextRound });
+  } catch (err) {
+    logger.error('Advance round failed', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+app.post('/admin/tournaments/:id/bootstrap-round', auth.requireAdmin, (req, res) => {
+  try {
+    const tid = req.params.id;
+    const t = db.getTournament(tid);
+    if (!t) return res.status(404).json({ error: 'not_found' });
+    const round = Number(req.body?.round) || 1;
+    const tableSize = Math.min(Math.max(Number(req.body?.tableSize) || 6, 2), 10);
+    const bracket = db.listBracket(tid, round);
+    let bracketData = bracket;
+    if (!bracket || bracket.length === 0) {
+      const roster = (db.listTournamentPlayers(tid) || []).filter(p => !p.eliminated).map(p => p.login);
+      const generated = generateBracketAssignments(tid, round, roster, tableSize);
+      bracketData = generated.bracket;
+    }
+    const tables = {};
+    bracketData.forEach(row => {
+      const key = row.table;
+      tables[key] = tables[key] || [];
+      tables[key].push(row.seat_login);
+    });
+    const bindings = [];
+    Object.entries(tables).forEach(([tableNumStr, players]) => {
+      const tableNum = Number(tableNumStr);
+      const channelName = `t-${tid}-r${round}-table-${tableNum}`;
+      bindTournamentTable(tid, round, tableNum, channelName, players);
+      bindings.push({ table: tableNum, channel: channelName, players });
+    });
+    return res.json({ round, bindings });
+  } catch (err) {
+    logger.error('Bootstrap round failed', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+// Tournament table ready-up: players signal ready; when all seated are ready, return ready:true
+app.post('/table/ready', auth.requireUser, (req, res) => {
+  try {
+    const login = auth.extractUserLogin(req);
+    if (!validation.validateUsername(login || '')) return res.status(401).json({ error: 'unauthorized' });
+    const channelName = normalizeChannelName(req.body?.channel || '');
+    if (!channelName) return res.status(400).json({ error: 'channel required' });
+    const state = getStateForChannel(channelName);
+  if (!state.tournamentId) return res.status(400).json({ error: 'not_a_tournament_table' });
+  const round = state.tournamentRound || 1;
+  const tableNum = state.tournamentTable || 1;
+  state.readyPlayers = state.readyPlayers || new Set();
+  state.readyPlayers.add(login.toLowerCase());
+  const seats = getBracketSeats(state.tournamentId, round, tableNum);
+  const required = seats.map(s => s.toLowerCase());
+  const allReady = required.length > 0 && required.every(p => state.readyPlayers.has(p));
+  let started = false;
+  if (allReady) {
+    const result = autoStartTournamentTable(channelName);
+    started = result.started;
+  }
+  emitReadyStatus(channelName);
+  return res.json({ ready: allReady, readyCount: state.readyPlayers.size, required: required.length, channel: channelName, started });
+} catch (err) {
+  logger.error('Ready up failed', { error: err.message });
+  return res.status(500).json({ error: 'internal_error' });
+}
+});
+
+app.post('/admin/tournaments/:id/table/:table/bind', auth.requireAdmin, (req, res) => {
+  try {
+    const tid = req.params.id;
+    const table = Number(req.params.table);
+    const channel = normalizeChannelName(req.body?.channel || '');
+    if (!channel) return res.status(400).json({ error: 'channel required' });
+    const t = db.getTournament(tid);
+    if (!t) return res.status(404).json({ error: 'not_found' });
+    const state = getStateForChannel(channel);
+    state.tournamentId = tid;
+    state.tournamentTable = table;
+    state.currentMode = t.game === 'blackjack' ? 'blackjack' : 'poker';
+    state.readyPlayers = new Set();
+    emitReadyStatus(channel);
+    return res.json({ channel, tournamentId: tid, table });
+  } catch (err) {
+    logger.error('Bind tournament table failed', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+function scheduleTournamentBlinds(tournamentId) {
+  if (tournamentTimers[tournamentId]) {
+    clearTimeout(tournamentTimers[tournamentId]);
+    delete tournamentTimers[tournamentId];
+  }
+  const t = db.getTournament(tournamentId);
+  if (!t) return;
+  const levels = parseJsonSafe(t.blind_config || '[]', []);
+  if (!levels.length) return;
+  const idx = Math.max(0, (t.current_level || 1) - 1);
+  const nextIdx = idx + 1;
+  const nextLevel = levels[nextIdx];
+  if (!nextLevel) {
+    db.upsertTournament({ ...t, next_level_at: null });
+    return;
+  }
+  const delayMs = (nextLevel.seconds || t.level_seconds || TOURNAMENT_DEFAULTS.level_seconds) * 1000;
+  const nextLevelAt = Date.now() + delayMs;
+  db.upsertTournament({ ...t, next_level_at: new Date(nextLevelAt).toISOString() });
+  tournamentTimers[tournamentId] = setTimeout(() => {
+    const latest = db.getTournament(tournamentId);
+    const updated = db.upsertTournament({
+      ...latest,
+      current_level: (latest.current_level || 1) + 1,
+    });
+    io.emit('tournamentLevel', {
+      id: tournamentId,
+      level: updated.current_level,
+      blinds: levels[Math.min(updated.current_level - 1, levels.length - 1)],
+      channel: updated.channel || null,
+    });
+    scheduleTournamentBlinds(tournamentId);
+  }, delayMs);
+}
+
+function getBracketSeats(tournamentId, round, tableNum) {
+  return db.listBracket(tournamentId, round).filter(b => (b.table_num || b.table) === tableNum).map(b => b.seat_login);
+}
+
+function applyTournamentBlinds(channelName) {
+  const state = getStateForChannel(channelName);
+  if (!state.tournamentId) return false;
+  const seats = getBracketSeats(state.tournamentId, state.tournamentRound || 1, state.tournamentTable || 1);
+  if (!seats.length) return false;
+  const blinds = getCurrentBlinds(state);
+  const order = seats.slice();
+  const smallPlayer = order[0];
+  const bigPlayer = order.length > 1 ? order[1] : order[0];
+  const bets = {};
+  const applyBet = (login, amount) => {
+    const stack = state.tournamentStacks?.[login] ?? 0;
+    const wager = Math.min(stack + (state.betAmounts[login] || 0), amount);
+    const existing = state.betAmounts[login] || 0;
+    state.tournamentStacks[login] = stack + existing - wager;
+    state.betAmounts[login] = wager;
+  };
+  applyBet(smallPlayer, blinds.small);
+  applyBet(bigPlayer, blinds.big);
+  [smallPlayer, bigPlayer].forEach(p => {
+    if (p) db.updateTournamentPlayerChips(state.tournamentId, p, Math.max(0, state.tournamentStacks[p] || 0));
+  });
+  state.pokerCurrentBet = Math.max(...Object.values(state.betAmounts));
+  state.pokerStreetBets = { ...state.betAmounts };
+  state.pokerPot = Object.values(state.betAmounts).reduce((a, b) => a + b, 0);
+  state.pokerActed = new Set([smallPlayer, bigPlayer].filter(Boolean));
+  state.playerTurnOrder = order;
+  state.playerTurnIndex = 0;
+  return true;
+}
+
+function applyBlackjackAntes(channelName) {
+  const state = getStateForChannel(channelName);
+  if (!state.tournamentId) return false;
+  const seats = getBracketSeats(state.tournamentId, state.tournamentRound || 1, state.tournamentTable || 1);
+  if (!seats.length) return false;
+  const ante = Math.max(config.GAME_MIN_BET, 1);
+  state.betAmounts = {};
+  seats.forEach((login) => {
+    const stack = state.tournamentStacks?.[login] ?? 0;
+    const wager = Math.min(stack, ante);
+    if (wager > 0) {
+      state.betAmounts[login] = wager;
+      state.tournamentStacks[login] = stack - wager;
+      db.updateTournamentPlayerChips(state.tournamentId, login, Math.max(0, state.tournamentStacks[login]));
+    }
+    state.playerStates[login] = state.playerStates[login] || {
+      hand: [],
+      hole: [],
+      stood: false,
+      busted: false,
+      folded: false,
+      split: false,
+      hands: [],
+      activeHand: 0,
+      seat: null,
+    };
+  });
+  return Object.keys(state.betAmounts).length > 0;
+}
+
+function autoStartTournamentTable(channelName) {
+  const state = getStateForChannel(channelName);
+  if (state.roundInProgress) return { started: false };
+  let applied = false;
+  if (state.currentMode === 'poker') {
+    applied = applyTournamentBlinds(channelName);
+  } else if (state.currentMode === 'blackjack') {
+    applied = applyBlackjackAntes(channelName);
+  }
+  if (!applied) return { started: false };
+  state.readyPlayers = new Set();
+  startRoundInternal(channelName, { preserveBets: true });
+  emitReadyStatus(channelName);
+  return { started: true };
+}
+
 /**
  * Unblock username or IP
  */
@@ -1428,6 +3501,8 @@ app.post('/profile', (req, res) => {
       ? Number(settings.startingChips)
       : config.GAME_STARTING_CHIPS;
     safeSettings.theme = (settings.theme === 'light') ? 'light' : 'dark';
+    if (settings.dealFx && typeof settings.dealFx === 'string') safeSettings.dealFx = settings.dealFx;
+    if (settings.winFx && typeof settings.winFx === 'string') safeSettings.winFx = settings.winFx;
   }
 
   if (avatarUrl && typeof avatarUrl === 'string') {
@@ -1657,6 +3732,7 @@ app.get('/user/items', (req, res) => {
   return res.json({
     owned: Array.from(inv.owned || []),
     equipped: inv.equipped,
+    coins: db.getCoins(login),
   });
 });
 
@@ -1677,6 +3753,107 @@ app.post('/user/equip', (req, res) => {
     success: true,
     equipped: inv.equipped || {},
   });
+});
+
+/**
+ * Purchase a cosmetic using soft currency (coins)
+ * Body: { itemId }
+ */
+app.post('/market/buy', (req, res) => {
+  const login = auth.extractUserLogin(req);
+  if (!validation.validateUsername(login || '')) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+  const itemId = req.body?.itemId;
+  if (!itemId) return res.status(400).json({ error: 'itemId required' });
+  const catalog = db.getCatalog();
+  const item = catalog.find(i => i.id === itemId);
+  if (!item) return res.status(404).json({ error: 'not_found' });
+  const price = Number.isFinite(item.price_cents) ? item.price_cents : 0;
+  if (price > 0) {
+    const spend = db.spendCoins(login, price);
+    if (!spend.ok) {
+      return res.status(400).json({ error: 'insufficient_coins', coins: spend.remaining });
+    }
+  }
+  const inv = db.grantCosmetic(login, itemId);
+  db.recordPurchase({
+    login,
+    itemId,
+    provider: 'coins',
+    amount_cents: price,
+    coin_amount: price,
+    status: 'completed',
+    note: 'soft currency purchase',
+  });
+  return res.json({
+    success: true,
+    purchased: itemId,
+    coins: db.getCoins(login),
+    owned: Array.from(inv?.owned || []),
+    equipped: inv?.equipped || {},
+  });
+});
+
+/**
+ * Admin: verify subscription via bot token and grant subscriber cosmetics
+ * Body: { login, broadcaster }
+ */
+  app.post('/admin/grant-subscriber', auth.requireAdmin, async (req, res) => {
+    try {
+      const { login, broadcaster } = req.body || {};
+      if (!validation.validateUsername(login || '')) {
+        return res.status(400).json({ error: 'invalid login' });
+      }
+      const broadcasterLogin = (broadcaster || config.STREAMER_LOGIN || '').toLowerCase();
+      if (!validation.validateUsername(broadcasterLogin)) {
+        return res.status(400).json({ error: 'invalid broadcaster' });
+      }
+      const isSub = await isUserSubscribedTo(broadcasterLogin, login, broadcasterLogin);
+      if (!isSub) {
+        return res.status(403).json({ error: 'not_subscribed' });
+      }
+      const granted = grantSubscriberCosmetics(login);
+      return res.json({ ok: true, granted });
+  } catch (err) {
+    logger.error('grant-subscriber failed', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+/**
+ * Admin: test Twitch subscription scope with current bot token
+ * Optional query params: broadcaster, user (logins) to attempt a real check
+ */
+app.get('/admin/test-subs', auth.requireAdmin, async (req, res) => {
+  try {
+    const validation = await validateBotToken();
+    if (!validation.ok) {
+      return res.status(400).json({ ok: false, status: validation.status || 400, message: 'Token invalid or missing' });
+    }
+    const result = {
+      ok: true,
+      client_id: validation.client_id,
+      login: validation.login,
+      scopes: validation.scopes,
+      hasSubScope: (validation.scopes || []).includes('channel:read:subscriptions'),
+    };
+
+    const broadcaster = (req.query?.broadcaster || '').toLowerCase();
+    const user = (req.query?.user || '').toLowerCase();
+    if (broadcaster && user && result.hasSubScope) {
+      try {
+        result.subscription = await isUserSubscribedTo(broadcaster, user, broadcaster);
+      } catch (e) {
+        result.subscription = false;
+        result.subscriptionError = e.message;
+      }
+    }
+    return res.json(result);
+  } catch (err) {
+    logger.error('test-subs failed', { error: err.message });
+    return res.status(500).json({ ok: false, error: 'internal_error' });
+  }
 });
 
 /**
@@ -1842,6 +4019,25 @@ io.on('connection', (socket) => {
     };
     io.to(channelName).emit('overlaySettings', { settings: overlaySettingsByChannel[channelName], channel: channelName });
     logger.info('Overlay settings updated', { channel: channelName, settings: overlaySettingsByChannel[channelName] });
+  });
+
+  /**
+   * Add AI test bots (admin-only)
+   */
+  socket.on('addTestBots', (data = {}) => {
+    if (!auth.isAdminRequest(socket.handshake)) {
+      logger.warn('Unauthorized addTestBots attempt', { socketId: socket.id });
+      return;
+    }
+    const channelName = socket.data.channel || DEFAULT_CHANNEL;
+    const count = Math.max(1, Math.min(parseInt(data.count, 10) || 3, MAX_BLACKJACK_PLAYERS));
+    const state = getStateForChannel(channelName);
+    const maxSeats = state.currentMode === 'blackjack' ? MAX_BLACKJACK_PLAYERS : MAX_POKER_PLAYERS;
+    const bots = addTestBots(channelName, count, maxSeats);
+    logger.info('Added test bots', { channel: channelName, bots });
+    if (data.startNow) {
+      startRoundInternal(channelName);
+    }
   });
 
   /**
@@ -2258,9 +4454,11 @@ function startPlayerTurnCycle(channel = DEFAULT_CHANNEL) {
   }
 
   if (state.currentMode === 'blackjack') {
-    state.turnManager = state.blackjackHandlers?.turnManager?.(activeOrder);
+    const aiDecider = (login) => isAiPlayer(login) && aiBlackjackAction(login, channel);
+    state.turnManager = state.blackjackHandlers?.turnManager?.(activeOrder, aiDecider);
   } else {
     const duration = config.POKER_ACTION_DURATION_MS;
+    const aiDecider = (login) => isAiPlayer(login) && aiPokerAction(login, channel);
     state.turnManager = state.pokerHandlers?.turnManager?.(activeOrder, duration, (login) => {
       if (!login) return;
       const streetBet = state.pokerStreetBets[login] || 0;
@@ -2271,7 +4469,7 @@ function startPlayerTurnCycle(channel = DEFAULT_CHANNEL) {
       } else {
         pokerFoldAction(login, channel);
       }
-    });
+    }, aiDecider);
   }
 
   if (state.turnManager && state.turnManager.start) {
@@ -2339,13 +4537,22 @@ function pokerCallAction(login, channel = DEFAULT_CHANNEL) {
     pokerCheckAction(login, channelName);
     return;
   }
-  const balance = db.getBalance(login);
+  const balance = state.tournamentId && state.tournamentStacks ? (state.tournamentStacks[login] || 0) : db.getBalance(login);
   if (needed > balance) return;
-  db.setBalance(login, balance - needed);
+  const isAllIn = needed === balance;
+  if (state.tournamentId && state.tournamentStacks) {
+    state.tournamentStacks[login] = balance - needed;
+    db.updateTournamentPlayerChips(state.tournamentId, login, state.tournamentStacks[login]);
+  } else {
+    db.setBalance(login, balance - needed);
+  }
   state.betAmounts[login] = (state.betAmounts[login] || 0) + needed;
   state.pokerStreetBets[login] = streetBet + needed;
   state.pokerPot += needed;
   state.pokerActed.add(login);
+  if (isAllIn) {
+    io.to(channelName).emit('playerUpdate', { login, allIn: true, channel: channelName });
+  }
   emitPokerBettingState(channelName);
   maybeAdvanceAfterAction(channelName);
   startPlayerTurnCycle(channelName);
@@ -2359,14 +4566,68 @@ function pokerRaiseAction(login, amount, channel = DEFAULT_CHANNEL) {
     return;
   }
   const needed = amount - streetBet;
-  const balance = db.getBalance(login);
+  const balance = state.tournamentId && state.tournamentStacks ? (state.tournamentStacks[login] || 0) : db.getBalance(login);
   if (needed > balance) return;
-  db.setBalance(login, balance - needed);
+  const isAllIn = needed === balance;
+  if (state.tournamentId && state.tournamentStacks) {
+    state.tournamentStacks[login] = balance - needed;
+    db.updateTournamentPlayerChips(state.tournamentId, login, state.tournamentStacks[login]);
+  } else {
+    db.setBalance(login, balance - needed);
+  }
   state.betAmounts[login] = (state.betAmounts[login] || 0) + needed;
   state.pokerStreetBets[login] = amount;
   state.pokerCurrentBet = amount;
   state.pokerPot += needed;
   state.pokerActed = new Set([login]); // others must respond
+  if (isAllIn) {
+    io.to(channelName).emit('playerUpdate', { login, allIn: true, channel: channelName });
+  }
   emitPokerBettingState(channelName);
   startPlayerTurnCycle(channelName);
+}
+/**
+ * Check VIP status for a user
+ */
+async function isUserVipOf(broadcasterLogin, userLogin, channel) {
+  if (!broadcasterLogin || !userLogin) return false;
+  const token = getHelixToken(channel || broadcasterLogin);
+  if (!token || !config.TWITCH_CLIENT_ID) return false;
+  const ids = await fetchTwitchUsersByLogin([broadcasterLogin, userLogin], channel || broadcasterLogin);
+  const bId = ids[broadcasterLogin.toLowerCase()];
+  const uId = ids[userLogin.toLowerCase()];
+  if (!bId || !uId) return false;
+  const url = `https://api.twitch.tv/helix/channels/vips?broadcaster_id=${bId}&user_id=${uId}`;
+  const res = await fetch(url, {
+    headers: {
+      'Client-ID': config.TWITCH_CLIENT_ID,
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) return false;
+  const data = await res.json();
+  return Array.isArray(data.data) && data.data.length > 0;
+}
+
+/**
+ * Check follower status for a user
+ */
+async function isUserFollowerOf(broadcasterLogin, userLogin, channel) {
+  if (!broadcasterLogin || !userLogin) return false;
+  const token = getHelixToken(channel || broadcasterLogin);
+  if (!token || !config.TWITCH_CLIENT_ID) return false;
+  const ids = await fetchTwitchUsersByLogin([broadcasterLogin, userLogin], channel || broadcasterLogin);
+  const bId = ids[broadcasterLogin.toLowerCase()];
+  const uId = ids[userLogin.toLowerCase()];
+  if (!bId || !uId) return false;
+  const url = `https://api.twitch.tv/helix/channels/followers?broadcaster_id=${bId}&user_id=${uId}`;
+  const res = await fetch(url, {
+    headers: {
+      'Client-ID': config.TWITCH_CLIENT_ID,
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) return false;
+  const data = await res.json();
+  return Array.isArray(data.data) && data.data.length > 0;
 }

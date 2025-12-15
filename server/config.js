@@ -16,6 +16,7 @@ module.exports = {
   JWT_SECRET: process.env.JWT_SECRET || 'your-secret-key-change-in-production',
   ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || 'admin123',
   ADMIN_TOKEN: process.env.ADMIN_TOKEN || '',
+  ADMIN_ALLOW_LOGINS: process.env.ADMIN_ALLOW_LOGINS || 'mercetti,allinchatpokerbot',
 
   // JWT
   ADMIN_JWT_TTL_SECONDS: 60 * 60, // 1 hour
@@ -87,4 +88,30 @@ module.exports = {
 
   // Multi-tenant (feature-flagged)
   MULTITENANT_ENABLED: (process.env.MULTITENANT_ENABLED || 'false').toLowerCase() === 'true',
+
+  // Knowledge ingest
+  KNOWLEDGE_SOURCES: process.env.KNOWLEDGE_SOURCES || [
+    'https://www.python.org',
+    'https://realpython.com',
+    'https://www.w3schools.com',
+    'https://www.geeksforgeeks.org',
+    'https://devdocs.io',
+    'https://www.w3.org',
+    'https://webplatform.github.io/docs',
+    'https://javascript.info',
+    'https://www.typescriptlang.org/docs',
+    'https://www.java.com/en',
+    'https://angular.dev/overview',
+    'https://stackoverflow.com/questions',
+    'https://react.dev/learn',
+    'https://vuejs.org/guide/introduction.html',
+    'https://nodejs.org/docs/latest/api/',
+  ].join(','),
+
+  // AI assistance
+  AI_PROVIDER: process.env.AI_PROVIDER || 'openai',
+  OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
+  AI_MODEL: process.env.AI_MODEL || 'gpt-4o-mini',
+  AI_TIMEOUT_MS: parseInt(process.env.AI_TIMEOUT_MS || '15000', 10),
+  AI_MAX_TOKENS: parseInt(process.env.AI_MAX_TOKENS || '1200', 10),
 };

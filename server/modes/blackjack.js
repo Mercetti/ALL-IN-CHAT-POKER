@@ -87,10 +87,12 @@ function settleBlackjack(dealerState, playerStates) {
  * @param {Object} dbInstance
  * @returns {{roundResult: Object, payoutPayload: Object}}
  */
-function settleBlackjackRound(dealerState, playerStates, betAmounts, waitingQueue, dbInstance) {
+function settleBlackjackRound(dealerState, playerStates, betAmounts, waitingQueue, dbInstance, options = {}) {
   const { dealerHand, playerResults } = settleBlackjack(dealerState, playerStates);
   const beforeLeaderboard = dbInstance.getLeaderboard(10);
   const payoutPayload = { winners: [], payouts: {}, leaderboard: beforeLeaderboard, leaderboardAfter: [] };
+  const handsInc = Number.isFinite(options.hands) ? options.hands : 1;
+  const secInc = Number.isFinite(options.playSeconds) ? options.playSeconds : 0;
 
   playerResults.forEach(({ login, evaluation }) => {
     const amount = betAmounts[login] || 0;
@@ -127,9 +129,9 @@ function settleBlackjackRound(dealerState, playerStates, betAmounts, waitingQueu
         payoutPayload.winners.push(login);
         payoutPayload.payouts[login] = (payoutPayload.payouts[login] || 0) + winnings;
         dbInstance.addChips(login, winnings);
-        dbInstance.updateRoundStats(login, { won: true, winnings, bestHand: 'Split Win' });
+        dbInstance.updateRoundStats(login, { won: true, winnings, bestHand: 'Split Win', hands: handsInc, seconds: secInc });
       } else {
-        dbInstance.updateRoundStats(login, { won: false, winnings: 0 });
+        dbInstance.updateRoundStats(login, { won: false, winnings: 0, hands: handsInc, seconds: secInc });
       }
       return;
     }
@@ -139,9 +141,9 @@ function settleBlackjackRound(dealerState, playerStates, betAmounts, waitingQueu
       payoutPayload.winners.push(login);
       payoutPayload.payouts[login] = (payoutPayload.payouts[login] || 0) + winnings;
       dbInstance.addChips(login, winnings);
-      dbInstance.updateRoundStats(login, { won: true, winnings, bestHand: evaluation.name });
+      dbInstance.updateRoundStats(login, { won: true, winnings, bestHand: evaluation.name, hands: handsInc, seconds: secInc });
     } else {
-      dbInstance.updateRoundStats(login, { won: false, winnings });
+      dbInstance.updateRoundStats(login, { won: false, winnings, hands: handsInc, seconds: secInc });
       if (winnings > 0) {
         payoutPayload.payouts[login] = (payoutPayload.payouts[login] || 0) + winnings;
         payoutPayload.winners.push(login);
@@ -175,9 +177,9 @@ function settleBlackjackRound(dealerState, playerStates, betAmounts, waitingQueu
  * @param {string} channel
  * @returns {{broke:Array<string>}}
  */
-function settleAndEmit(io, dealerState, playerStates, betAmounts, waitingQueue, dbInstance, channel) {
-  const { roundResult, payoutPayload } = settleBlackjackRound(dealerState, playerStates, betAmounts, waitingQueue, dbInstance);
-  const chan = channel || undefined;
+function settleAndEmit(io, dealerState, playerStates, betAmounts, waitingQueue, dbInstance, channel, meta = {}) {
+  const { roundResult, payoutPayload } = settleBlackjackRound(dealerState, playerStates, betAmounts, waitingQueue, dbInstance, meta);
+  const chan = typeof channel === 'string' ? channel : undefined;
   io.emit('roundResult', { ...roundResult, channel: chan });
   io.emit('payouts', { ...payoutPayload, channel: chan });
   // Push final balances/bet reset to overlay
@@ -233,7 +235,7 @@ function startBlackjackActionTimer(io, durationMs, onExpire, channel) {
  * @param {string} channel
  * @returns {{start: Function, stop: Function}}
  */
-function createBlackjackTurnManager(io, turnOrder, durationMs, onAuto, getDuration, onTimeout, channel) {
+function createBlackjackTurnManager(io, turnOrder, durationMs, onAuto, getDuration, onTimeout, channel, aiDecider) {
   let index = 0;
   let timer = null;
   const chan = channel || undefined;
@@ -241,6 +243,14 @@ function createBlackjackTurnManager(io, turnOrder, durationMs, onAuto, getDurati
   const start = () => {
     if (!turnOrder.length) return;
     const login = turnOrder[index % turnOrder.length];
+
+    // If AI, let the decider act immediately and move on
+    if (typeof aiDecider === 'function' && aiDecider(login)) {
+      index = (index + 1) % turnOrder.length;
+      start();
+      return;
+    }
+
     const perPlayerDuration = typeof getDuration === 'function' ? getDuration(login) : durationMs;
     const endsAt = Date.now() + perPlayerDuration;
     io.emit('playerTurn', { login, endsAt, channel: chan });
@@ -442,7 +452,7 @@ function createBlackjackHandlers(io, dealerState, playerStates, onSettle = () =>
       onSettle();
     }, channel);
 
-  const turnManager = (order) =>
+  const turnManager = (order, aiDecider) =>
     createBlackjackTurnManager(
       io,
       order,
@@ -452,7 +462,8 @@ function createBlackjackHandlers(io, dealerState, playerStates, onSettle = () =>
       },
       getTurnDuration,
       onTimeout,
-      channel
+      channel,
+      aiDecider
     );
 
   return {

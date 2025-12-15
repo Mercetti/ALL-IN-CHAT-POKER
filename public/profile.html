@@ -20,6 +20,7 @@
         </div>
       </div>
       <button id="profile-theme-toggle" class="btn btn-secondary btn-sm">Theme</button>
+      <button id="profile-reset-session" class="btn btn-secondary btn-sm">Reset Session</button>
       <button id="btn-back" class="btn btn-secondary">Back</button>
     </header>
 
@@ -107,6 +108,14 @@
                 <strong id="preview-rounds-won">0</strong>
               </div>
               <div class="preview-item">
+                <span>Hands Played:</span>
+                <strong id="preview-hands-played">0</strong>
+              </div>
+              <div class="preview-item">
+                <span>Playtime (minutes):</span>
+                <strong id="preview-playtime">0</strong>
+              </div>
+              <div class="preview-item">
                 <span>Total Won:</span>
                 <strong id="preview-total-won">0</strong>
               </div>
@@ -157,8 +166,46 @@
             <span class="pill pill-muted">Coming soon</span>
           </div>
           <p class="muted">Preview card backs, table skins, avatar rings, and profile frames. Buy is disabled for alpha; you can equip owned defaults.</p>
+          <div class="fx-selectors">
+            <div>
+              <label for="deal-fx-select">Deal Animation</label>
+              <select id="deal-fx-select" class="form-input"></select>
+            </div>
+            <div>
+              <label for="win-fx-select">Win Animation</label>
+              <select id="win-fx-select" class="form-input"></select>
+            </div>
+          </div>
+          <div class="fx-live">
+            <div class="fx-preview-card">
+              <div class="fx-preview-header">
+                <div>
+                  <div class="muted tiny-label">Deal preview</div>
+                  <div class="fx-preview-name" id="deal-fx-name">—</div>
+                </div>
+                <button id="btn-preview-deal-fx" class="btn btn-secondary btn-sm">Play</button>
+              </div>
+              <canvas id="deal-fx-preview" width="260" height="170" class="fx-preview-canvas"></canvas>
+            </div>
+            <div class="fx-preview-card">
+              <div class="fx-preview-header">
+                <div>
+                  <div class="muted tiny-label">Win preview</div>
+                  <div class="fx-preview-name" id="win-fx-name">—</div>
+                </div>
+                <button id="btn-preview-win-fx" class="btn btn-secondary btn-sm">Play</button>
+              </div>
+              <canvas id="win-fx-preview" width="260" height="170" class="fx-preview-canvas"></canvas>
+            </div>
+          </div>
           <div id="cosmetic-grid" class="cosmetic-grid">
             <div class="cosmetic-loading">Loading catalog...</div>
+          </div>
+          <div id="cosmetic-preview-modal" class="cosmetic-modal" style="display:none;">
+            <div class="cosmetic-modal-content">
+              <button id="close-cosmetic-preview" class="btn btn-secondary btn-sm close-modal">Close</button>
+              <div id="cosmetic-preview-body" class="cosmetic-modal-body"></div>
+            </div>
           </div>
           <div class="customize-actions">
             <a class="btn btn-secondary btn-sm" href="/market.html" target="_blank" rel="noopener">Open marketplace</a>

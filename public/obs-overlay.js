@@ -18,7 +18,7 @@ const socket = io(SOCKET_URL || undefined, {
   },
 });
 
-const DEFAULT_AVATAR = 'https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/default-profile_image.png';
+const DEFAULT_AVATAR = '/logo.png';
 const seatNodes = Array.from(document.querySelectorAll('.seat'));
 const seatOrder = seatNodes.map((_, idx) => idx);
 const seatAssignments = new Map();

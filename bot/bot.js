@@ -5,6 +5,7 @@
  *   BOT_USERNAME        Twitch bot username (e.g., allinchatpokerbot)
  *   BOT_OAUTH_TOKEN     Twitch IRC token, e.g., oauth:xxxx
  *   TARGET_CHANNELS     Comma-separated channels to join (without #)
+ *   BOT_JOIN_SECRET     Shared secret for backend-driven joins/bets
  *   ADMIN_TOKEN         Admin bearer token for calling backend admin endpoints
  *   BACKEND_URL         Backend base URL (default: https://all-in-chat-poker.fly.dev)
  */
@@ -171,7 +172,6 @@ function pickMood(quipsArr, mood, fallbackArr) {
   }
   return pick(quipsArr);
 }
-
 client.on('message', async (channel, tags, message, self) => {
   if (self) return;
   const raw = message.trim();

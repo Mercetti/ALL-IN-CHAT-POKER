@@ -60,10 +60,12 @@ function settlePoker(playerStates, communityCards) {
  * @param {Array<string>} waitingQueue
  * @returns {{roundResult:Object, payoutPayload:Object}}
  */
-function settlePokerRound(playerStates, communityCards, betAmounts, waitingQueue, dbInstance) {
+function settlePokerRound(playerStates, communityCards, betAmounts, waitingQueue, dbInstance, options = {}) {
   const { playerResults } = settlePoker(playerStates, communityCards);
   const beforeLeaderboard = dbInstance.getLeaderboard(10);
   const payoutPayload = { winners: [], payouts: {}, leaderboard: beforeLeaderboard, leaderboardAfter: [] };
+  const handsInc = Number.isFinite(options.hands) ? options.hands : 1;
+  const secInc = Number.isFinite(options.playSeconds) ? options.playSeconds : 0;
 
   playerResults.forEach(({ login, evaluation }) => {
     const amount = betAmounts[login] || 0;
@@ -72,9 +74,9 @@ function settlePokerRound(playerStates, communityCards, betAmounts, waitingQueue
       payoutPayload.winners.push(login);
       payoutPayload.payouts[login] = winnings;
       dbInstance.addChips(login, winnings);
-      dbInstance.updateRoundStats(login, { won: true, winnings, bestHand: evaluation.name });
+      dbInstance.updateRoundStats(login, { won: true, winnings, bestHand: evaluation.name, hands: handsInc, seconds: secInc });
     } else {
-      dbInstance.updateRoundStats(login, { won: false, winnings: 0 });
+      dbInstance.updateRoundStats(login, { won: false, winnings: 0, hands: handsInc, seconds: secInc });
     }
   });
 
@@ -102,9 +104,9 @@ function settlePokerRound(playerStates, communityCards, betAmounts, waitingQueue
  * @param {string} channel
  * @returns {{broke:Array<string>}}
  */
-function settleAndEmit(io, playerStates, communityCards, betAmounts, waitingQueue, channel) {
-  const { roundResult, payoutPayload } = settlePokerRound(playerStates, communityCards, betAmounts, waitingQueue, db);
-  const chan = channel || undefined;
+function settleAndEmit(io, playerStates, communityCards, betAmounts, waitingQueue, dbInstance = db, channel, meta = {}) {
+  const { roundResult, payoutPayload } = settlePokerRound(playerStates, communityCards, betAmounts, waitingQueue, dbInstance, meta);
+  const chan = typeof channel === 'string' ? channel : undefined;
   io.emit('roundResult', { ...roundResult, channel: chan });
   io.emit('payouts', { ...payoutPayload, channel: chan });
 
@@ -150,7 +152,7 @@ function startPokerPhaseTimer(io, phase, communityCards, durationMs, onExpire, c
  * @param {string} channel
  * @returns {{start: Function, stop: Function}}
  */
-function createPokerTurnManager(io, turnOrder, durationMs, onTimeout, playerStates = {}, channel) {
+function createPokerTurnManager(io, turnOrder, durationMs, onTimeout, playerStates = {}, channel, aiDecider) {
   const order = Array.from(turnOrder);
   let index = 0;
   let timer = null;
@@ -162,6 +164,11 @@ function createPokerTurnManager(io, turnOrder, durationMs, onTimeout, playerStat
       const login = order[index];
       const state = playerStates[login];
       if (!state || state.folded) {
+        index += 1;
+        continue;
+      }
+
+      if (typeof aiDecider === 'function' && aiDecider(login)) {
         index += 1;
         continue;
       }
@@ -226,7 +233,7 @@ function createPokerHandlers(io, playerStates, communityCards, onSettle = () => 
     settleIfDone();
   };
 
-  const turnManager = (order, durationMs, onTimeoutOverride) => {
+  const turnManager = (order, durationMs, onTimeoutOverride, aiDecider) => {
     const timeoutHandler = onTimeoutOverride
       ? (login) => onTimeoutOverride(login)
       : (login, empty) => {
@@ -240,7 +247,7 @@ function createPokerHandlers(io, playerStates, communityCards, onSettle = () => 
           if (empty) onSettle();
           else settleIfDone();
         };
-    return createPokerTurnManager(io, order, durationMs, timeoutHandler, playerStates, channel);
+    return createPokerTurnManager(io, order, durationMs, timeoutHandler, playerStates, channel, aiDecider);
   };
 
   return {

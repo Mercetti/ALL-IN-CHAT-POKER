@@ -8,14 +8,18 @@ Minimal Twitch chat bot that can also hit admin endpoints with the admin bearer 
   - `BOT_USERNAME` (or `TWITCH_BOT_USERNAME`)
   - `BOT_OAUTH_TOKEN` (or `TWITCH_OAUTH_TOKEN`) e.g., `oauth:xxxx`
   - `TARGET_CHANNELS` (comma separated, no `#`)
+  - `BOT_JOIN_SECRET` (for backend-driven channel joins and chat bets)
   - `ADMIN_TOKEN` (for admin HTTP calls)
   - `BACKEND_URL` (default `https://all-in-chat-poker.fly.dev`)
+
+Copy `bot/.env.example` to `bot/.env` and fill in your values, then export them into your shell (or use your preferred env loader) before running.
 
 ## Run
 ```bash
 BOT_USERNAME=allinchatpokerbot \
 BOT_OAUTH_TOKEN=oauth:... \
 TARGET_CHANNELS=mercetti \
+BOT_JOIN_SECRET=shared-secret \
 ADMIN_TOKEN=Hype420!Hype \
 node bot/bot.js
 ```

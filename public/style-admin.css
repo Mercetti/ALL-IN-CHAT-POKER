@@ -4,7 +4,7 @@
 
 .admin-header {
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-info) 100%);
-  padding: var(--spacing-lg);
+  padding: calc(var(--spacing-md) + 4px);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -28,6 +28,7 @@
 .admin-header h1 {
   margin: 0;
   color: white;
+  font-size: 1.4rem;
 }
 
 .brand-subtitle {
@@ -38,8 +39,9 @@
 
 .header-actions {
   display: flex;
-  gap: var(--spacing-md);
+  gap: var(--spacing-sm);
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .countdown {
@@ -64,17 +66,25 @@
 .admin-main {
   flex: 1;
   overflow-y: auto;
-  padding: var(--spacing-lg);
+  padding: var(--spacing-md);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xl);
+  gap: var(--spacing-md);
+}
+
+.quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  padding: 8px var(--spacing-md);
+  justify-content: flex-start;
 }
 
 /* Stats Grid */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--spacing-lg);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--spacing-md);
 }
 
 .stat-card {
@@ -82,7 +92,7 @@
   border: 1px solid var(--border-color);
   border-left: 4px solid var(--color-primary);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
+  padding: var(--spacing-md);
   text-align: center;
 }
 
@@ -158,17 +168,18 @@
   background-color: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
+  padding: var(--spacing-md);
 }
 
 .control-panel h2 {
   margin-top: 0;
+  margin-bottom: var(--spacing-sm);
 }
 
 .control-buttons {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: var(--spacing-md);
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--spacing-sm);
 }
 
 .queue-display {
@@ -271,7 +282,7 @@
   background-color: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
+  padding: var(--spacing-md);
 }
 
 .profiles-section h2 {
@@ -326,7 +337,7 @@
   background-color: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
+  padding: var(--spacing-md);
 }
 
 .audit-section h2 {
@@ -370,6 +381,131 @@
 
 .modal.active {
   display: flex;
+}
+
+.modal .modal-content {
+  background: var(--panel-bg);
+  color: var(--text-primary);
+  margin: auto;
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  width: min(760px, 95vw);
+  max-height: 90vh;
+  overflow: auto;
+}
+
+.modal .modal-content.modal-lg {
+  width: min(980px, 95vw);
+}
+
+/* Compact layout helpers */
+.compact-main {
+  gap: var(--spacing-lg);
+}
+
+.grid-two {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.compact-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+}
+
+.mini-meta {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.compact-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--spacing-sm);
+}
+
+.compact-grid {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.full-span {
+  grid-column: 1 / -1;
+}
+
+.inline-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.inline-fields select,
+.inline-fields button {
+  min-width: 140px;
+}
+
+.inline-lists {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-sm);
+}
+
+.tiny-card {
+  padding: var(--spacing-md);
+  box-shadow: none;
+}
+
+.slim-card {
+  padding: var(--spacing-md);
+  box-shadow: none;
+}
+
+.mini-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--spacing-sm);
+}
+
+.collapsible {
+  cursor: pointer;
+}
+
+.collapsible summary {
+  list-style: none;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+}
+
+.collapsible summary::marker,
+.collapsible summary::-webkit-details-marker {
+  display: none;
+}
+
+.collapsible[open] summary {
+  margin-bottom: var(--spacing-sm);
+}
+
+.flush {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.flush .profiles-toolbar {
+  padding: 0;
 }
 
 @media (max-width: 1024px) {

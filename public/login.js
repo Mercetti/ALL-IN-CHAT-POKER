@@ -44,9 +44,10 @@ document.addEventListener('DOMContentLoaded', () => {
       Toast.error('Twitch OAuth not configured on server');
       return;
     }
+    const cleanRedirect = (cfg.redirectUri || twitchRedirectUri || '').trim().replace(/\\+$/, '');
     const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${encodeURIComponent(
       cfg.twitchClientId
-    )}&redirect_uri=${encodeURIComponent(cfg.redirectUri || twitchRedirectUri)}&response_type=token&scope=user:read:email`;
+    )}&redirect_uri=${encodeURIComponent(cleanRedirect)}&response_type=token&scope=user:read:email`;
     window.location.href = authUrl;
   });
 
@@ -109,6 +110,15 @@ document.addEventListener('DOMContentLoaded', () => {
     themeBtn.addEventListener('click', () => {
       const next = toggleTheme();
       Toast.info(`Theme: ${next}`);
+    });
+  }
+
+  const resetBtn = document.getElementById('reset-session-btn');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      clearToken();
+      clearUserToken();
+      Toast.info('Session cleared. Please sign in again.');
     });
   }
 });

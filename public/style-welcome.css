@@ -157,6 +157,16 @@ ul {
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
 }
+.gallery .sprite-preview {
+  width: 100%;
+  height: 160px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-size: calc(var(--frames, 6) * 100%) 100%;
+}
 
 .gallery-cardback {
   background: #0b1b1b url('/assets/card-back.png') center/cover no-repeat;
