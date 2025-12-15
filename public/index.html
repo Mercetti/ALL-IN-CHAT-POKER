@@ -9,6 +9,43 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="stylesheet" href="style-theme.css">
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* Lightweight gallery preview styles (kept local to this page) */
+    .promo-assets {
+      margin: 28px 0;
+      padding: 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+    }
+    .promo-assets h2 { margin: 0 0 6px; font-size: 1.1rem; }
+    .promo-assets p { margin: 0 0 12px; color: var(--text-secondary, #a8b3c5); }
+    .promo-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+    .promo-gallery img,
+    .promo-gallery .promo-sprite {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: #0b0f1a;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+    }
+    .promo-gallery .promo-sprite {
+      background-repeat: no-repeat;
+      background-position: 0 0;
+      background-size: calc(var(--frames, 6) * 100%) 100%;
+      animation: allin-preview 1s steps(var(--frames, 6)) infinite;
+    }
+    @keyframes allin-preview {
+      0% { background-position: 0 0; }
+      100% { background-position: 100% 0; }
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -198,6 +235,19 @@
       </aside>
     </main>
 
+    <!-- Asset preview (mirrors welcome page) -->
+    <section class="promo-assets" aria-label="Overlay assets preview">
+      <h2>Vibes from the felt</h2>
+      <p>Live assets shipped in the overlay: card backs, chip stacks, deal/win FX, and the neon all-in burst.</p>
+      <div class="promo-gallery">
+        <img src="/assets/cosmetics/cards/basic/card-back-purple.png" alt="Purple neon card back">
+        <img src="/assets/cosmetics/effects/chips/chip-100-top.png" alt="Chip stack top view">
+        <img src="/assets/cosmetics/effects/deals/face-down/horizontal_transparent_sheet.png" alt="Face-down deal animation sheet">
+        <img src="/assets/cosmetics/effects/win/winburst_25frame_sprite.png" alt="Win burst sprite">
+        <div class="promo-sprite" id="allin-sprite-preview-index" aria-label="All-in burst sprite preview"></div>
+      </div>
+    </section>
+
     <footer class="site-footer">
       <div class="footer-inner">
         <div class="footer-brand">
@@ -234,5 +284,25 @@
     window.__USER_TOKEN__ = getUserToken && getUserToken();
   </script>
   <script src="overlay.js"></script>
+  <script>
+    // Animate the all-in preview and auto-derive frame count from the sprite sheet
+    (() => {
+      const el = document.getElementById('allin-sprite-preview-index');
+      if (!el) return;
+      const SPRITE_URL = '/assets/cosmetics/effects/all-in/allin_burst_horizontal_sheet.png?v=3';
+      const img = new Image();
+      img.onload = () => {
+        if (!img.naturalHeight) return;
+        const frames = Math.max(1, Math.round(img.naturalWidth / img.naturalHeight));
+        el.style.setProperty('--frames', frames);
+        el.style.backgroundImage = `url('${SPRITE_URL}')`;
+        el.setAttribute('aria-label', `All-in burst sprite preview (${frames} frames)`);
+      };
+      img.onerror = () => { el.textContent = 'All-in animation preview unavailable'; };
+      img.src = SPRITE_URL;
+      el.style.backgroundImage = `url('${SPRITE_URL}')`;
+      el.style.setProperty('--frames', 6);
+    })();
+  </script>
 </body>
 </html>
