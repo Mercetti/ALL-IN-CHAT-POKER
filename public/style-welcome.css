@@ -166,6 +166,12 @@ ul {
   background-repeat: no-repeat;
   background-position: 0 0;
   background-size: calc(var(--frames, 6) * 100%) 100%;
+  animation: allin-preview 1s steps(var(--frames, 6)) infinite;
+}
+
+@keyframes allin-preview {
+  0% { background-position: 0 0; }
+  100% { background-position: 100% 0; }
 }
 
 .gallery-cardback {

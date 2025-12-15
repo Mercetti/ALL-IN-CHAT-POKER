@@ -146,9 +146,9 @@ const CHIP_ASSETS = {
   500: { top: '/assets/cosmetics/effects/chips/chip-500-top.png', side: '/assets/cosmetics/effects/chips/chip-500-side.png' },
 };
 const CARD_FACE_BASE_FALLBACK = '/assets/cosmetics/cards/faces/classic';
-const ALL_IN_EFFECT_SPRITE = '/assets/cosmetics/effects/all-in/allin_burst_horizontal_sheet.png';
+const ALL_IN_EFFECT_SPRITE = '/assets/cosmetics/effects/all-in/allin_burst_horizontal_sheet.png?v=3';
 const FOLD_EFFECT = '/assets/cosmetics/effects/folds/fold-dust.png';
-const DEAL_FACE_DOWN = '/assets/cosmetics/effects/deals/face-down-deal.png';
+  const DEAL_FACE_DOWN = '/assets/cosmetics/effects/deals/face-down-deal.png';
 const DEAL_FACE_UP = '/assets/cosmetics/effects/deals/face-up/face-up-deal.png';
 const CARD_FLIP_SPRITE = '/assets/cosmetics/effects/deals/face-up/card_flip_sprite.png';
 const DEFAULT_CARD_BACK = '/assets/card-back.png';
@@ -252,9 +252,9 @@ async function loadWinSprite(key) {
     const fxKey = key || overlayFx.winFx || 'win_burst_6';
     const meta = effectsMeta?.animations?.[fxKey] || effectsMeta?.animations?.win_burst_6 || null;
     if (!meta) return;
-    const spritePath = meta.image
-      ? (meta.image.startsWith('http') ? meta.image : `/assets/cosmetics/effects/win/${meta.image}`)
-      : '/assets/cosmetics/effects/win/cosmic_win_sprite_horizontal_512.png';
+      const spritePath = meta.image
+        ? (meta.image.startsWith('http') ? meta.image : `/assets/cosmetics/effects/win/${meta.image}`)
+        : '/assets/cosmetics/effects/win/winburst_25frame_sprite.png';
     const img = await loadImageCached(spritePath);
     if (img) {
       winSprite = img;
@@ -270,9 +270,9 @@ async function loadDealSprite(key) {
     const fxKey = key || overlayFx.dealFx || 'card_deal_24';
     const meta = effectsMeta?.animations?.[fxKey] || effectsMeta?.animations?.card_deal_24 || null;
     if (!meta) return;
-    const spritePath = meta.image
-      ? (meta.image.startsWith('http') ? meta.image : `/assets/cosmetics/effects/deals/face-down/${meta.image}`)
-      : '/assets/cosmetics/effects/deals/face-down/horizontal_card_deal_sprite.png';
+      const spritePath = meta.image
+        ? (meta.image.startsWith('http') ? meta.image : `/assets/cosmetics/effects/deals/face-down/${meta.image}`)
+        : '/assets/cosmetics/effects/deals/face-down/horizontal_transparent_sheet.png';
     const img = await loadImageCached(spritePath);
     if (img) {
       dealSprite = img;
@@ -1108,12 +1108,21 @@ function playWinEffect() {
   const ctx = canvas.getContext('2d');
   let frame = 0;
   const total = winMeta.frameCount || 1;
+  const frameWidth = winMeta.frameWidth || winSprite.width;
+  const frameHeight = winMeta.frameHeight || winSprite.height;
+  const spacingX = typeof winMeta.spacing === 'number' ? winMeta.spacing : 0;
+  const spacingY = typeof winMeta.spacingY === 'number' ? winMeta.spacingY : spacingX;
+  const columns = winMeta.columns
+    || (frameWidth ? Math.max(1, Math.floor((winSprite.width + spacingX) / (frameWidth + spacingX))) : 1);
   const draw = () => {
     if (!canvas.isConnected) return;
     const f = frame % total;
-    const sx = (winMeta.spacing || 0) * f + (winMeta.frameWidth * f);
+    const col = columns ? (f % columns) : f;
+    const row = columns ? Math.floor(f / columns) : 0;
+    const sx = (frameWidth + spacingX) * col;
+    const sy = (frameHeight + spacingY) * row;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(winSprite, sx, 0, winMeta.frameWidth, winMeta.frameHeight, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(winSprite, sx, sy, frameWidth, frameHeight, 0, 0, canvas.width, canvas.height);
     frame += 1;
     if (frame < total) {
       setTimeout(() => requestAnimationFrame(draw), Math.max(20, 1000 / (winMeta.fps || 18)));
@@ -1742,6 +1751,3 @@ function initUserFromToken() {
 
 initUserFromToken();
 applyVisualSettings();
-
-
-

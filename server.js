@@ -633,6 +633,7 @@ const io = socketIO(server, {
 app.use(express.json());
 // Serve welcome page at root
 app.get('/', (_req, res) => {
+  res.set('Cache-Control', 'no-store');
   res.sendFile(path.join(__dirname, 'public', 'welcome.html'));
 });
 // Expose minimal public config for the frontend (no secrets)

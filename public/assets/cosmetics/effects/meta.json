@@ -1,7 +1,7 @@
 ﻿{
   "animations": {
     "card_deal_24": {
-      "image": "horizontal_card_deal_sprite.png",
+      "image": "horizontal_transparent_sheet.png",
       "description": "Card dealing animation from dealer to player",
       "frameWidth": 512,
       "frameHeight": 716,
@@ -54,12 +54,14 @@
       ]
     },
     "win_burst_6": {
-      "image": "cosmic_win_sprite_horizontal_512.png",
-      "description": "Cosmic win / pot victory FX",
+      "image": "winburst_25frame_sprite.png",
+      "description": "Win / pot victory FX (grid sprite)",
       "frameWidth": 512,
       "frameHeight": 512,
       "frameCount": 6,
-      "layout": "horizontal",
+      "layout": "grid",
+      "columns": 3,
+      "rows": 2,
       "spacing": 0,
       "fps": 18,
       "loop": false,

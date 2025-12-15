@@ -61,9 +61,9 @@
       <div class="gallery">
         <img src="/assets/cosmetics/cards/basic/card-back-purple.png" alt="Purple neon card back">
         <img src="/assets/cosmetics/effects/chips/chip-100-top.png" alt="Chip stack top view">
-        <img src="/assets/cosmetics/effects/deals/face-down/horizontal_card_deal_sprite.png" alt="Face-down deal animation sheet">
-        <img src="/assets/cosmetics/effects/win/cosmic_win_sprite_horizontal_512.png" alt="Cosmic win burst sprite">
-        <div class="sprite-preview" style="background-image:url('/assets/cosmetics/effects/all-in/allin_burst_horizontal_sheet.png'); --frames:6;" aria-label="All-in burst sprite preview"></div>
+        <img src="/assets/cosmetics/effects/deals/face-down/horizontal_transparent_sheet.png" alt="Face-down deal animation sheet">
+        <img src="/assets/cosmetics/effects/win/winburst_25frame_sprite.png" alt="Win burst sprite">
+        <div class="sprite-preview" id="allin-sprite-preview" aria-label="All-in burst sprite preview"></div>
         <div class="gallery-table-preview" aria-label="Neon table preview">
           <div class="table-center">All streamers vs allinchatpokerbot</div>
           <div class="table-cards">
@@ -105,6 +105,28 @@
         const body = encodeURIComponent(bodyLines.join('\n'));
         window.location.href = 'mailto:allinchatpoker@gmail.com?subject=' + subject + '&body=' + body;
       });
+    })();
+
+    // Kick the sprite preview into an animated state and derive frame count from the sheet
+    (function () {
+      const preview = document.getElementById('allin-sprite-preview');
+      if (!preview) return;
+      const SPRITE_URL = '/assets/cosmetics/effects/all-in/allin_burst_horizontal_sheet.png?v=3';
+      const img = new Image();
+      img.onload = () => {
+        if (!img.naturalHeight) return;
+        const frames = Math.max(1, Math.round(img.naturalWidth / img.naturalHeight));
+        preview.style.setProperty('--frames', frames);
+        preview.style.backgroundImage = `url('${SPRITE_URL}')`;
+        preview.setAttribute('aria-label', `All-in burst sprite preview (${frames} frames)`);
+      };
+      img.onerror = () => {
+        preview.textContent = 'All-in animation preview unavailable';
+      };
+      img.src = SPRITE_URL;
+      // Fallback while loading
+      preview.style.backgroundImage = `url('${SPRITE_URL}')`;
+      preview.style.setProperty('--frames', 6);
     })();
   </script>
 </body>
