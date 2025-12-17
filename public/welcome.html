@@ -138,21 +138,25 @@
       const canvas = document.getElementById('winburst-canvas');
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
-      const meta = { frameWidth: 512, frameHeight: 512, columns: 5, rows: 5, frameCount: 25, fps: 24 };
+      const meta = { columns: 5, rows: 5, frameCount: 25, fps: 24 };
       canvas.width = 256;
       canvas.height = 160;
       const img = new Image();
       img.onload = () => {
+        const cols = meta.columns || 5;
+        const rows = meta.rows || 5;
+        const fw = meta.frameWidth || Math.floor(img.naturalWidth / cols);
+        const fh = meta.frameHeight || Math.floor(img.naturalHeight / rows);
         let frame = 0;
         const draw = () => {
           if (!canvas.isConnected) return;
           const f = frame % meta.frameCount;
-          const col = f % meta.columns;
-          const row = Math.floor(f / meta.columns);
-          const sx = col * meta.frameWidth;
-          const sy = row * meta.frameHeight;
+          const col = f % cols;
+          const row = Math.floor(f / cols);
+          const sx = col * fw;
+          const sy = row * fh;
           ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(img, sx, sy, meta.frameWidth, meta.frameHeight, 0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, sx, sy, fw, fh, 0, 0, canvas.width, canvas.height);
           frame += 1;
           setTimeout(() => requestAnimationFrame(draw), Math.max(20, 1000 / (meta.fps || 24)));
         };
