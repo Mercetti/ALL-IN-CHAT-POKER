@@ -140,7 +140,7 @@
       const ctx = canvas.getContext('2d');
       const meta = { columns: 3, rows: 2, frameCount: 6, fps: 18 };
       canvas.width = 256;
-      canvas.height = 160;
+      canvas.height = 180;
       const img = new Image();
       img.onload = () => {
         const cols = meta.columns || 5;
@@ -148,6 +148,7 @@
         const fw = meta.frameWidth || Math.floor(img.naturalWidth / cols);
         const fh = meta.frameHeight || Math.floor(img.naturalHeight / rows);
         let frame = 0;
+        console.debug('[winburst] loaded', { w: img.naturalWidth, h: img.naturalHeight, fw, fh, cols, rows });
         const draw = () => {
           if (!canvas.isConnected) return;
           const f = frame % meta.frameCount;
@@ -162,6 +163,7 @@
         };
         draw();
       };
+      img.onerror = (e) => console.warn('[winburst] failed to load sprite', e);
       img.src = '/assets/cosmetics/effects/win/winburst_25frame_sprite.png';
     })();
   </script>
