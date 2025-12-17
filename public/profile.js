@@ -392,13 +392,13 @@ function loadStoredFxChoice() {
     const saved = localStorage.getItem('overlayFxChoice');
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (parsed.winFx === 'win_burst_6') parsed.winFx = 'win_burst_25';
+      if (parsed.winFx === 'win_burst_25') parsed.winFx = 'win_burst_6';
       return parsed;
     }
   } catch (e) {
     // ignore
   }
-  return { dealFx: 'card_deal_24', winFx: 'win_burst_25' };
+  return { dealFx: 'card_deal_24', winFx: 'win_burst_6' };
 }
 
 function saveFxChoice(partial) {
