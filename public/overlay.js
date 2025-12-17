@@ -160,7 +160,7 @@ let winSprite = null;
 let winMeta = null;
 let dealSprite = null;
 let dealMeta = null;
-let overlayFx = { dealFx: 'card_deal_24', winFx: 'win_burst_6' };
+let overlayFx = { dealFx: 'card_deal_24', winFx: 'win_burst_25' };
 let allInFrames = 6;
 
 async function loadAllInSprite() {
@@ -239,6 +239,7 @@ function loadFxChoice() {
   try {
     const saved = localStorage.getItem('overlayFxChoice');
     if (saved) overlayFx = { ...overlayFx, ...JSON.parse(saved) };
+    if (overlayFx.winFx === 'win_burst_6') overlayFx.winFx = 'win_burst_25';
   } catch (e) {
     // ignore
   }
@@ -249,8 +250,8 @@ loadDealSprite(overlayFx.dealFx);
 
 async function loadWinSprite(key) {
   try {
-    const fxKey = key || overlayFx.winFx || 'win_burst_6';
-    const meta = effectsMeta?.animations?.[fxKey] || effectsMeta?.animations?.win_burst_6 || null;
+    const fxKey = key || overlayFx.winFx || 'win_burst_25';
+    const meta = effectsMeta?.animations?.[fxKey] || effectsMeta?.animations?.win_burst_25 || null;
     if (!meta) return;
       const spritePath = meta.image
         ? (meta.image.startsWith('http') ? meta.image : `/assets/cosmetics/effects/win/${meta.image}`)
