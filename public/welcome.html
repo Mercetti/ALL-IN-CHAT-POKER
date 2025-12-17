@@ -66,7 +66,7 @@
         <img src="/assets/cosmetics/cards/basic/card-back-purple.png" alt="Purple neon card back">
         <img src="/assets/cosmetics/effects/chips/chip-100-top.png" alt="Chip stack top view">
         <img src="/assets/cosmetics/effects/deals/face-down/horizontal_transparent_sheet.png" alt="Face-down deal animation sheet">
-        <img src="/assets/cosmetics/effects/win/winburst_25frame_sprite.png" alt="Win burst sprite">
+        <canvas class="sprite-preview-canvas" id="winburst-canvas" aria-label="Win burst sprite preview"></canvas>
         <div class="sprite-preview" id="allin-sprite-preview" aria-label="All-in burst sprite preview"></div>
         <div class="gallery-table-preview" aria-label="Neon table preview">
           <div class="table-center">All streamers vs allinchatpokerbot</div>
@@ -131,6 +131,34 @@
       // Fallback while loading
       preview.style.backgroundImage = `url('${SPRITE_URL}')`;
       preview.style.setProperty('--frames', 6);
+    })();
+
+    // Animate the win burst grid sprite (5x5 frames)
+    (function () {
+      const canvas = document.getElementById('winburst-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const meta = { frameWidth: 512, frameHeight: 512, columns: 5, rows: 5, frameCount: 25, fps: 24 };
+      canvas.width = 256;
+      canvas.height = 160;
+      const img = new Image();
+      img.onload = () => {
+        let frame = 0;
+        const draw = () => {
+          if (!canvas.isConnected) return;
+          const f = frame % meta.frameCount;
+          const col = f % meta.columns;
+          const row = Math.floor(f / meta.columns);
+          const sx = col * meta.frameWidth;
+          const sy = row * meta.frameHeight;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, sx, sy, meta.frameWidth, meta.frameHeight, 0, 0, canvas.width, canvas.height);
+          frame += 1;
+          setTimeout(() => requestAnimationFrame(draw), Math.max(20, 1000 / (meta.fps || 24)));
+        };
+        draw();
+      };
+      img.src = '/assets/cosmetics/effects/win/winburst_25frame_sprite.png';
     })();
   </script>
 </body>
