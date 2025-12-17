@@ -44,12 +44,86 @@ const overlayModalOpen = document.getElementById('btn-open-overlay-modal');
 const overlayModalClose = document.getElementById('overlay-modal-close');
 const addAiButton = document.getElementById('btn-add-ai');
 const addAiStartButton = document.getElementById('btn-add-ai-start');
-const quickModal = document.getElementById('quick-modal');
-const quickModalClose = document.getElementById('quick-modal-close');
-const quickModalTitle = document.getElementById('quick-modal-title');
-const quickModalBody = document.getElementById('quick-modal-body');
-let quickModalSection = null;
-const originalPlacement = {};
+// Quick modal/popover elements (support both legacy ids and new compact popover ids)
+// Inline highlight helper for quick-nav buttons
+function focusSection(sectionId) {
+  const el = document.getElementById(sectionId);
+  if (!el) return;
+  // Open details panels
+  if (el.tagName.toLowerCase() === 'details') el.open = true;
+  el.classList.add('pulse-highlight');
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  setTimeout(() => el.classList.remove('pulse-highlight'), 1400);
+}
+
+// Lightweight drawer to show quick sections in-place without moving DOM
+let drawerOverlay = null;
+let drawerPanel = null;
+let drawerBody = null;
+let drawerTitle = null;
+function ensureDrawer() {
+  if (drawerOverlay && drawerPanel && drawerBody && drawerTitle) return;
+  drawerOverlay = document.createElement('div');
+  drawerOverlay.id = 'quick-drawer-overlay';
+  drawerOverlay.className = 'quick-drawer-overlay';
+  drawerOverlay.style.display = 'none';
+
+  drawerPanel = document.createElement('div');
+  drawerPanel.id = 'quick-drawer';
+  drawerPanel.className = 'quick-drawer';
+
+  const header = document.createElement('div');
+  header.className = 'quick-drawer-header';
+  drawerTitle = document.createElement('div');
+  drawerTitle.id = 'quick-drawer-title';
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'btn btn-secondary btn-sm';
+  closeBtn.textContent = 'Close';
+  closeBtn.addEventListener('click', closeDrawer);
+  header.appendChild(drawerTitle);
+  header.appendChild(closeBtn);
+
+  drawerBody = document.createElement('div');
+  drawerBody.id = 'quick-drawer-body';
+  drawerBody.className = 'quick-drawer-body';
+
+  drawerPanel.appendChild(header);
+  drawerPanel.appendChild(drawerBody);
+  drawerOverlay.appendChild(drawerPanel);
+  document.body.appendChild(drawerOverlay);
+
+  drawerOverlay.addEventListener('click', (e) => {
+    if (e.target === drawerOverlay) closeDrawer();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeDrawer();
+  });
+}
+
+function closeDrawer() {
+  if (!drawerOverlay) return;
+  drawerOverlay.style.display = 'none';
+  drawerBody.innerHTML = '';
+}
+
+function openDrawerForSection(sectionId) {
+  ensureDrawer();
+  const section = document.getElementById(sectionId);
+  if (!drawerOverlay || !drawerBody || !drawerTitle) return;
+  if (!section) {
+    drawerTitle.textContent = 'Not found';
+    drawerBody.innerHTML = `<div style="padding:8px;">Section "${sectionId}" not found.</div>`;
+  } else {
+    const isDetails = section.tagName.toLowerCase() === 'details';
+    const titleText = isDetails
+      ? (section.querySelector('summary')?.textContent?.trim() || section.dataset.title || sectionId)
+      : (section.dataset.title || sectionId);
+    drawerTitle.textContent = titleText;
+    drawerBody.innerHTML = section.innerHTML;
+  }
+  drawerOverlay.style.display = 'flex';
+}
 
 function decodeUserLogin(token) {
   if (!token) return null;
@@ -135,6 +209,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   setInterval(loadAuditLog, 60000);
 });
 
+// Fallback delegated handler to ensure popover always opens for quick buttons
+document.addEventListener('click', (e) => {
+  const btn = e.target?.closest?.('[data-open-section]');
+  if (!btn) return;
+  ensurePopover();
+  const targetId = btn.dataset.openSection || 'unknown';
+  try { console.debug('[admin] delegated quick button', targetId); } catch (err) { /* ignore */ }
+  quickModalBody.innerHTML = `<div style="padding:8px;">Loading ${targetId}...</div>`;
+  quickModal.style.position = 'fixed';
+  quickModal.style.top = '90px';
+  quickModal.style.left = '24px';
+  quickModal.style.width = 'min(92vw, 1040px)';
+  quickModal.style.zIndex = 6000;
+  quickModal.style.opacity = '1';
+  quickModal.style.pointerEvents = 'auto';
+  quickModal.style.display = 'block';
+  quickModal.classList.add('active');
+});
 async function ensureSocketConnected() {
   if (!adminSocket) initSocket();
   if (adminSocket?.connected) return true;
@@ -175,6 +267,8 @@ async function ensureSocketConnected() {
 }
 
 function setupEventListeners() {
+  ensurePopover();
+
   // Start round
   document.getElementById('btn-admin-start-round')?.addEventListener('click', async () => {
     const ready = await ensureSocketConnected();
@@ -327,65 +421,14 @@ function setupEventListeners() {
   });
 
   document.querySelectorAll('[data-open-section]')?.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const targetId = btn.dataset.openSection;
-      // Overlay button: open the existing overlay modal directly
-      if (targetId === 'overlay-details') {
-        overlayModalOpen?.click();
-        return;
-      }
-
-      const section = document.getElementById(targetId);
-      if (!section || !quickModal || !quickModalBody) return;
-
-      // If something is already mounted in the modal, put it back first
-      if (quickModalSection) {
-        const prevId = quickModalSection.id;
-        const placement = originalPlacement[prevId];
-        if (placement && placement.parent) {
-          placement.parent.insertBefore(quickModalSection, placement.next || null);
-        }
-        quickModalSection = null;
-      }
-
-      // Store original placement
-      if (!originalPlacement[targetId]) {
-        originalPlacement[targetId] = {
-          parent: section.parentNode,
-          next: section.nextSibling,
-        };
-      }
-
-      // Ensure details are open inside modal
-      if (section.tagName.toLowerCase() === 'details') {
-        section.open = true;
-      }
-
-      quickModalBody.innerHTML = '';
-      quickModalBody.appendChild(section);
-      quickModalSection = section;
-      if (quickModalTitle) {
-        const label = section.querySelector('summary')?.textContent?.trim() || section.dataset.title || 'Section';
-        quickModalTitle.textContent = label;
-      }
-      quickModal.classList.add('active');
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = btn.dataset.openSection;
+      // Also scroll to the section in-page for quick context
+      focusSection(target);
+      // And open the drawer with the section contents for immediate controls
+      openDrawerForSection(target);
     });
-  });
-
-  const closeQuickModal = () => {
-    if (quickModalSection) {
-      const placement = originalPlacement[quickModalSection.id];
-      if (placement && placement.parent) {
-        placement.parent.insertBefore(quickModalSection, placement.next || null);
-      }
-      quickModalSection = null;
-    }
-    if (quickModal) quickModal.classList.remove('active');
-  };
-
-  quickModalClose?.addEventListener('click', closeQuickModal);
-  quickModal?.addEventListener('click', (e) => {
-    if (e.target === quickModal) closeQuickModal();
   });
 
   // Export

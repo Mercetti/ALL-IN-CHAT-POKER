@@ -22,9 +22,6 @@ function loadImage(src) {
   });
 }
 
-let effectsMeta = null;
-let winFxSprite = null;
-let winFxMeta = null;
 function getUnlockLabel(item) {
   const type = (item.unlock_type || '').toLowerCase();
   const val = item.unlock_value;
@@ -194,7 +191,7 @@ function buildCosmeticPreview(item) {
     return `<div class="preview-cardback" style="${bg}"></div>`;
   }
   if (item.type === 'cardFace') {
-    const sample = item.preview || (item.image_url ? `${item.image_url.replace(/\\/$/, '')}/ace_of_spades.png` : null);
+    const sample = item.preview || (item.image_url ? `${item.image_url.replace(/\/$/, '')}/ace_of_spades.png` : null);
     return `<div class="preview-cardback" style="background: ${sample ? `url('${sample}') center/cover no-repeat` : tint};"></div>`;
   }
   if (item.type === 'tableSkin') {
@@ -439,17 +436,50 @@ async function copyLink(targetId) {
 }
 
 function initTabs() {
+  const tabs = Array.from(document.querySelectorAll('.tab-btn'));
+  tabs.forEach((btn, idx) => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab, { focusPane: true }));
+    btn.addEventListener('keydown', (e) => {
+      const keysNext = ['ArrowRight', 'ArrowDown'];
+      const keysPrev = ['ArrowLeft', 'ArrowUp'];
+      const isHome = e.key === 'Home';
+      const isEnd = e.key === 'End';
+      if (![...keysNext, ...keysPrev, 'Home', 'End'].includes(e.key)) return;
+      e.preventDefault();
+      let nextIndex = idx;
+      if (keysNext.includes(e.key)) nextIndex = (idx + 1) % tabs.length;
+      else if (keysPrev.includes(e.key)) nextIndex = (idx - 1 + tabs.length) % tabs.length;
+      else if (isHome) nextIndex = 0;
+      else if (isEnd) nextIndex = tabs.length - 1;
+      const target = tabs[nextIndex];
+      if (target) {
+        switchTab(target.dataset.tab, { focusTab: true });
+      }
+    });
+  });
   switchTab(activeTab);
 }
 
-function switchTab(tab) {
+function switchTab(tab, opts = {}) {
   if (!tab) return;
   activeTab = tab;
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.tab === tab);
+  const tabs = Array.from(document.querySelectorAll('.tab-btn'));
+  const panes = Array.from(document.querySelectorAll('.tab-pane'));
+  tabs.forEach(btn => {
+    const isActive = btn.dataset.tab === tab;
+    btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-selected', String(isActive));
+    btn.tabIndex = isActive ? 0 : -1;
+    if (isActive && opts.focusTab) btn.focus();
   });
-  document.querySelectorAll('.tab-pane').forEach(pane => {
-    pane.classList.toggle('active', pane.id === `tab-${tab}`);
+  panes.forEach(pane => {
+    const isActive = pane.id === `tab-${tab}`;
+    pane.classList.toggle('active', isActive);
+    pane.hidden = !isActive;
+    if (isActive) {
+      if (!pane.hasAttribute('tabindex')) pane.setAttribute('tabindex', '-1');
+      if (opts.focusPane) pane.focus();
+    }
   });
 }
 
@@ -631,7 +661,3 @@ if (modalBackdrop) {
     }
   });
 }
-
-
-
-

@@ -2,6 +2,42 @@
  * Profile page styles
  */
 
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  z-index: 1000;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  padding: 10px 14px;
+  border-radius: 10px;
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.skip-link:focus-visible {
+  left: 12px;
+  top: 12px;
+  width: auto;
+  height: auto;
+  overflow: visible;
+}
+
+.tab-pane[hidden] {
+  display: none;
+}
+
+.tab-btn:focus-visible,
+.btn:focus-visible,
+.copy-btn:focus-visible,
+.link-code:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.35);
+}
+
 .profile-main {
   flex: 1;
   overflow-y: auto;

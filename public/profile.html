@@ -10,6 +10,7 @@
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6226206359050540" crossorigin="anonymous"></script>
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <div class="container">
     <header class="header">
       <div class="brand">
@@ -19,18 +20,18 @@
           <p class="brand-subtitle">Player Profile</p>
         </div>
       </div>
-      <button id="profile-theme-toggle" class="btn btn-secondary btn-sm">Theme</button>
+      <button id="profile-theme-toggle" class="btn btn-secondary btn-sm" aria-label="Toggle theme">Theme</button>
       <button id="profile-reset-session" class="btn btn-secondary btn-sm">Reset Session</button>
       <button id="btn-back" class="btn btn-secondary">Back</button>
     </header>
 
-    <main class="profile-main">
-      <div class="tab-nav">
-        <button class="tab-btn active" data-tab="settings">Settings</button>
-        <button class="tab-btn" data-tab="customize">Customize</button>
+    <main class="profile-main" id="main-content" tabindex="-1">
+      <div class="tab-nav" role="tablist" aria-label="Profile sections">
+        <button class="tab-btn active" id="tab-btn-settings" role="tab" aria-selected="true" aria-controls="tab-settings" data-tab="settings" tabindex="0">Settings</button>
+        <button class="tab-btn" id="tab-btn-customize" role="tab" aria-selected="false" aria-controls="tab-customize" data-tab="customize" tabindex="-1">Customize</button>
       </div>
 
-      <section id="tab-settings" class="tab-pane active">
+      <section id="tab-settings" class="tab-pane active" role="tabpanel" aria-labelledby="tab-btn-settings" tabindex="-1">
         <div class="profile-content">
           <!-- Profile Editor -->
           <section class="profile-editor">
@@ -67,8 +68,8 @@
               <button type="submit" class="btn btn-primary">Save Changes</button>
             </form>
 
-            <div id="unsaved-warning" class="warning-banner" style="display: none;">
-              ⚠️ You have unsaved changes
+            <div id="unsaved-warning" class="warning-banner" style="display: none;" role="status" aria-live="polite">
+              Warning: You have unsaved changes
             </div>
           </section>
 
@@ -77,7 +78,7 @@
             <h2>Preview</h2>
             <div class="preview-card">
               <div class="preview-avatar">
-                <img id="preview-avatar" src="" alt="avatar">
+                <img id="preview-avatar" src="" alt="Profile avatar preview">
               </div>
               <div class="preview-item">
                 <span>Username:</span>
@@ -134,7 +135,7 @@
                   <div class="link-label">OBS overlay</div>
                   <a id="overlay-url" class="link-code" href="#" target="_blank" rel="noopener">loading...</a>
                 </div>
-                <button class="btn btn-secondary btn-sm copy-btn" data-copy-target="overlay-url">Copy</button>
+                <button class="btn btn-secondary btn-sm copy-btn" data-copy-target="overlay-url" aria-label="Copy OBS overlay link">Copy</button>
               </div>
 
               <div class="link-row">
@@ -142,7 +143,7 @@
                   <div class="link-label">Admin dashboard</div>
                   <a id="admin-url" class="link-code" href="#" target="_blank" rel="noopener">loading...</a>
                 </div>
-                <button class="btn btn-secondary btn-sm copy-btn" data-copy-target="admin-url">Copy</button>
+                <button class="btn btn-secondary btn-sm copy-btn" data-copy-target="admin-url" aria-label="Copy admin dashboard link">Copy</button>
               </div>
 
               <div class="link-row">
@@ -150,7 +151,7 @@
                   <div class="link-label">Leaderboard overlay</div>
                   <a id="leaderboard-url" class="link-code" href="#" target="_blank" rel="noopener">loading...</a>
                 </div>
-                <button class="btn btn-secondary btn-sm copy-btn" data-copy-target="leaderboard-url">Copy</button>
+                <button class="btn btn-secondary btn-sm copy-btn" data-copy-target="leaderboard-url" aria-label="Copy leaderboard overlay link">Copy</button>
               </div>
 
               <p class="muted hint">These use your profile login as the <code>channel</code> query parameter for multi-stream support.</p>
@@ -159,7 +160,7 @@
         </div>
       </section>
 
-      <section id="tab-customize" class="tab-pane">
+      <section id="tab-customize" class="tab-pane" role="tabpanel" aria-labelledby="tab-btn-customize" tabindex="-1" hidden>
         <div class="customize-card">
           <div class="section-header">
             <h3>Skins &amp; Cosmetics</h3>
@@ -185,7 +186,7 @@
                 </div>
                 <button id="btn-preview-deal-fx" class="btn btn-secondary btn-sm">Play</button>
               </div>
-              <canvas id="deal-fx-preview" width="260" height="170" class="fx-preview-canvas"></canvas>
+              <canvas id="deal-fx-preview" width="260" height="170" class="fx-preview-canvas" role="img" aria-label="Deal animation preview"></canvas>
             </div>
             <div class="fx-preview-card">
               <div class="fx-preview-header">
@@ -195,7 +196,7 @@
                 </div>
                 <button id="btn-preview-win-fx" class="btn btn-secondary btn-sm">Play</button>
               </div>
-              <canvas id="win-fx-preview" width="260" height="170" class="fx-preview-canvas"></canvas>
+              <canvas id="win-fx-preview" width="260" height="170" class="fx-preview-canvas" role="img" aria-label="Win animation preview"></canvas>
             </div>
           </div>
           <div id="cosmetic-grid" class="cosmetic-grid">

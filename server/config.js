@@ -114,4 +114,6 @@ module.exports = {
   AI_MODEL: process.env.AI_MODEL || 'gpt-4o-mini',
   AI_TIMEOUT_MS: parseInt(process.env.AI_TIMEOUT_MS || '15000', 10),
   AI_MAX_TOKENS: parseInt(process.env.AI_MAX_TOKENS || '1200', 10),
+  OLLAMA_HOST: process.env.OLLAMA_HOST || 'http://127.0.0.1:11434',
+  OLLAMA_MODEL: process.env.OLLAMA_MODEL || '',
 };

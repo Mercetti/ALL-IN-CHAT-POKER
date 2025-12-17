@@ -1303,19 +1303,26 @@ function aiPokerAction(login, channel = DEFAULT_CHANNEL) {
   const stackRatio = balance > 0 ? needed / balance : 1;
   const community = state.communityCards || [];
   const hole = pState.hole || [];
+  const phase = state.pokerPhase || (community.length >= 5 ? 'river' : community.length === 4 ? 'turn' : community.length === 3 ? 'flop' : 'preflop');
 
   const strength = scorePokerStrength(hole, community);
+  const made = typeof game.evaluateBestOfSeven === 'function' ? game.evaluateBestOfSeven(hole.concat(community)) : { rank: 0 };
+  const madeRank = made.rank || 0;
   const potOdds = needed > 0 ? needed / Math.max((pot || 0) + needed, 1) : 0;
-  const aggression = 0.12 + (strength * 0.55);
-  const bluff = pot > balance * 0.5 && Math.random() < 0.12 && strength < 0.55;
+  const effPot = Math.max(pot + needed, 1);
+  const spr = Math.min(10, Math.max(0.1, Math.min(balance, effPot) / Math.max(pot, 1)));
+  const aggression = Math.min(1.1, Math.max(0, (strength * 0.85) + (madeRank >= 6 ? 0.2 : 0) - (potOdds * 0.35) - (spr > 5 ? 0.05 : 0)));
+  const bluff = potOdds < 0.35 && strength < 0.45 && Math.random() < 0.12;
 
   if (needed === 0) {
-    const raiseDelta = Math.max(config.GAME_MIN_BET, Math.floor(((pot || config.GAME_MIN_BET) * (0.25 + aggression))));
-    const raiseTo = Math.min(balance, state.pokerCurrentBet + raiseDelta);
-    if (strength > 0.65 || bluff) {
+    const raiseDelta = Math.max(config.GAME_MIN_BET, Math.floor(((pot || config.GAME_MIN_BET) * (0.35 + aggression))));
+    const raiseTo = Math.min(config.GAME_MAX_BET, Math.min(balance + streetBet, state.pokerCurrentBet + raiseDelta));
+    if (strength > 0.62 || madeRank >= 5 || bluff) {
       if (raiseTo > state.pokerCurrentBet) pokerRaiseAction(login, raiseTo, channelName);
       else pokerCheckAction(login, channelName);
-    } else pokerCheckAction(login, channelName);
+    } else {
+      pokerCheckAction(login, channelName);
+    }
     return true;
   }
 
@@ -1324,31 +1331,39 @@ function aiPokerAction(login, channel = DEFAULT_CHANNEL) {
     return true;
   }
 
-  if (strength > 0.82 && stackRatio < 0.65) {
-    const raiseTo = Math.min(balance, state.pokerCurrentBet + Math.max(needed, Math.floor((pot || config.GAME_MIN_BET) * 0.5)));
+  if (strength < 0.28 && potOdds > 0.6 && phase !== 'flop' && !bluff) {
+    pokerFoldAction(login, channelName);
+    return true;
+  }
+
+  if (strength > 0.82 || (madeRank >= 6 && potOdds <= 0.65)) {
+    const raiseSize = Math.max(needed, Math.floor((pot || config.GAME_MIN_BET) * (0.45 + aggression)));
+    const raiseTo = Math.min(config.GAME_MAX_BET, Math.min(balance + streetBet, state.pokerCurrentBet + raiseSize));
     if (raiseTo > state.pokerCurrentBet) pokerRaiseAction(login, raiseTo, channelName);
     else pokerCallAction(login, channelName);
     return true;
   }
 
-  const affordable = stackRatio <= 0.4 || needed <= Math.max(config.GAME_MIN_BET, Math.floor(balance * (0.2 + strength * 0.35)));
-  if (strength > 0.55 && (potOdds < 0.5 || stackRatio < 0.35) && affordable) {
-    if (Math.random() < aggression && balance > needed + config.GAME_MIN_BET) {
-      const bump = Math.max(config.GAME_MIN_BET, Math.floor((pot || config.GAME_MIN_BET) * 0.2));
-      const raiseTo = Math.min(balance, state.pokerCurrentBet + bump);
+  const affordable = stackRatio <= 0.45 || needed <= Math.max(config.GAME_MIN_BET, Math.floor(balance * (0.15 + strength * 0.35)));
+  if ((strength > 0.55 || potOdds < 0.45) && affordable) {
+    if (aggression > 0.6 && balance > needed + config.GAME_MIN_BET) {
+      const bump = Math.max(config.GAME_MIN_BET, Math.floor((pot || config.GAME_MIN_BET) * (0.18 + aggression * 0.35)));
+      const raiseTo = Math.min(config.GAME_MAX_BET, Math.min(balance + streetBet, state.pokerCurrentBet + bump));
       if (raiseTo > state.pokerCurrentBet) pokerRaiseAction(login, raiseTo, channelName);
       else pokerCallAction(login, channelName);
-    } else pokerCallAction(login, channelName);
+    } else {
+      pokerCallAction(login, channelName);
+    }
     return true;
   }
 
   if (bluff && stackRatio < 0.45 && balance > needed + config.GAME_MIN_BET) {
-    const raiseTo = state.pokerCurrentBet + Math.max(config.GAME_MIN_BET, needed);
+    const raiseTo = Math.min(config.GAME_MAX_BET, state.pokerCurrentBet + Math.max(config.GAME_MIN_BET, needed));
     pokerRaiseAction(login, Math.min(balance, raiseTo), channelName);
     return true;
   }
 
-  if (strength > 0.35 && stackRatio < 0.25) {
+  if (strength > 0.38 && stackRatio < 0.3 && potOdds < 0.65) {
     pokerCallAction(login, channelName);
     return true;
   }
@@ -1744,6 +1759,11 @@ function emitReadyStatus(channel = DEFAULT_CHANNEL) {
     requiredCount: required.length,
     allReady,
   });
+
+  // If everyone at a tournament table is ready and nothing is running, auto-start with blinds/antes.
+  if (allReady && state.tournamentId && !state.roundInProgress) {
+    autoStartTournamentTable(channelName);
+  }
 }
 
 function emitQueueUpdate(channel = DEFAULT_CHANNEL) {
@@ -3303,7 +3323,8 @@ function applyBlackjackAntes(channelName) {
   if (!state.tournamentId) return false;
   const seats = getBracketSeats(state.tournamentId, state.tournamentRound || 1, state.tournamentTable || 1);
   if (!seats.length) return false;
-  const ante = Math.max(config.GAME_MIN_BET, 1);
+  const blinds = getCurrentBlinds(state);
+  const ante = Math.max(blinds.big || config.GAME_MIN_BET, config.GAME_MIN_BET);
   state.betAmounts = {};
   seats.forEach((login) => {
     const stack = state.tournamentStacks?.[login] ?? 0;
@@ -3581,6 +3602,55 @@ app.get('/bot/channels', (req, res) => {
     logger.error('Failed to fetch bot channels', { error: err.message });
     return res.status(500).json({ error: 'internal_error' });
   }
+});
+
+/**
+ * Bot state snapshot (used by Twitch bot for context)
+ * Query: secret, channel
+ */
+app.get('/bot/state', (req, res) => {
+  const secret = (req.query && req.query.secret) || '';
+  if (!config.BOT_JOIN_SECRET || secret !== config.BOT_JOIN_SECRET) {
+    return res.status(403).json({ error: 'not authorized' });
+  }
+  const channelName = normalizeChannelName(req.query?.channel || DEFAULT_CHANNEL);
+  const state = getStateForChannel(channelName);
+  const maxSeats = state.currentMode === 'blackjack' ? MAX_BLACKJACK_PLAYERS : MAX_POKER_PLAYERS;
+  const players = Object.entries(state.playerStates || {}).map(([login, st]) => ({
+    login,
+    bet: (state.betAmounts && state.betAmounts[login]) || 0,
+    streetBet: (state.pokerStreetBets && state.pokerStreetBets[login]) || 0,
+    folded: !!st.folded,
+  }));
+  const waiting = Array.isArray(state.waitingQueue) ? state.waitingQueue : [];
+  const ready = state.readyPlayers ? Array.from(state.readyPlayers) : [];
+  const requiredSeats = state.tournamentId ? getBracketSeats(state.tournamentId, state.tournamentRound || 1, state.tournamentTable || 1) : [];
+  const requiredReady = state.tournamentId ? requiredSeats.length : 0;
+  res.json({
+    channel: channelName,
+    mode: state.currentMode || 'blackjack',
+    bettingOpen: !!state.bettingOpen,
+    roundInProgress: !!state.roundInProgress,
+    pot: state.pokerPot || 0,
+    currentBet: state.pokerCurrentBet || 0,
+    dealerCard: state.dealerState?.hand ? state.dealerState.hand[0] : null,
+    communityCount: Array.isArray(state.communityCards) ? state.communityCards.length : 0,
+    players,
+    waiting,
+    seated: players.length,
+    maxSeats,
+    readyCount: ready.length,
+    requiredReady,
+    requiredSeats,
+    blinds: state.tournamentId ? getCurrentBlinds(state) : null,
+    tournament: state.tournamentId
+      ? {
+          id: state.tournamentId,
+          round: state.tournamentRound || 1,
+          table: state.tournamentTable || 1,
+        }
+      : null,
+  });
 });
 
 /**
