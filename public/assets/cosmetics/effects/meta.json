@@ -53,22 +53,21 @@
         { "index": 23, "duration": 40, "side": "front" }
       ]
     },
-    "win_burst_6": {
+    "win_burst_static": {
       "image": "winburst_25frame_sprite.png",
-      "description": "Win / pot victory FX (grid sprite)",
+      "description": "Win / pot victory static frame (uses first frame of sprite)",
       "frameWidth": 512,
       "frameHeight": 512,
-      "frameCount": 6,
+      "frameCount": 1,
       "layout": "grid",
-      "columns": 3,
-      "rows": 2,
+      "columns": 1,
+      "rows": 1,
       "spacing": 0,
-      "fps": 18,
+      "fps": 1,
       "loop": false,
-      "phases": {
-        "peakFrame": 2,
-        "fadeStartFrame": 3
-      }
+      "frames": [
+        { "index": 0, "duration": 1000 }
+      ]
     }
   }
 }
