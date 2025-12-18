@@ -334,7 +334,7 @@
           <div class="thumb">${buildThumb(item)}</div>
           <div class="meta">
             <span>${item.rarity || 'common'}</span>
-            <span>${Number.isFinite(item.price_cents) ? '$' + (item.price_cents/100).toFixed(2) : 'Free'}</span>
+            <span>${Number.isFinite(item.price_cents) ? `${item.price_cents} AIC` : 'Free'}</span>
           </div>
           <div style="font-weight:600;">${item.name || item.id}</div>
           <div class="muted" style="font-size:0.85rem;">${item.description || item.unlock_note || ''}</div>
@@ -360,7 +360,7 @@
       previewName.textContent = item.name || item.id;
       previewType.textContent = item.type || '';
       previewRarity.textContent = item.rarity || 'common';
-      previewPrice.textContent = Number.isFinite(item.price_cents) ? '$' + (item.price_cents / 100).toFixed(2) : 'Free';
+      previewPrice.textContent = Number.isFinite(item.price_cents) ? `${item.price_cents} AIC` : 'Free';
       previewDesc.textContent = item.description || item.unlock_note || '';
       const thumb = buildThumb(item);
       previewVisual.innerHTML = thumb;
@@ -477,7 +477,7 @@
       sortSel.style.width = '160px';
       sortSel.innerHTML = `
         <option value="name">Sort: Name</option>
-        <option value="price">Sort: Price</option>
+        <option value="price">Sort: Price (AIC)</option>
         <option value="rarity">Sort: Rarity</option>
       `;
       sortSel.value = sortKey;

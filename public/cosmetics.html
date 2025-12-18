@@ -279,7 +279,7 @@
         return;
       }
       gridEl.innerHTML = filtered.map(item => {
-        const price = Number.isFinite(item.price_cents) ? ('$' + (item.price_cents / 100).toFixed(2)) : (item.price ? '$' + item.price : 'Free');
+        const price = Number.isFinite(item.price_cents) ? `${item.price_cents} AIC` : (item.price ? `${item.price} AIC` : 'Free');
         return `
           <div class="cosmetic-card">
             <div class="cosmetic-type">${item.type || ''}</div>
@@ -319,7 +319,7 @@
       nameEl.textContent = item.name || item.id;
       typeEl.textContent = item.type || '';
       rarityEl.textContent = item.rarity || 'common';
-      priceEl.textContent = Number.isFinite(item.price_cents) ? ('$' + (item.price_cents / 100).toFixed(2)) : (item.price ? '$' + item.price : 'Free');
+      priceEl.textContent = Number.isFinite(item.price_cents) ? `${item.price_cents} AIC` : (item.price ? `${item.price} AIC` : 'Free');
       unlockEl.textContent = item.unlock_note || '';
       descEl.textContent = item.description || '';
       previewEl.innerHTML = buildPreview(item);

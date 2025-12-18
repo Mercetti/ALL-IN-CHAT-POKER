@@ -76,6 +76,55 @@ let drawerOverlay = null;
 let drawerPanel = null;
 let drawerBody = null;
 let drawerTitle = null;
+let quickModal = null;
+let quickModalBody = null;
+let quickModalClose = null;
+function ensurePopover() {
+  if (quickModal && quickModalBody && quickModalClose) return;
+  quickModal = document.createElement('div');
+  quickModal.id = 'quick-modal';
+  quickModal.className = 'quick-modal';
+  quickModal.style.display = 'none';
+  quickModal.style.position = 'fixed';
+  quickModal.style.top = '90px';
+  quickModal.style.left = '24px';
+  quickModal.style.width = 'min(92vw, 1040px)';
+  quickModal.style.zIndex = 6000;
+  quickModal.style.background = 'var(--card-bg, #0d1b2a)';
+  quickModal.style.border = '1px solid rgba(255,255,255,0.08)';
+  quickModal.style.borderRadius = '12px';
+  quickModal.style.boxShadow = '0 12px 40px rgba(0,0,0,0.35)';
+  quickModal.style.padding = '12px';
+
+  const header = document.createElement('div');
+  header.style.display = 'flex';
+  header.style.alignItems = 'center';
+  header.style.justifyContent = 'space-between';
+  header.style.gap = '10px';
+
+  const title = document.createElement('div');
+  title.id = 'quick-modal-title';
+  title.style.fontWeight = '700';
+  header.appendChild(title);
+
+  quickModalClose = document.createElement('button');
+  quickModalClose.type = 'button';
+  quickModalClose.className = 'btn btn-secondary btn-sm';
+  quickModalClose.textContent = 'Close';
+  quickModalClose.addEventListener('click', () => {
+    quickModal.style.display = 'none';
+    quickModal.classList.remove('active');
+  });
+  header.appendChild(quickModalClose);
+
+  quickModalBody = document.createElement('div');
+  quickModalBody.id = 'quick-modal-body';
+  quickModalBody.style.marginTop = '8px';
+
+  quickModal.appendChild(header);
+  quickModal.appendChild(quickModalBody);
+  document.body.appendChild(quickModal);
+}
 function ensureDrawer() {
   if (drawerOverlay && drawerPanel && drawerBody && drawerTitle) return;
   drawerOverlay = document.createElement('div');
@@ -231,12 +280,14 @@ document.addEventListener('click', (e) => {
   ensurePopover();
   const targetId = btn.dataset.openSection || 'unknown';
   try { console.debug('[admin] delegated quick button', targetId); } catch (err) { /* ignore */ }
-  quickModalBody.innerHTML = `<div style="padding:8px;">Loading ${targetId}...</div>`;
-  quickModal.style.position = 'fixed';
-  quickModal.style.top = '90px';
-  quickModal.style.left = '24px';
-  quickModal.style.width = 'min(92vw, 1040px)';
-  quickModal.style.zIndex = 6000;
+  const section = document.getElementById(targetId);
+  quickModalBody.innerHTML = section ? section.innerHTML : `<div style="padding:8px;">Section "${targetId}" not found.</div>`;
+  const titleEl = document.getElementById('quick-modal-title');
+  if (titleEl) {
+    titleEl.textContent = section
+      ? (section.querySelector('summary')?.textContent?.trim() || section.dataset.title || targetId)
+      : `Quick view: ${targetId}`;
+  }
   quickModal.style.opacity = '1';
   quickModal.style.pointerEvents = 'auto';
   quickModal.style.display = 'block';
