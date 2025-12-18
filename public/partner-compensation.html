@@ -61,7 +61,13 @@
       cb.addEventListener('change', () => { btn.disabled = !cb.checked; });
       btn.addEventListener('click', () => {
         if (!cb.checked) return;
-        alert('Compensation addendum accepted. Proceeding to payout setup...');
+        btn.disabled = true;
+        btn.textContent = 'Loading...';
+        try {
+          localStorage.setItem('partnerCompAccepted', 'true');
+        } catch (_) {}
+        // Send them to payout setup/dashboard
+        window.location.href = '/partner-dashboard.html?payoutSetup=1';
       });
     }
   </script>
