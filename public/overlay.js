@@ -1,9 +1,14 @@
-/**
+﻿/**
  * Overlay client with Socket.IO integration
  */
 
 const SOCKET_URL = typeof getBackendBase === 'function' ? getBackendBase() : '';
 const overlayChannel = typeof getChannelParam === 'function' ? getChannelParam() : '';
+const isMultiStream = overlayChannel && overlayChannel.toLowerCase().startsWith('lobby-');
+const isEventForChannel = (payload) => {
+  if (!payload || !payload.channel) return true;
+  return payload.channel === overlayChannel;
+};
 const socket = io(SOCKET_URL || undefined, {
   reconnection: true,
   reconnectionDelay: 1000,
@@ -30,6 +35,101 @@ let playerBalances = {};
 let currentPot = 0;
 let minBet = 10;
 let potGlowMultiplier = 5;
+let overlayTuning = {
+  dealDelayBase: 0.18,
+  dealDelayPerCard: 0.08,
+  chipVolume: 0.16,
+  potGlowMultiplier: 0,
+  cardBackVariant: 'default',
+  cardBackTint: null,
+  cardBackImage: null,
+  avatarRingColor: null,
+  profileCardBorder: null,
+  tableTint: null,
+  tableLogoColor: null,
+  tableTexture: null,
+};
+
+function normalizeSuitName(raw = '') {
+  const s = (raw || '').toString().toLowerCase();
+  if (['h', '♥', 'hearts', 'heart'].includes(s)) return 'hearts';
+  if (['d', '♦', 'diamonds', 'diamond'].includes(s)) return 'diamonds';
+  if (['c', '♣', 'clubs', 'club'].includes(s)) return 'clubs';
+  if (['s', '♠', 'spades', 'spade'].includes(s)) return 'spades';
+  return null;
+}
+
+function normalizeRankName(raw = '') {
+  const r = (raw || '').toString().toUpperCase();
+  if (['T', '10'].includes(r)) return '10';
+  if (['J', 'JACK'].includes(r)) return 'jack';
+  if (['Q', 'QUEEN'].includes(r)) return 'queen';
+  if (['K', 'KING'].includes(r)) return 'king';
+  if (['A', 'ACE'].includes(r)) return 'ace';
+  return ['2', '3', '4', '5', '6', '7', '8', '9'].includes(r) ? r : null;
+}
+
+function getCardFaceImage(rank, suit, basePath) {
+  const safeBasePath = basePath || CARD_FACE_BASE_FALLBACK;
+  if (!safeBasePath) return null;
+  const suitName = normalizeSuitName(suit);
+  const rankName = normalizeRankName(rank);
+  if (!suitName || !rankName) return null;
+  const safeBase = safeBasePath.replace(/\/$/, '');
+  return `${safeBase}/${rankName}_of_${suitName}.png`;
+}
+const cardImageCache = new Map();
+async function loadImageCached(src) {
+  if (!src) return null;
+  if (cardImageCache.has(src)) return cardImageCache.get(src);
+  const promise = new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+  cardImageCache.set(src, promise);
+  return promise;
+}
+
+function deriveFlipMeta(img, metaRaw = {}) {
+  if (!img) return null;
+  const base = { frameCount: metaRaw.frameCount || 24, frameWidth: metaRaw.frameWidth || 512, frameHeight: metaRaw.frameHeight || 716, loop: !!metaRaw.loop };
+  let frames = Array.isArray(metaRaw.frames) ? metaRaw.frames : [];
+  const needsDerive = !frames.length;
+
+  if (needsDerive) {
+    const total = base.frameCount || 24;
+    const spacing = Number.isFinite(metaRaw.spacing) ? metaRaw.spacing : 0;
+    frames = Array.from({ length: total }).map((_, idx) => ({
+      index: idx,
+      x: idx * (base.frameWidth + spacing),
+      y: 0,
+      duration: metaRaw.frameDuration || 40,
+      side: idx < total / 2 ? 'back' : 'front',
+    }));
+  } else {
+    base.frameCount = metaRaw.frameCount || frames.length;
+    base.frameWidth = metaRaw.frameWidth || frames[0].w || frames[0].width || frames[0].frameWidth || base.frameWidth;
+    base.frameHeight = metaRaw.frameHeight || frames[0].h || frames[0].height || frames[0].frameHeight || base.frameHeight;
+  }
+
+  return { ...base, frames };
+}
+
+function renderFlippingCard(ctx, sprite, meta, frameIdx, backImg, faceImg, width, height) {
+  if (!sprite || !meta || !meta.frames || !meta.frames[frameIdx]) return;
+  const f = meta.frames[frameIdx];
+  const isBack = f.side ? f.side === 'back' : frameIdx < meta.frameCount / 2;
+  const skin = isBack ? backImg : faceImg;
+  if (!skin || !ctx) return;
+  const w = width || meta.frameWidth;
+  const h = height || meta.frameHeight;
+  ctx.clearRect(0, 0, w, h);
+  ctx.drawImage(sprite, f.x, f.y, meta.frameWidth, meta.frameHeight, 0, 0, w, h);
+  ctx.drawImage(skin, 0, 0, w, h);
+}
 const CHIP_DENOMS = [
   { value: 1000, color: '#f5a524', label: '1k' },
   { value: 500, color: '#9b59b6', label: '500' },
@@ -38,6 +138,41 @@ const CHIP_DENOMS = [
   { value: 5, color: '#e74c3c', label: '5' },
   { value: 1, color: '#ecf0f1', label: '1' },
 ];
+const CHIP_ASSETS = {
+  1: { top: '/assets/cosmetics/effects/chips/chip-1-top.png', side: '/assets/cosmetics/effects/chips/chip-1-side.png' },
+  5: { top: '/assets/cosmetics/effects/chips/chip-5-top.png', side: '/assets/cosmetics/effects/chips/chip-5-side.png' },
+  25: { top: '/assets/cosmetics/effects/chips/chip-25-top.png', side: '/assets/cosmetics/effects/chips/chip-25-side.png' },
+  100: { top: '/assets/cosmetics/effects/chips/chip-100-top.png', side: '/assets/cosmetics/effects/chips/chip-100-side.png' },
+  500: { top: '/assets/cosmetics/effects/chips/chip-500-top.png', side: '/assets/cosmetics/effects/chips/chip-500-side.png' },
+};
+const CARD_FACE_BASE_FALLBACK = '/assets/cosmetics/cards/faces/classic';
+const ALL_IN_EFFECT_SPRITE = '/assets/cosmetics/effects/all-in/allin_burst_horizontal_sheet.png?v=3';
+const FOLD_EFFECT = '/assets/cosmetics/effects/folds/fold-dust.png';
+  const DEAL_FACE_DOWN = '/assets/cosmetics/effects/deals/face-down-deal.png';
+const DEAL_FACE_UP = '/assets/cosmetics/effects/deals/face-up/face-up-deal.png';
+const CARD_FLIP_SPRITE = '/assets/cosmetics/effects/deals/face-up/card_flip_sprite.png';
+const DEFAULT_CARD_BACK = '/assets/card-back.png';
+let flipSprite = null;
+let flipMeta = null;
+const CARD_FLIP_META = '/assets/cosmetics/effects/deals/face-up/card_flip_animation.json';
+let effectsMeta = null;
+let winSprite = null;
+let winMeta = null;
+let dealSprite = null;
+let dealMeta = null;
+let overlayFx = { dealFx: 'card_deal_24', winFx: 'win_burst_6' };
+let allInFrames = 6;
+
+async function loadAllInSprite() {
+  const img = await loadImageCached(ALL_IN_EFFECT_SPRITE);
+  if (img && img.naturalHeight) {
+    const frames = Math.max(1, Math.round(img.naturalWidth / img.naturalHeight));
+    allInFrames = frames;
+    document.querySelectorAll('.all-in-effect').forEach(el => {
+      el.style.setProperty('--allin-frames', frames);
+    });
+  }
+}
 
 async function loadPublicConfig() {
   try {
@@ -45,16 +180,109 @@ async function loadPublicConfig() {
     if (res.ok) {
       const cfg = await res.json();
       streamerLogin = (cfg.streamerLogin || '').toLowerCase();
-      if (typeof cfg.minBet === 'number') minBet = cfg.minBet;
-      if (typeof cfg.potGlowMultiplier === 'number') potGlowMultiplier = cfg.potGlowMultiplier;
-      updateUserBadge();
+    if (typeof cfg.minBet === 'number') minBet = cfg.minBet;
+    if (typeof cfg.potGlowMultiplier === 'number') {
+      potGlowMultiplier = cfg.potGlowMultiplier;
+      overlayTuning.potGlowMultiplier = cfg.potGlowMultiplier;
+    }
+    updateUserBadge();
+  }
+} catch (e) {
+  // ignore
+}
+}
+loadPublicConfig();
+loadBalances();
+loadEffectsMeta();
+loadAllInSprite();
+
+async function loadEffectsMeta() {
+  try {
+    const res = await fetch('/assets/cosmetics/effects/meta.json');
+    if (res.ok) {
+      effectsMeta = await res.json();
+      window.__EFFECTS_META__ = effectsMeta;
+      loadWinSprite();
+      loadDealSprite();
     }
   } catch (e) {
     // ignore
   }
 }
-loadPublicConfig();
-loadBalances();
+
+async function loadFlipSprite() {
+  try {
+    const metaRes = await fetch(CARD_FLIP_META);
+    const rawMeta = metaRes.ok ? await metaRes.json() : {};
+    const merged = effectsMeta?.animations?.card_flip_24
+      ? { ...effectsMeta.animations.card_flip_24, ...rawMeta }
+      : rawMeta;
+    const metaJson = merged || {};
+    const spritePath = metaJson.image
+      ? (metaJson.image.startsWith('http') ? metaJson.image : `/assets/cosmetics/effects/deals/face-up/${metaJson.image}`)
+      : CARD_FLIP_SPRITE;
+    const img = await loadImageCached(spritePath);
+    if (img) {
+      flipMeta = deriveFlipMeta(img, metaJson);
+      flipSprite = img;
+      kickoffFlipCanvases(true);
+    }
+  } catch (e) {
+    // ignore sprite load failures
+  }
+}
+loadFlipSprite();
+loadWinSprite();
+loadDealSprite();
+
+function loadFxChoice() {
+  try {
+    const saved = localStorage.getItem('overlayFxChoice');
+    if (saved) overlayFx = { ...overlayFx, ...JSON.parse(saved) };
+    if (overlayFx.winFx === 'win_burst_25') overlayFx.winFx = 'win_burst_6';
+  } catch (e) {
+    // ignore
+  }
+}
+loadFxChoice();
+loadWinSprite(overlayFx.winFx);
+loadDealSprite(overlayFx.dealFx);
+
+async function loadWinSprite(key) {
+  try {
+    const fxKey = key || overlayFx.winFx || 'win_burst_6';
+    const meta = effectsMeta?.animations?.[fxKey] || effectsMeta?.animations?.win_burst_6 || null;
+    if (!meta) return;
+      const spritePath = meta.image
+        ? (meta.image.startsWith('http') ? meta.image : `/assets/cosmetics/effects/win/${meta.image}`)
+        : '/assets/cosmetics/effects/win/winburst_25frame_sprite.png';
+    const img = await loadImageCached(spritePath);
+    if (img) {
+      winSprite = img;
+      winMeta = meta;
+    }
+  } catch (e) {
+    // ignore
+  }
+}
+
+async function loadDealSprite(key) {
+  try {
+    const fxKey = key || overlayFx.dealFx || 'card_deal_24';
+    const meta = effectsMeta?.animations?.[fxKey] || effectsMeta?.animations?.card_deal_24 || null;
+    if (!meta) return;
+      const spritePath = meta.image
+        ? (meta.image.startsWith('http') ? meta.image : `/assets/cosmetics/effects/deals/face-down/${meta.image}`)
+        : '/assets/cosmetics/effects/deals/face-down/horizontal_transparent_sheet.png';
+    const img = await loadImageCached(spritePath);
+    if (img) {
+      dealSprite = img;
+      dealMeta = meta;
+    }
+  } catch (e) {
+    // ignore
+  }
+}
 
 async function loadBalances() {
   try {
@@ -135,6 +363,38 @@ if (headerThemeBtn) {
   });
 }
 
+// Player ready (tournament tables)
+const readyBtn = document.getElementById('btn-player-ready');
+const readyPill = document.getElementById('ready-pill');
+function setReadyStatus(payload = {}) {
+  if (!readyPill) return;
+  const readyArr = Array.isArray(payload.ready) ? payload.ready : [];
+  const readyCount = [payload.readyCount, readyArr.length].find(n => typeof n === 'number') ?? readyArr.length;
+  const requiredArr = Array.isArray(payload.required) ? payload.required : [];
+  const requiredCount = [payload.requiredCount, requiredArr.length].find(n => typeof n === 'number') ?? requiredArr.length;
+  const allReady = !!payload.allReady || (requiredCount > 0 && readyCount >= requiredCount);
+  readyPill.style.display = 'inline-flex';
+  readyPill.className = `badge ready-pill ${allReady ? 'all-ready' : ''}`;
+  readyPill.classList.toggle('pulse', !allReady);
+  readyPill.textContent = allReady
+    ? (payload.started ? 'Starting...' : `All ready ${readyCount}/${requiredCount || readyCount}`)
+    : `Ready ${readyCount}/${requiredCount || '?'}`;
+}
+if (readyBtn) {
+  readyBtn.addEventListener('click', async () => {
+    try {
+      const res = await apiCall('/table/ready', {
+        method: 'POST',
+        body: JSON.stringify({ channel: overlayChannel }),
+        useUserToken: true,
+      });
+      setReadyStatus(res);
+      Toast.info(res.started ? 'All ready - round starting' : 'Ready sent');
+    } catch (e) {
+      Toast.error('Ready failed: ' + e.message);
+    }
+  });
+}
 // Socket.IO event handlers
 socket.on('connect', () => {
   console.log('Connected to server');
@@ -147,6 +407,7 @@ socket.on('disconnect', () => {
 });
 
 socket.on('state', (data) => {
+  if (!isEventForChannel(data)) return;
   console.log('State received:', data);
   updateUI(data);
   overlayPlayers = data.players || [];
@@ -159,6 +420,11 @@ socket.on('state', (data) => {
   updateActionButtons();
 });
 
+socket.on('readyStatus', (data) => {
+  if (!isEventForChannel(data)) return;
+  setReadyStatus(data || {});
+});
+
 socket.on('profile', (profile) => {
   console.log('Profile received:', profile);
   if (profile && profile.login) {
@@ -168,6 +434,19 @@ socket.on('profile', (profile) => {
 });
 
 socket.on('roundStarted', (data) => {
+  if (!isEventForChannel(data)) return;
+  try {
+    document.body.classList.add('shuffle-anim');
+    if (window.__shuffleTimeout) clearTimeout(window.__shuffleTimeout);
+    window.__shuffleTimeout = setTimeout(() => document.body.classList.remove('shuffle-anim'), 1200);
+    if (!window.__shuffleAudio) {
+      window.__shuffleAudio = new Audio('/assets/shuffle.mp3');
+      window.__shuffleAudio.volume = 0.4;
+    }
+    window.__shuffleAudio?.play()?.catch(() => {});
+  } catch (e) {
+    // ignore
+  }
   console.log('Round started:', data);
   currentPhase = 'dealing';
   currentDealerHand = data.dealerHand || [];
@@ -198,6 +477,7 @@ socket.on('roundStarted', (data) => {
 });
 
 socket.on('bettingStarted', (data) => {
+  if (!isEventForChannel(data)) return;
   console.log('Betting started');
   currentPhase = 'betting';
   updatePhaseUI('Place Your Bets');
@@ -206,6 +486,7 @@ socket.on('bettingStarted', (data) => {
 });
 
 socket.on('roundResult', (data) => {
+  if (!isEventForChannel(data)) return;
   console.log('Round result:', data);
   currentPhase = 'result';
   currentDealerHand = data.dealerHand || [];
@@ -227,13 +508,16 @@ socket.on('roundResult', (data) => {
 });
 
 socket.on('payouts', (data) => {
+  if (!isEventForChannel(data)) return;
   console.log('Payouts:', data);
   const winners = data.winners || [];
   if (winners.length > 0) {
     const names = winners.join(', ');
     Toast.success(`Winners: ${names}`);
+    playWinEffect();
   } else if (data.payouts && Object.keys(data.payouts).length > 0) {
     Toast.success('Winners announced!');
+    playWinEffect();
   }
 
   // Refresh leaderboard after payouts
@@ -283,6 +567,7 @@ socket.on('payouts', (data) => {
 });
 
 socket.on('pokerBetting', (data) => {
+  if (!isEventForChannel(data)) return;
   const potEl = document.getElementById('pot-value');
   const betEl = document.getElementById('current-bet');
   const potVal = (data && data.pot) || 0;
@@ -307,6 +592,7 @@ socket.on('pokerBetting', (data) => {
 });
 
 socket.on('playerUpdate', (data) => {
+  if (!isEventForChannel(data)) return;
   if (!data || !data.login) return;
   const idx = overlayPlayers.findIndex(p => p.login === data.login);
   if (idx !== -1) {
@@ -322,6 +608,16 @@ socket.on('playerUpdate', (data) => {
 socket.on('error', (err) => {
   console.error('Server error:', err);
   Toast.error(err);
+});
+
+window.addEventListener('message', (event) => {
+  if (!event || !event.data || !event.data.type) return;
+  if (event.data.type === 'overlayFxUpdate' && event.data.data) {
+    overlayFx = { ...overlayFx, ...event.data.data };
+    loadDealSprite(overlayFx.dealFx);
+    loadWinSprite(overlayFx.winFx);
+    kickoffDealCanvases(true);
+  }
 });
 
 // UI Functions
@@ -340,8 +636,11 @@ function renderPlayerHands(players) {
   if (!container) return;
   container.innerHTML = '';
   if (!Array.isArray(players)) return;
+  const isRevealPhase = ['result', 'showdown', 'reveal'].includes((currentPhase || '').toLowerCase());
 
-  players.forEach(player => {
+  updateTableSkinFromPlayers(players);
+
+  players.forEach((player, playerIdx) => {
     const hand = player.hand || [];
     const totalCards = player.hands && Array.isArray(player.hands)
       ? player.hands.reduce((sum, h) => sum + (h ? h.length : 0), 0)
@@ -354,9 +653,17 @@ function renderPlayerHands(players) {
     const streak = typeof player.streak === 'number' ? player.streak : 0;
     const tilt = typeof player.tilt === 'number' ? player.tilt : 0;
     const afk = !!player.afk;
+    const isSelf = userLogin && player.login && userLogin.toLowerCase() === player.login.toLowerCase();
+    const cosmetics = player.cosmetics || {};
 
     const wrapper = document.createElement('div');
     wrapper.className = 'player-hand';
+    if (player.login) wrapper.dataset.login = player.login;
+    if (cosmetics.avatarRingColor) wrapper.style.setProperty('--avatar-ring', cosmetics.avatarRingColor);
+    else wrapper.style.removeProperty('--avatar-ring');
+    if (cosmetics.avatarRingImage) wrapper.style.setProperty('--avatar-ring-img', `url('${cosmetics.avatarRingImage}')`);
+    else wrapper.style.removeProperty('--avatar-ring-img');
+    if (cosmetics.profileCardBorder) wrapper.style.setProperty('--profile-card-border', cosmetics.profileCardBorder);
     if (streak >= 2) wrapper.classList.add('hot');
     else if (streak <= -2) wrapper.classList.add('cold');
     if (tilt >= 2) wrapper.classList.add('tilt');
@@ -364,10 +671,45 @@ function renderPlayerHands(players) {
       .map((card, idx) => {
         const isNew = newRemaining > 0 && idx >= cards.length - newRemaining;
         if (isNew) newRemaining--;
+        const hidden = !isSelf;
+        const seatOffset = (playerIdx - Math.floor(players.length / 2)) * 26;
+        const dealFromY = 220; // dealer/front-center of the table
+        const delay = (playerIdx * (overlayTuning.dealDelayBase || 0.18)) + (idx * (overlayTuning.dealDelayPerCard || 0.08));
+        const rotate = (playerIdx % 2 ? 5 : -5) + idx * 1.5;
+        const styleParts = [];
+        if (isNew) {
+          styleParts.push(`--deal-from-x:${seatOffset}px`, `--deal-from-y:${dealFromY}px`, `--deal-rot:${rotate.toFixed(1)}deg`, `animation-delay:${delay.toFixed(2)}s`);
+        }
+        const tint = cosmetics.cardBackTint || overlayTuning.cardBackTint || null;
+        if (tint) {
+          styleParts.push(`--card-back-tint:${tint}`);
+        }
+        const backImg = cosmetics.cardBackImage || overlayTuning.cardBackImage || DEFAULT_CARD_BACK;
+        if (hidden && backImg) {
+          styleParts.push(`--card-back-img:url('${backImg}')`);
+        }
+        const dealImg = hidden ? DEAL_FACE_DOWN : DEAL_FACE_UP;
+        if (isNew && dealImg) {
+          styleParts.push(`--deal-effect:url('${dealImg}')`);
+        }
+        const faceImg = !hidden ? getCardFaceImage(card.rank, card.suit, cosmetics.cardFaceBase) : null;
+        if (faceImg) {
+          styleParts.push(`--card-face-img:url('${faceImg}')`);
+        }
+        const style = styleParts.length ? `style="${styleParts.join(';')}"` : '';
+        const flipClass = !hidden && isRevealPhase ? 'flip-in' : '';
+        const shouldFlip = !hidden && (isRevealPhase || isNew);
+        const classes = ['card-item'];
+        if (isNew) classes.push('deal-in');
+        if (flipClass) classes.push('flip-in');
+        if (hidden) classes.push('card-back');
+        if (faceImg) classes.push('has-face');
         return `
-          <div class="card-item ${isNew ? 'deal-in' : ''}">
-            <div class="card-rank">${card.rank}</div>
-            <div class="card-suit">${card.suit}</div>
+          <div class="${classes.join(' ')}" ${style} data-face-img="${faceImg || ''}" data-back-img="${backImg || ''}" data-should-flip="${shouldFlip ? '1' : '0'}" data-should-deal="${isNew ? '1' : '0'}">
+            <canvas class="deal-canvas" width="140" height="196"></canvas>
+            <canvas class="flip-canvas" width="128" height="180"></canvas>
+            <div class="card-rank">${hidden ? '' : card.rank}</div>
+            <div class="card-suit">${hidden ? '' : card.suit}</div>
           </div>
         `;
       })
@@ -394,9 +736,14 @@ function renderPlayerHands(players) {
     const betStack = showBetStack ? renderBetChips(betAmount) : '';
     const streakBadge = renderStreakBadge(streak, tilt, afk);
 
+    const ringImg = cosmetics.avatarRingImage;
+    const ringStyle = ringImg ? `style="--avatar-ring-img:url('${ringImg}')"` : '';
     wrapper.innerHTML = `
       <div class="player-header">
-        <img class="player-avatar" src="${player.avatar || 'https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/default-profile_image.png'}" alt="${player.login}">
+        <div class="player-avatar-wrapper ${ringImg ? 'has-ring-img' : ''}" ${ringStyle}>
+          ${ringImg ? '<div class="avatar-ring-img"></div>' : ''}
+          <img class="player-avatar" src="${player.avatar || 'https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/default-profile_image.png'}" alt="${player.login}">
+        </div>
         <div>
           <div class="player-name">${player.login}</div>
           ${streakBadge}
@@ -410,6 +757,8 @@ function renderPlayerHands(players) {
           <div class="player-timer" id="timer-${player.login}"></div>
         </div>
       </div>
+      <div class="all-in-effect" style="background-image:url('${ALL_IN_EFFECT_SPRITE}');--allin-frames:${allInFrames};"></div>
+      <div class="fold-effect" style="background-image:url('${FOLD_EFFECT}');"></div>
       ${splitMarkup}
     `;
     container.appendChild(wrapper);
@@ -417,7 +766,23 @@ function renderPlayerHands(players) {
     previousCardCounts.set(player.login, totalCards);
   });
 
+  kickoffFlipCanvases();
+  kickoffDealCanvases();
   document.getElementById('btn-draw').disabled = false;
+}
+
+function updateTableSkinFromPlayers(players = []) {
+  if (!Array.isArray(players) || !players.length) return;
+  // Prefer streamer cosmetics if present
+  const streamer = players.find(p => p.login && p.login.toLowerCase() === streamerLogin);
+  const chosen = streamer || players[0];
+  if (chosen && chosen.cosmetics) {
+    if (chosen.cosmetics.tableTint) overlayTuning.tableTint = chosen.cosmetics.tableTint;
+    if (chosen.cosmetics.tableTexture) overlayTuning.tableTexture = chosen.cosmetics.tableTexture;
+    if (chosen.cosmetics.tableLogoColor) overlayTuning.tableLogoColor = chosen.cosmetics.tableLogoColor;
+    if (chosen.cosmetics.cardFaceBase) overlayTuning.cardFaceBase = chosen.cosmetics.cardFaceBase;
+    applyVisualSettings();
+  }
 }
 
 function renderPot(data) {
@@ -427,12 +792,16 @@ function renderPot(data) {
   const explicitPot = data && typeof data.pot === 'number' ? data.pot : null;
   const sumBets = overlayPlayers.reduce((sum, p) => sum + (p.bet || 0), 0);
   const pot = explicitPot !== null ? explicitPot : sumBets;
+  const prevPot = currentPot;
   currentPot = pot;
   const chips = renderChipStack(pot);
   potWrap.innerHTML = `<div class="pot-total">Total Pot: $${(pot || 0).toLocaleString?.() || pot || 0}</div>${chips}`;
   if (potContainer) {
-    const glowThreshold = (minBet || 1) * (potGlowMultiplier || 5);
+    const glowThreshold = (minBet || 1) * ((overlayTuning.potGlowMultiplier || potGlowMultiplier || 5));
     potContainer.classList.toggle('pot-glow', pot >= glowThreshold);
+    if (prevPot !== pot) {
+      bumpChips(potContainer);
+    }
   }
 }
 
@@ -453,10 +822,17 @@ function renderChipStack(amount) {
   });
 
   const chipsHtml = pieces
-    .map(part => `<div class="chip" style="--chip-color:${part.color};" title="$${part.value} x ${part.count}">
+    .map(part => {
+      const assets = CHIP_ASSETS[part.value] || {};
+      const styleParts = [`--chip-color:${part.color}`];
+      if (assets.top) styleParts.push(`--chip-img:url('${assets.top}')`);
+      if (assets.side) styleParts.push(`--chip-side-img:url('${assets.side}')`);
+      const style = `style="${styleParts.join(';')}"`;
+      return `<div class="chip" ${style} title="$${part.value} x ${part.count}">
         <span class="chip-label">${part.label}</span>
         <span class="chip-count">x${part.count}</span>
-      </div>`)
+      </div>`;
+    })
     .join('');
 
   return `
@@ -504,12 +880,21 @@ function renderDealerHand(hand) {
   section.style.display = 'block';
   cardsEl.innerHTML = hand
     .map(
-      card => `
-      <div class="card-item">
-        <div class="card-rank">${card.rank}</div>
-        <div class="card-suit">${card.suit}</div>
-      </div>
-    `
+      card => {
+        const faceImg = getCardFaceImage(card.rank, card.suit, overlayTuning.cardFaceBase || null);
+        const styles = [];
+        if (faceImg) styles.push(`--card-face-img:url('${faceImg}')`);
+        const styleAttr = styles.length ? `style="${styles.join(';')}"` : '';
+        const cls = faceImg ? 'card-item has-face' : 'card-item';
+        const backImg = overlayTuning.cardBackImage || DEFAULT_CARD_BACK;
+        return `
+          <div class="${cls}" ${styleAttr} data-face-img="${faceImg || ''}" data-back-img="${backImg}" data-should-flip="1">
+            <canvas class="flip-canvas" width="128" height="180"></canvas>
+            <div class="card-rank">${card.rank}</div>
+            <div class="card-suit">${card.suit}</div>
+          </div>
+        `;
+      }
     )
     .join('');
 
@@ -522,6 +907,7 @@ function renderDealerHand(hand) {
       insuranceBanner.style.display = 'none';
     }
   }
+  kickoffFlipCanvases();
 }
 
 function renderCommunityCards(cards) {
@@ -537,15 +923,215 @@ function renderCommunityCards(cards) {
 
   section.style.display = 'block';
   cardsEl.innerHTML = cards
-    .map(
-      card => `
-      <div class="card-item">
-        <div class="card-rank">${card.rank}</div>
-        <div class="card-suit">${card.suit}</div>
-      </div>
-    `
-    )
+    .map(card => {
+      const faceImg = getCardFaceImage(card.rank, card.suit, overlayTuning.cardFaceBase || null);
+      const styles = [];
+      if (faceImg) styles.push(`--card-face-img:url('${faceImg}')`);
+      const styleAttr = styles.length ? `style="${styles.join(';')}"` : '';
+      const cls = faceImg ? 'card-item has-face' : 'card-item';
+      const backImg = overlayTuning.cardBackImage || DEFAULT_CARD_BACK;
+      return `
+        <div class="${cls} flip-in" ${styleAttr} data-face-img="${faceImg || ''}" data-back-img="${backImg}" data-should-flip="1" data-should-deal="0">
+          <canvas class="flip-canvas" width="128" height="180"></canvas>
+          <div class="card-rank">${card.rank}</div>
+          <div class="card-suit">${card.suit}</div>
+        </div>
+      `;
+    })
     .join('');
+  kickoffFlipCanvases();
+  kickoffDealCanvases();
+}
+
+const flipAnimations = new Map();
+let flipLoopRunning = false;
+const dealAnimations = new Map();
+let dealLoopRunning = false;
+function queueFlipForCard(cardEl, opts = {}) {
+  if (!cardEl || !flipSprite || !flipMeta) return;
+  const canvas = cardEl.querySelector('.flip-canvas');
+  if (!canvas || flipAnimations.has(canvas)) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  const faceSrc = cardEl.dataset.faceImg || opts.face;
+  const backSrc = cardEl.dataset.backImg || opts.back || overlayTuning.cardBackImage || DEFAULT_CARD_BACK;
+  const w = Math.max(1, Math.floor(cardEl.clientWidth || canvas.width || 120));
+  const h = Math.max(1, Math.floor(cardEl.clientHeight || canvas.height || 180));
+  canvas.width = w;
+  canvas.height = h;
+  Promise.all([loadImageCached(faceSrc), loadImageCached(backSrc)]).then(([faceImg, backImg]) => {
+    if (!faceImg && !backImg) return;
+    cardEl.classList.add('flipping');
+    canvas.classList.add('active');
+    flipAnimations.set(canvas, {
+      canvas,
+      ctx,
+      faceImg: faceImg || null,
+      backImg: backImg || null,
+      frame: 0,
+      nextFrameAt: performance.now() + (opts.delayMs || 0),
+    });
+    if (!flipLoopRunning) {
+      flipLoopRunning = true;
+      requestAnimationFrame(stepFlipAnimations);
+    }
+  });
+}
+
+function stepFlipAnimations(ts) {
+  flipAnimations.forEach((anim, canvas) => {
+    if (!canvas.isConnected) {
+      flipAnimations.delete(canvas);
+      return;
+    }
+    if (!flipMeta || !flipSprite) {
+      flipAnimations.delete(canvas);
+      return;
+    }
+    if (ts < anim.nextFrameAt) return;
+    const frame = flipMeta.frames[anim.frame];
+    if (!frame) {
+      flipAnimations.delete(canvas);
+      canvas.classList.remove('active');
+      canvas.parentElement?.classList.remove('flipping');
+      return;
+    }
+    renderFlippingCard(anim.ctx, flipSprite, flipMeta, anim.frame, anim.backImg, anim.faceImg, anim.canvas.width, anim.canvas.height);
+    const duration = frame.duration || flipMeta.frameDuration || 40;
+    anim.nextFrameAt = ts + duration;
+    anim.frame += 1;
+    if (anim.frame >= flipMeta.frameCount) {
+      if (flipMeta.loop) {
+        anim.frame = 0;
+      } else {
+        flipAnimations.delete(canvas);
+        canvas.classList.remove('active');
+        canvas.parentElement?.classList.remove('flipping');
+      }
+    }
+  });
+  if (flipAnimations.size) {
+    requestAnimationFrame(stepFlipAnimations);
+  } else {
+    flipLoopRunning = false;
+  }
+}
+
+function kickoffFlipCanvases(force) {
+  if (!flipSprite || !flipMeta) {
+    if (force) setTimeout(() => kickoffFlipCanvases(false), 180);
+    return;
+  }
+  const cards = document.querySelectorAll('.card-item[data-should-flip="1"]:not([data-flip-bound="1"])');
+  cards.forEach(card => {
+    card.dataset.flipBound = '1';
+    queueFlipForCard(card);
+  });
+}
+
+function queueDealForCard(cardEl, opts = {}) {
+  if (!cardEl || !dealSprite || !dealMeta) return;
+  const canvas = cardEl.querySelector('.deal-canvas');
+  if (!canvas || dealAnimations.has(canvas)) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  const w = Math.max(1, Math.floor(cardEl.clientWidth || canvas.width || 120));
+  const h = Math.max(1, Math.floor(cardEl.clientHeight || canvas.height || 180));
+  canvas.width = w;
+  canvas.height = h;
+  canvas.style.opacity = '1';
+  dealAnimations.set(canvas, {
+    canvas,
+    ctx,
+    frame: 0,
+    nextFrameAt: performance.now() + (opts.delayMs || 0),
+  });
+  if (!dealLoopRunning) {
+    dealLoopRunning = true;
+    requestAnimationFrame(stepDealAnimations);
+  }
+}
+
+function stepDealAnimations(ts) {
+  dealAnimations.forEach((anim, canvas) => {
+    if (!canvas.isConnected || !dealMeta || !dealSprite) {
+      dealAnimations.delete(canvas);
+      return;
+    }
+    if (ts < anim.nextFrameAt) return;
+    const total = dealMeta.frameCount || 1;
+    const spacing = Number.isFinite(dealMeta.spacing) ? dealMeta.spacing : 0;
+    const fIdx = anim.frame % total;
+    const sx = fIdx * (dealMeta.frameWidth + spacing);
+    const fw = dealMeta.frameWidth;
+    const fh = dealMeta.frameHeight;
+    anim.ctx.clearRect(0, 0, anim.canvas.width, anim.canvas.height);
+    anim.ctx.drawImage(dealSprite, sx, 0, fw, fh, 0, 0, anim.canvas.width, anim.canvas.height);
+    anim.frame += 1;
+    const delay = dealMeta.frames?.[fIdx]?.duration || (1000 / (dealMeta.fps || 24));
+    anim.nextFrameAt = ts + delay;
+    if (anim.frame >= total) {
+      dealAnimations.delete(canvas);
+      setTimeout(() => { if (canvas && canvas.isConnected) canvas.style.opacity = '0'; }, 120);
+    }
+  });
+  if (dealAnimations.size) {
+    requestAnimationFrame(stepDealAnimations);
+  } else {
+    dealLoopRunning = false;
+  }
+}
+
+function kickoffDealCanvases(force) {
+  if (!dealSprite || !dealMeta) {
+    if (force) setTimeout(() => kickoffDealCanvases(false), 180);
+    return;
+  }
+  const cards = document.querySelectorAll('.card-item[data-should-deal="1"]:not([data-deal-bound="1"])');
+  cards.forEach(card => {
+    card.dataset.dealBound = '1';
+    queueDealForCard(card);
+    card.dataset.shouldDeal = '0';
+  });
+}
+
+function playWinEffect() {
+  const pot = document.getElementById('table-pot');
+  if (!pot || !winMeta || !winSprite) return;
+  let canvas = pot.querySelector('canvas.win-effect');
+  if (!canvas) {
+    canvas = document.createElement('canvas');
+    canvas.className = 'win-effect';
+    canvas.width = winMeta.frameWidth || 512;
+    canvas.height = winMeta.frameHeight || 512;
+    pot.appendChild(canvas);
+  }
+  const ctx = canvas.getContext('2d');
+  let frame = 0;
+  const total = winMeta.frameCount || 1;
+  const frameWidth = winMeta.frameWidth || winSprite.width;
+  const frameHeight = winMeta.frameHeight || winSprite.height;
+  const spacingX = typeof winMeta.spacing === 'number' ? winMeta.spacing : 0;
+  const spacingY = typeof winMeta.spacingY === 'number' ? winMeta.spacingY : spacingX;
+  const columns = winMeta.columns
+    || (frameWidth ? Math.max(1, Math.floor((winSprite.width + spacingX) / (frameWidth + spacingX))) : 1);
+  const draw = () => {
+    if (!canvas.isConnected) return;
+    const f = frame % total;
+    const col = columns ? (f % columns) : f;
+    const row = columns ? Math.floor(f / columns) : 0;
+    const sx = (frameWidth + spacingX) * col;
+    const sy = (frameHeight + spacingY) * row;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(winSprite, sx, sy, frameWidth, frameHeight, 0, 0, canvas.width, canvas.height);
+    frame += 1;
+    if (frame < total) {
+      setTimeout(() => requestAnimationFrame(draw), Math.max(20, 1000 / (winMeta.fps || 18)));
+    } else if (canvas) {
+      setTimeout(() => { if (canvas && canvas.isConnected) canvas.remove(); }, 400);
+    }
+  };
+  requestAnimationFrame(draw);
 }
 
 // Queue rendering
@@ -558,10 +1144,12 @@ function renderQueue(waiting) {
 }
 
 socket.on('queueUpdate', (data) => {
+  if (!isEventForChannel(data)) return;
   renderQueue(data.waiting || []);
 });
 
 socket.on('bettingStarted', (data) => {
+  if (!isEventForChannel(data)) return;
   startCountdown(Date.now() + (data.duration || 0));
   updatePhaseUI('Betting');
   setPhaseLabel('Betting');
@@ -569,12 +1157,14 @@ socket.on('bettingStarted', (data) => {
   startPlayerActionTimer(data.endsAt || Date.now() + (data.duration || 0));
 });
 
-socket.on('actionPhaseEnded', () => {
+socket.on('actionPhaseEnded', (data) => {
+  if (!isEventForChannel(data)) return;
   updatePhaseUI('Action Ended');
   startPlayerActionTimer(null);
 });
 
 socket.on('pokerPhase', (data) => {
+  if (!isEventForChannel(data)) return;
   setPhaseLabel(data.phase || '');
   renderCommunityCards(data.community || []);
   if (data.actionEndsAt) {
@@ -587,12 +1177,122 @@ socket.on('pokerPhase', (data) => {
   if (data.mode) setModeBadge(data.mode);
 });
 
+function triggerFoldEffect(login) {
+  const el = document.querySelector(`.player-hand[data-login="${login}"] .fold-effect`);
+  if (!el) return;
+  el.classList.remove('active');
+  void el.offsetWidth;
+  el.classList.add('active');
+  setTimeout(() => el.classList.remove('active'), 800);
+}
+
+function triggerAllInEffect(login) {
+  const el = document.querySelector(`.player-hand[data-login="${login}"] .all-in-effect`);
+  if (!el) return;
+  el.classList.remove('active');
+  void el.offsetWidth;
+  el.classList.add('active');
+  setTimeout(() => el.classList.remove('active'), 900);
+}
+
 socket.on('playerTurn', (data) => {
+  if (!isEventForChannel(data)) return;
   const login = data.login;
   const endsAt = data.endsAt;
   highlightPlayer(login);
   startPerPlayerTimers([{ login }], endsAt);
 });
+
+socket.on('playerUpdate', (payload) => {
+  if (!isEventForChannel(payload)) return;
+  const login = payload.login;
+  if (payload.folded && login) {
+    triggerFoldEffect(login);
+  }
+  if (payload.allIn && login) {
+    triggerAllInEffect(login);
+  }
+});
+
+// Subtle chip bump + sound
+function bumpChips(el) {
+  if (!el) return;
+  el.classList.add('chip-bump');
+  setTimeout(() => el.classList.remove('chip-bump'), 420);
+  playChipSound();
+}
+
+function bumpPlayerChips(login) {
+  if (!login) return;
+  const hand = document.querySelector(`.player-hand[data-login="${login}"]`);
+  if (!hand) return;
+  const stack = hand.querySelector('.chip-stack');
+  bumpChips(stack || hand);
+}
+
+let chipAudioCtx = null;
+function playChipSound() {
+  try {
+    const ctx = chipAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    chipAudioCtx = ctx;
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(520, now);
+    const vol = overlayTuning.chipVolume ?? 0.16;
+    gain.gain.setValueAtTime(vol, now);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.001, vol * 0.0125), now + 0.18);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.2);
+  } catch (e) {
+    // ignore audio errors (e.g., autoplay policies)
+  }
+}
+
+socket.on('overlaySettings', (data) => {
+  if (!isEventForChannel(data)) return;
+  const settings = data?.settings || {};
+  overlayTuning = { ...overlayTuning, ...settings };
+  if (settings.potGlowMultiplier) {
+    potGlowMultiplier = settings.potGlowMultiplier;
+  }
+  applyVisualSettings();
+});
+
+function applyVisualSettings() {
+  const root = document.documentElement;
+  const tint = resolveCardBackTint(overlayTuning);
+  if (tint) root.style.setProperty('--card-back-tint', tint);
+  const backImg = overlayTuning.cardBackImage || '/assets/card-back.png';
+  if (backImg) root.style.setProperty('--card-back-img', `url('${backImg}')`);
+  else root.style.removeProperty('--card-back-img');
+  if (overlayTuning.avatarRingColor) root.style.setProperty('--avatar-ring', overlayTuning.avatarRingColor);
+  if (overlayTuning.avatarRingImage) root.style.setProperty('--avatar-ring-img', `url('${overlayTuning.avatarRingImage}')`);
+  else root.style.removeProperty('--avatar-ring-img');
+  if (overlayTuning.profileCardBorder) root.style.setProperty('--profile-card-border', overlayTuning.profileCardBorder);
+  const felt = overlayTuning.tableTint || '#0c4c3b';
+  const baseBg = `radial-gradient(ellipse at center, ${felt} 0%, #0a352f 58%, #061f1d 100%)`;
+  const tex = overlayTuning.tableTexture;
+  const bg = tex ? `url('${tex}') center/cover no-repeat, ${baseBg}` : baseBg;
+  root.style.setProperty('--table-bg', bg);
+  root.style.setProperty('--table-felt', felt);
+  if (overlayTuning.tableLogoColor) root.style.setProperty('--table-logo', overlayTuning.tableLogoColor);
+}
+
+function resolveCardBackTint(opts = {}) {
+  const variant = (opts.cardBackVariant || 'default').toLowerCase();
+  if (variant === 'custom' && opts.cardBackTint) return opts.cardBackTint;
+  const palette = {
+    default: '#0b1b1b',
+    emerald: '#00d4a6',
+    azure: '#2d9cff',
+    magenta: '#c94cff',
+    gold: '#f5a524',
+  };
+  return palette[variant] || palette.default;
+}
 
 function startCountdown(endsAt) {
   countdownEndsAt = endsAt ? new Date(endsAt).getTime() : null;
@@ -634,8 +1334,9 @@ function setPhaseLabel(label) {
 function setModeBadge(mode) {
   const el = document.getElementById('mode-badge');
   if (!el) return;
-  const label = mode || 'poker';
-  el.textContent = `Mode: ${label}`;
+  let label = mode || 'poker';
+  if (!isMultiStream) label = 'blackjack';
+  el.textContent = `Mode: ${label}${!isMultiStream ? ' (single-channel)' : ''}`;
   el.className = 'badge badge-secondary';
   if (label === 'blackjack') {
     el.className = 'badge badge-warning';
@@ -697,6 +1398,7 @@ function highlightPlayer(login) {
   document.querySelectorAll('.player-hand').forEach(card => card.classList.remove('active-turn'));
   const el = document.getElementById(`timer-${login}`)?.closest('.player-hand');
   if (el) el.classList.add('active-turn');
+  bumpPlayerChips(login);
 }
 
 function displayResult(data) {
@@ -839,6 +1541,10 @@ const btnPokerRaise = document.getElementById('poker-raise');
 const btnPokerFold = document.getElementById('poker-fold');
 const inputPokerRaise = document.getElementById('poker-raise-amount');
 const btnThemeToggle = document.getElementById('theme-toggle');
+const pokerActions = document.querySelector('.poker-actions');
+if (!isMultiStream && pokerActions) {
+  pokerActions.style.display = 'none';
+}
 
 if (btnHit) {
   btnHit.addEventListener('click', () => {
@@ -1045,3 +1751,4 @@ function initUserFromToken() {
 }
 
 initUserFromToken();
+applyVisualSettings();

@@ -26,11 +26,24 @@
             <button id="admin-theme-toggle" class="btn btn-secondary btn-sm">Theme</button>
             <button id="btn-open-obs-overlay" class="btn btn-secondary btn-sm">OBS Overlay</button>
             <button id="btn-export" class="btn btn-secondary btn-sm">Export</button>
-            <button id="btn-logout" class="btn btn-danger btn-sm">Logout</button>
-          </div>
+            <button id="btn-reset-session" class="btn btn-secondary btn-sm">Reset Session</button>
+          <button id="btn-logout" class="btn btn-danger btn-sm">Logout</button>
+        </div>
     </header>
 
-    <main class="admin-main">
+    <div class="quick-actions">
+      <a class="btn btn-secondary btn-sm" href="/overlay-editor.html" target="_blank" rel="noopener">Overlay Editor</a>
+      <button class="btn btn-secondary btn-sm" data-open-section="tournament-details">Tournament Tools</button>
+      <button class="btn btn-secondary btn-sm" data-open-section="checklist-details">Checklist</button>
+      <button class="btn btn-secondary btn-sm" data-open-section="profiles-details">Profiles</button>
+      <button class="btn btn-secondary btn-sm" data-open-section="audit-details">Audit Log</button>
+      <a class="btn btn-secondary btn-sm" href="/cosmetics.html" target="_blank" rel="noopener">Cosmetics Page</a>
+      <a class="btn btn-secondary btn-sm" href="/partner-program.html" target="_blank" rel="noopener">Partner Program</a>
+      <a class="btn btn-secondary btn-sm" href="/partner-privacy.html" target="_blank" rel="noopener">Partner Privacy</a>
+      <a class="btn btn-secondary btn-sm" href="/partner-compensation.html" target="_blank" rel="noopener">Comp Addendum</a>
+    </div>
+
+    <main class="admin-main compact-main">
       <!-- Stats Grid -->
       <section class="stats-grid">
         <div class="stat-card">
@@ -43,7 +56,7 @@
         </div>
         <div class="stat-card">
           <h3>Top Winner</h3>
-          <div id="stat-top-winner" class="stat-name">—</div>
+          <div id="stat-top-winner" class="stat-name">&mdash;</div>
         </div>
         <div class="stat-card">
           <h3>Biggest Win</h3>
@@ -56,33 +69,36 @@
         </div>
       </section>
 
-      <!-- Control Panel -->
-      <section class="control-panel">
-        <h2>Game Controls</h2>
-        <div class="control-buttons">
-          <button id="btn-admin-start-round" class="btn btn-primary">
-            Start Round
-          </button>
-          <button id="btn-admin-start-now" class="btn btn-success">
-            Start Now
-          </button>
-          <button id="btn-admin-draw" class="btn btn-success">
-            Process Draw
-          </button>
-          <button id="btn-reset-game" class="btn btn-warning">
-            Reset Game
-          </button>
-        </div>
-        <div class="mode-select">
-          <label for="game-mode">Game Mode</label>
-          <select id="game-mode" class="form-input" disabled>
-            <option value="blackjack" selected>Blackjack (locked)</option>
-          </select>
-          <button id="btn-save-mode" class="btn btn-info btn-sm" disabled style="opacity:0.4; cursor:not-allowed;">Locked</button>
-        </div>
-        <div class="control-card">
-          <h4>Adjust Player Balance</h4>
-          <div class="form-grid">
+      <div class="grid-two">
+        <!-- Quick round flow -->
+        <section class="control-panel compact-card">
+          <div class="section-header">
+            <h2>Round & Flow</h2>
+            <div class="mini-meta">
+              <span id="admin-phase-chip" class="phase-chip subtle" aria-hidden="true">Flow</span>
+            </div>
+          </div>
+          <div class="control-buttons compact-buttons">
+            <button id="btn-admin-start-round" class="btn btn-primary">Start Round</button>
+            <button id="btn-admin-start-now" class="btn btn-success">Start Now</button>
+            <button id="btn-admin-draw" class="btn btn-secondary">Process Draw</button>
+            <button id="btn-reset-game" class="btn btn-warning">Reset Game</button>
+          </div>
+          <div class="mode-select inline-fields">
+            <label for="game-mode">Mode</label>
+            <select id="game-mode" class="form-input" disabled>
+              <option value="blackjack" selected>Blackjack (locked)</option>
+            </select>
+            <button id="btn-save-mode" class="btn btn-info btn-sm" disabled style="opacity:0.4; cursor:not-allowed;">Locked</button>
+          </div>
+        </section>
+
+        <!-- Players/chips/queue -->
+        <section class="control-panel compact-card">
+          <div class="section-header">
+            <h2>Players & Chips</h2>
+          </div>
+          <div class="form-grid compact-grid">
             <div class="form-group">
               <label for="adjust-login">Player</label>
               <input id="adjust-login" type="text" class="form-input" placeholder="username">
@@ -98,72 +114,216 @@
                 <option value="set">Set exact balance</option>
               </select>
             </div>
+            <button id="btn-adjust-balance" class="btn btn-primary btn-sm full-span">Apply</button>
           </div>
-          <button id="btn-adjust-balance" class="btn btn-primary btn-sm" style="margin-top:8px;">Apply</button>
+          <div class="inline-lists">
+            <div class="queue-display tiny-card">
+              <h4>Queue <span class="phase-chip subtle" id="queue-count">0</span></h4>
+              <ol id="queue-list" class="leaderboard">
+                <li>None</li>
+              </ol>
+            </div>
+            <div class="rules-card tiny-card">
+              <h4>Last Payouts</h4>
+              <ul id="admin-payouts" class="payouts-list">
+                <li>None</li>
+              </ul>
+            </div>
+          </div>
+          <div class="control-card slim-card">
+            <h4>Testing helpers (AI seats)</h4>
+            <div class="control-buttons mini-buttons">
+              <button id="btn-add-ai" class="btn btn-secondary btn-sm">Add 3 AI</button>
+              <button id="btn-add-ai-start" class="btn btn-success btn-sm">Add AI + Start</button>
+            </div>
+            <small class="muted">Bots stay in this channel/lobby only.</small>
+          </div>
+        </section>
+      </div>
+
+      <section class="control-panel compact-card">
+        <div class="section-header">
+          <h2>Shared Lobby (Multi-stream)</h2>
+          <p class="muted small">Create a code, then use it in both admin and overlay URLs.</p>
         </div>
-        <div class="queue-display">
-          <h4>Waiting Queue <span class="phase-chip subtle" id="queue-count">0</span></h4>
-          <ol id="queue-list" class="leaderboard">
-            <li>None</li>
-          </ol>
+        <div class="form-grid compact-grid">
+          <button id="btn-create-lobby" class="btn btn-primary btn-sm">Create Lobby</button>
+          <input id="lobby-code-output" class="form-input" type="text" readonly placeholder="lobby code here">
+          <button id="btn-copy-lobby" class="btn btn-secondary btn-sm">Copy Code</button>
         </div>
-        <div class="rules-card">
-          <h4>Last Payouts</h4>
-          <ul id="admin-payouts" class="payouts-list">
-            <li>None</li>
+        <div class="form-grid compact-grid" style="margin-top:8px;">
+          <input id="lobby-join-input" class="form-input" type="text" placeholder="Enter lobby code to join">
+          <button id="btn-join-lobby" class="btn btn-success btn-sm">Join Lobby</button>
+        </div>
+        <small id="lobby-links" class="muted"></small>
+        <div class="rules-card slim-card" style="margin-top:12px;">
+          <h4>Poker availability</h4>
+          <ul>
+            <li>Blackjack is the default for single-channel games.</li>
+            <li>Poker is enabled only in shared lobbies (codes starting with <code>lobby-</code>).</li>
+            <li>Reuse the same code in admin/overlay links for multi-stream play.</li>
           </ul>
         </div>
       </section>
 
-      <!-- Profiles Section -->
-      <section class="profiles-section">
-        <h2>Player Profiles</h2>
-        <div class="profiles-toolbar">
-          <input
-            type="search"
-            id="profiles-search"
-            class="search-input"
-            placeholder="Search players..."
-          >
-          <button id="btn-refresh-profiles" class="btn btn-info btn-sm">
-            Refresh
-          </button>
-        </div>
+      <div class="grid-two">
+        <details class="control-panel collapsible" id="overlay-details">
+          <summary>Overlay / Cosmetics (quick modal)</summary>
+          <div class="control-card">
+            <p class="muted">Tuning, cosmetics, and Twitch unlocks live in a focused modal.</p>
+            <button id="btn-open-overlay-modal" class="btn btn-primary btn-sm">Open Cosmetics & Overlay</button>
+          </div>
+        </details>
 
-        <table class="profiles-table">
-          <thead>
-            <tr>
-              <th>Username</th>
-              <th>Display Name</th>
-              <th>Balance</th>
-              <th>Rounds Won</th>
-              <th>Total Won</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="profiles-table-body">
-            <!-- Profile rows will be rendered here -->
-          </tbody>
-        </table>
-      </section>
+        <details class="control-panel collapsible" id="tournament-details">
+          <summary>Tournament Tools (backend)</summary>
+          <div class="control-card">
+            <p class="muted">Brackets, tables, ready-up.</p>
+            <div class="form-grid">
+              <label>Round</label>
+              <input id="t-round" type="number" min="1" value="1" class="form-input">
+              <label>Table size</label>
+              <input id="t-table-size" type="number" min="2" max="10" value="6" class="form-input">
+              <label>Players (comma list, optional)</label>
+              <textarea id="t-players" class="form-input" rows="2" placeholder="player1, player2"></textarea>
+              <button id="btn-gen-bracket" class="btn">Generate Bracket</button>
+              <button id="btn-bootstrap-round" class="btn btn-secondary">Bootstrap Round</button>
+              <label>Channel to bind</label>
+              <input id="t-channel" class="form-input" placeholder="t-<id>-r<round>-table-1">
+              <label>Table #</label>
+              <input id="t-table-num" type="number" min="1" value="1" class="form-input">
+              <button id="btn-bind-table" class="btn btn-secondary">Bind Table</button>
+              <label>Ready (channel)</label>
+              <input id="t-ready-channel" class="form-input" placeholder="t-<id>-r<round>-table-1">
+              <button id="btn-ready-ping" class="btn btn-secondary">Ready Up (self)</button>
+              <div id="ready-status" class="muted small"></div>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <details class="control-panel collapsible" id="checklist-details">
+        <summary>Alpha Test Checklist</summary>
+        <div class="control-card">
+          <ul class="rules-list">
+            <li>Auth/roles: streamer/admin login works; admin endpoints blocked for normal users.</li>
+            <li>Lobbies: create/join lobby; poker hidden on single-channel, visible on lobby- channels.</li>
+            <li>Blackjack flow: start/end round; hit/stand/double/split/insurance; payouts and balances update.</li>
+            <li>Overlay: deal/flip/chip animations; cosmetics render (card back, avatar ring, profile border, table tint/texture/logo).</li>
+            <li>Cosmetics API: grant via admin, equip via profile; catalog loads.</li>
+            <li>Pages: rules (blackjack/poker/hold'em), profile customize, marketplace, support mailto.</li>
+            <li>Deploy: flyctl deploy --config fly.toml --no-cache after local smoke.</li>
+          </ul>
+        </div>
+      </details>
+
+      <!-- Profiles Section -->
+      <details class="control-panel collapsible" id="profiles-details">
+        <summary>Player Profiles</summary>
+        <section class="profiles-section flush">
+          <div class="profiles-toolbar">
+            <input
+              type="search"
+              id="profiles-search"
+              class="search-input"
+              placeholder="Search players..."
+            >
+            <button id="btn-refresh-profiles" class="btn btn-info btn-sm">
+              Refresh
+            </button>
+          </div>
+
+          <table class="profiles-table">
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Display Name</th>
+                <th>Balance</th>
+                <th>Rounds Won</th>
+                <th>Total Won</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="profiles-table-body">
+              <!-- Profile rows will be rendered here -->
+            </tbody>
+          </table>
+        </section>
+      </details>
 
       <!-- Audit Log -->
-      <section class="audit-section">
-        <h2>Unblock Audit Log</h2>
-        <table class="audit-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Admin</th>
-              <th>Target</th>
-              <th>Type</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="audit-table-body">
-            <!-- Audit entries will be rendered here -->
-          </tbody>
-        </table>
+      <details class="control-panel collapsible" id="audit-details">
+        <summary>Unblock Audit Log</summary>
+        <section class="audit-section flush">
+          <table class="audit-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Admin</th>
+                <th>Target</th>
+                <th>Type</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="audit-table-body">
+              <!-- Audit entries will be rendered here -->
+            </tbody>
+          </table>
+        </section>
+      </details>
+
+      <section class="control-panel compact-card" id="partner-panel">
+        <div class="section-header">
+          <h2>Partner Program</h2>
+          <p class="muted small">Manage partner payouts and view sales/views.</p>
+        </div>
+        <div class="form-grid compact-grid">
+          <input id="partner-id" class="form-input" placeholder="partner id (login)">
+          <input id="partner-name" class="form-input" placeholder="Display name">
+          <input id="partner-pct" class="form-input" type="number" min="0" max="90" step="1" placeholder="Payout % (default 10)">
+          <button id="btn-save-partner" class="btn btn-primary btn-sm">Save Partner</button>
+          <button id="btn-refresh-partners" class="btn btn-secondary btn-sm">Refresh</button>
+        </div>
+        <div class="table-responsive">
+          <table class="table slim-table" id="partner-table">
+            <thead>
+              <tr>
+                <th>Partner</th>
+                <th>Payout %</th>
+                <th>Orders</th>
+                <th>Coins</th>
+                <th>Gross ($)</th>
+                <th>Views</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="6" class="muted">No data</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="control-panel compact-card" id="viewer-earn-panel">
+        <div class="section-header">
+          <h2>Viewer Earn Config</h2>
+          <p class="muted small">AIC earn triggers (stored locally; server hooks pending).</p>
+        </div>
+        <div class="form-grid compact-grid">
+          <label>Chat: 1 AIC per N messages</label>
+          <input id="earn-chat-rate" class="form-input" type="number" min="1" value="5">
+          <label>Chat cap per stream</label>
+          <input id="earn-chat-cap" class="form-input" type="number" min="0" value="500">
+          <label>New follower reward</label>
+          <input id="earn-follower" class="form-input" type="number" min="0" value="25">
+          <label>Sub reward</label>
+          <input id="earn-sub" class="form-input" type="number" min="0" value="100">
+          <label>Raid reward</label>
+          <input id="earn-raid" class="form-input" type="number" min="0" value="250">
+          <label>Channel point redeem reward</label>
+          <input id="earn-redeem" class="form-input" type="number" min="0" value="25">
+          <button id="btn-save-earn" class="btn btn-primary btn-sm full-span">Save (local)</button>
+        </div>
+        <small class="muted">Anti-abuse safeguards (unique chatter cooldown, account age, daily caps) should be enforced server-side.</small>
       </section>
     </main>
   </div>
@@ -198,10 +358,102 @@
     </div>
   </div>
 
+  <!-- Overlay/Cosmetics Modal -->
+  <div id="overlay-modal" class="modal" style="display: none;">
+    <div class="modal-content modal-lg">
+      <div class="modal-header">
+        <h2>Cosmetics & Overlay</h2>
+        <button type="button" class="modal-close" id="overlay-modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="muted">Adjust overlay feel and connect Twitch to unlock subscriber/VIP/follower cosmetics (one click per streamer).</p>
+        <div class="form-grid dev-grid">
+          <label>
+            Deal delay per player
+            <input id="dev-deal-base" type="range" min="0" max="0.6" step="0.02" value="0.18">
+            <small class="muted">Current: <span id="dev-deal-base-val">0.18</span>s</small>
+          </label>
+          <label>
+            Deal delay per card
+            <input id="dev-deal-card" type="range" min="0" max="0.3" step="0.02" value="0.08">
+            <small class="muted">Current: <span id="dev-deal-card-val">0.08</span>s</small>
+          </label>
+          <label>
+            Chip sound volume
+            <input id="dev-chip-volume" type="range" min="0" max="0.6" step="0.02" value="0.16">
+            <small class="muted">Current: <span id="dev-chip-volume-val">0.16</span></small>
+          </label>
+          <label>
+            Pot glow multiplier
+            <input id="dev-pot-glow" type="range" min="1" max="20" step="0.5" value="5">
+            <small class="muted">Current: <span id="dev-pot-glow-val">5</span>x min bet</small>
+          </label>
+          <label>
+            Card back variant
+            <select id="dev-card-variant" class="form-input">
+              <option value="default">Default</option>
+              <option value="emerald">Emerald</option>
+              <option value="azure">Azure</option>
+              <option value="magenta">Magenta</option>
+              <option value="gold">Gold</option>
+              <option value="custom">Custom tint</option>
+            </select>
+          </label>
+          <label>
+            Card back tint (custom)
+            <input id="dev-card-tint" type="color" value="#0f7a62">
+            <small class="muted">Used when variant is set to custom.</small>
+          </label>
+          <label>
+            Avatar ring color
+            <input id="dev-avatar-ring" type="color" value="#00d4a6">
+          </label>
+          <label>
+            Profile card border
+            <input id="dev-profile-border" type="color" value="#00d4a6">
+          </label>
+          <label>
+            Table felt tint
+            <input id="dev-table-tint" type="color" value="#0b4a3e">
+          </label>
+          <label>
+            Table logo color
+            <input id="dev-table-logo" type="color" value="#8ef5d0">
+          </label>
+          <label class="checkbox-inline">
+            <input id="dev-auto-fill-ai" type="checkbox">
+            Auto-fill empty seats with AI (streamer opt-in)
+          </label>
+        </div>
+        <div class="control-row" style="margin-top:12px;">
+          <button id="btn-apply-overlay-settings" class="btn btn-primary btn-sm">Push to overlays</button>
+          <small class="muted">Applies to overlays using this channel/lobby.</small>
+        </div>
+        <div class="control-row" style="margin-top:12px;">
+          <button id="btn-connect-subs" class="btn btn-info btn-sm">Connect Subs/VIPs/Followers (one click)</button>
+          <small class="muted">Requests Twitch scopes for subs, VIPs, followers. Stored per channel for cosmetic unlocks.</small>
+        </div>
+        <div class="control-row">
+          <button id="btn-refresh-catalog" class="btn btn-secondary btn-sm">Reload cosmetics catalog</button>
+          <small class="muted">For QA: reloads catalog/ownership cache.</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notifications -->
   <div id="toast-container" class="toast-container"></div>
 
-  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-wNqiR6UCbyaxTs3LpwBbUMkM94ePQz0cCVu3RHYZK8eC6xkzGdY9lKDrV1Q9l2Kk" crossorigin="anonymous"></script>
+  <!-- Quick Section Modal -->
+  <div id="quick-popover" class="quick-popover" style="display:none;">
+    <div class="quick-popover-header">
+      <div id="quick-popover-title">Section</div>
+      <button type="button" class="btn btn-secondary btn-sm" id="quick-popover-close">Close</button>
+    </div>
+    <div id="quick-popover-body"></div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <script src="client.js"></script>
   <script src="admin.js"></script>
 </body>

@@ -30,6 +30,12 @@ function getChannelParam() {
   return (params.get('channel') || '').trim().toLowerCase();
 }
 
+function getChannelParam() {
+  if (typeof window === 'undefined') return '';
+  const params = new URLSearchParams(window.location.search || '');
+  return (params.get('channel') || '').trim().toLowerCase();
+}
+
 /**
  * Toast notification system
  */
@@ -120,6 +126,18 @@ function clearUserToken() {
   setUserToken(null);
 }
 
+function setAdminBearer(token) {
+  if (token) {
+    localStorage.setItem('admin_bearer', token);
+  } else {
+    localStorage.removeItem('admin_bearer');
+  }
+}
+
+function getAdminBearer() {
+  return localStorage.getItem('admin_bearer');
+}
+
 function clearToken() {
   setToken(null);
 }
@@ -152,9 +170,22 @@ function setThemeButtonLabel(btn) {
   btn.textContent = t === 'light' ? 'Dark Theme' : 'Light Theme';
 }
 
+let __authBounce = false;
+function handleAuthFailure() {
+  if (__authBounce) return;
+  __authBounce = true;
+  clearToken();
+  clearUserToken();
+  Toast.warning('Session expired. Please sign in again.');
+  if (!window.location.pathname.endsWith('/login.html')) {
+    window.location.href = '/login.html';
+  }
+}
+
 async function apiCall(endpoint, options = {}) {
   const useUserToken = options.useUserToken !== undefined ? options.useUserToken : !!window.__DEFAULT_USE_USER_TOKEN;
   const token = useUserToken ? getUserToken() : getToken();
+  const adminBearer = useUserToken ? null : getAdminBearer();
   const channel = typeof getChannelParam === 'function' ? getChannelParam() : '';
   const headers = {
     'Content-Type': 'application/json',
@@ -163,6 +194,8 @@ async function apiCall(endpoint, options = {}) {
 
   if (token) {
     headers.Authorization = `Bearer ${token}`;
+  } else if (adminBearer) {
+    headers.Authorization = `Bearer ${adminBearer}`;
   }
   if (channel) {
     headers['x-channel'] = channel;
@@ -178,6 +211,9 @@ async function apiCall(endpoint, options = {}) {
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        handleAuthFailure();
+      }
       throw new Error(data.error || `HTTP ${response.status}`);
     }
 
@@ -196,6 +232,8 @@ window.Toast = Toast;
 window.getToken = getToken;
 window.setToken = setToken;
 window.clearToken = clearToken;
+window.setAdminBearer = setAdminBearer;
+window.getAdminBearer = getAdminBearer;
 window.getUserToken = getUserToken;
 window.setUserToken = setUserToken;
 window.clearUserToken = clearUserToken;

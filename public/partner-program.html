@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All-In Chat Poker Partner Program</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="style-theme.css">
+  <style>
+    body { margin:0; font-family: var(--font-family-base); background: radial-gradient(circle at 30% 20%, #0f1c2a 0%, #070d15 60%, #05070f 100%); color: var(--text-primary); }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 28px; }
+    .hero { display: grid; gap: 12px; padding: 22px; border-radius: 16px; border:1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); box-shadow: var(--shadow-lg); }
+    .hero h1 { margin: 0; font-size: clamp(26px, 3vw, 36px); }
+    .cta-row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .section { margin-top: 20px; padding: 18px; border-radius: 14px; border:1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); box-shadow: var(--shadow-md); }
+    .grid { display:grid; gap:12px; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); }
+    .card { padding:14px; border-radius:12px; border:1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.2); }
+    .badge { display:inline-block; padding:3px 8px; border-radius:999px; font-size:0.8rem; background: rgba(255,255,255,0.08); }
+    .terms-box { max-height: 320px; overflow:auto; padding:12px; border:1px solid rgba(255,255,255,0.08); border-radius:10px; background: rgba(0,0,0,0.2); }
+    .agree-row { display:flex; align-items:center; gap:10px; margin-top:10px; }
+    .btn-apply { width: 200px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="badge">Partner Program</div>
+      <h1>Build Community. Earn Rewards. Go All-In.</h1>
+      <p class="muted">The All-In Chat Poker Partner Program rewards streamers and creators who bring their communities together—no pay-to-win, no gameplay advantage, community-first cosmetics.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#apply">Apply Now</a>
+        <a class="btn btn-secondary" href="#short-form">View Agreement</a>
+        <a class="btn btn-secondary" href="/partner-privacy.html" target="_blank" rel="noopener">Privacy Disclosure</a>
+        <a class="btn btn-secondary" href="/partner-compensation.html" target="_blank" rel="noopener">Compensation Addendum</a>
+      </div>
+    </section>
+
+    <section class="section" id="short-form">
+      <h2>Short-Form Agreement</h2>
+      <p class="muted">Effective Date: <span id="eff-date"></span></p>
+      <div class="terms-box">
+        <p><strong>PROGRAM PARTICIPATION</strong><br>Independent participant; access to Partner-only cosmetics, All-In Chips, and features subject to eligibility and compliance.</p>
+        <p><strong>NO CASH VALUE / NO PAY-TO-WIN</strong><br>All-In Chips are virtual, cosmetic-only, no gameplay advantage.</p>
+        <p><strong>CONTENT & CONDUCT</strong><br>Follow community/platform rules; honest promotion; no abusive/misleading behavior; disclose Partner status.</p>
+        <p><strong>REWARDS & LIMITATIONS</strong><br>Engagement-based, rate-limited, capped; abuse/automation prohibited; rewards may change.</p>
+        <p><strong>TERMINATION</strong><br>Either party may end participation; violations may lead to suspension/removal; unused rewards may be forfeited.</p>
+        <p><strong>TERMS INCORPORATION</strong><br>Full Partner Program Terms &amp; Conditions apply.</p>
+        <p><strong>ACCEPTANCE</strong><br>You are 18+, control the linked streaming account, and agree to comply with all program rules.</p>
+      </div>
+      <div class="agree-row">
+        <input type="checkbox" id="agree-box">
+        <label for="agree-box">I Agree to the All-In Chat Poker Partner Program Terms</label>
+      </div>
+      <button id="agree-btn" class="btn btn-primary btn-apply" disabled>Apply / Continue</button>
+      <small class="muted">Pairs with account linking; use as a final step before enabling Partner perks.</small>
+    </section>
+
+    <section class="section" id="tiers">
+      <h2>Partner Tiers</h2>
+      <div class="grid">
+        <div class="card">
+          <div class="badge">Affiliate</div>
+          <ul>
+            <li>Stream-linked AIC bonuses</li>
+            <li>Viewer-only cosmetics during stream</li>
+            <li>Affiliate badge & dashboard (basic)</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="badge">Partner</div>
+          <ul>
+            <li>Increased AIC earn rate</li>
+            <li>Custom streamer avatar border</li>
+            <li>Stream-branded table cosmetics</li>
+            <li>Viewer reward drops; promo slots</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="badge">Premier (Invite)</div>
+          <ul>
+            <li>Highest AIC bonuses</li>
+            <li>Branded tables & dealer FX</li>
+            <li>Early feature access</li>
+            <li>Co-branded tournaments & spotlight</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how-it-works">
+      <h2>How It Works</h2>
+      <div class="grid">
+        <div class="card">Apply & get approved</div>
+        <div class="card">Go live with All-In Chat Poker</div>
+        <div class="card">Engage your chat</div>
+        <div class="card">Earn rewards together</div>
+      </div>
+    </section>
+
+    <section class="section" id="rewards">
+      <h2>Rewards & Viewer Unlocks</h2>
+      <div class="grid">
+        <div class="card">
+          <strong>All-In Chips</strong>
+          <p class="muted">Earned from engagement (chat, follows, subs, raids, joins). Cosmetic-only, capped, no cash value.</p>
+        </div>
+        <div class="card">
+          <strong>Viewer-only Cosmetics</strong>
+          <p class="muted">Streamer-exclusive borders, badges, limited-time drops. Not purchasable; time-limited.</p>
+        </div>
+        <div class="card">
+          <strong>Events & Milestones</strong>
+          <p class="muted">Flash/seasonal bonuses, community milestones, capped discounts on cosmetics (never pay-to-win).</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="terms">
+      <h2>Partner Program Terms &amp; Conditions (Summary)</h2>
+      <div class="terms-box" style="max-height:420px;">
+        <p><strong>Eligibility:</strong> 18+, control your streaming account, follow platform rules, accurate info.</p>
+        <p><strong>Chips & Rewards:</strong> Virtual, cosmetic-only; rate-limited; caps/anti-abuse enforced; no cash value.</p>
+        <p><strong>Restrictions:</strong> No selling/trading chips, no bots, no fraud, no circumventing limits.</p>
+        <p><strong>Disclosure:</strong> Comply with FTC/platform disclosure (e.g., “Partnered with All-In Chat Poker”).</p>
+        <p><strong>Conduct:</strong> No hate/abuse/misleading content; follow brand guidelines; honest promotion.</p>
+        <p><strong>Monitoring:</strong> Activity may be audited; rewards may adjust; violations can suspend/terminate.</p>
+        <p><strong>Termination:</strong> Either party may end participation; unused chips/cosmetics may be revoked on removal.</p>
+        <p><strong>Independent Contractor:</strong> No employment/agency/joint venture is created.</p>
+        <p><strong>Updates:</strong> Program/Terms may change; continued participation = acceptance.</p>
+        <p><strong>Full Terms:</strong> See full Partner Program Terms &amp; Conditions (version 12/17/2025).</p>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const eff = document.getElementById('eff-date');
+    const cb = document.getElementById('agree-box');
+    const btn = document.getElementById('agree-btn');
+    if (eff) eff.textContent = new Date().toLocaleDateString();
+    if (cb && btn) {
+      cb.addEventListener('change', () => { btn.disabled = !cb.checked; });
+      btn.addEventListener('click', () => {
+        if (!cb.checked) return;
+        alert('Thank you! Partner application flow continues from here.');
+      });
+    }
+  </script>
+</body>
+</html>

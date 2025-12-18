@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Overlay Editor | All-In Chat Poker</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="style-theme.css">
+  <style>
+    body { background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-family-base); margin: 0; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    .header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .muted { color: var(--text-muted); }
+    .layout { display: grid; grid-template-columns: 200px 1fr 360px; gap: 14px; align-items: start; }
+    .panel { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; box-shadow: var(--shadow-md); }
+    .rail { display: flex; flex-direction: column; gap: 8px; }
+    .rail button { text-align: left; width: 100%; }
+    .rail .btn { background: var(--bg-tertiary); color: #eef2ff; border: 1px solid var(--border-color); }
+    .rail .active { background: var(--accent-500); color: #041016; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+    .item-card { border: 1px solid var(--border-color); border-radius: 10px; padding: 10px; background: var(--bg-tertiary); cursor: pointer; display: grid; gap: 8px; }
+    .item-card .thumb { height: 120px; border-radius: 10px; border: 1px solid var(--border-color); background: #0c1c2c; display: grid; place-items: center; overflow: hidden; }
+    .item-card .meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-muted); }
+    .item-card.selected { outline: 2px solid var(--accent-400); }
+    .preview { display: grid; gap: 10px; }
+    .preview .canvas-wrap, .preview .img-wrap { height: 260px; border-radius: 12px; border: 1px solid var(--border-color); background: radial-gradient(circle at 30% 30%, rgba(68,255,210,0.12), rgba(12,30,48,0.9)); display: grid; place-items: center; overflow: hidden; }
+    .preview img { max-width: 100%; max-height: 100%; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    canvas { width: 100%; height: 100%; }
+    .controls { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:8px; }
+    .controls .muted { margin-left:auto; }
+    .badge.missing { background: rgba(196,76,76,0.18); color:#f5b5b5; }
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; z-index:999; }
+    .modal { background: var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px; padding:16px; box-shadow: var(--shadow-lg); max-width:90vw; max-height:90vh; }
+    .modal canvas, .modal img, .modal div { max-width:80vw; max-height:70vh; }
+    @media (max-width: 1080px) {
+      .layout { grid-template-columns: 1fr; }
+      .preview .canvas-wrap { height: 220px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <div>
+        <p class="muted" style="margin:0;">All-In Chat Poker</p>
+        <h1 style="margin:4px 0 0;">Overlay Editor</h1>
+        <p class="muted" style="margin:4px 0 0;">Pick one cosmetic at a time on the left; preview on the right.</p>
+      </div>
+      <div class="muted">Saved locally (overlayCosmeticSelection + overlayFxChoice)</div>
+    </div>
+
+    <div class="layout">
+      <aside class="panel rail" id="category-rail" aria-label="Cosmetic categories"></aside>
+
+      <section class="panel">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div>
+            <h3 id="section-title" style="margin:0;">Cosmetics</h3>
+            <p class="muted" id="section-subtitle" style="margin:0;">Select a category to see items.</p>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="refresh-btn">Reload</button>
+        </div>
+        <p class="muted" id="catalog-status" style="margin:0 0 8px;">Loading catalog...</p>
+        <div class="grid" id="item-grid"></div>
+      </section>
+
+      <section class="panel preview">
+        <div class="canvas-wrap" id="preview-visual">
+          <div class="muted">Select an item to preview</div>
+        </div>
+        <div>
+          <h3 id="preview-name" style="margin:0 0 4px;"></h3>
+          <div class="meta" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+            <span class="badge" id="preview-type"></span>
+            <span class="badge" id="preview-rarity"></span>
+            <span id="preview-price" class="muted"></span>
+          </div>
+          <p class="muted" id="preview-desc" style="margin:6px 0 10px;"></p>
+          <button class="btn btn-primary btn-sm" id="equip-btn" disabled>Equip (local)</button>
+        </div>
+      </section>
+    </div>
+
+  </div>
+
+  <script>
+    const statusEl = document.getElementById('catalog-status');
+    const categoryRail = document.getElementById('category-rail');
+    const itemGrid = document.getElementById('item-grid');
+    const previewVisual = document.getElementById('preview-visual');
+    const previewName = document.getElementById('preview-name');
+    const previewType = document.getElementById('preview-type');
+    const previewRarity = document.getElementById('preview-rarity');
+    const previewPrice = document.getElementById('preview-price');
+    const previewDesc = document.getElementById('preview-desc');
+    const equipBtn = document.getElementById('equip-btn');
+    const refreshBtn = document.getElementById('refresh-btn');
+    const sectionTitle = document.getElementById('section-title');
+    const sectionSubtitle = document.getElementById('section-subtitle');
+    let sectionStatusEl = null;
+
+    let effectsMeta = null;
+    let catalog = [];
+    let activeType = 'cardBack';
+    let selectedItem = null;
+    const cache = {};
+    const imageBaseByKey = {
+      card_deal_24: '/assets/cosmetics/effects/deals/face-down/',
+      card_flip_24: '/assets/cosmetics/effects/deals/face-up/',
+      win_burst_6: '/assets/cosmetics/effects/win/',
+    };
+    const typeLabels = {
+      cardBack: 'Card Backs',
+      cardFace: 'Card Faces',
+      tableSkin: 'Table Skins',
+      avatarRing: 'Avatar Rings',
+      profileFrame: 'Profile Frames',
+      chipSkin: 'Chips',
+      nameplate: 'Name Plates',
+      dealFx: 'Deal Effects',
+      winFx: 'Win Effects',
+    };
+    const localDefaults = {
+      cardBack: 'card-default',
+      cardFace: 'card-face-classic',
+      tableSkin: 'table-default',
+      avatarRing: 'ring-default',
+      profileFrame: 'frame-default',
+      chipSkin: 'chip-100-classic',
+      nameplate: 'nameplate-default',
+    };
+    let rarityFilter = '';
+    let sortKey = 'name';
+    let syncEnabled = false;
+    const missingImages = new Set();
+
+    async function loadEffectsMeta() {
+      try {
+        const res = await fetch('/assets/cosmetics/effects/meta.json');
+        effectsMeta = res.ok ? await res.json() : null;
+      } catch (e) {
+        console.warn('Failed to load effects meta', e);
+      }
+    }
+
+    function loadStoredFxChoice() {
+      try {
+        const saved = localStorage.getItem('overlayFxChoice');
+        if (saved) return JSON.parse(saved);
+      } catch (e) {}
+      return { dealFx: 'card_deal_24', winFx: 'win_burst_6' };
+    }
+
+    function loadStoredCosmetics() {
+      try {
+        const saved = localStorage.getItem('overlayCosmeticSelection');
+        if (saved) return JSON.parse(saved);
+      } catch (e) {}
+      return {};
+    }
+
+    function saveCosmeticSelection(partial) {
+      const current = loadStoredCosmetics();
+      const next = { ...current, ...partial };
+      localStorage.setItem('overlayCosmeticSelection', JSON.stringify(next));
+    }
+
+    function saveFxChoice(partial) {
+      const current = loadStoredFxChoice();
+      const next = { ...current, ...partial };
+      localStorage.setItem('overlayFxChoice', JSON.stringify(next));
+      if (syncEnabled) syncOverlay();
+    }
+
+    async function loadImage(src) {
+      if (cache[src]) return cache[src];
+      const img = new Image();
+      const p = new Promise((resolve, reject) => {
+        img.onload = () => resolve(img);
+        img.onerror = (err) => reject(err || new Error('image load failed'));
+      });
+      img.src = src;
+      await p;
+      cache[src] = img;
+      return img;
+    }
+
+    function playSprite(img, meta, canvas) {
+      if (!img || !meta || !canvas) return;
+      if (!img.naturalWidth || !img.naturalHeight) {
+        console.warn('Sprite has no dimensions', meta);
+        return;
+      }
+      const ctx = canvas.getContext('2d');
+      const fw = meta.frameWidth || Math.floor(img.naturalWidth / (meta.columns || meta.frameCount || 1));
+      const fh = meta.frameHeight || Math.floor(img.naturalHeight / (meta.rows || 1));
+      canvas.width = fw;
+      canvas.height = fh;
+      let frame = 0;
+      const columns = meta.columns || Math.max(1, Math.floor(img.naturalWidth / fw));
+      const total = meta.frameCount || columns;
+      const fps = meta.fps || 24;
+
+      const draw = () => {
+        if (!canvas.isConnected) return;
+        const f = frame % total;
+        const col = f % columns;
+        const row = Math.floor(f / columns);
+        const sx = col * fw + (meta.spacing || 0) * col;
+        const sy = row * fh + (meta.spacingY || meta.spacing || 0) * row;
+        ctx.clearRect(0, 0, fw, fh);
+        ctx.drawImage(img, sx, sy, fw, fh, 0, 0, canvas.width, canvas.height);
+        frame += 1;
+        setTimeout(() => requestAnimationFrame(draw), Math.max(20, 1000 / fps));
+      };
+      draw();
+    }
+
+    async function previewFx(key, canvas) {
+      if (!effectsMeta?.animations) return;
+      const meta = effectsMeta.animations[key];
+      if (!meta) return;
+      const basePath = imageBaseByKey[key] || (key.includes('win') ? '/assets/cosmetics/effects/win/' : '/assets/cosmetics/effects/deals/face-down/');
+      const spritePath = meta.image
+        ? (meta.image.startsWith('http') ? meta.image : `${basePath}${meta.image}`)
+        : '';
+      if (!spritePath) return;
+      try {
+        const img = await loadImage(spritePath);
+        playSprite(img, meta, canvas);
+      } catch (e) {
+        console.warn('Preview failed', key, e);
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#c44';
+        ctx.font = '14px sans-serif';
+        ctx.fillText('Preview unavailable', 10, 24);
+      }
+    }
+
+    function buildThumb(item) {
+      const tint = item.tint || item.color || '#0b1b1b';
+      const img = item.image_url || item.preview || '';
+      const hasImg = Boolean(img);
+      if (item.type === 'tableSkin') {
+        const bgImg = hasImg ? `, url('${img}') center/cover no-repeat` : '';
+        return `<div style="width:100%;height:100%;background:linear-gradient(135deg,${tint}, #0c1c2c)${bgImg};display:grid;place-items:center;color:${item.color || '#8ef5d0'};font-weight:700;">TABLE</div>`;
+      }
+      if (item.type === 'avatarRing') {
+        const bg = hasImg ? `url('${img}') center/cover no-repeat` : 'transparent';
+        return `<div style="width:70px;height:70px;border-radius:50%;border:3px solid ${item.color || '#00d4a6'};box-shadow:0 0 12px ${item.color || '#00d4a6'};background:${bg};"></div>`;
+      }
+      if (item.type === 'cardBack') {
+        const bg = hasImg ? `url('${img}') center/cover no-repeat, ${tint}` : `linear-gradient(135deg, ${tint}, #0d1f2d)`;
+        return `<div style="width:96px;height:120px;border-radius:10px;border:1px solid var(--border-color);background:${bg};box-shadow:0 0 10px rgba(0,0,0,0.4);"></div>`;
+      }
+      if (item.type === 'cardFace') {
+        const trimmed = img && img.endsWith('/') ? img.slice(0, -1) : img;
+        const sample = trimmed ? `${trimmed}/ace_of_spades.png` : '';
+        const bg = sample ? `url('${sample}') center/cover no-repeat` : tint;
+        return `<div style="width:80px;height:110px;border-radius:10px;border:1px solid var(--border-color);background:${bg};"></div>`;
+      }
+      if (item.type === 'profileFrame') {
+        return `<div style="width:96px;height:96px;border-radius:12px;border:3px solid ${item.color || '#00d4a6'};box-shadow:0 0 14px ${item.color || '#00d4a6'};"></div>`;
+      }
+      if (item.type === 'chipSkin') {
+        const bg = hasImg ? `url('${img}') center/cover no-repeat` : tint;
+        return `<div style="width:96px;height:96px;border-radius:50%;border:1px solid var(--border-color);background:${bg};"></div>`;
+      }
+      if (item.type === 'nameplate') {
+        const bg = hasImg ? `url('${img}') center/cover no-repeat, linear-gradient(135deg, ${tint}, #101820)` : `linear-gradient(135deg, ${tint}, #101820)`;
+        return `<div style="width:100%;height:64px;border-radius:10px;border:1px solid var(--border-color);background:${bg};display:grid;place-items:center;color:${item.color || '#8ef5d0'};font-weight:700;">Name</div>`;
+      }
+      const bg = hasImg ? `url('${img}') center/cover no-repeat, ${tint}` : tint;
+      return `<div style="width:96px;height:120px;border-radius:10px;border:1px solid var(--border-color);background:${bg};"></div>`;
+    }
+
+    function renderCategories() {
+      categoryRail.innerHTML = '';
+      const byType = catalog.reduce((acc, item) => {
+        acc[item.type] = acc[item.type] || [];
+        acc[item.type].push(item);
+        return acc;
+      }, {});
+      const typeOrder = ['cardBack','cardFace','tableSkin','avatarRing','profileFrame','chipSkin','nameplate','dealFx','winFx'];
+      const types = typeOrder.filter(t => typeLabels[t]);
+      if (!types.includes(activeType)) activeType = types[0] || 'cardBack';
+      types.forEach(type => {
+        const count = byType[type]?.length || (type === 'dealFx' || type === 'winFx' ? 1 : 0);
+        const btn = document.createElement('button');
+        btn.className = `btn btn-secondary btn-sm ${type === activeType ? 'active' : ''}`;
+        btn.textContent = `${typeLabels[type]}${count ? ` (${count})` : ''}`;
+        btn.addEventListener('click', () => {
+          activeType = type;
+          renderGrid();
+        });
+        categoryRail.appendChild(btn);
+      });
+      renderGrid();
+    }
+
+    function renderGrid() {
+      // FX categories are handled separately
+      if (activeType === 'dealFx' || activeType === 'winFx') {
+        renderFxPanel(activeType);
+        return;
+      }
+
+      const items = catalog.filter(i => i.type === activeType)
+        .filter(i => !rarityFilter || (i.rarity || 'common') === rarityFilter)
+        .sort((a, b) => {
+          if (sortKey === 'price') return (a.price_cents || 0) - (b.price_cents || 0);
+          if (sortKey === 'rarity') return (a.rarity || '').localeCompare(b.rarity || '');
+          return (a.name || a.id).localeCompare(b.name || b.id);
+        });
+      sectionTitle.textContent = typeLabels[activeType] || 'Cosmetics';
+      const missingCount = items.filter(i => isMissingAsset(i)).length;
+      sectionSubtitle.textContent = items.length ? `Choose a ${typeLabels[activeType] || activeType}` : 'No items found.';
+      if (sectionStatusEl) sectionStatusEl.textContent = `${items.length} items` + (missingCount ? ` • ${missingCount} missing assets` : '');
+      itemGrid.innerHTML = '';
+      if (!items.length) {
+        itemGrid.innerHTML = '<div class="muted">No items in this category.</div>';
+        previewVisual.innerHTML = '<div class="muted">Select an item to preview</div>';
+        equipBtn.disabled = true;
+        return;
+      }
+      const equipped = loadStoredCosmetics();
+      const equippedId = equipped[activeType];
+      items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'item-card' + (item.id === equippedId ? ' selected' : '');
+        card.innerHTML = `
+          <div class="thumb">${buildThumb(item)}</div>
+          <div class="meta">
+            <span>${item.rarity || 'common'}</span>
+            <span>${Number.isFinite(item.price_cents) ? '$' + (item.price_cents/100).toFixed(2) : 'Free'}</span>
+          </div>
+          <div style="font-weight:600;">${item.name || item.id}</div>
+          <div class="muted" style="font-size:0.85rem;">${item.description || item.unlock_note || ''}</div>
+        `;
+        card.addEventListener('click', () => {
+          selectItem(item);
+          itemGrid.querySelectorAll('.item-card').forEach(c => c.classList.remove('selected'));
+          card.classList.add('selected');
+        });
+        itemGrid.appendChild(card);
+      });
+      const first = items.find(i => i.id === equippedId) || items[0];
+      selectItem(first);
+    }
+
+    function selectItem(item) {
+      selectedItem = item;
+      if (!item) {
+        equipBtn.disabled = true;
+        previewVisual.innerHTML = '<div class="muted">Select an item to preview</div>';
+        return;
+      }
+      previewName.textContent = item.name || item.id;
+      previewType.textContent = item.type || '';
+      previewRarity.textContent = item.rarity || 'common';
+      previewPrice.textContent = Number.isFinite(item.price_cents) ? '$' + (item.price_cents / 100).toFixed(2) : 'Free';
+      previewDesc.textContent = item.description || item.unlock_note || '';
+      const thumb = buildThumb(item);
+      previewVisual.innerHTML = thumb;
+      addViewLargeButton(thumb);
+      equipBtn.disabled = false;
+    }
+
+    function renderFxPanel(which) {
+      sectionTitle.textContent = typeLabels[which] || 'Effects';
+      sectionSubtitle.textContent = 'Choose an animation and see the preview on the canvas.';
+      previewVisual.innerHTML = '<div class="muted">FX preview is shown below</div>';
+      equipBtn.disabled = true;
+      itemGrid.innerHTML = '';
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'field';
+      const label = document.createElement('label');
+      label.textContent = which === 'dealFx' ? 'Deal Animation' : 'Win Animation';
+      const select = document.createElement('select');
+      select.className = 'form-input';
+      const canvasWrap = document.createElement('div');
+      canvasWrap.className = 'canvas-wrap';
+      canvasWrap.style.height = '220px';
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 320;
+      canvas.setAttribute('aria-label', `${which} preview`);
+      canvasWrap.appendChild(canvas);
+
+      const animations = effectsMeta?.animations || {};
+      const filterFn = which === 'dealFx'
+        ? ([k]) => k.includes('deal') || k.includes('flip')
+        : ([k]) => k.includes('win') || k.includes('burst');
+      const opts = Object.entries(animations).filter(filterFn);
+      const current = loadStoredFxChoice();
+      const initial = which === 'dealFx' ? current.dealFx : current.winFx;
+      select.innerHTML = opts.map(([k, v]) => `<option value="${k}">${v.description || k}</option>`).join('');
+      select.value = initial || opts[0]?.[0] || '';
+      select.addEventListener('change', () => {
+        if (which === 'dealFx') {
+          saveFxChoice({ dealFx: select.value });
+        } else {
+          saveFxChoice({ winFx: select.value });
+        }
+        previewFx(select.value, canvas);
+      });
+
+      wrapper.appendChild(label);
+      wrapper.appendChild(select);
+      wrapper.appendChild(canvasWrap);
+      itemGrid.appendChild(wrapper);
+
+      if (select.value) previewFx(select.value, canvas);
+    }
+
+    function addViewLargeButton(contentHtml) {
+      let btn = document.getElementById('view-large-btn');
+      if (!btn) {
+        btn = document.createElement('button');
+        btn.id = 'view-large-btn';
+        btn.className = 'btn btn-secondary btn-sm';
+        btn.textContent = 'View large';
+        previewVisual.parentElement.appendChild(btn);
+      }
+      btn.onclick = () => {
+        const backdrop = document.createElement('div');
+        backdrop.className = 'modal-backdrop';
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `<div style="margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;"><strong>Preview</strong><button class="btn btn-secondary btn-sm" id="close-modal-btn">Close</button></div>${contentHtml}`;
+        backdrop.appendChild(modal);
+        document.body.appendChild(backdrop);
+        backdrop.addEventListener('click', (e) => {
+          if (e.target === backdrop || e.target.id === 'close-modal-btn') backdrop.remove();
+        });
+      };
+    }
+
+    function isMissingAsset(item) {
+      const img = item.image_url || item.preview;
+      if (!img) return true;
+      return missingImages.has(img);
+    }
+
+    async function preflightImages(items) {
+      const urls = Array.from(new Set(items.map(i => i.image_url || i.preview).filter(Boolean)));
+      await Promise.all(urls.map(src => new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => { missingImages.add(src); resolve(false); };
+        img.src = src;
+      })));
+    }
+
+    function renderControls() {
+      const controls = document.createElement('div');
+      controls.className = 'controls';
+      const raritySel = document.createElement('select');
+      raritySel.className = 'form-input';
+      raritySel.style.width = '160px';
+      raritySel.innerHTML = `
+        <option value="">All rarities</option>
+        <option value="common">Common</option>
+        <option value="uncommon">Uncommon</option>
+        <option value="rare">Rare</option>
+        <option value="epic">Epic</option>
+        <option value="legendary">Legendary</option>
+      `;
+      raritySel.value = rarityFilter;
+      raritySel.onchange = () => { rarityFilter = raritySel.value; renderGrid(); };
+
+      const sortSel = document.createElement('select');
+      sortSel.className = 'form-input';
+      sortSel.style.width = '160px';
+      sortSel.innerHTML = `
+        <option value="name">Sort: Name</option>
+        <option value="price">Sort: Price</option>
+        <option value="rarity">Sort: Rarity</option>
+      `;
+      sortSel.value = sortKey;
+      sortSel.onchange = () => { sortKey = sortSel.value; renderGrid(); };
+
+      const syncLabel = document.createElement('label');
+      syncLabel.style.display = 'flex';
+      syncLabel.style.alignItems = 'center';
+      syncLabel.style.gap = '6px';
+      const syncCheckbox = document.createElement('input');
+      syncCheckbox.type = 'checkbox';
+      syncCheckbox.checked = syncEnabled;
+      syncCheckbox.onchange = () => {
+        syncEnabled = syncCheckbox.checked;
+        localStorage.setItem('overlaySyncEnabled', syncEnabled ? '1' : '0');
+        if (syncEnabled) syncOverlay();
+      };
+      syncLabel.appendChild(syncCheckbox);
+      syncLabel.appendChild(document.createTextNode('Sync to overlay'));
+
+      const resetBtn = document.createElement('button');
+      resetBtn.className = 'btn btn-secondary btn-sm';
+      resetBtn.textContent = 'Reset category';
+      resetBtn.onclick = () => {
+        const defaults = loadStoredCosmetics();
+        if (localDefaults[activeType]) {
+          defaults[activeType] = localDefaults[activeType];
+          saveCosmeticSelection({ [activeType]: localDefaults[activeType] });
+          renderGrid();
+        }
+      };
+
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'btn btn-secondary btn-sm';
+      copyBtn.textContent = 'Copy loadout';
+      copyBtn.onclick = async () => {
+        const payload = {
+          cosmetics: loadStoredCosmetics(),
+          effects: loadStoredFxChoice(),
+        };
+        try {
+          await navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+          copyBtn.textContent = 'Copied!';
+          setTimeout(() => { copyBtn.textContent = 'Copy loadout'; }, 1200);
+        } catch (e) {
+          copyBtn.textContent = 'Copy failed';
+          setTimeout(() => { copyBtn.textContent = 'Copy loadout'; }, 1200);
+        }
+      };
+
+      sectionStatusEl = document.createElement('span');
+      sectionStatusEl.className = 'muted';
+
+      controls.appendChild(raritySel);
+      controls.appendChild(sortSel);
+      controls.appendChild(syncLabel);
+      controls.appendChild(resetBtn);
+      controls.appendChild(copyBtn);
+      controls.appendChild(sectionStatusEl);
+      sectionSubtitle.parentElement.insertBefore(controls, sectionSubtitle.nextSibling);
+    }
+
+    function syncOverlay() {
+      const payload = {
+        cosmetics: loadStoredCosmetics(),
+        effects: loadStoredFxChoice(),
+      };
+      fetch('/overlay/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }).catch(err => console.warn('Overlay sync failed', err));
+    }
+
+    async function loadCatalog() {
+      statusEl.textContent = 'Loading catalog...';
+      itemGrid.innerHTML = '';
+      try {
+        const res = await fetch('/catalog');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const items = await res.json();
+        catalog = (items || []).filter(i => typeLabels[i.type]);
+        await preflightImages(catalog);
+        renderCategories();
+        statusEl.textContent = '';
+      } catch (err) {
+        console.error('[overlay-editor] catalog load failed', err);
+        statusEl.textContent = 'Failed to load catalog. Please refresh.';
+        itemGrid.innerHTML = '<div class="muted">Catalog unavailable.</div>';
+      }
+    }
+
+    equipBtn.addEventListener('click', () => {
+      if (!selectedItem) return;
+      saveCosmeticSelection({ [selectedItem.type]: selectedItem.id });
+      equipBtn.textContent = 'Equipped (saved locally)';
+      setTimeout(() => { equipBtn.textContent = 'Equip (local)'; }, 1400);
+    });
+
+    refreshBtn.addEventListener('click', loadCatalog);
+
+    syncEnabled = localStorage.getItem('overlaySyncEnabled') === '1';
+    renderControls();
+    loadEffectsMeta().then(renderGrid);
+    loadCatalog();
+  </script>
+</body>
+</html>

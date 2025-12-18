@@ -3,10 +3,49 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Video Poker Overlay</title>
+  <title>All-In Chat Poker | Live Poker & Blackjack Overlay</title>
+  <meta name="description" content="All-In Chat Poker delivers a fast, streamer-ready poker and blackjack overlay with tournaments, cosmetics, and chat-powered play.">
+  <link rel="canonical" href="/index.html">
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="stylesheet" href="style-theme.css">
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* Lightweight gallery preview styles (kept local to this page) */
+    .promo-assets {
+      margin: 28px 0;
+      padding: 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+    }
+    .promo-assets h2 { margin: 0 0 6px; font-size: 1.1rem; }
+    .promo-assets p { margin: 0 0 12px; color: var(--text-secondary, #a8b3c5); }
+    .promo-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+    .promo-gallery img,
+    .promo-gallery .promo-sprite {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: #0b0f1a;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+    }
+    .promo-gallery .promo-sprite {
+      background-repeat: no-repeat;
+      background-position: 0 0;
+      background-size: calc(var(--frames, 6) * 100%) 100%;
+      animation: allin-preview 1s steps(var(--frames, 6)) infinite;
+    }
+    @keyframes allin-preview {
+      0% { background-position: 0 0; }
+      100% { background-position: 100% 0; }
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -26,15 +65,20 @@
               <button id="logout-btn" class="btn btn-secondary btn-sm" style="display:none;">Logout</button>
               <a id="login-link" class="btn btn-primary btn-sm" href="/login.html" style="display:none;">Sign In</a>
               <a id="streamer-btn" class="btn btn-info btn-sm" href="/admin2.html">Streamer Panel</a>
+              <a id="profile-btn" class="btn btn-success btn-sm" href="/profile.html">Profile</a>
             </div>
             <span class="round-info">
               <span id="phase-badge" class="badge badge-info phase-chip">Waiting...</span>
             </span>
-          <span id="mode-badge" class="badge badge-secondary phase-chip subtle">Mode: blackjack</span>
+            <span id="mode-badge" class="badge badge-secondary phase-chip subtle">Mode: blackjack</span>
             <span id="phase-countdown" class="countdown countdown-pill">00:00</span>
             <span id="phase-label" class="badge badge-secondary phase-chip subtle">-</span>
             <a href="/help.html" class="btn btn-secondary btn-sm">Help</a>
+            <a href="/about.html" class="btn btn-secondary btn-sm">About</a>
+            <a href="/contact.html" class="btn btn-secondary btn-sm">Contact</a>
             <button id="theme-toggle" class="btn btn-secondary btn-sm">Theme</button>
+            <button id="btn-player-ready" class="btn btn-secondary btn-sm">Ready</button>
+            <span id="ready-pill" class="badge badge-secondary subtle" style="display:none;">Ready sent</span>
           </div>
       </div>
     </header>
@@ -95,6 +139,7 @@
           </div>
 
           <div class="poker-actions" style="display:none;">
+            <label for="poker-raise-amount" class="sr-only">Raise amount</label>
             <input id="poker-raise-amount" type="number" min="0" step="10" class="form-input" placeholder="Raise amount">
             <button id="poker-check" class="btn btn-secondary btn-sm">Check</button>
             <button id="poker-call" class="btn btn-primary btn-sm">Call</button>
@@ -191,6 +236,40 @@
       </aside>
     </main>
 
+    <!-- Asset preview (mirrors welcome page) -->
+    <section class="promo-assets" aria-label="Overlay assets preview">
+      <h2>Vibes from the felt</h2>
+      <p>Live assets shipped in the overlay: card backs, chip stacks, deal/win FX, and the neon all-in burst.</p>
+      <p style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+        <a class="btn btn-info btn-sm" href="/admin2.html?channel=testroom" target="_blank" rel="noopener">Open Admin (testroom)</a>
+        <a class="btn btn-secondary btn-sm" href="/obs-overlay.html?channel=testroom" target="_blank" rel="noopener">Open Overlay (testroom)</a>
+      </p>
+      <div class="promo-gallery">
+        <img src="/assets/cosmetics/cards/basic/card-back-purple.png" alt="Purple neon card back">
+        <img src="/assets/cosmetics/effects/chips/chip-100-top.png" alt="Chip stack top view">
+        <img src="/assets/cosmetics/effects/deals/face-down/horizontal_transparent_sheet.png" alt="Face-down deal animation sheet">
+        <img src="/assets/cosmetics/effects/win/winburst_25frame_sprite.png" alt="Win burst sprite">
+        <div class="promo-sprite" id="allin-sprite-preview-index" aria-label="All-in burst sprite preview"></div>
+      </div>
+    </section>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <img src="logo.png" alt="All-In Chat Poker logo" class="footer-logo">
+          <div>
+            <div class="footer-title">All-In Chat Poker</div>
+            <div class="footer-subtitle">Streamer-first poker & blackjack overlay</div>
+          </div>
+        </div>
+        <div class="footer-links">
+          <a href="/about.html">About Us</a>
+          <a href="/contact.html">Contact Us</a>
+          <a href="/help.html">Help</a>
+        </div>
+      </div>
+    </footer>
+
     <!-- Admin Controls (shown when authorized) -->
     <footer class="admin-controls" id="admin-controls" style="display: none;">
       <div class="admin-container">
@@ -203,12 +282,32 @@
   <!-- Toast Notifications -->
   <div id="toast-container" class="toast-container"></div>
 
-  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-wNqiR6UCbyaxTs3LpwBbUMkM94ePQz0cCVu3RHYZK8eC6xkzGdY9lKDrV1Q9l2Kk" crossorigin="anonymous"></script>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <script src="client.js"></script>
   <script>
     // Expose the stored user token for Socket.IO auth
     window.__USER_TOKEN__ = getUserToken && getUserToken();
   </script>
   <script src="overlay.js"></script>
+  <script>
+    // Animate the all-in preview and auto-derive frame count from the sprite sheet
+    (() => {
+      const el = document.getElementById('allin-sprite-preview-index');
+      if (!el) return;
+      const SPRITE_URL = '/assets/cosmetics/effects/all-in/allin_burst_horizontal_sheet.png?v=3';
+      const img = new Image();
+      img.onload = () => {
+        if (!img.naturalHeight) return;
+        const frames = Math.max(1, Math.round(img.naturalWidth / img.naturalHeight));
+        el.style.setProperty('--frames', frames);
+        el.style.backgroundImage = `url('${SPRITE_URL}')`;
+        el.setAttribute('aria-label', `All-in burst sprite preview (${frames} frames)`);
+      };
+      img.onerror = () => { el.textContent = 'All-in animation preview unavailable'; };
+      img.src = SPRITE_URL;
+      el.style.backgroundImage = `url('${SPRITE_URL}')`;
+      el.style.setProperty('--frames', 6);
+    })();
+  </script>
 </body>
 </html>

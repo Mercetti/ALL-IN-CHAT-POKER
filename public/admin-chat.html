@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bot Chat (Admin)</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="style-theme.css">
+  <link rel="stylesheet" href="style-admin.css">
+  <style>
+    .admin-chat-shell {
+      max-width: 960px;
+      margin: 28px auto 40px auto;
+    }
+    .chat-card {
+      padding: 18px;
+      border-radius: 12px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+      background: linear-gradient(135deg, rgba(24, 32, 42, 0.94), rgba(12, 20, 28, 0.94));
+    }
+    .chat-log {
+      min-height: 320px;
+      max-height: 520px;
+      overflow-y: auto;
+      border-radius: 10px;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .chat-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .chat-row.user {
+      justify-content: flex-end;
+    }
+    .chat-bubble {
+      max-width: 720px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      line-height: 1.45;
+      font-size: 15px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .chat-row.user .chat-bubble {
+      background: linear-gradient(135deg, #0ad5a5, #01c28e);
+      color: #041311;
+      border-color: rgba(0, 0, 0, 0.08);
+      font-weight: 600;
+    }
+    .chat-bubble a {
+      color: #7bdcff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .chat-bubble a:hover {
+      text-decoration: underline;
+    }
+    .chat-form {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .chat-form input {
+      width: 100%;
+    }
+    .chat-subtle {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+    }
+    .chat-snippet {
+      margin-top: 6px;
+      padding: 8px 10px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.4;
+      color: #b7f3ff;
+    }
+    @media (max-width: 640px) {
+      .chat-card { padding: 14px; }
+      .chat-form { grid-template-columns: 1fr; }
+      .chat-row.user .chat-bubble { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container admin-chat-shell">
+    <header class="admin-header">
+      <div class="admin-brand">
+        <img src="logo.png" alt="All-In Chat Poker logo" class="brand-logo">
+        <div>
+          <h1>Bot Chat</h1>
+          <p class="brand-subtitle">Private MDN helper (admin only)</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="chat-theme-toggle" class="btn btn-secondary btn-sm">Theme</button>
+        <a id="chat-back-admin" class="btn btn-secondary btn-sm" href="/admin2.html">Admin</a>
+        <button id="chat-logout" class="btn btn-danger btn-sm">Logout</button>
+      </div>
+    </header>
+
+    <main class="chat-card control-panel">
+      <div class="section-header" style="margin-bottom:12px;">
+        <h2>Talk to the Bot</h2>
+        <div class="muted small" id="chat-status">Ask about any web API; the bot will pull the top MDN doc.</div>
+      </div>
+      <div id="chat-log" class="chat-log" aria-live="polite"></div>
+      <form id="chat-form" class="chat-form" autocomplete="off">
+        <input id="chat-input" class="form-input" type="text" placeholder="Example: Fetch API" aria-label="Message">
+        <button id="send-btn" class="btn btn-primary" type="submit">Send</button>
+      </form>
+      <div class="chat-subtle">
+        <span class="muted small">Replies summarize the first MDN result and link out.</span>
+        <span class="muted small" id="chat-hint">
+          <label style="cursor:pointer;">
+            <input type="checkbox" id="scrape-toggle" style="vertical-align:middle; margin-right:6px;">
+            Include page content (scrape)
+          </label>
+        </span>
+      </div>
+    </main>
+  </div>
+
+  <div id="toast-container" class="toast-container"></div>
+  <script src="client.js"></script>
+  <script src="admin-chat.js"></script>
+</body>
+</html>

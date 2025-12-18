@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Partner Privacy Disclosure | All-In Chat Poker</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="style-theme.css">
+  <style>
+    body { margin:0; font-family: var(--font-family-base); background: radial-gradient(circle at 30% 20%, #0f1c2a 0%, #070d15 60%, #05070f 100%); color: var(--text-primary); }
+    .wrap { max-width: 900px; margin: 0 auto; padding: 24px; }
+    .card { padding: 18px; border-radius: 14px; border:1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); box-shadow: var(--shadow-md); }
+    .muted { color: var(--text-muted); }
+    .agree-row { display:flex; align-items:center; gap:10px; margin-top:12px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>All-In Chat Poker &mdash; Partner Privacy Disclosure</h1>
+    <p class="muted">Effective Date: 12/17/2025</p>
+    <p class="muted">This supplements the All-In Chat Poker Privacy Policy and applies to Partner Program participants.</p>
+    <div class="card">
+      <ol>
+        <li><strong>Information We Collect</strong>: Twitch identifiers, stream status, engagement metrics, tier/reward history, All-In Chip earnings, partner communications. No payment card data collected via the Partner Program.</li>
+        <li><strong>How We Use Partner Data</strong>: Verify eligibility, enable stream-linked features, calculate AIC, prevent abuse/fraud, operate/support the program, communicate updates. No data sales.</li>
+        <li><strong>Sharing & Disclosure</strong>: With platform providers (e.g., Twitch), service providers, or as required by law; limited to what’s needed to operate the program.</li>
+        <li><strong>Data Retention</strong>: Kept while you participate or as needed for operational/security/legal purposes; may be anonymized/aggregated after exit.</li>
+        <li><strong>Your Rights</strong>: Same as Privacy Policy (access/correct/delete/restrict where applicable), subject to legal/operational needs.</li>
+        <li><strong>Security</strong>: Safeguards per Privacy Policy; no system is perfectly secure.</li>
+        <li><strong>Changes</strong>: Updates may occur; continued participation means acceptance.</li>
+        <li><strong>Contact</strong>: privacy@yourdomain.com for privacy requests/questions.</li>
+      </ol>
+      <div class="agree-row">
+        <input type="checkbox" id="agree-box">
+        <label for="agree-box">I Agree to the Partner Privacy Disclosure and Privacy Policy</label>
+      </div>
+      <button id="agree-btn" class="btn btn-primary btn-sm" disabled>Continue</button>
+    </div>
+  </div>
+  <script>
+    const cb = document.getElementById('agree-box');
+    const btn = document.getElementById('agree-btn');
+    if (cb && btn) {
+      cb.addEventListener('change', () => { btn.disabled = !cb.checked; });
+      btn.addEventListener('click', () => {
+        if (!cb.checked) return;
+        alert('Privacy disclosure accepted. Proceeding to next step...');
+      });
+    }
+  </script>
+</body>
+</html>

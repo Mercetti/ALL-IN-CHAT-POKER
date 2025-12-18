@@ -44,9 +44,10 @@ document.addEventListener('DOMContentLoaded', () => {
       Toast.error('Twitch OAuth not configured on server');
       return;
     }
+    const cleanRedirect = (cfg.redirectUri || twitchRedirectUri || '').trim().replace(/\\+$/, '');
     const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${encodeURIComponent(
       cfg.twitchClientId
-    )}&redirect_uri=${encodeURIComponent(cfg.redirectUri || twitchRedirectUri)}&response_type=token&scope=user:read:email`;
+    )}&redirect_uri=${encodeURIComponent(cleanRedirect)}&response_type=token&scope=user:read:email`;
     window.location.href = authUrl;
   });
 
@@ -68,8 +69,32 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
           // Bot or streamer can hop straight to admin, others to overlay
           const login = (result.login || '').toLowerCase();
-          if (login && twitchConfig && (login === (twitchConfig.streamerLogin || '').toLowerCase() || login === (twitchConfig.botAdminLogin || '').toLowerCase())) {
+          const role = (result.role || '').toLowerCase();
+          const isAdminRole = role === 'streamer' || role === 'admin';
+          const isConfiguredAdmin =
+            login &&
+            twitchConfig &&
+            (login === (twitchConfig.streamerLogin || '').toLowerCase() ||
+              login === (twitchConfig.botAdminLogin || '').toLowerCase());
+
+          if (isAdminRole || isConfiguredAdmin) {
             window.location.href = '/admin2.html';
+            return;
+          }
+
+          // Offer to set streamer role on first login
+          const wantStreamer = window.confirm('Are you the streamer? Choose OK to enable the streamer panel.');
+          if (wantStreamer) {
+            apiCall('/user/role', {
+              method: 'POST',
+              body: JSON.stringify({ role: 'streamer' }),
+            })
+              .then(() => {
+                window.location.href = '/admin2.html';
+              })
+              .catch(() => {
+                window.location.href = '/index.html';
+              });
           } else {
             window.location.href = '/index.html';
           }
@@ -85,6 +110,15 @@ document.addEventListener('DOMContentLoaded', () => {
     themeBtn.addEventListener('click', () => {
       const next = toggleTheme();
       Toast.info(`Theme: ${next}`);
+    });
+  }
+
+  const resetBtn = document.getElementById('reset-session-btn');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      clearToken();
+      clearUserToken();
+      Toast.info('Session cleared. Please sign in again.');
     });
   }
 });

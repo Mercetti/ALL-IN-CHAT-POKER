@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Partner Payout Dashboard | All-In Chat Poker</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="style-theme.css">
+  <style>
+    body { margin:0; font-family: var(--font-family-base); background: radial-gradient(circle at 30% 20%, #0f1c2a 0%, #070d15 60%, #05070f 100%); color: var(--text-primary); }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+    .panel { padding: 16px; border-radius: 14px; border:1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); box-shadow: var(--shadow-md); }
+    .muted { color: var(--text-muted); }
+    .badge { display:inline-block; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,0.08); }
+    .status { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .status .pill { padding:6px 10px; border-radius:999px; background:rgba(255,255,255,0.08); }
+    .table { width:100%; border-collapse: collapse; }
+    .table th, .table td { padding:8px; border-bottom:1px solid rgba(255,255,255,0.06); text-align:left; }
+    .table th { color: var(--text-muted); font-weight:600; font-size:0.9rem; }
+    .actions { display:flex; gap:8px; flex-wrap:wrap; }
+    .chart-placeholder { height: 160px; border:1px dashed rgba(255,255,255,0.1); border-radius:10px; display:grid; place-items:center; color: var(--text-muted); }
+    .banner { padding:12px; border-radius:12px; background: rgba(255, 181, 73, 0.12); border:1px solid rgba(255,181,73,0.25); margin-bottom:14px; }
+    .banner.danger { background: rgba(255, 99, 132, 0.12); border-color: rgba(255,99,132,0.3); }
+    @media (max-width: 768px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header style="margin-bottom:16px; display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap;">
+      <div>
+        <p class="muted" style="margin:0;">All-In Chat Poker</p>
+        <h1 style="margin:4px 0 6px;">Partner Payout Dashboard</h1>
+        <div class="status">
+          <span class="pill" id="partner-tier">Tier: -</span>
+          <span class="pill" id="paypal-status">PayPal: -</span>
+          <span class="pill" id="tax-status">Tax: -</span>
+          <span class="pill" id="next-payout">Next payout: -</span>
+        </div>
+      </div>
+      <div class="actions">
+        <a class="btn btn-secondary btn-sm" href="/partner-program.html" target="_blank" rel="noopener">Program</a>
+        <a class="btn btn-secondary btn-sm" href="/partner-privacy.html" target="_blank" rel="noopener">Privacy Disclosure</a>
+        <a class="btn btn-secondary btn-sm" href="/partner-compensation.html" target="_blank" rel="noopener">Comp Addendum</a>
+      </div>
+    </header>
+
+    <div id="eligibility-banner" class="banner" style="display:none;"></div>
+
+    <div class="grid">
+      <div class="panel">
+        <h3>Balance</h3>
+        <p class="muted">Current payable balance and threshold.</p>
+        <div style="font-size: 28px; font-weight: 700;" id="balance-amount">$0.00</div>
+        <p class="muted" id="balance-threshold">Threshold: $50.00 minimum</p>
+        <button id="btn-run-payout" class="btn btn-primary btn-sm">Request payout</button>
+      </div>
+
+      <div class="panel">
+        <h3>Tax & Compliance</h3>
+        <p class="muted">W-9/W-8 status and uploads.</p>
+        <div class="status" style="margin-bottom:8px;">
+          <span class="pill" id="tax-pill">Missing</span>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="btn-upload-tax">Upload W-9/W-8</button>
+        <small class="muted">Required before payouts are enabled.</small>
+      </div>
+
+      <div class="panel">
+        <h3>Payment Method</h3>
+        <p class="muted">PayPal email and cadence.</p>
+        <div id="paypal-email">Email: -</div>
+        <div id="payout-cadence" class="muted">Cadence: Monthly</div>
+        <div id="last-payout" class="muted">Last payout: -</div>
+        <button class="btn btn-secondary btn-sm" id="btn-update-paypal">Update PayPal</button>
+      </div>
+
+      <div class="panel">
+        <h3>Quick Stats</h3>
+        <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(140px,1fr));">
+          <div>
+            <div class="muted">MTD earnings</div>
+            <div id="stat-mtd" style="font-weight:700;">$0.00</div>
+          </div>
+          <div>
+            <div class="muted">Last 30d orders</div>
+            <div id="stat-orders" style="font-weight:700;">0</div>
+          </div>
+          <div>
+            <div class="muted">Lifetime</div>
+            <div id="stat-lifetime" style="font-weight:700;">$0.00</div>
+          </div>
+          <div>
+            <div class="muted">Views</div>
+            <div id="stat-views" style="font-weight:700;">0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:14px;">
+      <div class="panel">
+        <h3>Earnings Trend</h3>
+        <div class="chart-placeholder" id="chart-earnings">Chart placeholder (hook to /admin/partners data)</div>
+      </div>
+      <div class="panel">
+        <h3>Views / Impressions</h3>
+        <div class="chart-placeholder" id="chart-views">Chart placeholder (hook to /partners/:id/view)</div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:14px;">
+      <h3>Orders</h3>
+      <table class="table" id="orders-table">
+        <thead>
+          <tr><th>Date</th><th>Item</th><th>Coins</th><th>Gross ($)</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="5" class="muted">No orders yet.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel" style="margin-top:14px;">
+      <h3>Payout History</h3>
+      <table class="table" id="payout-table">
+        <thead>
+          <tr><th>Date</th><th>Amount</th><th>Method</th><th>Status</th><th>Ref</th></tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="5" class="muted">No payouts yet.</td></tr>
+        </tbody>
+      </table>
+      <button class="btn btn-secondary btn-sm" style="margin-top:8px;">Download CSV</button>
+    </div>
+  </div>
+
+  <script>
+    // Placeholder data hooks; replace with real API calls
+    const eligibilityBanner = document.getElementById('eligibility-banner');
+    const partnerTier = document.getElementById('partner-tier');
+    const paypalStatus = document.getElementById('paypal-status');
+    const taxStatus = document.getElementById('tax-status');
+    const nextPayout = document.getElementById('next-payout');
+    const balanceAmount = document.getElementById('balance-amount');
+    const balanceThreshold = document.getElementById('balance-threshold');
+    const taxPill = document.getElementById('tax-pill');
+    const paypalEmail = document.getElementById('paypal-email');
+    const payoutCadence = document.getElementById('payout-cadence');
+    const lastPayout = document.getElementById('last-payout');
+    const statMtd = document.getElementById('stat-mtd');
+    const statOrders = document.getElementById('stat-orders');
+    const statLifetime = document.getElementById('stat-lifetime');
+    const statViews = document.getElementById('stat-views');
+    const ordersTable = document.getElementById('orders-table').querySelector('tbody');
+    const payoutTable = document.getElementById('payout-table').querySelector('tbody');
+
+    function renderEligibility(state) {
+      if (!state) return;
+      if (state.banner) {
+        eligibilityBanner.style.display = 'block';
+        eligibilityBanner.className = 'banner' + (state.variant === 'danger' ? ' danger' : '');
+        eligibilityBanner.textContent = state.banner;
+      } else {
+        eligibilityBanner.style.display = 'none';
+      }
+      partnerTier.textContent = `Tier: ${state.tier || '-'}`;
+      paypalStatus.textContent = `PayPal: ${state.paypal || '-'}`;
+      taxStatus.textContent = `Tax: ${state.tax || '-'}`;
+      nextPayout.textContent = `Next payout: ${state.nextPayout || '-'}`;
+    }
+
+    function renderBalance(data) {
+      balanceAmount.textContent = data.amount || '$0.00';
+      balanceThreshold.textContent = `Threshold: ${data.threshold || '$0.00'} minimum`;
+      taxPill.textContent = data.taxStatus || 'Missing';
+      paypalEmail.textContent = `Email: ${data.paypalEmail || '-'}`;
+      payoutCadence.textContent = `Cadence: ${data.cadence || 'Monthly'}`;
+      lastPayout.textContent = `Last payout: ${data.lastPayout || '-'}`;
+      statMtd.textContent = data.mtd || '$0.00';
+      statOrders.textContent = data.orders || '0';
+      statLifetime.textContent = data.lifetime || '$0.00';
+      statViews.textContent = data.views || '0';
+    }
+
+    function renderOrders(rows = []) {
+      if (!rows.length) {
+        ordersTable.innerHTML = '<tr><td colspan="5" class="muted">No orders yet.</td></tr>';
+        return;
+      }
+      ordersTable.innerHTML = rows.map(r => `
+        <tr>
+          <td>${r.date || '-'}</td>
+          <td>${r.item || '-'}</td>
+          <td>${r.coins || 0}</td>
+          <td>${r.gross || '$0.00'}</td>
+          <td>${r.status || '-'}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderPayouts(rows = []) {
+      if (!rows.length) {
+        payoutTable.innerHTML = '<tr><td colspan="5" class="muted">No payouts yet.</td></tr>';
+        return;
+      }
+      payoutTable.innerHTML = rows.map(r => `
+        <tr>
+          <td>${r.date || '-'}</td>
+          <td>${r.amount || '$0.00'}</td>
+          <td>${r.method || 'PayPal'}</td>
+          <td>${r.status || '-'}</td>
+          <td>${r.ref || '-'}</td>
+        </tr>
+      `).join('');
+    }
+
+    function formatMoney(cents = 0) {
+      return `$${(Number(cents || 0) / 100).toFixed(2)}`;
+    }
+
+    function pickPartner(partners) {
+      const params = new URLSearchParams(window.location.search);
+      const pid = (params.get('partner') || '').toLowerCase();
+      if (pid) return partners.find(p => (p.id || '').toLowerCase() === pid) || partners[0];
+      return partners[0];
+    }
+
+    async function fetchPartnerData() {
+      try {
+        const res = await fetch('/partner/payouts');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const partnerRow = data.partner || {};
+        const stats = data.stats || {};
+        renderEligibility({
+          banner: (partnerRow.w9_status !== 'approved') ? '⚠️ Tax info required — submit W-9/W-8 to enable payouts.' : '',
+          variant: (partnerRow.w9_status !== 'approved') ? 'danger' : '',
+          tier: partnerRow.tier || 'Partner',
+          paypal: partnerRow.paypal_email_verified ? 'Verified' : 'Unverified',
+          tax: partnerRow.w9_status || 'missing',
+          nextPayout: '-'
+        });
+        renderBalance({
+          amount: formatMoney(stats.amount_cents || 0),
+          threshold: '$50.00',
+          taxStatus: partnerRow.w9_status || 'Missing',
+          paypalEmail: partnerRow.paypal_email || 'not set',
+          cadence: 'Monthly',
+          lastPayout: '-',
+          mtd: formatMoney(stats.amount_cents || 0),
+          orders: stats.orders || 0,
+          lifetime: formatMoney(stats.amount_cents || 0),
+          views: stats.views || 0
+        });
+        renderOrders([]);
+        renderPayouts([]);
+      } catch (err) {
+        console.warn('Partner dashboard fetch failed', err);
+        eligibilityBanner.style.display = 'block';
+        eligibilityBanner.className = 'banner danger';
+        eligibilityBanner.textContent = 'Failed to load partner data. Please refresh.';
+      }
+    }
+
+    fetchPartnerData();
+  </script>
+</body>
+</html>

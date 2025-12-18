@@ -55,6 +55,8 @@ class DBHelper {
         totalWon INTEGER DEFAULT 0,
         biggestWin INTEGER DEFAULT 0,
         bestHand TEXT DEFAULT 'None',
+        handsPlayed INTEGER DEFAULT 0,
+        playSeconds INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
@@ -121,6 +123,173 @@ class DBHelper {
     } catch (err) {
       // Ignore if column already exists
     }
+    try {
+      this.db.exec(`ALTER TABLE stats ADD COLUMN handsPlayed INTEGER DEFAULT 0`);
+      this.db.exec(`ALTER TABLE stats ADD COLUMN playSeconds INTEGER DEFAULT 0`);
+    } catch (err) {
+      // ignore
+    }
+    try {
+      this.db.exec(`ALTER TABLE cosmetics ADD COLUMN image_url TEXT`);
+      this.db.exec(`ALTER TABLE cosmetics ADD COLUMN unlock_type TEXT`);
+      this.db.exec(`ALTER TABLE cosmetics ADD COLUMN unlock_value INTEGER`);
+      this.db.exec(`ALTER TABLE cosmetics ADD COLUMN unlock_note TEXT`);
+      this.db.exec(`ALTER TABLE purchases ADD COLUMN coin_amount INTEGER`);
+      this.db.exec(`ALTER TABLE purchases ADD COLUMN partner_id TEXT`);
+      this.db.exec(`ALTER TABLE tournaments ADD COLUMN game TEXT DEFAULT 'poker'`);
+      this.db.exec(`ALTER TABLE tournaments ADD COLUMN rounds INTEGER DEFAULT 1`);
+      this.db.exec(`ALTER TABLE tournaments ADD COLUMN advance_config TEXT DEFAULT '[]'`);
+      this.db.exec(`ALTER TABLE tournaments ADD COLUMN decks INTEGER DEFAULT 6`);
+      this.db.exec(`ALTER TABLE tournaments ADD COLUMN blind_config TEXT DEFAULT '[]'`);
+    } catch (err) {
+      // ignore
+    }
+
+    // Cosmetics catalog
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS cosmetics (
+        id TEXT PRIMARY KEY,
+        type TEXT,
+        name TEXT,
+        price_cents INTEGER DEFAULT 0,
+        rarity TEXT,
+        preview TEXT,
+        tint TEXT,
+        color TEXT,
+        texture_url TEXT,
+        image_url TEXT,
+        unlock_type TEXT,
+        unlock_value INTEGER,
+        unlock_note TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // User cosmetics ownership/equipped
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS user_cosmetics (
+        login TEXT,
+        item_id TEXT,
+        slot TEXT,
+        equipped INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (login, item_id)
+      )
+    `);
+
+    // Purchases audit
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS purchases (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        login TEXT,
+        item_id TEXT,
+        provider TEXT,
+        amount_cents INTEGER,
+        coin_amount INTEGER,
+        partner_id TEXT,
+        status TEXT,
+        txn_id TEXT,
+        note TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Partners program
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS partners (
+        id TEXT PRIMARY KEY,
+        display_name TEXT,
+        payout_pct REAL DEFAULT 0.1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS partner_views (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        partner_id TEXT,
+        login TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Currency balances (soft currency for cosmetics)
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS currency_balance (
+        login TEXT PRIMARY KEY,
+        coins INTEGER DEFAULT 0,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Twitch sub tokens (per channel)
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS twitch_sub_tokens (
+        channel TEXT PRIMARY KEY,
+        access_token TEXT,
+        refresh_token TEXT,
+        expires_at DATETIME,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Poker tournaments
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS tournaments (
+        id TEXT PRIMARY KEY,
+        name TEXT,
+        game TEXT DEFAULT 'poker',
+        state TEXT DEFAULT 'pending',
+        channel TEXT,
+        buyin INTEGER DEFAULT 0,
+        starting_chips INTEGER DEFAULT 1000,
+        current_level INTEGER DEFAULT 1,
+        level_seconds INTEGER DEFAULT 600,
+        rounds INTEGER DEFAULT 1,
+        advance_config TEXT DEFAULT '[]',
+        decks INTEGER DEFAULT 6,
+        blind_config TEXT DEFAULT '[]',
+        next_level_at DATETIME,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS tournament_players (
+        tournament_id TEXT,
+        login TEXT,
+        seat INTEGER,
+        chips INTEGER,
+        eliminated INTEGER DEFAULT 0,
+        rank INTEGER,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (tournament_id, login)
+      )
+    `);
+
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS tournament_bracket (
+        tournament_id TEXT,
+        round INTEGER,
+        table_num INTEGER,
+        seat_login TEXT,
+        PRIMARY KEY (tournament_id, round, table_num, seat_login)
+      )
+    `);
+
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS tournament_round_results (
+        tournament_id TEXT,
+        round INTEGER,
+        login TEXT,
+        chips_end INTEGER,
+        rank INTEGER,
+        advanced INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (tournament_id, round, login)
+      )
+    `);
   }
 
   // ============ BALANCES ============
@@ -192,6 +361,8 @@ class DBHelper {
       totalWon: 0,
       biggestWin: 0,
       bestHand: 'None',
+      handsPlayed: 0,
+      playSeconds: 0,
     };
   }
 
@@ -216,8 +387,8 @@ class DBHelper {
 
     const stmt = this.db.prepare(`
       INSERT OR REPLACE INTO stats (
-        username, roundsPlayed, roundsWon, totalWon, biggestWin, bestHand, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        username, roundsPlayed, roundsWon, totalWon, biggestWin, bestHand, handsPlayed, playSeconds, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
     `);
 
     stmt.run(
@@ -226,7 +397,9 @@ class DBHelper {
       merged.roundsWon,
       merged.totalWon,
       merged.biggestWin,
-      merged.bestHand
+      merged.bestHand,
+      merged.handsPlayed || 0,
+      merged.playSeconds || 0
     );
   }
 
@@ -388,8 +561,10 @@ class DBHelper {
    * @param {boolean} options.won
    * @param {number} options.winnings
    * @param {string} options.bestHand
+   * @param {number} options.hands
+   * @param {number} options.seconds
    */
-  updateRoundStats(username, { won = false, winnings = 0, bestHand = '' }) {
+  updateRoundStats(username, { won = false, winnings = 0, bestHand = '', hands = 1, seconds = 0 }) {
     const current = this.getStats(username);
 
     const updated = {
@@ -399,6 +574,8 @@ class DBHelper {
       totalWon: (current.totalWon || 0) + (winnings || 0),
       biggestWin: Math.max(current.biggestWin || 0, winnings || 0),
       bestHand: bestHand || current.bestHand,
+      handsPlayed: (current.handsPlayed || 0) + (hands || 0),
+      playSeconds: (current.playSeconds || 0) + (seconds || 0),
     };
 
     this.updateStats(username, updated);
@@ -437,6 +614,33 @@ class DBHelper {
   }
 
   /**
+   * Store a Twitch sub token (per channel)
+   * @param {string} channel
+   * @param {{access_token:string, refresh_token?:string, expires_at?:number}}
+   */
+  setTwitchSubToken(channel, tokenObj = {}) {
+    if (!channel || !tokenObj.access_token) return;
+    const chan = channel.toLowerCase();
+    const expires = tokenObj.expires_at
+      ? new Date(tokenObj.expires_at * 1000).toISOString()
+      : null;
+    this.db.prepare(`
+      INSERT OR REPLACE INTO twitch_sub_tokens (channel, access_token, refresh_token, expires_at)
+      VALUES (?, ?, ?, ?)
+    `).run(chan, tokenObj.access_token, tokenObj.refresh_token || null, expires);
+  }
+
+  /**
+   * Get a Twitch sub token for a channel
+   * @param {string} channel
+   */
+  getTwitchSubToken(channel) {
+    if (!channel) return null;
+    const chan = channel.toLowerCase();
+    return this.db.prepare('SELECT * FROM twitch_sub_tokens WHERE channel = ?').get(chan);
+  }
+
+  /**
    * Close database connection
    */
   close() {
@@ -444,6 +648,335 @@ class DBHelper {
       this.db.close();
       this.db = null;
       this.initialized = false;
+    }
+  }
+
+  // ============ COSMETICS ============
+
+  seedCosmetics(catalog = []) {
+    const stmt = this.db.prepare(`
+      INSERT OR IGNORE INTO cosmetics (id, type, name, price_cents, rarity, preview, tint, color, texture_url, image_url, unlock_type, unlock_value, unlock_note)
+      VALUES (@id, @type, @name, @price_cents, @rarity, @preview, @tint, @color, @texture_url, @image_url, @unlock_type, @unlock_value, @unlock_note)
+    `);
+    const tx = this.db.transaction((items) => {
+      items.forEach(item => {
+        stmt.run({
+          id: item.id,
+          type: item.type,
+          name: item.name,
+          price_cents: item.price_cents || item.price || 0,
+          rarity: item.rarity || 'common',
+          preview: item.preview || '',
+          tint: item.tint || null,
+          color: item.color || null,
+          texture_url: item.texture_url || null,
+          image_url: item.image_url || null,
+          unlock_type: item.unlock_type || null,
+          unlock_value: item.unlock_value || null,
+          unlock_note: item.unlock_note || null,
+        });
+      });
+    });
+    tx(catalog);
+  }
+
+  getCatalog() {
+    return this.db.prepare('SELECT * FROM cosmetics ORDER BY type, rarity, name').all();
+  }
+
+  getCosmeticById(id) {
+    return this.db.prepare('SELECT * FROM cosmetics WHERE id = ?').get(id);
+  }
+
+  grantCosmetic(login, itemId) {
+    const item = this.getCosmeticById(itemId);
+    if (!item) return null;
+    this.db.prepare(`
+      INSERT OR IGNORE INTO user_cosmetics (login, item_id, slot, equipped)
+      VALUES (?, ?, ?, 0)
+    `).run(login, itemId, item.type);
+    return this.getUserInventory(login);
+  }
+
+  equipCosmetic(login, itemId) {
+    const item = this.getCosmeticById(itemId);
+    if (!item) return null;
+    const owned = this.db.prepare('SELECT 1 FROM user_cosmetics WHERE login = ? AND item_id = ?').get(login, itemId);
+    if (!owned) return null;
+    const slot = item.type;
+    const tx = this.db.transaction(() => {
+      this.db.prepare('UPDATE user_cosmetics SET equipped = 0 WHERE login = ? AND slot = ?').run(login, slot);
+      this.db.prepare('UPDATE user_cosmetics SET equipped = 1 WHERE login = ? AND item_id = ?').run(login, itemId);
+    });
+    tx();
+    return this.getUserInventory(login);
+  }
+
+  ensureDefaultCosmetics(login, defaults = []) {
+    defaults.forEach(itemId => {
+      const item = this.getCosmeticById(itemId);
+      if (!item) return;
+      this.db.prepare(`
+        INSERT OR IGNORE INTO user_cosmetics (login, item_id, slot, equipped)
+        VALUES (?, ?, ?, 0)
+      `).run(login, itemId, item.type);
+    });
+  }
+
+  getUserInventory(login) {
+    const rows = this.db.prepare('SELECT * FROM user_cosmetics WHERE login = ?').all(login);
+    const owned = new Set(rows.map(r => r.item_id));
+    const equipped = {};
+    rows.forEach(r => {
+      if (r.equipped) {
+        equipped[r.slot] = r.item_id;
+      }
+    });
+    return { owned, equipped };
+  }
+
+  recordPurchase({ login, itemId, provider = 'dev', amount_cents = 0, coin_amount = 0, status = 'completed', txn_id = null, note = '', partner_id = null }) {
+    this.db.prepare(`
+      INSERT INTO purchases (login, item_id, provider, amount_cents, coin_amount, status, txn_id, note, partner_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(login, itemId, provider, amount_cents, coin_amount, status, txn_id, note, partner_id);
+  }
+
+  // ============ CURRENCY ============
+
+  getCoins(login) {
+    const row = this.db.prepare('SELECT coins FROM currency_balance WHERE login = ?').get(login);
+    return row ? row.coins : 0;
+  }
+
+  addCoins(login, amount = 0) {
+    const amt = Math.max(0, Math.floor(amount || 0));
+    this.db.prepare(`
+      INSERT INTO currency_balance (login, coins)
+      VALUES (?, ?)
+      ON CONFLICT(login) DO UPDATE SET coins = coins + excluded.coins, updated_at = CURRENT_TIMESTAMP
+    `).run(login, amt);
+    return this.getCoins(login);
+  }
+
+  spendCoins(login, amount = 0) {
+    const amt = Math.max(0, Math.floor(amount || 0));
+    if (amt <= 0) return { ok: true, remaining: this.getCoins(login) };
+    const current = this.getCoins(login);
+    if (current < amt) return { ok: false, remaining: current };
+    this.db.prepare('UPDATE currency_balance SET coins = coins - ?, updated_at = CURRENT_TIMESTAMP WHERE login = ?').run(amt, login);
+    return { ok: true, remaining: this.getCoins(login) };
+  }
+
+  recordCurrencyPurchase({ login, packId = null, coins = 0, amount_cents = 0, provider = 'paypal', status = 'completed', txn_id = null, note = '' }) {
+    this.db.prepare(`
+      INSERT INTO purchases (login, item_id, provider, amount_cents, coin_amount, status, txn_id, note, partner_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL)
+    `).run(login, packId, provider, amount_cents, coins, status, txn_id, note);
+  }
+
+  // ============ PARTNERS ============
+
+  // ============ PARTNERS ============
+
+  upsertPartner({ id, display_name, payout_pct = 0.1 }) {
+    if (!id) return null;
+    const pid = id.toLowerCase();
+    this.db.prepare(`
+      INSERT INTO partners (id, display_name, payout_pct)
+      VALUES (?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET display_name = excluded.display_name, payout_pct = excluded.payout_pct
+    `).run(pid, display_name || pid, payout_pct);
+    return this.getPartner(pid);
+  }
+
+  getPartner(id) {
+    if (!id) return null;
+    return this.db.prepare('SELECT * FROM partners WHERE id = ?').get(id.toLowerCase());
+  }
+
+  listPartners() {
+    return this.db.prepare('SELECT * FROM partners ORDER BY display_name').all();
+  }
+
+  recordPartnerView(partnerId, login = null) {
+    if (!partnerId) return;
+    this.db.prepare(`
+      INSERT INTO partner_views (partner_id, login) VALUES (?, ?)
+    `).run(partnerId.toLowerCase(), login || null);
+  }
+
+  getPartnerStats(partnerId) {
+    const id = partnerId?.toLowerCase?.();
+    if (!id) return null;
+    const sales = this.db.prepare(`
+      SELECT
+        COUNT(*) AS orders,
+        COALESCE(SUM(amount_cents),0) AS amount_cents,
+        COALESCE(SUM(coin_amount),0) AS coin_amount
+      FROM purchases
+      WHERE partner_id = ? AND status = 'completed'
+    `).get(id);
+    const views = this.db.prepare(`SELECT COUNT(*) AS views FROM partner_views WHERE partner_id = ?`).get(id);
+    return { partner_id: id, orders: sales?.orders || 0, amount_cents: sales?.amount_cents || 0, coin_amount: sales?.coin_amount || 0, views: views?.views || 0 };
+  }
+
+  listPartnerStats() {
+    const partners = this.listPartners();
+    return partners.map(p => ({ ...p, stats: this.getPartnerStats(p.id) || {} }));
+  }
+
+  // ============ TOURNAMENTS ============
+
+  upsertTournament(t) {
+    const stmt = this.db.prepare(`
+      INSERT INTO tournaments (id, name, game, state, channel, buyin, starting_chips, current_level, level_seconds, next_level_at, rounds, advance_config, decks, blind_config)
+      VALUES (@id, @name, @game, @state, @channel, @buyin, @starting_chips, @current_level, @level_seconds, @next_level_at, @rounds, @advance_config, @decks, @blind_config)
+      ON CONFLICT(id) DO UPDATE SET
+        name=excluded.name,
+        game=excluded.game,
+        state=excluded.state,
+        channel=excluded.channel,
+        buyin=excluded.buyin,
+        starting_chips=excluded.starting_chips,
+        current_level=excluded.current_level,
+        level_seconds=excluded.level_seconds,
+        rounds=excluded.rounds,
+        advance_config=excluded.advance_config,
+        decks=excluded.decks,
+        blind_config=excluded.blind_config,
+        next_level_at=excluded.next_level_at,
+        updated_at=CURRENT_TIMESTAMP
+    `);
+    stmt.run({
+      id: t.id,
+      name: t.name || t.id,
+      game: t.game || 'poker',
+      state: t.state || 'pending',
+      channel: t.channel || null,
+      buyin: t.buyin || 0,
+      starting_chips: t.starting_chips || 1000,
+      current_level: t.current_level || 1,
+      level_seconds: t.level_seconds || 600,
+      next_level_at: t.next_level_at || null,
+      rounds: t.rounds || 1,
+      advance_config: Array.isArray(t.advance_config) ? JSON.stringify(t.advance_config) : (t.advance_config || '[]'),
+      decks: t.decks || 6,
+      blind_config: Array.isArray(t.blind_config) ? JSON.stringify(t.blind_config) : (t.blind_config || '[]'),
+    });
+    return this.getTournament(t.id);
+  }
+
+  getTournament(id) {
+    return this.db.prepare('SELECT * FROM tournaments WHERE id = ?').get(id);
+  }
+
+  listTournaments() {
+    return this.db.prepare('SELECT * FROM tournaments ORDER BY created_at DESC').all();
+  }
+
+  addTournamentPlayer(tournamentId, login, seat = null, chips = null) {
+    const start = chips ?? (this.getTournament(tournamentId)?.starting_chips || 1000);
+    this.db.prepare(`
+      INSERT INTO tournament_players (tournament_id, login, seat, chips)
+      VALUES (?, ?, ?, ?)
+      ON CONFLICT(tournament_id, login) DO UPDATE SET
+        seat = excluded.seat,
+        updated_at = CURRENT_TIMESTAMP
+    `).run(tournamentId, login, seat, start);
+    return this.getTournamentPlayer(tournamentId, login);
+  }
+
+  getTournamentPlayer(tournamentId, login) {
+    return this.db.prepare('SELECT * FROM tournament_players WHERE tournament_id = ? AND login = ?').get(tournamentId, login);
+  }
+
+  updateTournamentSeat(tournamentId, login, seat = null) {
+    this.db.prepare(`
+      UPDATE tournament_players
+      SET seat = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE tournament_id = ? AND login = ?
+    `).run(seat, tournamentId, login);
+    return this.getTournamentPlayer(tournamentId, login);
+  }
+
+  listTournamentPlayers(tournamentId) {
+    return this.db.prepare('SELECT * FROM tournament_players WHERE tournament_id = ? ORDER BY seat ASC, login ASC').all(tournamentId);
+  }
+
+  eliminateTournamentPlayer(tournamentId, login, rank = null) {
+    this.db.prepare(`
+      UPDATE tournament_players
+      SET eliminated = 1, rank = COALESCE(?, rank), updated_at = CURRENT_TIMESTAMP
+      WHERE tournament_id = ? AND login = ?
+    `).run(rank, tournamentId, login);
+  }
+
+  updateTournamentPlayerChips(tournamentId, login, chips) {
+    this.db.prepare(`
+      UPDATE tournament_players
+      SET chips = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE tournament_id = ? AND login = ?
+    `).run(chips, tournamentId, login);
+  }
+
+  upsertBracketSeat(tournamentId, round, table, login) {
+    this.db.prepare(`
+      INSERT INTO tournament_bracket (tournament_id, round, table_num, seat_login)
+      VALUES (?, ?, ?, ?)
+      ON CONFLICT(tournament_id, round, table_num, seat_login) DO NOTHING
+    `).run(tournamentId, round, table, login);
+  }
+
+  listBracket(tournamentId, round = null) {
+    if (round === null || typeof round === 'undefined') {
+      return this.db.prepare('SELECT * FROM tournament_bracket WHERE tournament_id = ? ORDER BY round, table_num, seat_login').all(tournamentId);
+    }
+    return this.db.prepare('SELECT * FROM tournament_bracket WHERE tournament_id = ? AND round = ? ORDER BY table_num, seat_login').all(tournamentId, round);
+  }
+
+  clearBracket(tournamentId, round = null) {
+    if (round === null || typeof round === 'undefined') {
+      this.db.prepare('DELETE FROM tournament_bracket WHERE tournament_id = ?').run(tournamentId);
+    } else {
+      this.db.prepare('DELETE FROM tournament_bracket WHERE tournament_id = ? AND round = ?').run(tournamentId, round);
+    }
+  }
+
+  recordRoundResult(tournamentId, round, login, chips_end, rank = null, advanced = 0) {
+    this.db.prepare(`
+      INSERT INTO tournament_round_results (tournament_id, round, login, chips_end, rank, advanced)
+      VALUES (?, ?, ?, ?, ?, ?)
+      ON CONFLICT(tournament_id, round, login) DO UPDATE SET
+        chips_end = excluded.chips_end,
+        rank = excluded.rank,
+        advanced = excluded.advanced,
+        created_at = CURRENT_TIMESTAMP
+    `).run(tournamentId, round, login, chips_end, rank, advanced ? 1 : 0);
+  }
+
+  listRoundResults(tournamentId, round = null) {
+    if (round === null || typeof round === 'undefined') {
+      return this.db.prepare('SELECT * FROM tournament_round_results WHERE tournament_id = ? ORDER BY round, rank, chips_end DESC').all(tournamentId);
+    }
+    return this.db.prepare('SELECT * FROM tournament_round_results WHERE tournament_id = ? AND round = ? ORDER BY rank, chips_end DESC').all(tournamentId, round);
+  }
+
+  setBlindConfig(tournamentId, levels = []) {
+    const t = this.getTournament(tournamentId);
+    if (!t) return null;
+    const cfg = Array.isArray(levels) ? JSON.stringify(levels) : '[]';
+    this.db.prepare('UPDATE tournaments SET blind_config = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(cfg, tournamentId);
+    return this.getTournament(tournamentId);
+  }
+
+  getBlindConfig(tournamentId) {
+    const t = this.getTournament(tournamentId);
+    if (!t) return [];
+    try {
+      return JSON.parse(t.blind_config || '[]');
+    } catch (e) {
+      return [];
     }
   }
 }

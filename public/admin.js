@@ -14,6 +14,131 @@ const adjustLoginInput = document.getElementById('adjust-login');
 const adjustAmountInput = document.getElementById('adjust-amount');
 const adjustModeSelect = document.getElementById('adjust-mode');
 const adjustButton = document.getElementById('btn-adjust-balance');
+const isEventForChannel = (payload) => {
+  if (!payload || !payload.channel) return true;
+  return payload.channel === channelParam;
+};
+const lobbyCodeOutput = document.getElementById('lobby-code-output');
+const lobbyLinks = document.getElementById('lobby-links');
+const lobbyJoinInput = document.getElementById('lobby-join-input');
+const devDealBaseInput = document.getElementById('dev-deal-base');
+const devDealCardInput = document.getElementById('dev-deal-card');
+const devChipVolumeInput = document.getElementById('dev-chip-volume');
+const devPotGlowInput = document.getElementById('dev-pot-glow');
+const devDisplay = {
+  base: document.getElementById('dev-deal-base-val'),
+  card: document.getElementById('dev-deal-card-val'),
+  vol: document.getElementById('dev-chip-volume-val'),
+  glow: document.getElementById('dev-pot-glow-val'),
+};
+const devCardVariant = document.getElementById('dev-card-variant');
+const devCardTint = document.getElementById('dev-card-tint');
+const devAvatarRing = document.getElementById('dev-avatar-ring');
+const devProfileBorder = document.getElementById('dev-profile-border');
+const devTableTint = document.getElementById('dev-table-tint');
+const devTableLogo = document.getElementById('dev-table-logo');
+const devAutoFillAi = document.getElementById('dev-auto-fill-ai');
+const partnerTable = document.getElementById('partner-table');
+const partnerIdInput = document.getElementById('partner-id');
+const partnerNameInput = document.getElementById('partner-name');
+const partnerPctInput = document.getElementById('partner-pct');
+const partnerSaveBtn = document.getElementById('btn-save-partner');
+const partnerRefreshBtn = document.getElementById('btn-refresh-partners');
+const earnInputs = {
+  chatRate: document.getElementById('earn-chat-rate'),
+  chatCap: document.getElementById('earn-chat-cap'),
+  follower: document.getElementById('earn-follower'),
+  sub: document.getElementById('earn-sub'),
+  raid: document.getElementById('earn-raid'),
+  redeem: document.getElementById('earn-redeem'),
+};
+const saveEarnBtn = document.getElementById('btn-save-earn');
+const connectSubsBtn = document.getElementById('btn-connect-subs');
+const overlayModal = document.getElementById('overlay-modal');
+const overlayModalOpen = document.getElementById('btn-open-overlay-modal');
+const overlayModalClose = document.getElementById('overlay-modal-close');
+const addAiButton = document.getElementById('btn-add-ai');
+const addAiStartButton = document.getElementById('btn-add-ai-start');
+// Quick modal/popover elements (support both legacy ids and new compact popover ids)
+// Inline highlight helper for quick-nav buttons
+function focusSection(sectionId) {
+  const el = document.getElementById(sectionId);
+  if (!el) return;
+  // Open details panels
+  if (el.tagName.toLowerCase() === 'details') el.open = true;
+  el.classList.add('pulse-highlight');
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  setTimeout(() => el.classList.remove('pulse-highlight'), 1400);
+}
+
+// Lightweight drawer to show quick sections in-place without moving DOM
+let drawerOverlay = null;
+let drawerPanel = null;
+let drawerBody = null;
+let drawerTitle = null;
+function ensureDrawer() {
+  if (drawerOverlay && drawerPanel && drawerBody && drawerTitle) return;
+  drawerOverlay = document.createElement('div');
+  drawerOverlay.id = 'quick-drawer-overlay';
+  drawerOverlay.className = 'quick-drawer-overlay';
+  drawerOverlay.style.display = 'none';
+
+  drawerPanel = document.createElement('div');
+  drawerPanel.id = 'quick-drawer';
+  drawerPanel.className = 'quick-drawer';
+
+  const header = document.createElement('div');
+  header.className = 'quick-drawer-header';
+  drawerTitle = document.createElement('div');
+  drawerTitle.id = 'quick-drawer-title';
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'btn btn-secondary btn-sm';
+  closeBtn.textContent = 'Close';
+  closeBtn.addEventListener('click', closeDrawer);
+  header.appendChild(drawerTitle);
+  header.appendChild(closeBtn);
+
+  drawerBody = document.createElement('div');
+  drawerBody.id = 'quick-drawer-body';
+  drawerBody.className = 'quick-drawer-body';
+
+  drawerPanel.appendChild(header);
+  drawerPanel.appendChild(drawerBody);
+  drawerOverlay.appendChild(drawerPanel);
+  document.body.appendChild(drawerOverlay);
+
+  drawerOverlay.addEventListener('click', (e) => {
+    if (e.target === drawerOverlay) closeDrawer();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeDrawer();
+  });
+}
+
+function closeDrawer() {
+  if (!drawerOverlay) return;
+  drawerOverlay.style.display = 'none';
+  drawerBody.innerHTML = '';
+}
+
+function openDrawerForSection(sectionId) {
+  ensureDrawer();
+  const section = document.getElementById(sectionId);
+  if (!drawerOverlay || !drawerBody || !drawerTitle) return;
+  if (!section) {
+    drawerTitle.textContent = 'Not found';
+    drawerBody.innerHTML = `<div style="padding:8px;">Section "${sectionId}" not found.</div>`;
+  } else {
+    const isDetails = section.tagName.toLowerCase() === 'details';
+    const titleText = isDetails
+      ? (section.querySelector('summary')?.textContent?.trim() || section.dataset.title || sectionId)
+      : (section.dataset.title || sectionId);
+    drawerTitle.textContent = titleText;
+    drawerBody.innerHTML = section.innerHTML;
+  }
+  drawerOverlay.style.display = 'flex';
+}
 
 function decodeUserLogin(token) {
   if (!token) return null;
@@ -47,24 +172,27 @@ document.addEventListener('DOMContentLoaded', async () => {
   const adminToken = getToken();
   const userToken = getUserToken();
   const userLogin = decodeUserLogin(userToken || '');
-  let allowed = false;
 
-  if (adminToken) {
-    allowed = true;
-  } else if (userToken && userLogin) {
+  // Loosen gate: if either token exists, let the page load and let API calls/auth enforce server-side.
+  // This avoids redirect loops when Twitch login succeeds but role lookup fails temporarily.
+  let allowed = !!(adminToken || userToken);
+  let roleWarning = '';
+
+  if (!adminToken && userToken && userLogin) {
     const lower = userLogin.toLowerCase();
-    // Allow if matches configured streamer or bot admin login
     if ((streamerLogin && lower === streamerLogin) || (botAdminLogin && lower === botAdminLogin)) {
       allowed = true;
     } else {
-      // Fallback: check profile role via user token
       try {
         const profileRes = await apiCall(`/profile?login=${encodeURIComponent(userLogin)}`, { useUserToken: true });
         if (profileRes?.profile?.role === 'streamer' || profileRes?.profile?.role === 'admin') {
           allowed = true;
+        } else {
+          roleWarning = 'Viewer role token; some admin actions may be blocked.';
         }
       } catch (e) {
-        // ignore
+        // Permit but warn; server will enforce if unauthorized.
+        roleWarning = 'Role check unavailable; continuing with viewer token.';
       }
     }
   }
@@ -76,6 +204,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   useUserToken = !adminToken && !!userToken;
   window.__DEFAULT_USE_USER_TOKEN = useUserToken;
+  if (roleWarning) {
+    Toast.warning(roleWarning, 4000);
+  }
 
   // Load initial data
   await loadStats();
@@ -85,6 +216,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Setup event listeners
   setupEventListeners();
   initSocket();
+  updateDevDisplays();
 
   // Refresh data every 30 seconds
   setInterval(loadStats, 30000);
@@ -92,6 +224,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   setInterval(loadAuditLog, 60000);
 });
 
+// Fallback delegated handler to ensure popover always opens for quick buttons
+document.addEventListener('click', (e) => {
+  const btn = e.target?.closest?.('[data-open-section]');
+  if (!btn) return;
+  ensurePopover();
+  const targetId = btn.dataset.openSection || 'unknown';
+  try { console.debug('[admin] delegated quick button', targetId); } catch (err) { /* ignore */ }
+  quickModalBody.innerHTML = `<div style="padding:8px;">Loading ${targetId}...</div>`;
+  quickModal.style.position = 'fixed';
+  quickModal.style.top = '90px';
+  quickModal.style.left = '24px';
+  quickModal.style.width = 'min(92vw, 1040px)';
+  quickModal.style.zIndex = 6000;
+  quickModal.style.opacity = '1';
+  quickModal.style.pointerEvents = 'auto';
+  quickModal.style.display = 'block';
+  quickModal.classList.add('active');
+});
 async function ensureSocketConnected() {
   if (!adminSocket) initSocket();
   if (adminSocket?.connected) return true;
@@ -132,6 +282,8 @@ async function ensureSocketConnected() {
 }
 
 function setupEventListeners() {
+  ensurePopover();
+
   // Start round
   document.getElementById('btn-admin-start-round')?.addEventListener('click', async () => {
     const ready = await ensureSocketConnected();
@@ -152,6 +304,26 @@ function setupEventListeners() {
     }
     adminSocket.emit('startRound', { startNow: true });
     Toast.success('Round starting now');
+  });
+
+  addAiButton?.addEventListener('click', async () => {
+    const ready = await ensureSocketConnected();
+    if (!ready) {
+      Toast.error(NOT_CONNECTED_MSG);
+      return;
+    }
+    adminSocket.emit('addTestBots', { count: 3 });
+    Toast.info('Added AI test players (3)');
+  });
+
+  addAiStartButton?.addEventListener('click', async () => {
+    const ready = await ensureSocketConnected();
+    if (!ready) {
+      Toast.error(NOT_CONNECTED_MSG);
+      return;
+    }
+    adminSocket.emit('addTestBots', { count: 3, startNow: true });
+    Toast.success('AI players added and round starting');
   });
 
   // Process draw
@@ -178,11 +350,100 @@ function setupEventListeners() {
     Toast.warning('Game reset initiated');
   });
 
+  // Tournament helpers
+  document.getElementById('btn-gen-bracket')?.addEventListener('click', async () => {
+    const ready = await ensureSocketConnected();
+    if (!ready) return Toast.error(NOT_CONNECTED_MSG);
+    const round = Number(document.getElementById('t-round')?.value || 1);
+    const tableSize = Number(document.getElementById('t-table-size')?.value || 6);
+    const playersRaw = document.getElementById('t-players')?.value || '';
+    const players = playersRaw.split(',').map(p => p.trim()).filter(Boolean);
+    try {
+      const res = await apiCall('/admin/tournaments/' + encodeURIComponent(getChannelParam() || 't') + '/bracket', {
+        method: 'POST',
+        body: JSON.stringify({ round, tableSize, players }),
+      });
+      Toast.success('Bracket generated');
+      console.log('Bracket', res);
+    } catch (e) {
+      Toast.error('Bracket failed: ' + e.message);
+    }
+  });
+
+  document.getElementById('btn-bootstrap-round')?.addEventListener('click', async () => {
+    const ready = await ensureSocketConnected();
+    if (!ready) return Toast.error(NOT_CONNECTED_MSG);
+    const round = Number(document.getElementById('t-round')?.value || 1);
+    const tableSize = Number(document.getElementById('t-table-size')?.value || 6);
+    try {
+      const res = await apiCall('/admin/tournaments/' + encodeURIComponent(getChannelParam() || 't') + '/bootstrap-round', {
+        method: 'POST',
+        body: JSON.stringify({ round, tableSize }),
+      });
+      Toast.success('Round bootstrapped');
+      console.log('Bootstrap', res);
+    } catch (e) {
+      Toast.error('Bootstrap failed: ' + e.message);
+    }
+  });
+
+  document.getElementById('btn-bind-table')?.addEventListener('click', async () => {
+    const ready = await ensureSocketConnected();
+    if (!ready) return Toast.error(NOT_CONNECTED_MSG);
+    const channel = document.getElementById('t-channel')?.value || '';
+    const table = Number(document.getElementById('t-table-num')?.value || 1);
+    try {
+      const res = await apiCall('/admin/tournaments/' + encodeURIComponent(getChannelParam() || 't') + '/table/' + table + '/bind', {
+        method: 'POST',
+        body: JSON.stringify({ channel }),
+      });
+      Toast.success('Table bound to channel');
+      console.log('Bind', res);
+    } catch (e) {
+      Toast.error('Bind failed: ' + e.message);
+    }
+  });
+
+  document.getElementById('btn-ready-ping')?.addEventListener('click', async () => {
+    const channel = document.getElementById('t-ready-channel')?.value || '';
+    if (!channel) return Toast.error('Channel required');
+    try {
+      const res = await apiCall('/table/ready', {
+        method: 'POST',
+        body: JSON.stringify({ channel }),
+        useUserToken: true,
+      });
+      const el = document.getElementById('ready-status');
+      if (el) el.textContent = `Ready: ${res.ready} (${res.readyCount}/${res.required})${res.started ? ' · started' : ''}`;
+      Toast.info(res.started ? 'All ready - round starting' : 'Ready submitted');
+    } catch (e) {
+      Toast.error('Ready failed: ' + e.message);
+    }
+  });
+
   // Logout
   document.getElementById('btn-logout')?.addEventListener('click', () => {
     clearToken();
     clearUserToken();
     window.location.href = '/login.html';
+  });
+
+  document.getElementById('btn-reset-session')?.addEventListener('click', () => {
+    clearToken();
+    clearUserToken();
+    Toast.info('Session cleared; please sign in again.');
+    window.location.href = '/login.html';
+  });
+
+  document.querySelectorAll('[data-open-section]')?.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = btn.dataset.openSection;
+      // Also scroll to the section in-page for quick context
+      focusSection(target);
+      // And open the drawer with the section contents for immediate controls
+      openDrawerForSection(target);
+    });
   });
 
   // Export
@@ -253,6 +514,76 @@ function setupEventListeners() {
   document.getElementById('btn-open-obs-overlay')?.addEventListener('click', () => {
     const base = typeof getBackendBase === 'function' ? getBackendBase() : window.location.origin;
     window.open(`${base}/obs-overlay.html`, '_blank', 'noopener');
+  });
+
+  // Create lobby
+  document.getElementById('btn-create-lobby')?.addEventListener('click', async () => {
+    try {
+      const res = await apiCall('/admin/lobby', { method: 'POST' });
+      if (res?.code) {
+        if (lobbyCodeOutput) lobbyCodeOutput.value = res.code;
+        if (lobbyLinks) {
+          lobbyLinks.innerHTML = `Admin: <a href="${res.adminUrl}" target="_blank" rel="noopener">${res.adminUrl}</a> | Overlay: <a href="${res.overlayUrl}" target="_blank" rel="noopener">${res.overlayUrl}</a>`;
+        }
+      }
+    } catch (err) {
+      Toast.error('Failed to create lobby: ' + err.message);
+    }
+  });
+
+  // Copy lobby code
+  document.getElementById('btn-copy-lobby')?.addEventListener('click', () => {
+    if (lobbyCodeOutput && lobbyCodeOutput.value) {
+      navigator.clipboard?.writeText(lobbyCodeOutput.value);
+      Toast.success('Lobby code copied');
+    }
+  });
+
+  // Join lobby
+  document.getElementById('btn-join-lobby')?.addEventListener('click', () => {
+    const code = (lobbyJoinInput?.value || '').trim();
+    if (!code) {
+      Toast.error('Enter a lobby code');
+      return;
+    }
+    const target = `/admin2.html?channel=${encodeURIComponent(code)}`;
+    window.location.href = target;
+  });
+
+  // Developer overlay tuning inputs
+  [devDealBaseInput, devDealCardInput, devChipVolumeInput, devPotGlowInput].forEach((input) => {
+    if (input) input.addEventListener('input', updateDevDisplays);
+  });
+  [devCardVariant, devCardTint, devAvatarRing, devProfileBorder, devTableTint, devTableLogo].forEach((input) => {
+    if (input && input.tagName === 'SELECT') input.addEventListener('change', updateDevDisplays);
+    else if (input) input.addEventListener('input', updateDevDisplays);
+  });
+
+  document.getElementById('btn-apply-overlay-settings')?.addEventListener('click', async () => {
+    const ready = await ensureSocketConnected();
+    if (!ready) {
+      Toast.error(NOT_CONNECTED_MSG);
+      return;
+    }
+    const settings = getDevSettingsFromInputs();
+    adminSocket.emit('overlaySettings', settings);
+    Toast.success('Overlay settings pushed');
+  });
+
+  connectSubsBtn?.addEventListener('click', () => {
+    const url = `/auth/twitch/subs?channel=${encodeURIComponent(channelParam || '')}`;
+    window.open(url, '_blank', 'width=700,height=800');
+    Toast.info('Opening Twitch consent in a new window...');
+  });
+
+  overlayModalOpen?.addEventListener('click', () => {
+    if (overlayModal) overlayModal.classList.add('active');
+  });
+  overlayModalClose?.addEventListener('click', () => {
+    if (overlayModal) overlayModal.classList.remove('active');
+  });
+  overlayModal?.addEventListener('click', (e) => {
+    if (e.target === overlayModal) overlayModal.classList.remove('active');
   });
 }
 
@@ -434,11 +765,13 @@ function initSocket() {
     Toast.error(typeof err === 'string' ? err : 'Server error');
   });
 
-  adminSocket.on('roundStarted', () => {
+  adminSocket.on('roundStarted', (data) => {
+    if (!isEventForChannel(data)) return;
     Toast.info('Round started');
   });
 
   adminSocket.on('roundResult', (data) => {
+    if (!isEventForChannel(data)) return;
     if (data?.evaluation) {
       Toast.success(`Round result: ${data.evaluation.name}`);
     }
@@ -447,24 +780,29 @@ function initSocket() {
   });
 
   adminSocket.on('queueUpdate', (data) => {
+    if (!isEventForChannel(data)) return;
     updateQueue(data.waiting || []);
   });
 
   adminSocket.on('bettingStarted', (data) => {
+    if (!isEventForChannel(data)) return;
     startAdminCountdown(data.endsAt);
     setAdminPhase('Betting');
   });
 
-  adminSocket.on('actionPhaseEnded', () => {
+  adminSocket.on('actionPhaseEnded', (data) => {
+    if (!isEventForChannel(data)) return;
     startAdminCountdown(null);
     setAdminPhase('Action Ended');
   });
 
   adminSocket.on('pokerPhase', (data) => {
+    if (!isEventForChannel(data)) return;
     if (data?.phase) setAdminPhase(data.phase);
   });
 
   adminSocket.on('pokerBetting', (data) => {
+    if (!isEventForChannel(data)) return;
     const potEl = document.getElementById('admin-pot');
     const betEl = document.getElementById('admin-current-bet');
     const potVal = (data && data.pot) || 0;
@@ -500,6 +838,20 @@ function initSocket() {
     list.innerHTML = items || '<li>No payouts</li>';
     if (deltaList) {
       list.innerHTML += `<li class="delta-sep">Leaderboard Δ</li>${deltaList}`;
+    }
+  });
+
+  adminSocket.on('overlaySettings', (data) => {
+    if (!isEventForChannel(data)) return;
+    setDevInputs(data?.settings || {});
+  });
+
+  document.getElementById('btn-refresh-catalog')?.addEventListener('click', async () => {
+    try {
+      await apiCall('/catalog', { method: 'GET' });
+      Toast.success('Catalog reloaded from server');
+    } catch (err) {
+      Toast.error('Catalog reload failed: ' + err.message);
     }
   });
 
@@ -572,8 +924,148 @@ async function loadMode() {
   }
 }
 
+function updateDevDisplays() {
+  if (devDealBaseInput && devDisplay.base) devDisplay.base.textContent = Number(devDealBaseInput.value).toFixed(2);
+  if (devDealCardInput && devDisplay.card) devDisplay.card.textContent = Number(devDealCardInput.value).toFixed(2);
+  if (devChipVolumeInput && devDisplay.vol) devDisplay.vol.textContent = Number(devChipVolumeInput.value).toFixed(2);
+  if (devPotGlowInput && devDisplay.glow) devDisplay.glow.textContent = Number(devPotGlowInput.value).toFixed(1);
+  // no display spans for colors; input UI shows current value
+}
+
+function setDevInputs(settings = {}) {
+  if (devDealBaseInput && typeof settings.dealDelayBase === 'number') devDealBaseInput.value = settings.dealDelayBase;
+  if (devDealCardInput && typeof settings.dealDelayPerCard === 'number') devDealCardInput.value = settings.dealDelayPerCard;
+  if (devChipVolumeInput && typeof settings.chipVolume === 'number') devChipVolumeInput.value = settings.chipVolume;
+  if (devPotGlowInput && typeof settings.potGlowMultiplier === 'number') devPotGlowInput.value = settings.potGlowMultiplier;
+  if (devCardVariant && typeof settings.cardBackVariant === 'string') devCardVariant.value = settings.cardBackVariant;
+  if (devCardTint && typeof settings.cardBackTint === 'string') devCardTint.value = settings.cardBackTint;
+  if (devAvatarRing && typeof settings.avatarRingColor === 'string') devAvatarRing.value = settings.avatarRingColor;
+  if (devProfileBorder && typeof settings.profileCardBorder === 'string') devProfileBorder.value = settings.profileCardBorder;
+  if (devTableTint && typeof settings.tableTint === 'string') devTableTint.value = settings.tableTint;
+  if (devTableLogo && typeof settings.tableLogoColor === 'string') devTableLogo.value = settings.tableLogoColor;
+  if (devAutoFillAi && typeof settings.autoFillAi === 'boolean') devAutoFillAi.checked = settings.autoFillAi;
+  updateDevDisplays();
+}
+
+function getDevSettingsFromInputs() {
+  return {
+    dealDelayBase: Number(devDealBaseInput?.value || 0.18),
+    dealDelayPerCard: Number(devDealCardInput?.value || 0.08),
+    chipVolume: Number(devChipVolumeInput?.value || 0.16),
+    potGlowMultiplier: Number(devPotGlowInput?.value || 5),
+    cardBackVariant: (devCardVariant?.value || 'default').toLowerCase(),
+    cardBackTint: devCardTint?.value || undefined,
+    avatarRingColor: devAvatarRing?.value || undefined,
+    profileCardBorder: devProfileBorder?.value || undefined,
+    tableTint: devTableTint?.value || undefined,
+    tableLogoColor: devTableLogo?.value || undefined,
+    autoFillAi: !!devAutoFillAi?.checked,
+  };
+}
+
 async function saveMode() {
   const select = document.getElementById('game-mode');
   if (!select) return;
   Toast.info('Mode is locked to blackjack');
 }
+
+// ===== Partner program UI =====
+async function fetchPartners() {
+  if (!partnerTable) return;
+  try {
+    const res = await fetch('/admin/partners');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    renderPartnerTable(data?.partners || []);
+  } catch (err) {
+    console.warn('Partner fetch failed', err);
+    renderPartnerTable([]);
+    Toast.error('Failed to load partners');
+  }
+}
+
+function renderPartnerTable(partners = []) {
+  if (!partnerTable) return;
+  const tbody = partnerTable.querySelector('tbody');
+  if (!tbody) return;
+  if (!partners.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="muted">No data</td></tr>';
+    return;
+  }
+  tbody.innerHTML = partners.map(p => {
+    const stats = p.stats || {};
+    return `
+      <tr>
+        <td>${p.display_name || p.id}</td>
+        <td>${Math.round((p.payout_pct || 0) * 100)}%</td>
+        <td>${stats.orders || 0}</td>
+        <td>${stats.coin_amount || 0}</td>
+        <td>$${((stats.amount_cents || 0) / 100).toFixed(2)}</td>
+        <td>${stats.views || 0}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+async function savePartner() {
+  if (!partnerIdInput) return;
+  const id = (partnerIdInput.value || '').trim().toLowerCase();
+  if (!id) return Toast.error('Partner id required');
+  const payload = {
+    id,
+    display_name: partnerNameInput?.value || id,
+    payout_pct: Math.max(0, Math.min(Number(partnerPctInput?.value || 10) / 100, 0.9)),
+  };
+  try {
+    const res = await fetch('/admin/partners', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    Toast.success('Partner saved');
+    fetchPartners();
+  } catch (err) {
+    console.warn('Save partner failed', err);
+    Toast.error('Save failed');
+  }
+}
+
+// ===== Viewer earn config (local only) =====
+function loadEarnConfig() {
+  try {
+    const raw = localStorage.getItem('earnConfig');
+    if (!raw) return;
+    const cfg = JSON.parse(raw);
+    if (earnInputs.chatRate) earnInputs.chatRate.value = cfg.chatRate ?? earnInputs.chatRate.value;
+    if (earnInputs.chatCap) earnInputs.chatCap.value = cfg.chatCap ?? earnInputs.chatCap.value;
+    if (earnInputs.follower) earnInputs.follower.value = cfg.follower ?? earnInputs.follower.value;
+    if (earnInputs.sub) earnInputs.sub.value = cfg.sub ?? earnInputs.sub.value;
+    if (earnInputs.raid) earnInputs.raid.value = cfg.raid ?? earnInputs.raid.value;
+    if (earnInputs.redeem) earnInputs.redeem.value = cfg.redeem ?? earnInputs.redeem.value;
+  } catch (e) {
+    console.warn('Failed to load earn config', e);
+  }
+}
+
+function saveEarnConfig() {
+  const cfg = {
+    chatRate: Number(earnInputs.chatRate?.value || 5),
+    chatCap: Number(earnInputs.chatCap?.value || 500),
+    follower: Number(earnInputs.follower?.value || 25),
+    sub: Number(earnInputs.sub?.value || 100),
+    raid: Number(earnInputs.raid?.value || 250),
+    redeem: Number(earnInputs.redeem?.value || 25),
+  };
+  localStorage.setItem('earnConfig', JSON.stringify(cfg));
+  Toast.success('Viewer earn config saved (local)');
+}
+
+// Wire new controls
+if (partnerSaveBtn) partnerSaveBtn.addEventListener('click', savePartner);
+if (partnerRefreshBtn) partnerRefreshBtn.addEventListener('click', fetchPartners);
+if (saveEarnBtn) saveEarnBtn.addEventListener('click', saveEarnConfig);
+
+// Initial fetch/load
+fetchPartners();
+loadEarnConfig();

@@ -1,0 +1,68 @@
+﻿{
+  "animations": {
+    "card_deal_24": {
+      "image": "horizontal_transparent_sheet.png",
+      "description": "Card dealing animation from dealer to player",
+      "frameWidth": 512,
+      "frameHeight": 716,
+      "frameCount": 24,
+      "layout": "horizontal",
+      "spacing": 10,
+      "fps": 25,
+      "loop": false,
+      "phases": {
+        "approachEndFrame": 16,
+        "landFrame": 23
+      }
+    },
+    "card_flip_24": {
+      "image": "face-up-deal.png",
+      "description": "Card flip animation with back→front skin swap support",
+      "frameWidth": 512,
+      "frameHeight": 716,
+      "frameCount": 24,
+      "layout": "horizontal",
+      "spacing": 0,
+      "fps": 25,
+      "loop": false,
+      "revealFrame": 12,
+      "frames": [
+        { "index": 0,  "duration": 40, "side": "back" },
+        { "index": 1,  "duration": 40, "side": "back" },
+        { "index": 2,  "duration": 40, "side": "back" },
+        { "index": 3,  "duration": 40, "side": "back" },
+        { "index": 4,  "duration": 40, "side": "back" },
+        { "index": 5,  "duration": 40, "side": "back" },
+        { "index": 6,  "duration": 40, "side": "back" },
+        { "index": 7,  "duration": 40, "side": "back" },
+        { "index": 8,  "duration": 40, "side": "back" },
+        { "index": 9,  "duration": 40, "side": "back" },
+        { "index": 10, "duration": 40, "side": "back" },
+        { "index": 11, "duration": 40, "side": "back" },
+        { "index": 12, "duration": 40, "side": "front" },
+        { "index": 13, "duration": 40, "side": "front" },
+        { "index": 14, "duration": 40, "side": "front" },
+        { "index": 15, "duration": 40, "side": "front" },
+        { "index": 16, "duration": 40, "side": "front" },
+        { "index": 17, "duration": 40, "side": "front" },
+        { "index": 18, "duration": 40, "side": "front" },
+        { "index": 19, "duration": 40, "side": "front" },
+        { "index": 20, "duration": 40, "side": "front" },
+        { "index": 21, "duration": 40, "side": "front" },
+        { "index": 22, "duration": 40, "side": "front" },
+        { "index": 23, "duration": 40, "side": "front" }
+      ]
+    },
+    "win_burst_6": {
+      "image": "AllInChatPoker_Glitch_24Frames_1024x1024_Horizontal_FIXED.png",
+      "description": "Win / pot victory FX (24-frame glitch burst)",
+      "frameWidth": 1024,
+      "frameHeight": 1024,
+      "frameCount": 24,
+      "layout": "horizontal",
+      "spacing": 0,
+      "fps": 18,
+      "loop": false
+    }
+  }
+}

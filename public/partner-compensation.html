@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Partner Compensation Addendum | All-In Chat Poker</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="style-theme.css">
+  <style>
+    body { margin:0; font-family: var(--font-family-base); background: radial-gradient(circle at 30% 20%, #0f1c2a 0%, #070d15 60%, #05070f 100%); color: var(--text-primary); }
+    .wrap { max-width: 900px; margin: 0 auto; padding: 24px; }
+    .card { padding: 18px; border-radius: 14px; border:1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); box-shadow: var(--shadow-md); }
+    .muted { color: var(--text-muted); }
+    .agree-row { display:flex; align-items:center; gap:10px; margin-top:12px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>All-In Chat Poker &mdash; Partner Compensation Addendum</h1>
+    <p class="muted">Effective Date: 12/17/2025</p>
+    <div class="card">
+      <ol>
+        <li><strong>Compensation Structure</strong>: May include cash, revenue share, performance bonuses, event payouts; not guaranteed; earned only when criteria are met.</li>
+        <li><strong>Independent Contractor</strong>: No employment/agency; Partners handle their own taxes/expenses.</li>
+        <li><strong>Tax Responsibility</strong>: All compensation may be taxable; Partners report/pay applicable taxes; payments may be reported as required by law.</li>
+        <li><strong>Payment Conditions</strong>: Subject to tax docs, compliance, anti-fraud review, and payout thresholds; payments may be delayed/withheld on violations.</li>
+        <li><strong>Termination</strong>: On termination, unpaid compensation tied to violations may be forfeited; pending payments may be canceled or delayed for review.</li>
+        <li><strong>Modifications</strong>: Structures may change; continued participation = acceptance.</li>
+        <li><strong>Incorporation</strong>: Incorporated into and governed by the Partner Program Terms.</li>
+      </ol>
+      <div class="agree-row">
+        <input type="checkbox" id="agree-box">
+        <label for="agree-box">I Agree to the Partner Compensation Addendum</label>
+      </div>
+      <button id="agree-btn" class="btn btn-primary btn-sm" disabled>Continue</button>
+    </div>
+
+    <h2 style="margin-top:18px;">W-9 Collection Notice (U.S. Partners)</h2>
+    <div class="card">
+      <p><strong>Why</strong>: Required before issuing payouts.</p>
+      <p><strong>Need</strong>: Legal name, address, SSN/EIN, PayPal email for payouts.</p>
+      <p><strong>Notes</strong>: No payouts without completed W-9/W-8; data used only for tax reporting; stored securely.</p>
+      <p class="muted">If you are not a U.S. resident, you will be asked to submit a W-8 instead.</p>
+    </div>
+
+    <h2 style="margin-top:18px;">Partner Payout Basics</h2>
+    <div class="card">
+      <ul>
+        <li>Payouts based on eligible performance/engagement; calculated monthly; minimum thresholds may apply.</li>
+        <li>PayPal/ACH supported (after tax verification).</li>
+        <li>U.S. Partners $600+ in a calendar year receive 1099-NEC; international may be subject to withholding/reporting.</li>
+        <li>Payouts subject to verification; abuse/fraud/violations may result in withheld or forfeited payouts.</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    const cb = document.getElementById('agree-box');
+    const btn = document.getElementById('agree-btn');
+    if (cb && btn) {
+      cb.addEventListener('change', () => { btn.disabled = !cb.checked; });
+      btn.addEventListener('click', () => {
+        if (!cb.checked) return;
+        alert('Compensation addendum accepted. Proceeding to payout setup...');
+      });
+    }
+  </script>
+</body>
+</html>
