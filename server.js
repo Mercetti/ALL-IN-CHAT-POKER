@@ -26,6 +26,8 @@ const {
   normalizeChannelName: normalizeChannelNameScoped,
   getDefaultChannel,
 } = require('./server/channel-state');
+const payoutStore = require('./server/payout-store');
+const { buildPayoutIdempotencyKey } = require('./server/payout-utils');
 const {
   startBlackjackRound,
   createBlackjackHandlers,
@@ -62,10 +64,10 @@ const DEFAULT_CHANNEL = getDefaultChannel();
 const overlaySettingsByChannel = {};
 const tournamentTimers = {};
 const COIN_PACKS = [
-  { id: 'coins-500', coins: 500, amount_cents: 499, name: '500 Coins', bonus: 0 },
-  { id: 'coins-1200', coins: 1200, amount_cents: 999, name: '1,200 Coins', bonus: 200 },
-  { id: 'coins-2600', coins: 2600, amount_cents: 1999, name: '2,600 Coins', bonus: 600 },
-  { id: 'coins-5500', coins: 5500, amount_cents: 3999, name: '5,500 Coins', bonus: 1500 },
+  { id: 'coins-100', coins: 100, amount_cents: 99, name: '100 All-In Chips', bonus: 0 },
+  { id: 'coins-500', coins: 500, amount_cents: 499, name: '500 All-In Chips', bonus: 50 },
+  { id: 'coins-2000', coins: 2000, amount_cents: 1999, name: '2,000 All-In Chips', bonus: 300 },
+  { id: 'coins-5000', coins: 5000, amount_cents: 4999, name: '5,000 All-In Chips', bonus: 1500 },
 ];
 const TOURNAMENT_DEFAULTS = {
   starting_chips: 5000,
@@ -83,49 +85,60 @@ const TOURNAMENT_DEFAULTS = {
 };
 const COSMETIC_CATALOG = [
   { id: 'card-default', type: 'cardBack', name: 'Default Emerald', price_cents: 0, rarity: 'common', preview: '/assets/card-back.png', tint: '#0b1b1b' },
-  { id: 'card-azure', type: 'cardBack', name: 'Azure Edge', price_cents: 300, rarity: 'rare', preview: '/assets/card-back.png', tint: '#2d9cff' },
-  { id: 'card-magenta', type: 'cardBack', name: 'Magenta Bloom', price_cents: 300, rarity: 'rare', preview: '/assets/card-back.png', tint: '#c94cff' },
-  { id: 'card-back-black', type: 'cardBack', name: 'Onyx Back', price_cents: 0, rarity: 'common', preview: '/assets/cosmetics/cards/basic/card-back-black.png', image_url: '/assets/cosmetics/cards/basic/card-back-black.png' },
-  { id: 'card-back-blue', type: 'cardBack', name: 'Blue Steel Back', price_cents: 100, rarity: 'uncommon', preview: '/assets/cosmetics/cards/basic/card-back-blue.png', image_url: '/assets/cosmetics/cards/basic/card-back-blue.png' },
-  { id: 'card-back-green', type: 'cardBack', name: 'Verdant Back', price_cents: 100, rarity: 'uncommon', preview: '/assets/cosmetics/cards/basic/card-back-green.png', image_url: '/assets/cosmetics/cards/basic/card-back-green.png' },
-  { id: 'card-back-orange', type: 'cardBack', name: 'Ember Back', price_cents: 150, rarity: 'rare', preview: '/assets/cosmetics/cards/basic/card-back-orange.png', image_url: '/assets/cosmetics/cards/basic/card-back-orange.png' },
-  { id: 'card-back-purple', type: 'cardBack', name: 'Amethyst Back', price_cents: 150, rarity: 'rare', preview: '/assets/cosmetics/cards/basic/card-back-purple.png', image_url: '/assets/cosmetics/cards/basic/card-back-purple.png' },
-  { id: 'card-back-red', type: 'cardBack', name: 'Crimson Back', price_cents: 200, rarity: 'epic', preview: '/assets/cosmetics/cards/basic/card-back-red.png', image_url: '/assets/cosmetics/cards/basic/card-back-red.png' },
+  { id: 'card-azure', type: 'cardBack', name: 'Azure Edge', price_cents: 500, rarity: 'rare', preview: '/assets/card-back.png', tint: '#2d9cff' },
+  { id: 'card-magenta', type: 'cardBack', name: 'Magenta Bloom', price_cents: 500, rarity: 'rare', preview: '/assets/card-back.png', tint: '#c94cff' },
+  { id: 'card-back-black', type: 'cardBack', name: 'Onyx Back', price_cents: 250, rarity: 'common', preview: '/assets/cosmetics/cards/basic/card-back-black.png', image_url: '/assets/cosmetics/cards/basic/card-back-black.png' },
+  { id: 'card-back-blue', type: 'cardBack', name: 'Blue Steel Back', price_cents: 400, rarity: 'uncommon', preview: '/assets/cosmetics/cards/basic/card-back-blue.png', image_url: '/assets/cosmetics/cards/basic/card-back-blue.png' },
+  { id: 'card-back-green', type: 'cardBack', name: 'Verdant Back', price_cents: 400, rarity: 'uncommon', preview: '/assets/cosmetics/cards/basic/card-back-green.png', image_url: '/assets/cosmetics/cards/basic/card-back-green.png' },
+  { id: 'card-back-orange', type: 'cardBack', name: 'Ember Back', price_cents: 500, rarity: 'rare', preview: '/assets/cosmetics/cards/basic/card-back-orange.png', image_url: '/assets/cosmetics/cards/basic/card-back-orange.png' },
+  { id: 'card-back-purple', type: 'cardBack', name: 'Amethyst Back', price_cents: 500, rarity: 'rare', preview: '/assets/cosmetics/cards/basic/card-back-purple.png', image_url: '/assets/cosmetics/cards/basic/card-back-purple.png' },
+  { id: 'card-back-red', type: 'cardBack', name: 'Crimson Back', price_cents: 1000, rarity: 'epic', preview: '/assets/cosmetics/cards/basic/card-back-red.png', image_url: '/assets/cosmetics/cards/basic/card-back-red.png' },
   { id: 'card-back-drop', type: 'cardBack', name: 'Glitch Drop Back', price_cents: 0, rarity: 'rare', preview: '/assets/cosmetics/cards/drops/card-back-drop.png', image_url: '/assets/cosmetics/cards/drops/card-back-drop.png', unlock_type: 'twitch_drop', unlock_note: 'Earned via Twitch Drops' },
   { id: 'card-back-streamer', type: 'cardBack', name: 'Streamer Neon Back', price_cents: 0, rarity: 'legendary', preview: '/assets/cosmetics/cards/streamer/card-back-streamer.png', image_url: '/assets/cosmetics/cards/streamer/card-back-streamer.png', unlock_type: 'streamer_goal', unlock_value: 60, unlock_note: 'Streamer: unlock after 60 hands or 30 minutes played' },
   { id: 'card-face-classic', type: 'cardFace', name: 'Classic Face Deck', price_cents: 0, rarity: 'common', preview: '/assets/cosmetics/cards/faces/classic/ace_of_spades.png', image_url: '/assets/cosmetics/cards/faces/classic', unlock_type: 'basic', unlock_note: 'Available to all players' },
-  { id: 'table-default', type: 'tableSkin', name: 'Default Felt', price_cents: 0, rarity: 'common', preview: '/assets/table-texture.svg', tint: '#0c4c3b', color: '#8ef5d0', texture_url: '/assets/table-texture.svg' },
-  { id: 'table-night', type: 'tableSkin', name: 'Night Felt', price_cents: 400, rarity: 'rare', preview: '/assets/table-texture.svg', tint: '#0a2c2c', color: '#6fffd3', texture_url: '/assets/table-texture.svg' },
-  { id: 'table-neon', type: 'tableSkin', name: 'Neon Felt', price_cents: 500, rarity: 'rare', preview: '/assets/table-texture.svg', tint: '#0f5d4f', color: '#8ef5d0', texture_url: '/assets/table-texture.svg' },
+  // Chip skins (top-view)
+  { id: 'chip-1-classic', type: 'chipSkin', name: '$1 Classic Chip', price_cents: 0, rarity: 'common', preview: '/assets/cosmetics/effects/chips/chip-1-top.png', image_url: '/assets/cosmetics/effects/chips/chip-1-top.png', unlock_note: 'Default chip' },
+  { id: 'chip-5-classic', type: 'chipSkin', name: '$5 Classic Chip', price_cents: 50, rarity: 'uncommon', preview: '/assets/cosmetics/effects/chips/chip-5-top.png', image_url: '/assets/cosmetics/effects/chips/chip-5-top.png' },
+  { id: 'chip-25-classic', type: 'chipSkin', name: '$25 Classic Chip', price_cents: 75, rarity: 'rare', preview: '/assets/cosmetics/effects/chips/chip-25-top.png', image_url: '/assets/cosmetics/effects/chips/chip-25-top.png' },
+  { id: 'chip-100-classic', type: 'chipSkin', name: '$100 Classic Chip', price_cents: 0, rarity: 'common', preview: '/assets/cosmetics/effects/chips/chip-100-top.png', image_url: '/assets/cosmetics/effects/chips/chip-100-top.png', unlock_note: 'Included' },
+  { id: 'chip-500-classic', type: 'chipSkin', name: '$500 Classic Chip', price_cents: 125, rarity: 'epic', preview: '/assets/cosmetics/effects/chips/chip-500-top.png', image_url: '/assets/cosmetics/effects/chips/chip-500-top.png' },
+  { id: 'table-default', type: 'tableSkin', name: 'Default Felt', price_cents: 0, rarity: 'common', preview: '/assets/cosmetics/table/basic/table_streamer_neon_twitch.png', image_url: '/assets/cosmetics/table/basic/table_streamer_neon_twitch.png', tint: '#0c4c3b', color: '#8ef5d0', texture_url: '/assets/table-texture.svg' },
+  { id: 'table-night', type: 'tableSkin', name: 'Night Felt', price_cents: 2000, rarity: 'rare', preview: '/assets/cosmetics/table/basic/table_streamer_neon_twitch.png', image_url: '/assets/cosmetics/table/basic/table_streamer_neon_twitch.png', tint: '#0a2c2c', color: '#6fffd3', texture_url: '/assets/table-texture.svg' },
+  { id: 'table-neon', type: 'tableSkin', name: 'Neon Felt', price_cents: 3500, rarity: 'rare', preview: '/assets/cosmetics/table/basic/table_streamer_neon_twitch.png', image_url: '/assets/cosmetics/table/basic/table_streamer_neon_twitch.png', tint: '#0f5d4f', color: '#8ef5d0', texture_url: '/assets/table-texture.svg' },
   { id: 'ring-default', type: 'avatarRing', name: 'Emerald Ring', price_cents: 0, rarity: 'common', preview: '/logo.png', color: '#00d4a6' },
-  { id: 'ring-gold', type: 'avatarRing', name: 'Gold Ring', price_cents: 250, rarity: 'rare', preview: '/logo.png', color: '#f5a524' },
+  { id: 'ring-gold', type: 'avatarRing', name: 'Gold Ring', price_cents: 500, rarity: 'rare', preview: '/logo.png', color: '#f5a524' },
   { id: 'frame-default', type: 'profileFrame', name: 'Emerald Frame', price_cents: 0, rarity: 'common', preview: '/logo.png', color: '#00d4a6' },
-  { id: 'frame-ice', type: 'profileFrame', name: 'Ice Frame', price_cents: 250, rarity: 'rare', preview: '/logo.png', color: '#6dd2ff' },
-  { id: 'bundle-neon-night', type: 'bundle', name: 'Neon Night Bundle', price_cents: 799, rarity: 'epic', preview: '/assets/table-texture.svg', tint: '#0f5d4f', color: '#8ef5d0', texture_url: '/assets/table-texture.svg' },
-  { id: 'ring-basic-extra1', type: 'avatarRing', name: 'Emerald Pulse', price_cents: 0, rarity: 'common', preview: '/assets/cosmetics/avatar/basic-extra1.png', image_url: '/assets/cosmetics/avatar/basic-extra1.png', unlock_type: 'basic', unlock_note: 'Available to all players' },
-  { id: 'ring-basic-extra2', type: 'avatarRing', name: 'Carbon Glow', price_cents: 0, rarity: 'uncommon', preview: '/assets/cosmetics/avatar/basic-extra2.png', image_url: '/assets/cosmetics/avatar/basic-extra2.png', unlock_type: 'basic', unlock_note: 'Available to all players' },
-  { id: 'ring-streamer-cosmic', type: 'avatarRing', name: 'Streamer Cosmic Ring', price_cents: 0, rarity: 'legendary', preview: '/assets/cosmetics/avatar/streamer-cosmic.png', image_url: '/assets/cosmetics/avatar/streamer-cosmic.png', unlock_type: 'streamer_goal', unlock_value: 50, unlock_note: 'Streamer: unlock after 50 hands or 30 minutes played' },
-  { id: 'ring-streamer-glitch', type: 'avatarRing', name: 'Streamer Glitch Ring', price_cents: 0, rarity: 'legendary', preview: '/assets/cosmetics/avatar/streamer-glitch.png', image_url: '/assets/cosmetics/avatar/streamer-glitch.png', unlock_type: 'streamer_goal', unlock_value: 75, unlock_note: 'Streamer: unlock after 75 hands' },
-  { id: 'ring-streamer-gold', type: 'avatarRing', name: 'Streamer Gold Ring', price_cents: 0, rarity: 'legendary', preview: '/assets/cosmetics/avatar/streamer-gold.png', image_url: '/assets/cosmetics/avatar/streamer-gold.png', unlock_type: 'streamer_goal', unlock_value: 100, unlock_note: 'Streamer: unlock after 100 hands' },
-  { id: 'ring-streamer-neon', type: 'avatarRing', name: 'Streamer Neon Ring', price_cents: 0, rarity: 'legendary', preview: '/assets/cosmetics/avatar/streamer-neon.png', image_url: '/assets/cosmetics/avatar/streamer-neon.png', unlock_type: 'streamer_goal', unlock_value: 120, unlock_note: 'Streamer: unlock after 120 hands' },
-  { id: 'ring-subscriber-purple', type: 'avatarRing', name: 'Subscriber Neon Aura', price_cents: 0, rarity: 'epic', preview: '/assets/cosmetics/avatar/subscriber-purple-neon.png', image_url: '/assets/cosmetics/avatar/subscriber-purple-neon.png', unlock_type: 'subscriber', unlock_note: 'Subscriber perk (tier/length required)' },
-  { id: 'ring-subscriber-sparkle', type: 'avatarRing', name: 'Subscriber Sparkle', price_cents: 0, rarity: 'epic', preview: '/assets/cosmetics/avatar/subscriber-sparkle.png', image_url: '/assets/cosmetics/avatar/subscriber-sparkle.png', unlock_type: 'subscriber', unlock_note: 'Subscriber perk (tier/length required)' },
-  { id: 'ring-subscriber-cosmic', type: 'avatarRing', name: 'Subscriber Cosmic Bloom', price_cents: 0, rarity: 'legendary', preview: '/assets/cosmetics/avatar/subscriber-cosmic.png', image_url: '/assets/cosmetics/avatar/subscriber-cosmic.png', unlock_type: 'subscriber', unlock_note: 'Subscriber perk (tier/length required)' },
-  { id: 'ring-subscriber-frost', type: 'avatarRing', name: 'Subscriber Frost Edge', price_cents: 0, rarity: 'epic', preview: '/assets/cosmetics/avatar/subscriber-frost.png', image_url: '/assets/cosmetics/avatar/subscriber-frost.png', unlock_type: 'subscriber', unlock_note: 'Subscriber perk (tier/length required)' },
-  { id: 'ring-drop-pink-neon', type: 'avatarRing', name: 'Twitch Drop: Pink Neon', price_cents: 0, rarity: 'rare', preview: '/assets/cosmetics/avatar/drop-pink-neon.png', image_url: '/assets/cosmetics/avatar/drop-pink-neon.png', unlock_type: 'twitch_drop', unlock_note: 'Earned via Twitch Drops' },
-  { id: 'table-streamer-cosmic-moon', type: 'tableSkin', name: 'Streamer Cosmic Moon', price_cents: 0, rarity: 'legendary', preview: '/assets/cosmetics/table/table-streamer-cosmic-moon.png', image_url: '/assets/cosmetics/table/table-streamer-cosmic-moon.png', unlock_type: 'streamer_goal', unlock_value: 50, unlock_note: 'Streamer: unlock after 50 hands or 30 minutes played' },
-  { id: 'table-streamer-gold-crown', type: 'tableSkin', name: 'Streamer Gold Crown', price_cents: 0, rarity: 'legendary', preview: '/assets/cosmetics/table/table-streamer-gold-crown.png', image_url: '/assets/cosmetics/table/table-streamer-gold-crown.png', unlock_type: 'streamer_goal', unlock_value: 75, unlock_note: 'Streamer: unlock after 75 hands' },
-  { id: 'table-streamer-gold-star', type: 'tableSkin', name: 'Streamer Gold Star', price_cents: 0, rarity: 'legendary', preview: '/assets/cosmetics/table/table-streamer-gold-star.png', image_url: '/assets/cosmetics/table/table-streamer-gold-star.png', unlock_type: 'streamer_goal', unlock_value: 100, unlock_note: 'Streamer: unlock after 100 hands' },
-  { id: 'table-streamer-neon-twitch', type: 'tableSkin', name: 'Streamer Neon Twitch', price_cents: 0, rarity: 'legendary', preview: '/assets/cosmetics/table/table-streamer-neon-twitch.png', image_url: '/assets/cosmetics/table/table-streamer-neon-twitch.png', unlock_type: 'streamer_goal', unlock_value: 120, unlock_note: 'Streamer: unlock after 120 hands' },
-  { id: 'table-drop-glitch-twitch', type: 'tableSkin', name: 'Twitch Drop: Glitch Table', price_cents: 0, rarity: 'epic', preview: '/assets/cosmetics/table/table-drop-glitch-twitch.png', image_url: '/assets/cosmetics/table/table-drop-glitch-twitch.png', unlock_type: 'twitch_drop', unlock_note: 'Earned via Twitch Drops' },
+  { id: 'frame-ice', type: 'profileFrame', name: 'Ice Frame', price_cents: 500, rarity: 'rare', preview: '/logo.png', color: '#6dd2ff' },
+  // Nameplates
+  { id: 'nameplate-default', type: 'nameplate', name: 'Neon Nameplate', price_cents: 0, rarity: 'common', preview: '/logo.png', tint: '#00d4a6', unlock_note: 'Default overlay plate' },
+  { id: 'nameplate-glitch', type: 'nameplate', name: 'Glitch Nameplate', price_cents: 150, rarity: 'rare', preview: '/logo.png', tint: '#b14bff' },
+  { id: 'bundle-neon-night', type: 'bundle', name: 'Neon Night Bundle', price_cents: 3500, rarity: 'epic', preview: '/assets/table-texture.svg', tint: '#0f5d4f', color: '#8ef5d0', texture_url: '/assets/table-texture.svg' },
+  { id: 'ring-basic-extra1', type: 'avatarRing', name: 'Emerald Pulse', price_cents: 250, rarity: 'common', preview: '/assets/cosmetics/avatar/basic-extra1.png', image_url: '/assets/cosmetics/avatar/basic-extra1.png', unlock_type: 'basic', unlock_note: 'Available to all players' },
+  { id: 'ring-basic-extra2', type: 'avatarRing', name: 'Carbon Glow', price_cents: 400, rarity: 'uncommon', preview: '/assets/cosmetics/avatar/basic-extra2.png', image_url: '/assets/cosmetics/avatar/basic-extra2.png', unlock_type: 'basic', unlock_note: 'Available to all players' },
+  { id: 'ring-streamer-cosmic', type: 'avatarRing', name: 'Streamer Cosmic Ring', price_cents: 1500, rarity: 'legendary', preview: '/assets/cosmetics/avatar/streamer-cosmic.png', image_url: '/assets/cosmetics/avatar/streamer-cosmic.png', unlock_type: 'streamer_goal', unlock_value: 50, unlock_note: 'Streamer: unlock after 50 hands or 30 minutes played' },
+  { id: 'ring-streamer-glitch', type: 'avatarRing', name: 'Streamer Glitch Ring', price_cents: 1500, rarity: 'legendary', preview: '/assets/cosmetics/avatar/streamer-glitch.png', image_url: '/assets/cosmetics/avatar/streamer-glitch.png', unlock_type: 'streamer_goal', unlock_value: 75, unlock_note: 'Streamer: unlock after 75 hands' },
+  { id: 'ring-streamer-gold', type: 'avatarRing', name: 'Streamer Gold Ring', price_cents: 1500, rarity: 'legendary', preview: '/assets/cosmetics/avatar/streamer-gold.png', image_url: '/assets/cosmetics/avatar/streamer-gold.png', unlock_type: 'streamer_goal', unlock_value: 100, unlock_note: 'Streamer: unlock after 100 hands' },
+  { id: 'ring-streamer-neon', type: 'avatarRing', name: 'Streamer Neon Ring', price_cents: 1500, rarity: 'legendary', preview: '/assets/cosmetics/avatar/streamer-neon.png', image_url: '/assets/cosmetics/avatar/streamer-neon.png', unlock_type: 'streamer_goal', unlock_value: 120, unlock_note: 'Streamer: unlock after 120 hands' },
+  { id: 'ring-subscriber-purple', type: 'avatarRing', name: 'Subscriber Neon Aura', price_cents: 1000, rarity: 'epic', preview: '/assets/cosmetics/avatar/subscriber-purple-neon.png', image_url: '/assets/cosmetics/avatar/subscriber-purple-neon.png', unlock_type: 'subscriber', unlock_note: 'Subscriber perk (tier/length required)' },
+  { id: 'ring-subscriber-sparkle', type: 'avatarRing', name: 'Subscriber Sparkle', price_cents: 1000, rarity: 'epic', preview: '/assets/cosmetics/avatar/subscriber-sparkle.png', image_url: '/assets/cosmetics/avatar/subscriber-sparkle.png', unlock_type: 'subscriber', unlock_note: 'Subscriber perk (tier/length required)' },
+  { id: 'ring-subscriber-cosmic', type: 'avatarRing', name: 'Subscriber Cosmic Bloom', price_cents: 1500, rarity: 'legendary', preview: '/assets/cosmetics/avatar/subscriber-cosmic.png', image_url: '/assets/cosmetics/avatar/subscriber-cosmic.png', unlock_type: 'subscriber', unlock_note: 'Subscriber perk (tier/length required)' },
+  { id: 'ring-subscriber-frost', type: 'avatarRing', name: 'Subscriber Frost Edge', price_cents: 1000, rarity: 'epic', preview: '/assets/cosmetics/avatar/subscriber-frost.png', image_url: '/assets/cosmetics/avatar/subscriber-frost.png', unlock_type: 'subscriber', unlock_note: 'Subscriber perk (tier/length required)' },
+  { id: 'ring-drop-pink-neon', type: 'avatarRing', name: 'Twitch Drop: Pink Neon', price_cents: 500, rarity: 'rare', preview: '/assets/cosmetics/avatar/drop-pink-neon.png', image_url: '/assets/cosmetics/avatar/drop-pink-neon.png', unlock_type: 'twitch_drop', unlock_note: 'Earned via Twitch Drops' },
+  { id: 'table-streamer-cosmic-moon', type: 'tableSkin', name: 'Streamer Cosmic Moon', price_cents: 5000, rarity: 'legendary', preview: '/assets/cosmetics/table/streamer/table_streamer_cosmic_moon.png', image_url: '/assets/cosmetics/table/streamer/table_streamer_cosmic_moon.png', unlock_type: 'streamer_goal', unlock_value: 50, unlock_note: 'Streamer: unlock after 50 hands or 30 minutes played' },
+  { id: 'table-streamer-gold-crown', type: 'tableSkin', name: 'Streamer Gold Crown', price_cents: 5000, rarity: 'legendary', preview: '/assets/cosmetics/table/streamer/table_streamer_gold_crown.png', image_url: '/assets/cosmetics/table/streamer/table_streamer_gold_crown.png', unlock_type: 'streamer_goal', unlock_value: 75, unlock_note: 'Streamer: unlock after 75 hands' },
+  { id: 'table-streamer-gold-star', type: 'tableSkin', name: 'Streamer Gold Star', price_cents: 5000, rarity: 'legendary', preview: '/assets/cosmetics/table/streamer/table_streamer_gold_star.png', image_url: '/assets/cosmetics/table/streamer/table_streamer_gold_star.png', unlock_type: 'streamer_goal', unlock_value: 100, unlock_note: 'Streamer: unlock after 100 hands' },
+  { id: 'table-streamer-neon-twitch', type: 'tableSkin', name: 'Streamer Neon Twitch', price_cents: 5000, rarity: 'legendary', preview: '/assets/cosmetics/table/streamer/table_streamer_neon_twitch.png', image_url: '/assets/cosmetics/table/streamer/table_streamer_neon_twitch.png', unlock_type: 'streamer_goal', unlock_value: 120, unlock_note: 'Streamer: unlock after 120 hands' },
+  { id: 'table-drop-glitch-twitch', type: 'tableSkin', name: 'Twitch Drop: Glitch Table', price_cents: 5000, rarity: 'epic', preview: '/assets/cosmetics/table/drops/table_streamer_glitch_twitch.png', image_url: '/assets/cosmetics/table/drops/table_streamer_glitch_twitch.png', unlock_type: 'twitch_drop', unlock_note: 'Earned via Twitch Drops' },
 ];
-const DEFAULT_COSMETIC_DEFAULTS = ['card-default', 'table-default', 'ring-default', 'frame-default', 'card-face-classic'];
+const DEFAULT_COSMETIC_DEFAULTS = ['card-default', 'table-default', 'ring-default', 'frame-default', 'card-face-classic', 'chip-100-classic', 'nameplate-default'];
 const DEFAULT_COSMETIC_SLOTS = {
   cardBack: 'card-default',
   tableSkin: 'table-default',
   avatarRing: 'ring-default',
   profileFrame: 'frame-default',
   cardFace: 'card-face-classic',
+  chipSkin: 'chip-100-classic',
+  nameplate: 'nameplate-default',
 };
 const MDN_BASE_URL = 'https://developer.mozilla.org';
 const MDN_SEARCH_URL = `${MDN_BASE_URL}/api/v1/search`;
@@ -739,6 +752,25 @@ app.get('/auth/twitch/subs/callback', async (req, res) => {
   }
 });
 app.use(express.static('public'));
+
+// Partner payouts: partner-facing summary (Postgres-only)
+app.get('/partner/payouts', async (req, res) => {
+  try {
+    const partnerId = auth.extractUserLogin(req);
+    if (!validation.validateUsername(partnerId || '')) {
+      return res.status(401).json({ error: 'unauthorized' });
+    }
+    if (!payoutStore || !payoutStore.getPartnerSummary) {
+      return res.status(501).json({ error: 'payouts_unavailable' });
+    }
+    const summary = await payoutStore.getPartnerSummary(partnerId);
+    if (!summary) return res.status(404).json({ error: 'not_found' });
+    return res.json(summary);
+  } catch (err) {
+    logger.error('partner payouts fetch failed', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
 
 // Public cosmetic catalog (read-only)
 app.get('/catalog', (_req, res) => {
@@ -3836,6 +3868,7 @@ app.post('/market/buy', (req, res) => {
     return res.status(401).json({ error: 'unauthorized' });
   }
   const itemId = req.body?.itemId;
+  const partnerId = (req.body?.partnerId || '').toLowerCase() || null;
   if (!itemId) return res.status(400).json({ error: 'itemId required' });
   const catalog = db.getCatalog();
   const item = catalog.find(i => i.id === itemId);
@@ -3855,6 +3888,7 @@ app.post('/market/buy', (req, res) => {
     amount_cents: price,
     coin_amount: price,
     status: 'completed',
+    partner_id: partnerId,
     note: 'soft currency purchase',
   });
   return res.json({
@@ -3866,15 +3900,51 @@ app.post('/market/buy', (req, res) => {
   });
 });
 
+// Partner views (fire-and-forget)
+app.post('/partners/:id/view', (req, res) => {
+  const partnerId = (req.params.id || '').toLowerCase();
+  if (!partnerId) return res.status(400).json({ error: 'invalid_partner' });
+  const login = auth.extractUserLogin(req);
+  db.recordPartnerView(partnerId, validation.validateUsername(login || '') ? login : null);
+  return res.json({ ok: true });
+});
+
+// Admin: upsert partner
+app.post('/admin/partners', auth.requireAdmin, (req, res) => {
+  try {
+    const { id, display_name, payout_pct } = req.body || {};
+    if (!validation.validateUsername(id || '')) {
+      return res.status(400).json({ error: 'invalid_id' });
+    }
+    const pct = Math.max(0, Math.min(Number(payout_pct || 0.1), 0.9));
+    const partner = db.upsertPartner({ id, display_name, payout_pct: pct });
+    return res.json(partner);
+  } catch (err) {
+    logger.error('Upsert partner failed', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+// Admin: list partners with stats
+app.get('/admin/partners', auth.requireAdmin, (_req, res) => {
+  try {
+    const partners = db.listPartnerStats();
+    return res.json({ partners });
+  } catch (err) {
+    logger.error('List partners failed', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
 /**
  * Admin: verify subscription via bot token and grant subscriber cosmetics
  * Body: { login, broadcaster }
  */
-  app.post('/admin/grant-subscriber', auth.requireAdmin, async (req, res) => {
-    try {
-      const { login, broadcaster } = req.body || {};
-      if (!validation.validateUsername(login || '')) {
-        return res.status(400).json({ error: 'invalid login' });
+app.post('/admin/grant-subscriber', auth.requireAdmin, async (req, res) => {
+  try {
+    const { login, broadcaster } = req.body || {};
+    if (!validation.validateUsername(login || '')) {
+      return res.status(400).json({ error: 'invalid login' });
       }
       const broadcasterLogin = (broadcaster || config.STREAMER_LOGIN || '').toLowerCase();
       if (!validation.validateUsername(broadcasterLogin)) {
@@ -3891,6 +3961,162 @@ app.post('/market/buy', (req, res) => {
     return res.status(500).json({ error: 'internal_error' });
   }
 });
+
+// ====== PAYOUTS (stub) ======
+// These endpoints illustrate idempotency key usage; replace with real payout logic/batch persistence.
+  app.post('/admin/payouts/dry-run', auth.requireAdmin, async (req, res) => {
+    if (!payoutStore?.payoutDryRun) {
+      return res.status(501).json({ error: 'payouts_unavailable' });
+    }
+    try {
+      const {
+        period_start,
+        period_end,
+        currency = 'USD',
+        payout_minimum_cents = 0,
+        note_template = '',
+      } = req.body || {};
+      if (!period_start || !period_end) {
+        return res.status(400).json({ error: 'missing_period' });
+      }
+      const result = await payoutStore.payoutDryRun({
+        periodStart: period_start,
+        periodEnd: period_end,
+        currency,
+        payoutMinimumCents: Number(payout_minimum_cents) || 0,
+        noteTemplate: note_template || '',
+      });
+      return res.json(result);
+    } catch (err) {
+      logger.error('payout dry run failed', { error: err.message });
+      const status = err.message === 'postgres_unavailable' ? 503 : 500;
+      return res.status(status).json({ error: err.message || 'internal_error' });
+    }
+  });
+  
+  app.post('/admin/payouts/submit', auth.requireAdmin, async (req, res) => {
+    if (!payoutStore?.payoutSubmit) {
+      return res.status(501).json({ error: 'payouts_unavailable' });
+    }
+    try {
+      const {
+        period_start,
+        period_end,
+        currency = 'USD',
+        payout_minimum_cents = 0,
+        note_template = '',
+        items = [],
+        idempotency_key,
+      } = req.body || {};
+      if (!period_start || !period_end) {
+        return res.status(400).json({ error: 'missing_period' });
+      }
+
+      // Normalize incoming items if provided; otherwise run a dry run to build the list.
+      let normalizedItems = Array.isArray(items)
+        ? items.map(i => ({
+            partnerId: i.partnerId || i.partner_id,
+            receiver: i.receiver || i.paypal_receiver || i.email,
+            amountCents: Number(i.amountCents ?? i.amount_cents ?? i.amount) || 0,
+            currency: i.currency || currency,
+          })).filter(i => i.partnerId && i.receiver && i.amountCents > 0)
+        : [];
+
+      if (!normalizedItems.length) {
+        const preview = await payoutStore.payoutDryRun({
+          periodStart: period_start,
+          periodEnd: period_end,
+          currency,
+          payoutMinimumCents: Number(payout_minimum_cents) || 0,
+          noteTemplate: note_template || '',
+        });
+        normalizedItems = preview.items_preview || [];
+        if (!normalizedItems.length) {
+          return res.status(400).json({ error: 'no_eligible_partners' });
+        }
+      }
+
+      const batch = await payoutStore.payoutSubmit({
+        periodStart: period_start,
+        periodEnd: period_end,
+        currency,
+        payoutMinimumCents: Number(payout_minimum_cents) || 0,
+        noteTemplate: note_template || '',
+        items: normalizedItems,
+        idempotencyKey: idempotency_key,
+        adminId: req.user?.id || null,
+      });
+      return res.status(201).json(batch);
+    } catch (err) {
+      logger.error('payout submit failed', { error: err.message });
+      const status = err.message === 'postgres_unavailable' ? 503 : 500;
+      return res.status(status).json({ error: err.message || 'internal_error' });
+    }
+  });
+
+  app.post('/admin/payouts/:id/reconcile', auth.requireAdmin, async (req, res) => {
+    if (!payoutStore?.reconcileBatch) {
+      return res.status(501).json({ error: 'payouts_unavailable' });
+    }
+    try {
+      const result = await payoutStore.reconcileBatch(req.params.id);
+      return res.json(result);
+    } catch (err) {
+      logger.error('payout reconcile failed', { error: err.message });
+      const status = err.message === 'postgres_unavailable' ? 503 : 500;
+      return res.status(status).json({ error: err.message || 'internal_error' });
+    }
+  });
+
+  app.get('/admin/payouts/export/summary', auth.requireAdmin, async (req, res) => {
+    if (!payoutStore?.exportSummaryCsv) {
+      return res.status(501).json({ error: 'payouts_unavailable' });
+    }
+    try {
+      const { period_start, period_end } = req.query || {};
+      if (!period_start || !period_end) {
+        return res.status(400).json({ error: 'missing_period' });
+      }
+      const csv = await payoutStore.exportSummaryCsv({ periodStart: period_start, periodEnd: period_end });
+      res.setHeader('Content-Type', 'text/csv');
+      return res.send(csv || '');
+    } catch (err) {
+      logger.error('payout export summary failed', { error: err.message });
+      const status = err.message === 'postgres_unavailable' ? 503 : 500;
+      return res.status(status).json({ error: err.message || 'internal_error' });
+    }
+  });
+
+  app.get('/admin/payouts/:id/items.csv', auth.requireAdmin, async (req, res) => {
+    if (!payoutStore?.exportItemsCsv) {
+      return res.status(501).json({ error: 'payouts_unavailable' });
+    }
+    try {
+      const masked = req.query?.masked !== 'false';
+      const csv = await payoutStore.exportItemsCsv({ batchId: req.params.id, masked });
+      res.setHeader('Content-Type', 'text/csv');
+      return res.send(csv || '');
+    } catch (err) {
+      logger.error('payout export items failed', { error: err.message });
+      const status = err.message === 'postgres_unavailable' ? 503 : 500;
+      return res.status(status).json({ error: err.message || 'internal_error' });
+    }
+  });
+  
+  app.get('/admin/payouts/:id', auth.requireAdmin, async (req, res) => {
+    if (!payoutStore?.getBatchDetail) {
+      return res.status(501).json({ error: 'payouts_unavailable' });
+    }
+    try {
+      const detail = await payoutStore.getBatchDetail(req.params.id);
+      if (!detail) return res.status(404).json({ error: 'not_found' });
+      return res.json(detail);
+    } catch (err) {
+      logger.error('payout batch lookup failed', { error: err.message });
+      const status = err.message === 'postgres_unavailable' ? 503 : 500;
+      return res.status(status).json({ error: err.message || 'internal_error' });
+    }
+  });
 
 /**
  * Admin: test Twitch subscription scope with current bot token

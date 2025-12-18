@@ -38,6 +38,21 @@ const devProfileBorder = document.getElementById('dev-profile-border');
 const devTableTint = document.getElementById('dev-table-tint');
 const devTableLogo = document.getElementById('dev-table-logo');
 const devAutoFillAi = document.getElementById('dev-auto-fill-ai');
+const partnerTable = document.getElementById('partner-table');
+const partnerIdInput = document.getElementById('partner-id');
+const partnerNameInput = document.getElementById('partner-name');
+const partnerPctInput = document.getElementById('partner-pct');
+const partnerSaveBtn = document.getElementById('btn-save-partner');
+const partnerRefreshBtn = document.getElementById('btn-refresh-partners');
+const earnInputs = {
+  chatRate: document.getElementById('earn-chat-rate'),
+  chatCap: document.getElementById('earn-chat-cap'),
+  follower: document.getElementById('earn-follower'),
+  sub: document.getElementById('earn-sub'),
+  raid: document.getElementById('earn-raid'),
+  redeem: document.getElementById('earn-redeem'),
+};
+const saveEarnBtn = document.getElementById('btn-save-earn');
 const connectSubsBtn = document.getElementById('btn-connect-subs');
 const overlayModal = document.getElementById('overlay-modal');
 const overlayModalOpen = document.getElementById('btn-open-overlay-modal');
@@ -953,3 +968,104 @@ async function saveMode() {
   if (!select) return;
   Toast.info('Mode is locked to blackjack');
 }
+
+// ===== Partner program UI =====
+async function fetchPartners() {
+  if (!partnerTable) return;
+  try {
+    const res = await fetch('/admin/partners');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    renderPartnerTable(data?.partners || []);
+  } catch (err) {
+    console.warn('Partner fetch failed', err);
+    renderPartnerTable([]);
+    Toast.error('Failed to load partners');
+  }
+}
+
+function renderPartnerTable(partners = []) {
+  if (!partnerTable) return;
+  const tbody = partnerTable.querySelector('tbody');
+  if (!tbody) return;
+  if (!partners.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="muted">No data</td></tr>';
+    return;
+  }
+  tbody.innerHTML = partners.map(p => {
+    const stats = p.stats || {};
+    return `
+      <tr>
+        <td>${p.display_name || p.id}</td>
+        <td>${Math.round((p.payout_pct || 0) * 100)}%</td>
+        <td>${stats.orders || 0}</td>
+        <td>${stats.coin_amount || 0}</td>
+        <td>$${((stats.amount_cents || 0) / 100).toFixed(2)}</td>
+        <td>${stats.views || 0}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+async function savePartner() {
+  if (!partnerIdInput) return;
+  const id = (partnerIdInput.value || '').trim().toLowerCase();
+  if (!id) return Toast.error('Partner id required');
+  const payload = {
+    id,
+    display_name: partnerNameInput?.value || id,
+    payout_pct: Math.max(0, Math.min(Number(partnerPctInput?.value || 10) / 100, 0.9)),
+  };
+  try {
+    const res = await fetch('/admin/partners', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    Toast.success('Partner saved');
+    fetchPartners();
+  } catch (err) {
+    console.warn('Save partner failed', err);
+    Toast.error('Save failed');
+  }
+}
+
+// ===== Viewer earn config (local only) =====
+function loadEarnConfig() {
+  try {
+    const raw = localStorage.getItem('earnConfig');
+    if (!raw) return;
+    const cfg = JSON.parse(raw);
+    if (earnInputs.chatRate) earnInputs.chatRate.value = cfg.chatRate ?? earnInputs.chatRate.value;
+    if (earnInputs.chatCap) earnInputs.chatCap.value = cfg.chatCap ?? earnInputs.chatCap.value;
+    if (earnInputs.follower) earnInputs.follower.value = cfg.follower ?? earnInputs.follower.value;
+    if (earnInputs.sub) earnInputs.sub.value = cfg.sub ?? earnInputs.sub.value;
+    if (earnInputs.raid) earnInputs.raid.value = cfg.raid ?? earnInputs.raid.value;
+    if (earnInputs.redeem) earnInputs.redeem.value = cfg.redeem ?? earnInputs.redeem.value;
+  } catch (e) {
+    console.warn('Failed to load earn config', e);
+  }
+}
+
+function saveEarnConfig() {
+  const cfg = {
+    chatRate: Number(earnInputs.chatRate?.value || 5),
+    chatCap: Number(earnInputs.chatCap?.value || 500),
+    follower: Number(earnInputs.follower?.value || 25),
+    sub: Number(earnInputs.sub?.value || 100),
+    raid: Number(earnInputs.raid?.value || 250),
+    redeem: Number(earnInputs.redeem?.value || 25),
+  };
+  localStorage.setItem('earnConfig', JSON.stringify(cfg));
+  Toast.success('Viewer earn config saved (local)');
+}
+
+// Wire new controls
+if (partnerSaveBtn) partnerSaveBtn.addEventListener('click', savePartner);
+if (partnerRefreshBtn) partnerRefreshBtn.addEventListener('click', fetchPartners);
+if (saveEarnBtn) saveEarnBtn.addEventListener('click', saveEarnConfig);
+
+// Initial fetch/load
+fetchPartners();
+loadEarnConfig();

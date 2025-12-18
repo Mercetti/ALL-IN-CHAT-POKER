@@ -110,6 +110,43 @@
       justify-content: space-between;
       align-items: center;
     }
+    .pack-card {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: flex-start;
+    }
+    .pack-btn {
+      width: 220px;
+      height: 60px;
+      border: none;
+      background: url('/assets/buttons/buy_button_normal.png') center/contain no-repeat;
+      color: #effff6;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.35);
+      cursor: pointer;
+      transition: transform 0.08s ease;
+    }
+    .pack-btn:hover:not(:disabled) {
+      background-image: url('/assets/buttons/buy_button_hover.png');
+    }
+    .pack-btn:active:not(:disabled) {
+      background-image: url('/assets/buttons/buy_button_pressed.png');
+      transform: translateY(1px);
+    }
+    .pack-btn:disabled {
+      background-image: url('/assets/buttons/buy_button_disabled.png');
+      color: #7a8f88;
+      cursor: not-allowed;
+    }
+    .pack-img {
+      width: 100%;
+      max-height: 140px;
+      object-fit: contain;
+      display: block;
+      filter: drop-shadow(0 8px 14px rgba(0,0,0,0.35));
+    }
     @media (max-width: 768px) {
       .preview-panel {
         grid-template-columns: 1fr;
@@ -133,11 +170,19 @@
           <option value="tableSkin">Table skins</option>
           <option value="avatarRing">Avatar rings</option>
           <option value="profileFrame">Profile frames</option>
+          <option value="chipSkin">Chips</option>
+          <option value="nameplate">Name plates</option>
         </select>
         <button id="btn-refresh-catalog" class="btn btn-secondary btn-sm">Reload catalog</button>
         <a class="btn btn-secondary btn-sm" href="/admin2.html" target="_blank" rel="noopener">Open Admin</a>
       </div>
     </div>
+
+    <section class="panel" style="margin-bottom:16px;">
+      <h2 style="margin:0 0 8px;">All-In Chips Packs</h2>
+      <p class="muted" style="margin:0 0 12px;">Buy AIC packs with cash; cosmetics are purchased with AIC only.</p>
+      <div class="cosmetics-grid" id="aic-pack-grid"></div>
+    </section>
 
     <p class="muted" id="catalog-status">Loading catalog...</p>
     <div id="cosmetics-grid" class="cosmetics-grid"></div>
@@ -163,35 +208,67 @@
     const gridEl = document.getElementById('cosmetics-grid');
     const statusEl = document.getElementById('catalog-status');
     const filterEl = document.getElementById('filter-type');
+    const packGrid = document.getElementById('aic-pack-grid');
+    const chipPacks = [
+      { id: 'coins-100', chips: 100, price: '$0.99', img: '/assets/all_in_chip_x1.png', tag: 'Starter' },
+      { id: 'coins-500', chips: 500, price: '$4.99', bonus: '+50', img: '/assets/all_in_chip_x10.png', tag: 'Best Deal' },
+      { id: 'coins-2000', chips: 2000, price: '$19.99', bonus: '+300', img: '/assets/all_in_chip_x100.png', tag: 'Popular' },
+      { id: 'coins-5000', chips: 5000, price: '$49.99', bonus: '+1500', img: '/assets/all_in_chip_x1000.png', tag: 'Whale Pack' },
+    ];
 
     async function loadCatalog() {
       statusEl.textContent = 'Loading catalog...';
       gridEl.innerHTML = '';
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 8000);
       try {
-        const res = await fetch('/catalog');
+        const res = await fetch('/catalog', { signal: controller.signal });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const items = await res.json();
         renderCatalog(items || []);
         statusEl.textContent = '';
       } catch (err) {
-        statusEl.textContent = 'Failed to load catalog';
+        console.error('[cosmetics] catalog load failed', err);
+        statusEl.textContent = 'Failed to load catalog. Please refresh.';
+        gridEl.innerHTML = '<div class="muted" style="padding:12px;">Catalog unavailable.</div>';
+      } finally {
+        clearTimeout(timer);
       }
     }
 
     function buildPreview(item) {
       const tint = item.tint || item.color || '#0b1b1b';
-      const img = item.image_url || item.preview;
+      const img = item.image_url || item.preview || '';
+      const hasImg = Boolean(img);
       if (item.type === 'tableSkin') {
-        return \`<div style="width:100%;height:100%;background:linear-gradient(135deg,\${tint}, #0c1c2c);display:grid;place-items:center;color:\${item.color || '#8ef5d0'};font-weight:700;">TABLE</div>\`;
+        const bgImg = hasImg ? `, url('${img}') center/cover no-repeat` : '';
+        return `<div style="width:100%;height:100%;background:linear-gradient(135deg,${tint}, #0c1c2c)${bgImg};display:grid;place-items:center;color:${item.color || '#8ef5d0'};font-weight:700;">TABLE</div>`;
       }
       if (item.type === 'avatarRing') {
-        return \`<div style="width:82px;height:82px;border-radius:50%;border:3px solid \${item.color || '#00d4a6'};box-shadow:0 0 14px \${item.color || '#00d4a6'};"></div>\`;
+        const bg = hasImg ? `url('${img}') center/cover no-repeat` : 'transparent';
+        return `<div style="width:82px;height:82px;border-radius:50%;border:3px solid ${item.color || '#00d4a6'};box-shadow:0 0 14px ${item.color || '#00d4a6'};background:${bg};"></div>`;
+      }
+      if (item.type === 'cardBack') {
+        const bg = hasImg ? `url('${img}') center/cover no-repeat, ${tint}` : `linear-gradient(135deg, ${tint}, #0d1f2d)`;
+        return `<div style="width:96px;height:120px;border-radius:10px;border:1px solid var(--border-color);background:${bg};box-shadow:0 0 10px rgba(0,0,0,0.35);"></div>`;
       }
       if (item.type === 'cardFace') {
-        const sample = img ? img.replace(/\\/$/,'') + '/ace_of_spades.png' : '';
-        return \`<div style="width:96px;height:120px;border-radius:10px;border:1px solid var(--border-color);background:\${sample ? \`url('\${sample}') center/cover no-repeat\` : tint};"></div>\`;
+        const trimmed = img && img.endsWith('/') ? img.slice(0, -1) : img;
+        const sample = trimmed ? `${trimmed}/ace_of_spades.png` : '';
+        const bg = sample ? `url('${sample}') center/cover no-repeat` : tint;
+        return `<div style="width:96px;height:120px;border-radius:10px;border:1px solid var(--border-color);background:${bg};"></div>`;
+      }
+      if (item.type === 'chipSkin') {
+        const bg = hasImg ? `url('${img}') center/cover no-repeat` : tint;
+        return `<div style="width:96px;height:96px;border-radius:50%;border:1px solid var(--border-color);background:${bg};"></div>`;
+      }
+      if (item.type === 'nameplate') {
+        const bg = hasImg ? `url('${img}') center/cover no-repeat, linear-gradient(135deg, ${tint}, #101820)` : `linear-gradient(135deg, ${tint}, #101820)`;
+        return `<div style="width:100%;height:64px;border-radius:10px;border:1px solid var(--border-color);background:${bg};display:grid;place-items:center;color:${item.color || '#8ef5d0'};font-weight:700;">Name</div>`;
       }
       // cardBack or frame
-      return \`<div style="width:96px;height:120px;border-radius:10px;border:1px solid var(--border-color);background:\${img ? \`url('\${img}') center/cover no-repeat\` : tint};"></div>\`;
+      const bg = hasImg ? `url('${img}') center/cover no-repeat, ${tint}` : tint;
+      return `<div style="width:96px;height:120px;border-radius:10px;border:1px solid var(--border-color);background:${bg};"></div>`;
     }
 
     function renderCatalog(items) {
@@ -252,6 +329,76 @@
 
     document.getElementById('btn-refresh-catalog')?.addEventListener('click', loadCatalog);
     filterEl?.addEventListener('change', loadCatalog);
+    (function renderPacks() {
+      if (!packGrid) return;
+      packGrid.innerHTML = chipPacks.map(p => `
+        <div class="cosmetic-card pack-card">
+          <div class="cosmetic-type">${p.tag || ''}</div>
+          <h3>${p.chips.toLocaleString()} AIC</h3>
+          <div class="cosmetic-preview"><img class="pack-img" src="${p.img}" alt="${p.chips} All-In Chips"></div>
+          <div class="cosmetic-meta">
+            <span class="badge">${p.bonus ? p.bonus + ' bonus' : 'Base'}</span>
+            <span>${p.price}</span>
+          </div>
+          <p class="muted" style="min-height:32px;">All-In Chips are the only currency used to buy cosmetics.</p>
+          <button class="pack-btn" data-pack="${p.id}" aria-label="Buy ${p.chips} All-In Chips">BUY</button>
+        </div>
+      `).join('');
+      packGrid.querySelectorAll('button[data-pack]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const packId = btn.dataset.pack;
+          btn.disabled = true;
+          btn.textContent = 'Creating order...';
+          try {
+            const res = await fetch('/coins/paypal/order', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ packId }),
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            if (!data?.id) throw new Error('Missing PayPal order id');
+
+            // Redirect to PayPal and then poll capture on return
+            const paypalUrl = `https://www.paypal.com/checkoutnow?token=${data.id}&redirect_uri=${encodeURIComponent(window.location.origin + '/cosmetics.html?paypalOrderId=' + data.id + '&packId=' + packId)}`;
+            window.location.href = paypalUrl;
+          } catch (err) {
+            console.error('Pack purchase failed', err);
+            alert('Could not start PayPal checkout. Please try again.');
+            btn.disabled = false;
+            btn.textContent = 'BUY';
+          }
+        });
+      });
+    })();
+
+    // Handle PayPal return capture if query has paypalOrderId and packId
+    (async function handlePayPalReturn() {
+      const params = new URLSearchParams(window.location.search);
+      const orderId = params.get('paypalOrderId');
+      const packId = params.get('packId');
+      if (!orderId || !packId) return;
+      try {
+        const res = await fetch('/coins/paypal/capture', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId, packId }),
+        });
+        const data = await res.json();
+        if (res.ok && data?.success) {
+          alert('Purchase complete! Coins added: ' + (data.coins || ''));
+          // clean query params
+          const url = new URL(window.location.href);
+          url.search = '';
+          window.history.replaceState({}, document.title, url.toString());
+        } else {
+          alert('PayPal capture failed. Please contact support.');
+        }
+      } catch (e) {
+        console.error('PayPal capture failed', e);
+        alert('PayPal capture failed. Please contact support.');
+      }
+    })();
     loadCatalog();
   </script>
 </body>

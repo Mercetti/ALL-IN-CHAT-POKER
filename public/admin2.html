@@ -32,12 +32,15 @@
     </header>
 
     <div class="quick-actions">
-      <button class="btn btn-secondary btn-sm" data-open-section="overlay-details">Overlay / Cosmetics</button>
+      <a class="btn btn-secondary btn-sm" href="/overlay-editor.html" target="_blank" rel="noopener">Overlay Editor</a>
       <button class="btn btn-secondary btn-sm" data-open-section="tournament-details">Tournament Tools</button>
       <button class="btn btn-secondary btn-sm" data-open-section="checklist-details">Checklist</button>
       <button class="btn btn-secondary btn-sm" data-open-section="profiles-details">Profiles</button>
       <button class="btn btn-secondary btn-sm" data-open-section="audit-details">Audit Log</button>
       <a class="btn btn-secondary btn-sm" href="/cosmetics.html" target="_blank" rel="noopener">Cosmetics Page</a>
+      <a class="btn btn-secondary btn-sm" href="/partner-program.html" target="_blank" rel="noopener">Partner Program</a>
+      <a class="btn btn-secondary btn-sm" href="/partner-privacy.html" target="_blank" rel="noopener">Partner Privacy</a>
+      <a class="btn btn-secondary btn-sm" href="/partner-compensation.html" target="_blank" rel="noopener">Comp Addendum</a>
     </div>
 
     <main class="admin-main compact-main">
@@ -268,6 +271,60 @@
           </table>
         </section>
       </details>
+
+      <section class="control-panel compact-card" id="partner-panel">
+        <div class="section-header">
+          <h2>Partner Program</h2>
+          <p class="muted small">Manage partner payouts and view sales/views.</p>
+        </div>
+        <div class="form-grid compact-grid">
+          <input id="partner-id" class="form-input" placeholder="partner id (login)">
+          <input id="partner-name" class="form-input" placeholder="Display name">
+          <input id="partner-pct" class="form-input" type="number" min="0" max="90" step="1" placeholder="Payout % (default 10)">
+          <button id="btn-save-partner" class="btn btn-primary btn-sm">Save Partner</button>
+          <button id="btn-refresh-partners" class="btn btn-secondary btn-sm">Refresh</button>
+        </div>
+        <div class="table-responsive">
+          <table class="table slim-table" id="partner-table">
+            <thead>
+              <tr>
+                <th>Partner</th>
+                <th>Payout %</th>
+                <th>Orders</th>
+                <th>Coins</th>
+                <th>Gross ($)</th>
+                <th>Views</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="6" class="muted">No data</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="control-panel compact-card" id="viewer-earn-panel">
+        <div class="section-header">
+          <h2>Viewer Earn Config</h2>
+          <p class="muted small">AIC earn triggers (stored locally; server hooks pending).</p>
+        </div>
+        <div class="form-grid compact-grid">
+          <label>Chat: 1 AIC per N messages</label>
+          <input id="earn-chat-rate" class="form-input" type="number" min="1" value="5">
+          <label>Chat cap per stream</label>
+          <input id="earn-chat-cap" class="form-input" type="number" min="0" value="500">
+          <label>New follower reward</label>
+          <input id="earn-follower" class="form-input" type="number" min="0" value="25">
+          <label>Sub reward</label>
+          <input id="earn-sub" class="form-input" type="number" min="0" value="100">
+          <label>Raid reward</label>
+          <input id="earn-raid" class="form-input" type="number" min="0" value="250">
+          <label>Channel point redeem reward</label>
+          <input id="earn-redeem" class="form-input" type="number" min="0" value="25">
+          <button id="btn-save-earn" class="btn btn-primary btn-sm full-span">Save (local)</button>
+        </div>
+        <small class="muted">Anti-abuse safeguards (unique chatter cooldown, account age, daily caps) should be enforced server-side.</small>
+      </section>
     </main>
   </div>
 

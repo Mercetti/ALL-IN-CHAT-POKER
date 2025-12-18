@@ -135,6 +135,7 @@ class DBHelper {
       this.db.exec(`ALTER TABLE cosmetics ADD COLUMN unlock_value INTEGER`);
       this.db.exec(`ALTER TABLE cosmetics ADD COLUMN unlock_note TEXT`);
       this.db.exec(`ALTER TABLE purchases ADD COLUMN coin_amount INTEGER`);
+      this.db.exec(`ALTER TABLE purchases ADD COLUMN partner_id TEXT`);
       this.db.exec(`ALTER TABLE tournaments ADD COLUMN game TEXT DEFAULT 'poker'`);
       this.db.exec(`ALTER TABLE tournaments ADD COLUMN rounds INTEGER DEFAULT 1`);
       this.db.exec(`ALTER TABLE tournaments ADD COLUMN advance_config TEXT DEFAULT '[]'`);
@@ -185,9 +186,29 @@ class DBHelper {
         provider TEXT,
         amount_cents INTEGER,
         coin_amount INTEGER,
+        partner_id TEXT,
         status TEXT,
         txn_id TEXT,
         note TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Partners program
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS partners (
+        id TEXT PRIMARY KEY,
+        display_name TEXT,
+        payout_pct REAL DEFAULT 0.1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS partner_views (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        partner_id TEXT,
+        login TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -714,11 +735,11 @@ class DBHelper {
     return { owned, equipped };
   }
 
-  recordPurchase({ login, itemId, provider = 'dev', amount_cents = 0, coin_amount = 0, status = 'completed', txn_id = null, note = '' }) {
+  recordPurchase({ login, itemId, provider = 'dev', amount_cents = 0, coin_amount = 0, status = 'completed', txn_id = null, note = '', partner_id = null }) {
     this.db.prepare(`
-      INSERT INTO purchases (login, item_id, provider, amount_cents, coin_amount, status, txn_id, note)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(login, itemId, provider, amount_cents, coin_amount, status, txn_id, note);
+      INSERT INTO purchases (login, item_id, provider, amount_cents, coin_amount, status, txn_id, note, partner_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(login, itemId, provider, amount_cents, coin_amount, status, txn_id, note, partner_id);
   }
 
   // ============ CURRENCY ============
@@ -749,9 +770,60 @@ class DBHelper {
 
   recordCurrencyPurchase({ login, packId = null, coins = 0, amount_cents = 0, provider = 'paypal', status = 'completed', txn_id = null, note = '' }) {
     this.db.prepare(`
-      INSERT INTO purchases (login, item_id, provider, amount_cents, coin_amount, status, txn_id, note)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO purchases (login, item_id, provider, amount_cents, coin_amount, status, txn_id, note, partner_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL)
     `).run(login, packId, provider, amount_cents, coins, status, txn_id, note);
+  }
+
+  // ============ PARTNERS ============
+
+  // ============ PARTNERS ============
+
+  upsertPartner({ id, display_name, payout_pct = 0.1 }) {
+    if (!id) return null;
+    const pid = id.toLowerCase();
+    this.db.prepare(`
+      INSERT INTO partners (id, display_name, payout_pct)
+      VALUES (?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET display_name = excluded.display_name, payout_pct = excluded.payout_pct
+    `).run(pid, display_name || pid, payout_pct);
+    return this.getPartner(pid);
+  }
+
+  getPartner(id) {
+    if (!id) return null;
+    return this.db.prepare('SELECT * FROM partners WHERE id = ?').get(id.toLowerCase());
+  }
+
+  listPartners() {
+    return this.db.prepare('SELECT * FROM partners ORDER BY display_name').all();
+  }
+
+  recordPartnerView(partnerId, login = null) {
+    if (!partnerId) return;
+    this.db.prepare(`
+      INSERT INTO partner_views (partner_id, login) VALUES (?, ?)
+    `).run(partnerId.toLowerCase(), login || null);
+  }
+
+  getPartnerStats(partnerId) {
+    const id = partnerId?.toLowerCase?.();
+    if (!id) return null;
+    const sales = this.db.prepare(`
+      SELECT
+        COUNT(*) AS orders,
+        COALESCE(SUM(amount_cents),0) AS amount_cents,
+        COALESCE(SUM(coin_amount),0) AS coin_amount
+      FROM purchases
+      WHERE partner_id = ? AND status = 'completed'
+    `).get(id);
+    const views = this.db.prepare(`SELECT COUNT(*) AS views FROM partner_views WHERE partner_id = ?`).get(id);
+    return { partner_id: id, orders: sales?.orders || 0, amount_cents: sales?.amount_cents || 0, coin_amount: sales?.coin_amount || 0, views: views?.views || 0 };
+  }
+
+  listPartnerStats() {
+    const partners = this.listPartners();
+    return partners.map(p => ({ ...p, stats: this.getPartnerStats(p.id) || {} }));
   }
 
   // ============ TOURNAMENTS ============

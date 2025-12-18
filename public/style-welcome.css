@@ -193,7 +193,7 @@ ul {
 
 @keyframes allin-preview {
   0% { background-position: 0 0; }
-  100% { background-position: calc(-100% * (var(--frames, 6) - 1)) 0; }
+  100% { background-position: 100% 0; }
 }
 
 .gallery-cardback {
