@@ -4675,8 +4675,8 @@ async function start() {
     await initializeTwitch();
 
     // Start listening
-    server.listen(config.PORT, () => {
-      logger.info(`Server running on port ${config.PORT}`, {
+    server.listen(config.PORT, '0.0.0.0', () => {
+      logger.info(`Server running on 0.0.0.0:${config.PORT}`, {
         environment: config.NODE_ENV,
         database: config.DB_FILE,
       });
