@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dev Admin | All-In Chat Poker</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="style-theme.css">
+  <link rel="stylesheet" href="style-admin.css">
+</head>
+<body>
+  <div class="container">
+    <header class="admin-header">
+      <div class="admin-brand">
+        <img src="logo.png" alt="All-In Chat Poker logo" class="brand-logo">
+        <div>
+          <h1>Dev Admin</h1>
+          <p class="brand-subtitle">Partner + Earn configuration (admin only)</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <a class="btn btn-secondary btn-sm" href="/admin2.html">Back to Admin</a>
+        <a class="btn btn-secondary btn-sm" href="/admin-chat.html" target="_blank" rel="noopener">AI Bot Chat</a>
+      </div>
+    </header>
+
+    <main class="admin-main">
+      <section class="control-panel compact-card" id="partner-panel-dev">
+        <div class="section-header">
+          <h2>Partner Program</h2>
+          <p class="muted small">Manage partner payouts and view sales/views.</p>
+          <p class="muted small">
+            Partner docs:
+            <a href="/partner-privacy.html" target="_blank" rel="noopener">Partner Privacy</a> ·
+            <a href="/partner-compensation.html" target="_blank" rel="noopener">Comp Addendum</a>
+          </p>
+        </div>
+        <div class="form-grid compact-grid">
+          <input id="partner-id" class="form-input" placeholder="partner id (login)">
+          <input id="partner-name" class="form-input" placeholder="Display name">
+          <input id="partner-pct" class="form-input" type="number" min="0" max="90" step="1" placeholder="Payout % (default 10)">
+          <button id="btn-save-partner" class="btn btn-primary btn-sm">Save Partner</button>
+          <button id="btn-refresh-partners" class="btn btn-secondary btn-sm">Refresh</button>
+        </div>
+        <div class="table-responsive">
+          <table class="table slim-table" id="partner-table">
+            <thead>
+              <tr>
+                <th>Partner</th>
+                <th>Payout %</th>
+                <th>Orders</th>
+                <th>Coins</th>
+                <th>Gross ($)</th>
+                <th>Views</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="6" class="muted">No data</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="control-panel compact-card" id="viewer-earn-panel">
+        <div class="section-header">
+          <h2>Viewer Earn Config</h2>
+          <p class="muted small">AIC earn triggers (stored locally; server hooks pending).</p>
+        </div>
+        <div class="form-grid compact-grid">
+          <label>Chat: 1 AIC per N messages</label>
+          <input id="earn-chat-rate" class="form-input" type="number" min="1" value="5">
+          <label>Chat cap per stream</label>
+          <input id="earn-chat-cap" class="form-input" type="number" min="0" value="500">
+          <label>New follower reward</label>
+          <input id="earn-follower" class="form-input" type="number" min="0" value="25">
+          <label>Sub reward</label>
+          <input id="earn-sub" class="form-input" type="number" min="0" value="100">
+          <label>Raid reward</label>
+          <input id="earn-raid" class="form-input" type="number" min="0" value="250">
+          <label>Channel point redeem reward</label>
+          <input id="earn-redeem" class="form-input" type="number" min="0" value="25">
+          <button id="btn-save-earn" class="btn btn-primary btn-sm full-span">Save (local)</button>
+        </div>
+        <small class="muted">Anti-abuse safeguards (unique chatter cooldown, account age, daily caps) should be enforced server-side.</small>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="client.js"></script>
+  <script src="admin-dev.js"></script>
+</body>
+</html>
