@@ -39,7 +39,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   applyTheme();
   // Get username from URL or use default
   const params = new URLSearchParams(window.location.search);
-  const username = params.get('user') || 'guest';
+  const tokenUser = (() => {
+    const tok = getUserToken && getUserToken();
+    if (!tok) return null;
+    try {
+      const payload = JSON.parse(atob(tok.split('.')[1]));
+      return payload.user || payload.login || null;
+    } catch (e) {
+      return null;
+    }
+  })();
+  const username = params.get('user') || tokenUser || 'guest';
 
   // Require user token; redirect to login if missing
   const token = getUserToken();
