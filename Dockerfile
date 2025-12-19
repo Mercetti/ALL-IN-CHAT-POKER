@@ -1,5 +1,5 @@
-# Node 18 on Debian for better-sqlite3 prebuild/compile support
-FROM node:18-bullseye-slim
+# Node 20 on Debian for better-sqlite3 prebuild/compile support
+FROM node:20-bullseye-slim
 
 WORKDIR /app
 
