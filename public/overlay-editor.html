@@ -244,6 +244,14 @@
       const item = backId ? catalogMap[backId] : null;
       return item?.image_url || item?.preview || '/assets/card-back.png';
     }
+    function getEquippedCardFaceSample() {
+      const saved = loadStoredCosmetics();
+      const faceId = saved.cardFace;
+      const item = faceId ? catalogMap[faceId] : null;
+      const base = item?.image_url || item?.preview || '/assets/cosmetics/cards/faces/classic';
+      const trimmed = base.endsWith('/') ? base.slice(0, -1) : base;
+      return `${trimmed}/ace_of_spades.png`;
+    }
 
     async function previewFx(key, canvas) {
       if (!effectsMeta?.animations) return;
@@ -257,9 +265,15 @@
       try {
         const img = await loadImage(spritePath);
         const backImg = getEquippedCardBackImage();
-        if (backImg) {
-          canvas.style.background = `url('${backImg}') center/cover no-repeat`;
+        const faceSample = getEquippedCardFaceSample();
+        const bgStack = [];
+        if (key.includes('flip') || key.includes('face')) {
+          bgStack.push(`url('${faceSample}') center/contain no-repeat`);
         }
+        if (backImg) {
+          bgStack.push(`url('${backImg}') center/cover no-repeat`);
+        }
+        canvas.style.background = bgStack.join(',') || '';
         playSprite(img, meta, canvas);
       } catch (e) {
         console.warn('Preview failed', key, e);

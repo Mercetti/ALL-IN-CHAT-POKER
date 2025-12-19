@@ -49,6 +49,7 @@ const partnerMetCount = document.getElementById('partner-met-count');
 const importBtn = document.getElementById('btn-import-cosmetics');
 const importJsonInput = document.getElementById('cosmetic-import-json');
 const importStatus = document.getElementById('cosmetic-import-status');
+const devPageBtn = document.getElementById('btn-dev-page');
 const importJsonInput = document.getElementById('cosmetic-import-json');
 const importBtn = document.getElementById('btn-import-cosmetics');
 const importStatus = document.getElementById('cosmetic-import-status');
@@ -234,6 +235,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   // This avoids redirect loops when Twitch login succeeds but role lookup fails temporarily.
   let allowed = !!(adminToken || userToken);
   let roleWarning = '';
+
+  if (devPageBtn) {
+    devPageBtn.style.display = adminToken ? 'inline-flex' : 'none';
+  }
 
   if (!adminToken && userToken && userLogin) {
     const lower = userLogin.toLowerCase();

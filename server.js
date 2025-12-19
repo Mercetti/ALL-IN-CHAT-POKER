@@ -4474,6 +4474,13 @@ io.on('connection', (socket) => {
   if (socketLogin) {
     const profile = db.getProfile(socketLogin);
     if (profile) socket.emit('profile', profile);
+    try {
+      const settings = profile?.settings ? JSON.parse(profile.settings) : {};
+      const avatarUrl = settings?.avatarUrl || getDefaultAvatarForLogin(socketLogin, settings?.avatarColor);
+      io.to(channel).emit('playerUpdate', { login: socketLogin, avatar: avatarUrl, channel });
+    } catch (e) {
+      // ignore parse errors
+    }
   }
 
   /**
