@@ -104,6 +104,7 @@
 
     let effectsMeta = null;
     let catalog = [];
+    let catalogMap = {};
     let activeType = 'cardBack';
     let selectedItem = null;
     const cache = {};
@@ -237,6 +238,13 @@
       draw();
     }
 
+    function getEquippedCardBackImage() {
+      const saved = loadStoredCosmetics();
+      const backId = saved.cardBack;
+      const item = backId ? catalogMap[backId] : null;
+      return item?.image_url || item?.preview || '/assets/card-back.png';
+    }
+
     async function previewFx(key, canvas) {
       if (!effectsMeta?.animations) return;
       const meta = effectsMeta.animations[key];
@@ -248,6 +256,10 @@
       if (!spritePath) return;
       try {
         const img = await loadImage(spritePath);
+        const backImg = getEquippedCardBackImage();
+        if (backImg) {
+          canvas.style.background = `url('${backImg}') center/cover no-repeat`;
+        }
         playSprite(img, meta, canvas);
       } catch (e) {
         console.warn('Preview failed', key, e);
@@ -581,6 +593,8 @@
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const items = await res.json();
         catalog = (items || []).filter(i => typeLabels[i.type]);
+        catalogMap = {};
+        catalog.forEach(it => { if (it?.id) catalogMap[it.id] = it; });
         await preflightImages(catalog);
         renderCategories();
         statusEl.textContent = '';
