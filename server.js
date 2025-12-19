@@ -4365,6 +4365,38 @@ app.post('/admin/player-color', auth.requireAdmin, (req, res) => {
 });
 
 /**
+ * Bulk import cosmetics (JSON array) admin-only
+ * Body: { items: [...] }
+ */
+app.post('/admin/cosmetics/import', auth.requireAdmin, (req, res) => {
+  try {
+    const items = Array.isArray(req.body?.items) ? req.body.items : [];
+    if (!items.length) return res.status(400).json({ error: 'no items provided' });
+    const normalized = items.map(item => ({
+      id: String(item.id || '').trim(),
+      type: String(item.type || '').trim(),
+      name: item.name || item.id || 'Unnamed cosmetic',
+      price_cents: Number.isFinite(item.price_cents) ? item.price_cents : Number(item.price || 0) || 0,
+      rarity: item.rarity || 'common',
+      preview: item.preview || '',
+      tint: item.tint || item.color || null,
+      color: item.color || null,
+      texture_url: item.texture_url || item.image_url || null,
+      image_url: item.image_url || null,
+      unlock_type: item.unlock_type || null,
+      unlock_value: Number(item.unlock_value) || 0,
+      unlock_note: item.unlock_note || '',
+      tags: item.tags || '',
+    })).filter(i => i.id && i.type);
+    if (!normalized.length) return res.status(400).json({ error: 'no valid items' });
+    db.upsertCosmetics(normalized);
+    return res.json({ imported: normalized.length });
+  } catch (err) {
+    logger.error('Cosmetic import failed', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+/**
  * Get audit log (admin only)
  */
 app.get('/admin/audit', auth.requireAdmin, (req, res) => {

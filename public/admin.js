@@ -46,6 +46,12 @@ const partnerSaveBtn = document.getElementById('btn-save-partner');
 const partnerRefreshBtn = document.getElementById('btn-refresh-partner');
 const partnerTableBody = document.getElementById('partner-table-body');
 const partnerMetCount = document.getElementById('partner-met-count');
+const importBtn = document.getElementById('btn-import-cosmetics');
+const importJsonInput = document.getElementById('cosmetic-import-json');
+const importStatus = document.getElementById('cosmetic-import-status');
+const importJsonInput = document.getElementById('cosmetic-import-json');
+const importBtn = document.getElementById('btn-import-cosmetics');
+const importStatus = document.getElementById('cosmetic-import-status');
 const earnInputs = {
   chatRate: document.getElementById('earn-chat-rate'),
   chatCap: document.getElementById('earn-chat-cap'),
@@ -264,6 +270,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadProfiles();
   await loadAuditLog();
   await loadPartnerTable();
+  initCosmeticImport();
+  initCosmeticImport();
 
   // Setup event listeners
   setupEventListeners();
@@ -276,6 +284,38 @@ document.addEventListener('DOMContentLoaded', async () => {
   setInterval(loadAuditLog, 60000);
   setInterval(loadPartnerTable, 60000);
 });
+
+function initCosmeticImport() {
+  if (!importBtn || !importJsonInput) return;
+  importBtn.addEventListener('click', async () => {
+    importStatus.textContent = '';
+    let parsed = null;
+    try {
+      parsed = JSON.parse(importJsonInput.value || '[]');
+      if (!Array.isArray(parsed) || !parsed.length) throw new Error('Provide an array of items');
+    } catch (e) {
+      importStatus.textContent = 'Invalid JSON';
+      return;
+    }
+    importBtn.disabled = true;
+    const original = importBtn.textContent;
+    importBtn.textContent = 'Importing...';
+    try {
+      const res = await apiCall('/admin/cosmetics/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: parsed }),
+      });
+      importStatus.textContent = `Imported ${res.imported || 0} items`;
+    } catch (err) {
+      console.error('Import failed', err);
+      importStatus.textContent = 'Import failed';
+    } finally {
+      importBtn.disabled = false;
+      importBtn.textContent = original;
+    }
+  });
+}
 
 async function ensureSocketConnected() {
   if (!adminSocket) initSocket();

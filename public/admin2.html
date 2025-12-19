@@ -334,6 +334,18 @@
         </div>
       </section>
 
+      <section class="control-panel compact-card" id="cosmetic-import-panel">
+        <div class="section-header">
+          <h2>Cosmetic Import (JSON)</h2>
+          <p class="muted small">Paste an array of cosmetics to upsert (id, type, name, price_cents, rarity, preview/image_url, unlock_type/value, tags).</p>
+        </div>
+        <div class="form-grid compact-grid">
+          <textarea id="cosmetic-import-json" class="form-input" rows="6" placeholder='[{"id":"card-new","type":"cardBack","name":"New Back","price_cents":500,"rarity":"rare","preview":"/assets/cosmetics/cards/new.png"}]'></textarea>
+          <button id="btn-import-cosmetics" class="btn btn-primary btn-sm">Import Cosmetics</button>
+          <div id="cosmetic-import-status" class="muted small"></div>
+        </div>
+      </section>
+
       <section class="control-panel compact-card" id="viewer-earn-panel">
         <div class="section-header">
           <h2>Viewer Earn Config</h2>

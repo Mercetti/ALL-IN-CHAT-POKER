@@ -121,12 +121,15 @@
       height: 60px;
       border: none;
       background: url('/assets/buttons/buy_button_normal.png') center/contain no-repeat;
-      color: #effff6;
+      background-color: transparent;
+      color: transparent;
       font-weight: 700;
       letter-spacing: 0.04em;
-      text-shadow: 0 1px 4px rgba(0,0,0,0.35);
+      text-shadow: none;
       cursor: pointer;
       transition: transform 0.08s ease;
+      padding: 0;
+      outline: none;
     }
     .pack-btn:hover:not(:disabled) {
       background-image: url('/assets/buttons/buy_button_hover.png');
@@ -233,7 +236,7 @@
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const items = await res.json();
         const purchasable = (items || []).filter(isPurchasable);
-        renderCatalog(purchasable);
+        renderSections(purchasable);
         statusEl.textContent = '';
       } catch (err) {
         console.error('[cosmetics] catalog load failed', err);
@@ -279,38 +282,68 @@
       return `<div style="width:96px;height:120px;border-radius:10px;border:1px solid var(--border-color);background:${bg};"></div>`;
     }
 
-    function renderCatalog(items) {
+    function renderSections(items) {
       const filter = filterEl.value;
-      const filtered = filter ? items.filter(i => i.type === filter) : items;
-      if (!filtered.length) {
+      const partnerFeatured = items.filter(i => (i.unlock_type || '').toLowerCase() === 'partner' || (i.tags || '').toLowerCase().includes('partner'));
+      const byType = {};
+      items.forEach(i => {
+        if (filter && i.type !== filter) return;
+        const t = i.type || 'other';
+        if (!byType[t]) byType[t] = [];
+        byType[t].push(i);
+      });
+      const typeOrder = ['cardBack', 'cardFace', 'tableSkin', 'avatarRing', 'profileFrame', 'chipSkin', 'nameplate', 'dealFx', 'winFx', 'other'];
+      const sections = [];
+      if (partnerFeatured.length) {
+        sections.push({
+          title: 'Featured Partner Sets',
+          items: partnerFeatured,
+        });
+      }
+      typeOrder.forEach(t => {
+        if (byType[t] && byType[t].length) {
+          sections.push({
+            title: typeLabels[t] || t,
+            items: byType[t],
+          });
+        }
+      });
+
+      if (!sections.length) {
         gridEl.innerHTML = '<div class="muted" style="padding:12px;">No purchasable items found.</div>';
         return;
       }
-      gridEl.innerHTML = filtered.map(item => {
-        const price = Number.isFinite(item.price_cents) ? `${item.price_cents} AIC` : (item.price ? `${item.price} AIC` : 'Free');
-        return `
-          <div class="cosmetic-card">
-            <div class="cosmetic-type">${item.type || ''}</div>
-            <h3>${item.name || item.id}</h3>
-            <div class="cosmetic-preview">${buildPreview(item)}</div>
-            <div class="cosmetic-meta">
-              <span class="badge">${item.rarity || 'common'}</span>
-              <span>${price}</span>
+
+      gridEl.innerHTML = sections.map(section => {
+        const cards = section.items.map(item => {
+          const price = Number.isFinite(item.price_cents) ? `${item.price_cents} AIC` : (item.price ? `${item.price} AIC` : 'Free');
+          return `
+            <div class="cosmetic-card">
+              <div class="cosmetic-type">${item.type || ''}</div>
+              <h3>${item.name || item.id}</h3>
+              <div class="cosmetic-preview">${buildPreview(item)}</div>
+              <div class="cosmetic-meta">
+                <span class="badge">${item.rarity || 'common'}</span>
+                <span>${price}</span>
+              </div>
+              <p class="muted" style="min-height:32px;">${item.description || item.unlock_note || ''}</p>
+              <button class="btn btn-secondary btn-sm" data-select="${item.id}">Preview</button>
             </div>
-            <p class="muted" style="min-height:32px;">${item.description || item.unlock_note || ''}</p>
-            <button class="btn btn-secondary btn-sm" data-select="${item.id}">Preview</button>
-          </div>
-        `;
+          `;
+        }).join('');
+        return `<div class="panel" style="grid-column:1/-1;"><h2 style="margin:0 0 8px;">${section.title}</h2><div class="cosmetics-grid">${cards}</div></div>`;
       }).join('');
 
       gridEl.querySelectorAll('button[data-select]').forEach(btn => {
         btn.addEventListener('click', () => {
-          const item = filtered.find(i => i.id === btn.dataset.select);
-          if (item) showSelection(item);
+          const itemId = btn.dataset.select;
+          const found = items.find(i => i.id === itemId);
+          if (found) showSelection(found);
         });
       });
 
-      if (filtered[0]) showSelection(filtered[0]);
+      const first = sections.find(s => s.items && s.items[0]);
+      if (first?.items?.[0]) showSelection(first.items[0]);
     }
 
     function showSelection(item) {

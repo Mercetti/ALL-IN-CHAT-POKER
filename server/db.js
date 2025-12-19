@@ -711,6 +711,46 @@ class DBHelper {
     tx(catalog);
   }
 
+  upsertCosmetics(catalog = []) {
+    const stmt = this.db.prepare(`
+      INSERT INTO cosmetics (id, type, name, price_cents, rarity, preview, tint, color, texture_url, image_url, unlock_type, unlock_value, unlock_note)
+      VALUES (@id, @type, @name, @price_cents, @rarity, @preview, @tint, @color, @texture_url, @image_url, @unlock_type, @unlock_value, @unlock_note)
+      ON CONFLICT(id) DO UPDATE SET
+        type=excluded.type,
+        name=excluded.name,
+        price_cents=excluded.price_cents,
+        rarity=excluded.rarity,
+        preview=excluded.preview,
+        tint=excluded.tint,
+        color=excluded.color,
+        texture_url=excluded.texture_url,
+        image_url=excluded.image_url,
+        unlock_type=excluded.unlock_type,
+        unlock_value=excluded.unlock_value,
+        unlock_note=excluded.unlock_note
+    `);
+    const tx = this.db.transaction((items) => {
+      items.forEach(item => {
+        stmt.run({
+          id: item.id,
+          type: item.type,
+          name: item.name,
+          price_cents: item.price_cents || item.price || 0,
+          rarity: item.rarity || 'common',
+          preview: item.preview || '',
+          tint: item.tint || null,
+          color: item.color || null,
+          texture_url: item.texture_url || null,
+          image_url: item.image_url || null,
+          unlock_type: item.unlock_type || null,
+          unlock_value: item.unlock_value || 0,
+          unlock_note: item.unlock_note || '',
+        });
+      });
+    });
+    tx(catalog || []);
+  }
+
   getCatalog() {
     return this.db.prepare('SELECT * FROM cosmetics ORDER BY type, rarity, name').all();
   }
