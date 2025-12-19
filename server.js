@@ -2881,6 +2881,8 @@ app.post('/user/login', async (req, res) => {
   });
   db.ensureBalance(login);
   const stats = db.ensureStats(login);
+  // Push avatar refresh to overlays
+  io.emit('playerUpdate', { login, avatar: mergedSettings.avatarUrl, channel: DEFAULT_CHANNEL });
 
   // Auto-join the streamer's channel when they log in via Twitch
   if (login === config.STREAMER_LOGIN) {
