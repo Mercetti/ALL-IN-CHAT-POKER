@@ -384,7 +384,7 @@
   box-shadow: none;
 }
 
-.avatar-ring-img {
+.player-avatar-wrapper .avatar-ring-img {
   position: absolute;
   inset: -6px;
   border-radius: 50%;
@@ -392,6 +392,13 @@
   opacity: 0.95;
   filter: drop-shadow(0 0 10px rgba(0,0,0,0.45));
   pointer-events: none;
+}
+
+.avatar-mask {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
 }
 
 .player-avatar {

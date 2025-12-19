@@ -39,6 +39,16 @@ body {
   box-shadow: var(--shadow);
 }
 
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/assets/logo-glow.png') center/480px no-repeat;
+  opacity: 0.08;
+  filter: blur(0px);
+  pointer-events: none;
+}
+
 .hero::after {
   content: '';
   position: absolute;
@@ -46,6 +56,57 @@ body {
   background: radial-gradient(circle at 40% 30%, rgba(68, 255, 210, 0.22), transparent 55%);
   transform: rotate(-10deg);
   pointer-events: none;
+}
+
+.hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-logo.glitch-logo {
+  width: clamp(200px, 32vw, 320px);
+  height: clamp(200px, 32vw, 320px);
+  margin: 16px auto 0;
+  border-radius: 18px;
+  background: url('/assets/logo/glitch/AllInChatPoker_Glitch_24Frames_1024x1024_Horizontal_FIXED.png') 0 0 / 2400% auto;
+  animation: glitch-frames 1s steps(24) infinite;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+}
+
+@keyframes glitch-frames {
+  from { background-position: 0 0; }
+  to { background-position: 100% 0; }
+}
+
+.hero-nav {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 10px 0 6px;
+}
+
+.nav-link {
+  padding: 9px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+
+.nav-link:hover {
+  transform: translateY(-2px);
+  border-color: rgba(68, 255, 210, 0.55);
+  background: rgba(68, 255, 210, 0.08);
+}
+
+.nav-link.ghost {
+  border-color: rgba(68, 255, 210, 0.5);
+  background: transparent;
 }
 
 .tag {
@@ -59,20 +120,6 @@ body {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   font-size: 0.8rem;
-}
-
-.hero-logo {
-  margin: 16px 0;
-  display: flex;
-  justify-content: center;
-}
-
-.hero-logo img {
-  max-width: 380px;
-  width: 100%;
-  height: auto;
-  filter: drop-shadow(0 0 18px rgba(68, 255, 210, 0.45));
-  border-radius: 18px;
 }
 
 h1 {

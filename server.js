@@ -62,6 +62,7 @@ let currentMode = 'blackjack';
 let tmiClient = null;
 const DEFAULT_CHANNEL = getDefaultChannel();
 const overlaySettingsByChannel = {};
+const overlayFxByChannel = {};
 const tournamentTimers = {};
 const COIN_PACKS = [
   { id: 'coins-100', coins: 100, amount_cents: 99, name: '100 All-In Chips', bonus: 0 },
@@ -541,6 +542,14 @@ function isMultiStreamChannel(name = '') {
 function getUserInventory(login = '') {
   db.ensureDefaultCosmetics(login, DEFAULT_COSMETIC_DEFAULTS);
   db.addCoins(login, 0);
+  const lower = (login || '').toLowerCase();
+  const grantAll = lower === 'mercetti' || lower === 'allinchatpokerbot';
+  if (grantAll) {
+    const catalog = db.getCatalog();
+    catalog.forEach(item => {
+      if (item?.id) db.grantCosmetic(login, item.id);
+    });
+  }
   const inv = db.getUserInventory(login);
   const owned = new Set([...DEFAULT_COSMETIC_DEFAULTS, ...Array.from(inv.owned)]);
   const equipped = { ...DEFAULT_COSMETIC_SLOTS, ...inv.equipped };
@@ -572,6 +581,51 @@ function getCosmeticsForLogin(login = '') {
     cardFaceBase: faceItem?.image_url || null,
     cardFaceId: faceItem?.id || 'card-face-classic',
   };
+}
+
+function mapLoadoutToOverlaySettings(loadout = {}) {
+  const catalog = db.getCatalog();
+  const map = {};
+  catalog.forEach((item) => {
+    if (item?.id) map[item.id] = item;
+  });
+
+  const cosmetics = loadout.cosmetics || {};
+  const pick = (slot, fallback) => map[cosmetics[slot]] || (fallback ? map[fallback] : null);
+  const cardBackItem = pick('cardBack', 'card-default');
+  const tableItem = pick('tableSkin', 'table-default');
+  const ringItem = pick('avatarRing', 'ring-default');
+  const frameItem = pick('profileFrame', 'frame-default');
+  const faceItem = pick('cardFace', 'card-face-classic');
+
+  const settings = {};
+  if (cardBackItem) {
+    if (cardBackItem.tint) settings.cardBackTint = cardBackItem.tint;
+    if (cardBackItem.image_url || cardBackItem.preview) {
+      settings.cardBackImage = cardBackItem.image_url || cardBackItem.preview;
+    }
+  }
+  if (tableItem) {
+    if (tableItem.tint) settings.tableTint = tableItem.tint;
+    if (tableItem.color) settings.tableLogoColor = tableItem.color;
+    if (tableItem.texture_url || tableItem.image_url || tableItem.preview) {
+      settings.tableTexture = tableItem.texture_url || tableItem.image_url || tableItem.preview;
+    }
+  }
+  if (ringItem) {
+    if (ringItem.color) settings.avatarRingColor = ringItem.color;
+    if (ringItem.image_url || ringItem.preview) {
+      settings.avatarRingImage = ringItem.image_url || ringItem.preview;
+    }
+  }
+  if (frameItem && frameItem.color) {
+    settings.profileCardBorder = frameItem.color;
+  }
+  if (faceItem && (faceItem.image_url || faceItem.preview)) {
+    settings.cardFaceBase = faceItem.image_url || faceItem.preview;
+  }
+
+  return settings;
 }
 
 function meetsUnlockRequirement(item, stats = {}, profile = {}) {
@@ -993,6 +1047,14 @@ function sanitizeOverlaySettings(raw = {}) {
     if (!Number.isFinite(num)) return null;
     return Math.min(max, Math.max(min, num));
   };
+  const safeUrl = (val) => {
+    if (typeof val !== 'string') return null;
+    if (val.length > 512) return null;
+    const trimmed = val.trim();
+    if (trimmed.startsWith('http') || trimmed.startsWith('/') || trimmed.startsWith('data:')) return trimmed;
+    return null;
+  };
+  const safeStr = (val) => (typeof val === 'string' ? val.trim() : null);
 
   const dealBase = clamp(raw.dealDelayBase, 0, 0.6);
   if (dealBase !== null) safe.dealDelayBase = Number(dealBase.toFixed(3));
@@ -1026,6 +1088,18 @@ function sanitizeOverlaySettings(raw = {}) {
 
   const tableLogo = sanitizeColor(raw.tableLogoColor);
   if (tableLogo) safe.tableLogoColor = tableLogo;
+
+  const backImg = safeUrl(raw.cardBackImage);
+  if (backImg) safe.cardBackImage = backImg;
+
+  const tableTexture = safeUrl(raw.tableTexture || raw.tableTextureUrl);
+  if (tableTexture) safe.tableTexture = tableTexture;
+
+  const cardFaceBase = safeUrl(raw.cardFaceBase) || safeStr(raw.cardFaceBase);
+  if (cardFaceBase) safe.cardFaceBase = cardFaceBase;
+
+  const ringImg = safeUrl(raw.avatarRingImage);
+  if (ringImg) safe.avatarRingImage = ringImg;
 
   if (typeof raw.autoFillAi !== 'undefined') {
     safe.autoFillAi = !!raw.autoFillAi;
@@ -1711,6 +1785,7 @@ function settleRound(data) {
   const emitter = io.to(channel);
   try {
     const prevBets = { ...state.betAmounts };
+    const participants = Object.keys(prevBets || {});
     const elapsedSec = state.roundStartedAt ? Math.max(1, Math.round((Date.now() - state.roundStartedAt) / 1000)) : 0;
     const statsMeta = { playSeconds: elapsedSec, hands: 1 };
     let broke = [];
@@ -1741,6 +1816,10 @@ function settleRound(data) {
     broke.forEach(login => {
       if (!state.waitingQueue.includes(login)) state.waitingQueue.push(login);
     });
+
+    if (participants.length) {
+      db.addPartnerUsage(channel, participants);
+    }
 
     Object.keys(prevBets).forEach(async (login) => {
       await maybeAutoUnlockCosmetics(login, channel);
@@ -3840,6 +3919,43 @@ app.get('/user/items', (req, res) => {
 });
 
 /**
+ * Partner progress for a streamer (requires user token; admin can query any channel)
+ */
+app.get('/partner/progress', (req, res) => {
+  try {
+    const tokenLogin = auth.extractUserLogin(req);
+    if (!validation.validateUsername(tokenLogin || '')) {
+      return res.status(401).json({ error: 'unauthorized' });
+    }
+    const queryChannel = (req.query && req.query.channel) || tokenLogin;
+    const channel = normalizeChannelName(queryChannel) || tokenLogin;
+    const isAdmin = auth.isAdminRequest(req);
+    if (!isAdmin && channel !== normalizeChannelName(tokenLogin)) {
+      return res.status(403).json({ error: 'forbidden' });
+    }
+    const days = Math.max(1, Math.min(90, parseInt(req.query?.days, 10) || 30));
+    const progress = db.getPartnerProgress(channel, days);
+    return res.json(progress);
+  } catch (err) {
+    logger.error('Partner progress failed', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+/**
+ * Admin: list partner progress for all streamers
+ */
+app.get('/admin/partner/progress', auth.requireAdmin, (_req, res) => {
+  try {
+    const rows = db.listEligibility();
+    res.json({ rows });
+  } catch (err) {
+    logger.error('Admin partner progress failed', { error: err.message });
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+/**
  * Equip a cosmetic item (requires user token)
  * Body: { itemId }
  */
@@ -3852,10 +3968,48 @@ app.post('/user/equip', (req, res) => {
   const updated = db.equipCosmetic(login, itemId);
   if (!updated) return res.status(400).json({ error: 'invalid itemId or not owned' });
   const inv = getUserInventory(login);
+  const channel = getChannelFromReq(req);
+  const channelName = normalizeChannelName(channel) || DEFAULT_CHANNEL;
+  io.to(channelName).emit('playerUpdate', { login, channel: channelName, cosmetics: getCosmeticsForLogin(login) });
   return res.json({
     success: true,
     equipped: inv.equipped || {},
   });
+});
+
+/**
+ * Save overlay loadout (cosmetics/effects) for the current channel (requires user token)
+ * Body: { cosmetics, effects }
+ */
+app.post('/overlay/sync', (req, res) => {
+  const login = auth.extractUserLogin(req);
+  if (!validation.validateUsername(login || '')) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+  const channel = normalizeChannelName(req.query?.channel || login) || login;
+  const payload = {
+    cosmetics: req.body?.cosmetics || {},
+    effects: req.body?.effects || {},
+  };
+  db.saveOverlayLoadout(channel, payload);
+  const mappedSettings = sanitizeOverlaySettings(mapLoadoutToOverlaySettings(payload));
+  overlaySettingsByChannel[channel] = {
+    ...overlaySettingsByChannel[channel],
+    ...mappedSettings,
+  };
+  overlayFxByChannel[channel] = payload.effects || {};
+  io.to(channel).emit('overlaySettings', { settings: overlaySettingsByChannel[channel], fx: overlayFxByChannel[channel], channel });
+  return res.json({ saved: true, channel });
+});
+
+/**
+ * Get overlay loadout for a channel (public)
+ */
+app.get('/overlay/loadout', (req, res) => {
+  const channel = normalizeChannelName(req.query?.channel || req.query?.c || '') || DEFAULT_CHANNEL;
+  const data = db.getOverlayLoadout(channel);
+  if (!data) return res.json({ channel, cosmetics: {}, effects: {} });
+  return res.json({ channel, ...data });
 });
 
 /**
@@ -4240,7 +4394,7 @@ io.on('connection', (socket) => {
     })),
   });
   if (overlaySettingsByChannel[channel]) {
-    socket.emit('overlaySettings', { settings: overlaySettingsByChannel[channel], channel });
+    socket.emit('overlaySettings', { settings: overlaySettingsByChannel[channel], fx: overlayFxByChannel[channel], channel });
   }
 
   const socketLogin = auth.extractUserLogin(socket.handshake);

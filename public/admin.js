@@ -43,7 +43,9 @@ const partnerIdInput = document.getElementById('partner-id');
 const partnerNameInput = document.getElementById('partner-name');
 const partnerPctInput = document.getElementById('partner-pct');
 const partnerSaveBtn = document.getElementById('btn-save-partner');
-const partnerRefreshBtn = document.getElementById('btn-refresh-partners');
+const partnerRefreshBtn = document.getElementById('btn-refresh-partner');
+const partnerTableBody = document.getElementById('partner-table-body');
+const partnerMetCount = document.getElementById('partner-met-count');
 const earnInputs = {
   chatRate: document.getElementById('earn-chat-rate'),
   chatCap: document.getElementById('earn-chat-cap'),
@@ -261,6 +263,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadStats();
   await loadProfiles();
   await loadAuditLog();
+  await loadPartnerTable();
 
   // Setup event listeners
   setupEventListeners();
@@ -271,28 +274,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   setInterval(loadStats, 30000);
   setInterval(loadProfiles, 60000);
   setInterval(loadAuditLog, 60000);
+  setInterval(loadPartnerTable, 60000);
 });
 
-// Fallback delegated handler to ensure popover always opens for quick buttons
-document.addEventListener('click', (e) => {
-  const btn = e.target?.closest?.('[data-open-section]');
-  if (!btn) return;
-  ensurePopover();
-  const targetId = btn.dataset.openSection || 'unknown';
-  try { console.debug('[admin] delegated quick button', targetId); } catch (err) { /* ignore */ }
-  const section = document.getElementById(targetId);
-  quickModalBody.innerHTML = section ? section.innerHTML : `<div style="padding:8px;">Section "${targetId}" not found.</div>`;
-  const titleEl = document.getElementById('quick-modal-title');
-  if (titleEl) {
-    titleEl.textContent = section
-      ? (section.querySelector('summary')?.textContent?.trim() || section.dataset.title || targetId)
-      : `Quick view: ${targetId}`;
-  }
-  quickModal.style.opacity = '1';
-  quickModal.style.pointerEvents = 'auto';
-  quickModal.style.display = 'block';
-  quickModal.classList.add('active');
-});
 async function ensureSocketConnected() {
   if (!adminSocket) initSocket();
   if (adminSocket?.connected) return true;
@@ -490,12 +474,12 @@ function setupEventListeners() {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       const target = btn.dataset.openSection;
-      // Also scroll to the section in-page for quick context
-      focusSection(target);
-      // And open the drawer with the section contents for immediate controls
+      // Do not scroll; just open the drawer once
       openDrawerForSection(target);
     });
   });
+
+  partnerRefreshBtn?.addEventListener('click', loadPartnerTable);
 
   // Export
   document.getElementById('btn-export')?.addEventListener('click', async () => {
@@ -700,6 +684,41 @@ async function loadProfiles() {
       .join('');
   } catch (err) {
     console.error('Failed to load profiles:', err);
+  }
+}
+
+async function loadPartnerTable() {
+  if (!partnerTableBody) return;
+  try {
+    const res = await apiCall('/admin/partner/progress', { method: 'GET' });
+    const rows = res?.rows || [];
+    partnerTableBody.innerHTML = rows
+      .map((r) => {
+        const goals = r.partner?.hardGates || r.goals || {};
+        const goalCount = r.partner?.hardGates ? Object.values(goals).filter(g => g.pass !== false).length : (r.goals ? Object.values(r.goals).filter(Boolean).length : 0);
+        const win30 = r.windows?.win30 || {};
+        return `
+          <tr>
+            <td>${r.channel || '-'}</td>
+            <td>${win30.streams || 0}</td>
+            <td>${(win30.avgPlayersPerStream || 0).toFixed ? (win30.avgPlayersPerStream || 0).toFixed(1) : win30.avgPlayersPerStream || 0}</td>
+            <td>${win30.uniquePlayers || 0}</td>
+            <td>${win30.rounds || 0}</td>
+            <td>${goalCount}</td>
+          </tr>
+        `;
+      })
+      .join('');
+    if (partnerMetCount) {
+      const topMet = Math.max(0, ...rows.map(r => {
+        const goals = r.partner?.hardGates || r.goals || {};
+        return Object.values(goals).filter(g => (g.pass === undefined ? !!g : g.pass)).length;
+      }));
+      partnerMetCount.textContent = `Top goals met: ${topMet}`;
+    }
+  } catch (err) {
+    console.error('Failed to load partner progress', err);
+    partnerTableBody.innerHTML = '<tr><td colspan="6">Partner progress unavailable</td></tr>';
   }
 }
 

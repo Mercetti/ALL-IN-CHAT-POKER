@@ -23,6 +23,7 @@
     .item-card .meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-muted); }
     .item-card.selected { outline: 2px solid var(--accent-400); }
     .preview { display: grid; gap: 10px; }
+    .panel.preview { position: sticky; top: 12px; align-self: start; }
     .preview .canvas-wrap, .preview .img-wrap { height: 260px; border-radius: 12px; border: 1px solid var(--border-color); background: radial-gradient(circle at 30% 30%, rgba(68,255,210,0.12), rgba(12,30,48,0.9)); display: grid; place-items: center; overflow: hidden; }
     .preview img { max-width: 100%; max-height: 100%; }
     .field { display: flex; flex-direction: column; gap: 6px; }
@@ -35,6 +36,7 @@
     .modal canvas, .modal img, .modal div { max-width:80vw; max-height:70vh; }
     @media (max-width: 1080px) {
       .layout { grid-template-columns: 1fr; }
+      .panel.preview { position: static; }
       .preview .canvas-wrap { height: 220px; }
     }
   </style>
@@ -164,13 +166,14 @@
       const current = loadStoredCosmetics();
       const next = { ...current, ...partial };
       localStorage.setItem('overlayCosmeticSelection', JSON.stringify(next));
+      if (syncEnabled) syncOverlay(next, null);
     }
 
     function saveFxChoice(partial) {
       const current = loadStoredFxChoice();
       const next = { ...current, ...partial };
       localStorage.setItem('overlayFxChoice', JSON.stringify(next));
-      if (syncEnabled) syncOverlay();
+      if (syncEnabled) syncOverlay(null, next);
     }
 
     async function loadImage(src) {
@@ -540,15 +543,15 @@
       sectionSubtitle.parentElement.insertBefore(controls, sectionSubtitle.nextSibling);
     }
 
-    function syncOverlay() {
+    function syncOverlay(cosmeticsOverride = null, effectsOverride = null) {
       const payload = {
-        cosmetics: loadStoredCosmetics(),
-        effects: loadStoredFxChoice(),
+        cosmetics: cosmeticsOverride || loadStoredCosmetics(),
+        effects: effectsOverride || loadStoredFxChoice(),
       };
-      fetch('/overlay/sync', {
+      apiCall('/overlay/sync', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
+        useUserToken: true,
       }).catch(err => console.warn('Overlay sync failed', err));
     }
 

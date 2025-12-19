@@ -8,6 +8,31 @@ document.addEventListener('DOMContentLoaded', () => {
   const twitchLoginBtn = document.getElementById('twitch-login-btn');
   const twitchRedirectUri = `${window.location.origin}/login.html`;
   let twitchConfig = null;
+  let desiredRole = (localStorage.getItem('loginRole') || 'player').toLowerCase();
+
+  const roleButtons = Array.from(document.querySelectorAll('.role-option'));
+  const roleNote = document.getElementById('role-note');
+
+  function setRole(role) {
+    desiredRole = role;
+    localStorage.setItem('loginRole', role);
+    roleButtons.forEach(btn => {
+      const isActive = btn.dataset.role === role;
+      btn.classList.toggle('active', isActive);
+    });
+    if (roleNote) {
+      roleNote.textContent = role === 'streamer'
+        ? 'Streamers get the admin panel; players can still join via chat.'
+        : 'Players go to their profile for cosmetics and purchases.';
+    }
+  }
+
+  if (roleButtons.length) {
+    setRole(desiredRole);
+    roleButtons.forEach(btn => {
+      btn.addEventListener('click', () => setRole(btn.dataset.role || 'player'));
+    });
+  }
 
   async function loadTwitchConfig() {
     if (twitchConfig) return twitchConfig;
@@ -77,27 +102,30 @@ document.addEventListener('DOMContentLoaded', () => {
             (login === (twitchConfig.streamerLogin || '').toLowerCase() ||
               login === (twitchConfig.botAdminLogin || '').toLowerCase());
 
-          if (isAdminRole || isConfiguredAdmin) {
+          const goAdmin = async () => {
+            if (!isAdminRole && !isConfiguredAdmin && desiredRole === 'streamer') {
+              try {
+                await apiCall('/user/role', {
+                  method: 'POST',
+                  body: JSON.stringify({ role: 'streamer' }),
+                });
+              } catch (e) {
+                console.warn('Streamer role set failed', e);
+              }
+            }
             window.location.href = '/admin2.html';
+          };
+
+          const goPlayer = () => {
+            window.location.href = '/profile.html';
+          };
+
+          if (isAdminRole || isConfiguredAdmin || desiredRole === 'streamer') {
+            goAdmin();
             return;
           }
 
-          // Offer to set streamer role on first login
-          const wantStreamer = window.confirm('Are you the streamer? Choose OK to enable the streamer panel.');
-          if (wantStreamer) {
-            apiCall('/user/role', {
-              method: 'POST',
-              body: JSON.stringify({ role: 'streamer' }),
-            })
-              .then(() => {
-                window.location.href = '/admin2.html';
-              })
-              .catch(() => {
-                window.location.href = '/index.html';
-              });
-          } else {
-            window.location.href = '/index.html';
-          }
+          goPlayer();
         }, 300);
       }
     } catch (err) {

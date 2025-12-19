@@ -37,10 +37,8 @@
       <button class="btn btn-secondary btn-sm" data-open-section="checklist-details">Checklist</button>
       <button class="btn btn-secondary btn-sm" data-open-section="profiles-details">Profiles</button>
       <button class="btn btn-secondary btn-sm" data-open-section="audit-details">Audit Log</button>
-      <a class="btn btn-secondary btn-sm" href="/cosmetics.html" target="_blank" rel="noopener">Cosmetics Page</a>
+      <a class="btn btn-secondary btn-sm" href="/cosmetics.html" target="_blank" rel="noopener">Store</a>
       <a class="btn btn-secondary btn-sm" href="/partner-program.html" target="_blank" rel="noopener">Partner Program</a>
-      <a class="btn btn-secondary btn-sm" href="/partner-privacy.html" target="_blank" rel="noopener">Partner Privacy</a>
-      <a class="btn btn-secondary btn-sm" href="/partner-compensation.html" target="_blank" rel="noopener">Comp Addendum</a>
     </div>
 
     <main class="admin-main compact-main">
@@ -175,10 +173,10 @@
           </div>
         </details>
 
-        <details class="control-panel collapsible" id="tournament-details">
-          <summary>Tournament Tools (backend)</summary>
-          <div class="control-card">
-            <p class="muted">Brackets, tables, ready-up.</p>
+          <details class="control-panel collapsible drawer-content" id="tournament-details">
+            <summary>Tournament Tools (backend)</summary>
+            <div class="control-card">
+              <p class="muted">Brackets, tables, ready-up.</p>
             <div class="form-grid">
               <label>Round</label>
               <input id="t-round" type="number" min="1" value="1" class="form-input">
@@ -202,7 +200,7 @@
         </details>
       </div>
 
-      <details class="control-panel collapsible" id="checklist-details">
+      <details class="control-panel collapsible drawer-content" id="checklist-details">
         <summary>Alpha Test Checklist</summary>
         <div class="control-card">
           <ul class="rules-list">
@@ -252,7 +250,7 @@
       </details>
 
       <!-- Audit Log -->
-      <details class="control-panel collapsible" id="audit-details">
+      <details class="control-panel collapsible drawer-content" id="audit-details">
         <summary>Unblock Audit Log</summary>
         <section class="audit-section flush">
           <table class="audit-table">
@@ -270,6 +268,34 @@
             </tbody>
           </table>
         </section>
+      </details>
+
+      <!-- Partner Eligibility -->
+      <details class="control-panel collapsible" id="partner-details">
+        <summary>Partner Eligibility</summary>
+        <div class="control-card">
+          <div class="profiles-toolbar">
+            <button id="btn-refresh-partner" class="btn btn-info btn-sm">
+              Refresh
+            </button>
+            <span class="pill pill-muted" id="partner-met-count">Loading...</span>
+          </div>
+          <table class="profiles-table">
+            <thead>
+              <tr>
+                <th>Channel</th>
+                <th>Streams (30d)</th>
+                <th>Avg Players</th>
+                <th>Unique Players</th>
+                <th>Rounds</th>
+                <th>Goals Met</th>
+              </tr>
+            </thead>
+            <tbody id="partner-table-body">
+              <tr><td colspan="6">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </details>
 
       <section class="control-panel compact-card" id="partner-panel">

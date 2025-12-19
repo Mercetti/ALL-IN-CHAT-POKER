@@ -409,6 +409,10 @@
   gap: var(--spacing-sm);
 }
 
+.drawer-content {
+  display: none;
+}
+
 .table-actions button {
   padding: 4px 8px;
   font-size: var(--font-size-xs);
