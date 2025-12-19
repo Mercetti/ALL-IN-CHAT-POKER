@@ -216,6 +216,13 @@
       { id: 'coins-5000', chips: 5000, price: '$49.99', bonus: '+1500', img: '/assets/all_in_chip_x1000.png', tag: 'Whale Pack' },
     ];
 
+    function isPurchasable(item) {
+      const price = Number.isFinite(item?.price_cents) ? item.price_cents : Number(item?.price || 0);
+      const unlock = (item?.unlock_type || '').toLowerCase();
+      const gated = unlock && unlock !== 'basic';
+      return price > 0 && !gated;
+    }
+
     async function loadCatalog() {
       statusEl.textContent = 'Loading catalog...';
       gridEl.innerHTML = '';
@@ -225,7 +232,8 @@
         const res = await fetch('/catalog', { signal: controller.signal });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const items = await res.json();
-        renderCatalog(items || []);
+        const purchasable = (items || []).filter(isPurchasable);
+        renderCatalog(purchasable);
         statusEl.textContent = '';
       } catch (err) {
         console.error('[cosmetics] catalog load failed', err);
@@ -275,7 +283,7 @@
       const filter = filterEl.value;
       const filtered = filter ? items.filter(i => i.type === filter) : items;
       if (!filtered.length) {
-        gridEl.innerHTML = '<div class="muted" style="padding:12px;">No items found.</div>';
+        gridEl.innerHTML = '<div class="muted" style="padding:12px;">No purchasable items found.</div>';
         return;
       }
       gridEl.innerHTML = filtered.map(item => {
