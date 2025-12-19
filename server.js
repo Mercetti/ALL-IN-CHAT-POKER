@@ -64,6 +64,18 @@ const DEFAULT_CHANNEL = getDefaultChannel();
 const overlaySettingsByChannel = {};
 const overlayFxByChannel = {};
 const tournamentTimers = {};
+const AI_BOT_NAMES = [
+  'Alani', 'Marina', 'Estevan', 'Keagan', 'Alessandro', 'Betsy', 'Francisco', 'Kelli', 'Jeremiah', 'Rachel',
+  'Hillary', 'Robin', 'Natalya', 'Francesco', 'Dallin', 'Mindy', 'Ananda', 'Tavon', 'Hassan', 'Korey',
+  'Gerard', 'Abel', 'Franchesca', 'Kody', 'Truman', 'Aditya', 'Daveon', 'Trenten', 'Isaiah', 'Trisha',
+  'Darby', 'Giovanni', 'Sasha', 'Esther', 'Cesar', 'Alondra', 'Francesca', 'Jamel', 'Notnamed', 'Deandre',
+  'Princess', 'Miya', 'Melanie', 'Mikael', 'Jasper', 'Malcolm', 'Kole', 'Blake', 'Jalisa', 'Itzel', 'Brandy',
+  'Kendra', 'Alaina', 'Stefan', 'Damaris', 'Ester', 'Donnell', 'Jacqueline', 'Beatrice', 'Kyndal', 'Averi',
+  'Cameron', 'Brant', 'Keyanna', 'Janaya', 'Luiz', 'Killian', 'Emilie', 'Lily', 'Andrea', 'Payton', 'Michele',
+  'Alecia', 'Macey', 'Jazmin', 'Quinn', 'Jevon', 'Everett', 'Tanisha', 'Brendon', 'Roberto', 'Randall',
+  'Camilla', 'Chandler', 'Yvonne', 'Camron', 'Curtis', 'Uriel', 'Zachary', 'Santos', 'Belinda', 'Valeria',
+  'Donnie', 'Brandi', 'Tamara', 'Josie', 'Mykayla', 'Mario', 'Jessie', 'Rashawn',
+];
 const COIN_PACKS = [
   { id: 'coins-100', coins: 100, amount_cents: 99, name: '100 All-In Chips', bonus: 0 },
   { id: 'coins-500', coins: 500, amount_cents: 499, name: '500 All-In Chips', bonus: 50 },
@@ -2086,12 +2098,22 @@ function addTestBots(channel = DEFAULT_CHANNEL, count = 3, maxSeats = MAX_BLACKJ
   }
 
   const added = [];
+  const used = new Set(Object.keys(state.betAmounts || {}));
   for (let i = 1; i <= safeCount; i += 1) {
-    const login = `ai_bot${i}`;
+    // pick a random name and append a discriminator if needed
+    const baseName = AI_BOT_NAMES[Math.floor(Math.random() * AI_BOT_NAMES.length)] || `Bot${i}`;
+    let login = baseName.replace(/\s+/g, '').toLowerCase();
+    let suffix = 1;
+    while (used.has(login)) {
+      suffix += 1;
+      login = `${baseName.replace(/\s+/g, '').toLowerCase()}${suffix}`;
+    }
+    used.add(login);
+
     // Ensure profile/balance exists
     db.upsertProfile({
       login,
-      display_name: `AI Bot ${i}`,
+      display_name: baseName,
       settings: { startingChips: config.GAME_STARTING_CHIPS, theme: 'dark' },
       role: 'ai',
     });
@@ -2106,6 +2128,16 @@ function addTestBots(channel = DEFAULT_CHANNEL, count = 3, maxSeats = MAX_BLACKJ
     added.push(login);
   }
   emitQueueUpdate(channelName);
+  // If autoFill is enabled, auto-start once bots are seated
+  if (overlaySettingsByChannel[channelName]?.autoFillAi && !state.roundInProgress) {
+    setTimeout(() => {
+      const freshState = getStateForChannel(channelName);
+      const activeBettors = Object.keys(freshState.betAmounts || {}).length;
+      if (!freshState.roundInProgress && activeBettors > 0) {
+        startRoundInternal(channelName);
+      }
+    }, 350);
+  }
   return added;
 }
 
