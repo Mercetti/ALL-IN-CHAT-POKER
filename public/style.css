@@ -250,7 +250,7 @@
   filter: drop-shadow(0 12px 35px rgba(0, 0, 0, 0.45));
   opacity: 0.9;
   z-index: 1;
-  animation: glitch-frames 1s steps(24) infinite;
+  animation: glitch-frames 3s steps(24) infinite;
 }
 
 @keyframes glitch-frames {

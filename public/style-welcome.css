@@ -93,7 +93,7 @@ body {
   margin: 16px auto 0;
   border-radius: 18px;
   background: url('/assets/logo/glitch/AllInChatPoker_Glitch_24Frames_1024x1024_Horizontal_FIXED.png') 0 0 / 2400% auto;
-  animation: glitch-frames 1s steps(24) infinite;
+  animation: glitch-frames 3s steps(24) infinite;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
 }
 
