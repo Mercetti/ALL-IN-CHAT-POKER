@@ -703,6 +703,10 @@ app.get('/', (_req, res) => {
   res.set('Cache-Control', 'no-store');
   res.sendFile(path.join(__dirname, 'public', 'welcome.html'));
 });
+app.get('/index.html', (_req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.redirect(301, '/welcome.html');
+});
 // Expose minimal public config for the frontend (no secrets)
 app.get('/public-config.json', (req, res) => {
   const forwardedProto = (req.headers['x-forwarded-proto'] || '').split(',')[0].trim();
