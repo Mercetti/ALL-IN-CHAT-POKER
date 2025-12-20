@@ -63,6 +63,15 @@ body {
   z-index: 1;
 }
 
+/* Hide any legacy CTA rows inside the hero (navbar already covers navigation) */
+.hero .cta-grid,
+.hero .cta-row,
+.hero .hero-actions,
+.hero .cta-links,
+.hero .cta-buttons {
+  display: none !important;
+}
+
 .hero-nav-bar {
   display: flex;
   justify-content: space-between;
