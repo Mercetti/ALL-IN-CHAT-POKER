@@ -116,4 +116,7 @@ module.exports = {
   AI_MAX_TOKENS: parseInt(process.env.AI_MAX_TOKENS || '1200', 10),
   OLLAMA_HOST: process.env.OLLAMA_HOST || 'http://127.0.0.1:11434',
   OLLAMA_MODEL: process.env.OLLAMA_MODEL || '',
+
+  // Monitoring / alerts
+  MONITOR_WEBHOOK_URL: process.env.MONITOR_WEBHOOK_URL || '',
 };

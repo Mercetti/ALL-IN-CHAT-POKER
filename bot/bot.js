@@ -6,11 +6,17 @@
  *  !start, !startnow, !mode poker|blackjack, !seats, !ready (tournaments)
  *
  * Env:
- *  BOT_USERNAME, BOT_OAUTH_TOKEN, TARGET_CHANNELS, BOT_JOIN_SECRET,
+ *  BOT_USERNAME, BOT                                                                                                                                             _OAUTH_TOKEN, TARGET_CHANNELS, BOT_JOIN_SECRET,
  *  ADMIN_TOKEN, BACKEND_URL (defaults to https://all-in-chat-poker.fly.dev)
  */
 
 const tmi = require('tmi.js');
+const {
+  Client: DiscordClient,
+  GatewayIntentBits,
+  REST,
+  Routes,
+} = require('discord.js');
 const fetch = global.fetch;
 
 const BOT_USERNAME = process.env.BOT_USERNAME || process.env.TWITCH_BOT_USERNAME || '';
@@ -23,6 +29,13 @@ const TARGET_CHANNELS = (process.env.TARGET_CHANNELS || process.env.TWITCH_CHANN
   .filter(Boolean);
 const BOT_NAME_LOWER = BOT_USERNAME.toLowerCase();
 const BOT_JOIN_SECRET = process.env.BOT_JOIN_SECRET || '';
+const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || '';
+const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || '';
+const DISCORD_GUILD_ID = process.env.DISCORD_GUILD_ID || '';
+const DISCORD_ALLOWED_CHANNELS = (process.env.DISCORD_ALLOWED_CHANNELS || '')
+  .split(',')
+  .map(c => c.trim())
+  .filter(Boolean);
 
 let MIN_BET_CACHE = null;
 const stateCache = {};
@@ -187,6 +200,13 @@ const quips = {
     "Smart plays > luck. You've got this, {user}.",
     "Patience pays. Wait for your spot, {user}.",
   ],
+  studyTips: [
+    "Break it down: 25-50 minute sprints, 5-10 minute breaks. One topic per sprint.",
+    "Teach it aloud. If you can explain it simply, you know it.",
+    "Flashcards > rereading. Active recall beats passive review.",
+    "Sleep & water matter. A rested brain remembers more.",
+    "Practice problems over notes. Apply, don't just read.",
+  ],
 };
 
 const rules = {
@@ -229,6 +249,119 @@ function getMood(channel) {
 function pickMood(quipsArr, mood, fallbackArr) {
   if (mood <= -2 && fallbackArr && fallbackArr.length) return pick(fallbackArr);
   return pick(quipsArr);
+}
+
+// ---- Discord helper (optional) ----
+const discordCommands = [
+  { name: 'ping', description: 'Check bot latency' },
+  { name: 'status', description: 'Show game status links' },
+  { name: 'help', description: 'Show bot commands' },
+  { name: 'join', description: 'How to join the table' },
+  { name: 'study', description: 'Get a quick study tip' },
+  {
+    name: 'tutor',
+    description: 'Ask a short study question',
+    options: [
+      {
+        name: 'question',
+        description: 'Your study question (math/CS/general)',
+        type: 3, // STRING
+        required: true,
+      },
+    ],
+  },
+];
+
+function isAllowedDiscordChannel(channelId) {
+  if (!DISCORD_ALLOWED_CHANNELS.length) return true;
+  return DISCORD_ALLOWED_CHANNELS.includes(channelId);
+}
+
+async function registerDiscordCommands() {
+  if (!DISCORD_BOT_TOKEN || !DISCORD_CLIENT_ID || !DISCORD_GUILD_ID) return;
+  try {
+    const rest = new REST({ version: '10' }).setToken(DISCORD_BOT_TOKEN);
+    await rest.put(Routes.applicationGuildCommands(DISCORD_CLIENT_ID, DISCORD_GUILD_ID), { body: discordCommands });
+    console.log('Discord slash commands registered');
+  } catch (err) {
+    console.warn('Discord command registration failed', err.message);
+  }
+}
+
+function startDiscordBot() {
+  if (!DISCORD_BOT_TOKEN) return;
+  const client = new DiscordClient({
+    intents: [
+      GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildMessages,
+      GatewayIntentBits.MessageContent,
+    ],
+  });
+
+  const replyCooldownMs = 8000;
+  const lastDiscordReply = new Map();
+  const canReply = (userId) => {
+    const now = Date.now();
+    const last = lastDiscordReply.get(userId) || 0;
+    if (now - last > replyCooldownMs) {
+      lastDiscordReply.set(userId, now);
+      return true;
+    }
+    return false;
+  };
+
+  client.on('ready', () => {
+    console.log(`Discord bot logged in as ${client.user.tag}`);
+  });
+
+  client.on('interactionCreate', async (interaction) => {
+    if (!interaction.isChatInputCommand()) return;
+    const { commandName } = interaction;
+    if (commandName === 'ping') return interaction.reply({ content: 'Pong!', ephemeral: true });
+    if (commandName === 'status') {
+      const msg = `Overlay: ${BACKEND_URL}/obs-overlay.html | Admin: ${BACKEND_URL}/admin2.html | Editor: ${BACKEND_URL}/overlay-editor.html`;
+      return interaction.reply({ content: msg, ephemeral: true });
+    }
+    if (commandName === 'help') {
+      return interaction.reply({ content: 'Commands: /ping /status /join /help | In chat: !join, !bet <amt>, !rules', ephemeral: true });
+    }
+    if (commandName === 'join') {
+      return interaction.reply({ content: 'To join: in Twitch chat type !join or !bet <amount>. Use !rules poker|blackjack for game rules.', ephemeral: true });
+    }
+    if (commandName === 'study') {
+      return interaction.reply({ content: pick(quips.studyTips) });
+    }
+    if (commandName === 'tutor') {
+      const q = interaction.options.getString('question', true);
+      const short = q.length > 200 ? `${q.slice(0, 200)}...` : q;
+      return interaction.reply({
+        content: `I’ll keep it brief.\nQuestion: ${short}\n\nTips: Break it down, define terms, outline steps, and try a practice example. (AI answer stub—wire to a tutor API/model if you want real solutions.)`,
+        ephemeral: true,
+      });
+    }
+  });
+
+  client.on('messageCreate', async (msg) => {
+    if (msg.author.bot) return;
+    if (!isAllowedDiscordChannel(msg.channelId)) return;
+    const lower = msg.content.toLowerCase();
+    if (!canReply(msg.author.id)) return;
+    if (/!ping/.test(lower)) {
+      return msg.reply('pong');
+    }
+    if (/help|how.*join|join.*table/.test(lower)) {
+      return msg.reply('Join from Twitch chat with !join or !bet <amount>. Need rules? Try !rules poker or blackjack in chat.');
+    }
+    if (/status|overlay|admin/.test(lower)) {
+      return msg.reply(`Overlay: ${BACKEND_URL}/obs-overlay.html | Admin: ${BACKEND_URL}/admin2.html | Editor: ${BACKEND_URL}/overlay-editor.html`);
+    }
+    if (/study|homework|test|exam/.test(lower)) {
+      return msg.reply(pick(quips.studyTips));
+    }
+  });
+
+  registerDiscordCommands().catch(() => {});
+  client.login(DISCORD_BOT_TOKEN).catch(err => console.error('Discord login failed', err.message));
 }
 
 async function bootstrap() {
@@ -426,6 +559,8 @@ async function bootstrap() {
   });
 
   await client.connect();
+  // Fire up the Discord bot (optional)
+  startDiscordBot();
 }
 
 bootstrap().catch(err => {

@@ -15,7 +15,7 @@
         <img src="logo.png" alt="All-In Chat Poker logo" class="brand-logo">
         <div>
           <h1>Dev Admin</h1>
-          <p class="brand-subtitle">Partner + Earn configuration (admin only)</p>
+          <p class="brand-subtitle">Partner + Earn configuration + debug tools (admin only)</p>
         </div>
       </div>
       <div class="header-actions">
@@ -83,12 +83,201 @@
         </div>
         <small class="muted">Anti-abuse safeguards (unique chatter cooldown, account age, daily caps) should be enforced server-side.</small>
       </section>
+
+      <section class="control-panel compact-card">
+        <div class="section-header">
+          <h2>Quick Links</h2>
+          <p class="muted small">Open common debug surfaces in new tabs.</p>
+        </div>
+        <div class="button-row">
+          <button id="btn-open-audit" class="btn btn-secondary btn-sm">Audit log JSON</button>
+          <button id="btn-open-task-status" class="btn btn-secondary btn-sm">Task queue status</button>
+          <button id="btn-open-error-tail" class="btn btn-secondary btn-sm">Error log tail</button>
+          <a class="btn btn-secondary btn-sm" href="/partner-dashboard.html" target="_blank" rel="noopener">Partner dashboard</a>
+        </div>
+      </section>
+
+      <section class="control-panel compact-card" id="overlay-health-panel">
+        <div class="section-header">
+          <h2>Overlay Health</h2>
+          <p class="muted small">Live socket stats for the current channel.</p>
+        </div>
+        <div class="stat-grid">
+          <div><strong>Status:</strong> <span id="overlay-status">Not connected</span></div>
+          <div><strong>Channel:</strong> <span id="overlay-channel">-</span></div>
+          <div><strong>Mode:</strong> <span id="overlay-mode">-</span></div>
+          <div><strong>Round:</strong> <span id="overlay-round">-</span></div>
+          <div><strong>Betting:</strong> <span id="overlay-betting">-</span></div>
+          <div><strong>Last avatar push:</strong> <span id="overlay-avatar-at">-</span></div>
+          <div><strong>Last settings push:</strong> <span id="overlay-settings-at">-</span></div>
+          <div><strong>Pot / Bet:</strong> <span id="overlay-pot-bet">-</span></div>
+          <div><strong>Queue:</strong> <span id="overlay-queue">-</span></div>
+        </div>
+        <div class="button-row">
+          <button id="btn-connect-overlay" class="btn btn-primary btn-sm">Connect socket</button>
+          <button id="btn-ping-overlay" class="btn btn-secondary btn-sm">Ping overlays</button>
+          <button id="btn-refresh-state" class="btn btn-secondary btn-sm">Refresh state</button>
+          <button id="btn-diagnose-ai" class="btn btn-secondary btn-sm">Send to AI</button>
+        </div>
+        <div id="ai-diagnosis-output" class="muted small"></div>
+      </section>
+
+      <section class="control-panel compact-card" id="round-debug-panel">
+        <div class="section-header">
+          <h2>Round Debugger</h2>
+          <p class="muted small">Snapshot of current table state for this channel.</p>
+        </div>
+        <div id="round-debug-body" class="muted">Waiting for state...</div>
+      </section>
+
+      <section class="control-panel compact-card" id="ops-panel">
+        <div class="section-header">
+          <h2>Ops & Uptime</h2>
+          <p class="muted small">Synthetic checks, bot health, errors, and DB safety.</p>
+        </div>
+        <div class="button-row">
+          <button id="btn-ops-refresh" class="btn btn-secondary btn-sm">Refresh ops</button>
+          <button id="btn-run-synthetic" class="btn btn-secondary btn-sm">Run synthetic</button>
+          <button id="btn-asset-check" class="btn btn-secondary btn-sm">Asset check</button>
+          <button id="btn-db-backup" class="btn btn-secondary btn-sm">Backup DB</button>
+          <button id="btn-db-vacuum" class="btn btn-secondary btn-sm">VACUUM DB</button>
+        </div>
+        <div class="muted small" id="ops-summary"></div>
+      </section>
+
+      <section class="control-panel compact-card" id="security-panel">
+        <div class="section-header">
+          <h2>Security Snapshot</h2>
+          <p class="muted small">Rate limits, bot health, headers, and file integrity.</p>
+        </div>
+        <div class="button-row">
+          <button id="btn-security-refresh" class="btn btn-secondary btn-sm">Refresh security</button>
+          <button id="btn-security-ai" class="btn btn-secondary btn-sm">AI security review</button>
+        </div>
+        <div class="muted small" id="security-summary"></div>
+        <div class="muted small" id="security-diagnosis"></div>
+      </section>
+
+      <section class="control-panel compact-card" id="ai-tests-panel">
+        <div class="section-header">
+          <h2>AI Test Runner</h2>
+          <p class="muted small">Generate a quick plan and run available test scripts.</p>
+        </div>
+        <div class="button-row">
+          <button id="btn-run-ai-tests" class="btn btn-primary btn-sm">Run AI Tests</button>
+        </div>
+        <div class="muted small" id="ai-test-plan"></div>
+        <div class="muted small" id="ai-test-results"></div>
+        <div class="muted small" id="ai-test-diagnosis"></div>
+        <div class="muted small" id="ai-test-last-report"></div>
+      </section>
+
+      <section class="control-panel compact-card">
+        <div class="section-header">
+          <h2>Profile Quick Search</h2>
+          <p class="muted small">Jump to any profile; view-only impersonation for cosmetics checks.</p>
+        </div>
+        <div class="form-grid compact-grid">
+          <input id="profile-search-login" class="form-input" placeholder="username/login">
+          <button id="btn-open-profile" class="btn btn-primary btn-sm">Open profile</button>
+          <button id="btn-open-profile-view" class="btn btn-secondary btn-sm">View as (read-only)</button>
+        </div>
+      </section>
+
+      <section class="control-panel compact-card" id="partner-snapshot-panel">
+        <div class="section-header">
+          <h2>Partner Eligibility Snapshot</h2>
+          <p class="muted small">30d window; refresh/recompute from backend.</p>
+        </div>
+        <div class="button-row">
+          <button id="btn-refresh-snapshot" class="btn btn-primary btn-sm">Refresh</button>
+          <button id="btn-recompute-snapshot" class="btn btn-secondary btn-sm">Recompute</button>
+        </div>
+        <div class="table-responsive">
+          <table class="table slim-table" id="partner-snapshot-table">
+            <thead>
+              <tr>
+                <th>Channel</th>
+                <th>Streams (30d)</th>
+                <th>Avg Players</th>
+                <th>Unique Players</th>
+                <th>Rounds</th>
+                <th>Goals Met</th>
+                <th>Profile</th>
+              </tr>
+            </thead>
+            <tbody id="partner-snapshot-body">
+              <tr><td colspan="7" class="muted">No data yet</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="control-panel compact-card" id="import-export-panel">
+        <div class="section-header">
+          <h2>Import / Export</h2>
+          <p class="muted small">Cosmetic import (JSON/CSV) + partner export.</p>
+        </div>
+        <div class="form-grid compact-grid">
+          <textarea id="dev-import-input" class="form-input" rows="5" placeholder='[{"id":"card-back-new","type":"cardBack","name":"New Back","price_cents":500}] or CSV with headers'></textarea>
+          <button id="btn-import-cosmetics-dev" class="btn btn-primary btn-sm">Import cosmetics</button>
+          <button id="btn-export-partners" class="btn btn-secondary btn-sm">Export partners (CSV)</button>
+          <button id="btn-seed-cosmetics" class="btn btn-secondary btn-sm">Seed sample cosmetics</button>
+          <div id="dev-import-status" class="muted small"></div>
+        </div>
+      </section>
+
+      <section class="control-panel compact-card" id="game-tools-panel">
+        <div class="section-header">
+          <h2>Game State Controls</h2>
+          <p class="muted small">Admin-only socket commands for fast testing.</p>
+        </div>
+        <div class="button-row">
+          <button id="btn-open-betting-dev" class="btn btn-primary btn-sm">Open betting</button>
+          <button id="btn-start-now-dev" class="btn btn-secondary btn-sm">Start round now</button>
+          <button id="btn-add-bots-dev" class="btn btn-secondary btn-sm">Add 3 test bots</button>
+          <label class="inline-toggle">
+            <input type="checkbox" id="auto-bet-bots" checked> auto-bet/start
+          </label>
+        </div>
+      </section>
+
+      <section class="control-panel compact-card" id="feature-flags-panel">
+        <div class="section-header">
+          <h2>Feature Toggles</h2>
+          <p class="muted small">Stored locally; wire to backend flags as needed.</p>
+        </div>
+        <div class="form-grid compact-grid">
+          <label class="inline-toggle"><input type="checkbox" id="flag-drops"> Enable drops</label>
+          <label class="inline-toggle"><input type="checkbox" id="flag-avatar-refresh" checked> Avatar auto-refresh</label>
+          <label>Dealer animation speed
+            <select id="flag-deal-speed" class="form-input">
+              <option value="normal">Normal</option>
+              <option value="fast">Fast</option>
+              <option value="slow">Slow</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="control-panel compact-card" id="safety-panel">
+        <div class="section-header">
+          <h2>Safety / Recovery</h2>
+          <p class="muted small">Quick fixes for overlays and local caches.</p>
+        </div>
+        <div class="button-row">
+          <button id="btn-reset-overlay" class="btn btn-secondary btn-sm">Reset overlay settings</button>
+          <button id="btn-clear-cache" class="btn btn-secondary btn-sm">Clear local caches</button>
+          <button id="btn-clear-health" class="btn btn-secondary btn-sm">Clear health counters</button>
+        </div>
+      </section>
     </main>
   </div>
 
   <div id="toast-container" class="toast-container"></div>
 
   <script src="client.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
   <script src="admin-dev.js"></script>
 </body>
 </html>

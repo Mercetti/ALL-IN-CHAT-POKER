@@ -63,6 +63,26 @@ let tmiClient = null;
 const DEFAULT_CHANNEL = getDefaultChannel();
 const overlaySettingsByChannel = {};
 const overlayFxByChannel = {};
+let lastOverlayDiagnosis = null;
+const AUTO_AI_CHECK_MS = 1000 * 60 * 15; // 15 minutes
+let lastAiTestReport = null;
+let lastAiTestRunDateCst = null;
+const recentErrors = [];
+const recentSlowRequests = [];
+const recentSocketDisconnects = [];
+const syntheticHistory = [];
+const assetChecks = [];
+let lastSyntheticAlert = null;
+let lastDbBackup = null;
+let lastVacuum = null;
+let lastTmiReconnectAt = null;
+let lastSyntheticRun = null;
+const criticalAssets = [
+  path.join(__dirname, 'public', 'overlay.js'),
+  path.join(__dirname, 'public', 'style.css'),
+  path.join(__dirname, 'public', 'welcome.html'),
+];
+const criticalAssetHashes = {};
 const tournamentTimers = {};
 const AI_BOT_NAMES = [
   'Alani', 'Marina', 'Estevan', 'Keagan', 'Alessandro', 'Betsy', 'Francisco', 'Kelli', 'Jeremiah', 'Rachel',
@@ -349,6 +369,16 @@ function generateDiff(proposal, currentContent) {
   }
 }
 
+function getPackageScripts() {
+  try {
+    const pkgPath = path.join(projectRoot, 'package.json');
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+    return pkg.scripts || {};
+  } catch (e) {
+    return {};
+  }
+}
+
 function runCommand(cmd, options = {}) {
   return new Promise((resolve) => {
     const {
@@ -381,6 +411,16 @@ function runCommand(cmd, options = {}) {
   });
 }
 
+function getPackageScripts() {
+  try {
+    const pkgPath = path.join(projectRoot, 'package.json');
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+    return pkg.scripts || {};
+  } catch (e) {
+    return {};
+  }
+}
+
 function ensureKnowledgeStore() {
   const dir = path.dirname(knowledgeFile);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -388,6 +428,244 @@ function ensureKnowledgeStore() {
     fs.writeFileSync(knowledgeFile, JSON.stringify({ entries: [] }, null, 2));
   }
 }
+
+function getCstParts(date = new Date()) {
+  const fmt = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Chicago',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+  const parts = fmt.formatToParts(date).reduce((acc, part) => {
+    if (part.type !== 'literal') acc[part.type] = part.value;
+    return acc;
+  }, {});
+  return parts; // {year, month, day, hour, minute}
+}
+
+async function postWebhook(message) {
+  if (!config.MONITOR_WEBHOOK_URL) return null;
+  try {
+    await fetch(config.MONITOR_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: message }),
+    });
+  } catch (err) {
+    logger.warn('Webhook post failed', { error: err.message });
+  }
+}
+
+async function runAiTests(kind = 'manual') {
+  const scripts = getPackageScripts();
+  const available = Object.keys(scripts || {});
+  const testCommands = [];
+  if (available.includes('test')) testCommands.push('npm test');
+  if (available.includes('lint')) testCommands.push('npm run lint');
+  if (available.includes('fmt')) testCommands.push('npm run fmt -- --check');
+  if (!testCommands.length) testCommands.push('npm test');
+
+  let plan = 'AI not configured';
+  if (config.OPENAI_API_KEY) {
+    try {
+      const planPrompt = `You are an automated QA assistant for All-In Chat Poker. npm scripts available: ${available.join(', ')}. Propose a short test plan (<=4 bullets) prioritizing regression safety and overlays.`;
+      const reply = await ai.chat(
+        [
+          { role: 'system', content: 'You are a concise QA assistant. Respond in <=4 bullets.' },
+          { role: 'user', content: planPrompt },
+        ],
+        { temperature: 0.2 }
+      );
+      plan = reply;
+    } catch (err) {
+      logger.warn('AI test plan failed', { error: err.message });
+      plan = 'AI plan unavailable';
+    }
+  }
+
+  const results = [];
+  for (const cmd of testCommands) {
+    const out = await runCommand(cmd, { timeoutMs: TEST_TIMEOUT_MS * 2 });
+    results.push({ cmd, code: out.code, durationMs: out.durationMs, output: out.output });
+  }
+
+  let diagnosis = null;
+  if (config.OPENAI_API_KEY) {
+    try {
+      const combined = results
+        .map(r => `${r.cmd} (code ${r.code}): ${truncateText(compressWhitespace(r.output || ''), 800)}`)
+        .join('\n');
+      const diagPrompt = `You are a terse QA debugger. Tests were run:\n${testCommands.join(', ')}\n\nOutputs:\n${combined}\n\nList the top issues and fixes in <=5 bullets. If all passed, say "All checks passed."`;
+      diagnosis = await ai.chat(
+        [
+          { role: 'system', content: 'You are a concise QA debugger. Respond in <=5 bullets.' },
+          { role: 'user', content: diagPrompt },
+        ],
+        { temperature: 0.2 }
+      );
+    } catch (err) {
+      logger.warn('AI diagnosis for tests failed', { error: err.message });
+      diagnosis = 'AI diagnosis unavailable';
+    }
+  }
+
+  const report = {
+    plan,
+    commands: testCommands,
+    results,
+    startedAt: Date.now(),
+    kind,
+    diagnosis,
+  };
+  lastAiTestReport = report;
+  return report;
+}
+
+function hashFile(filePath) {
+  try {
+    const data = fs.readFileSync(filePath);
+    return crypto.createHash('sha256').update(data).digest('hex');
+  } catch (err) {
+    return null;
+  }
+}
+
+function getCriticalHashes() {
+  const current = {};
+  criticalAssets.forEach((p) => {
+    current[p] = hashFile(p);
+  });
+  return { baseline: criticalAssetHashes, current };
+}
+
+async function runSyntheticCheck(kind = 'manual') {
+  const url = `http://127.0.0.1:${config.PORT}/health`;
+  let ok = false;
+  let status = 0;
+  let error = null;
+  try {
+    const res = await fetch(url, { timeout: 5000 });
+    status = res.status;
+    ok = res.ok;
+    if (!ok) error = `status ${status}`;
+  } catch (e) {
+    error = e.message;
+  }
+  const result = { ok, status, error, at: Date.now(), kind };
+  syntheticHistory.push(result);
+  if (syntheticHistory.length > 20) syntheticHistory.shift();
+  lastSyntheticRun = result;
+  if (!ok) {
+    lastSyntheticAlert = { at: Date.now(), error: error || `status ${status}` };
+    postWebhook(`Synthetic check failed (${kind}): ${error || status}`);
+  }
+  return result;
+}
+
+async function runAssetCheck(kind = 'manual') {
+  const assets = ['/logo.png', '/assets/table-texture.svg', '/assets/cosmetics/cards/basic/card-back-green.png'];
+  const base = `http://127.0.0.1:${config.PORT}`;
+  const results = [];
+  for (const asset of assets) {
+    try {
+      const res = await fetch(`${base}${asset}`, { timeout: 5000 });
+      results.push({ asset, status: res.status, ok: res.ok });
+    } catch (e) {
+      results.push({ asset, status: 0, ok: false, error: e.message });
+    }
+  }
+  const check = { at: Date.now(), kind, results };
+  assetChecks.push(check);
+  if (assetChecks.length > 10) assetChecks.shift();
+  return check;
+}
+
+function backupDb() {
+  try {
+    const src = path.resolve(config.DB_FILE);
+    const dir = path.join(path.dirname(src), 'backups');
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    const dest = path.join(dir, `backup-${Date.now()}.db`);
+    fs.copyFileSync(src, dest);
+    lastDbBackup = { at: Date.now(), path: dest };
+    return lastDbBackup;
+  } catch (err) {
+    logger.error('DB backup failed', { error: err.message });
+    throw err;
+  }
+}
+
+async function vacuumDb() {
+  try {
+    const res = await runCommand(`sqlite3 "${config.DB_FILE}" "VACUUM;"`, { timeoutMs: 20000 });
+    lastVacuum = { at: Date.now(), code: res.code };
+    return lastVacuum;
+  } catch (err) {
+    logger.error('VACUUM failed', { error: err.message });
+    throw err;
+  }
+}
+
+/**
+ * Admin: security snapshot + AI review
+ */
+app.get('/admin/security-snapshot', auth.requireAdmin, (_req, res) => {
+  const botChannels = (tmiClient && typeof tmiClient.getChannels === 'function') ? tmiClient.getChannels() : [];
+  const botConnected = !!(tmiClient && typeof tmiClient.readyState === 'function' ? tmiClient.readyState() === 'OPEN' : botChannels.length);
+  const snapshot = {
+    rateLimits: {
+      blockedIps: Array.from(blockedIPs?.keys ? blockedIPs.keys() : []),
+      loginAttempts: adminLoginAttempts.size,
+    },
+    errors: recentErrors.slice(-20),
+    slow: recentSlowRequests.slice(-20),
+    socketDisconnects: recentSocketDisconnects.slice(-20),
+    bot: { connected: botConnected, channels: botChannels, lastReconnectAt: lastTmiReconnectAt },
+    integrity: getCriticalHashes(),
+    headers: {
+      csp: false,
+      hsts: config.IS_PRODUCTION,
+      cors: '*',
+    },
+  };
+  res.json({ snapshot });
+});
+
+app.post('/admin/security-diagnose', auth.requireAdmin, async (_req, res) => {
+  if (!config.OPENAI_API_KEY) return res.status(400).json({ error: 'ai_not_configured' });
+  try {
+    const botChannels = (tmiClient && typeof tmiClient.getChannels === 'function') ? tmiClient.getChannels() : [];
+    const botConnected = !!(tmiClient && typeof tmiClient.readyState === 'function' ? tmiClient.readyState() === 'OPEN' : botChannels.length);
+    const snapRes = {
+      rateLimits: {
+        blockedIps: Array.from(blockedIPs?.keys ? blockedIPs.keys() : []),
+        loginAttempts: adminLoginAttempts.size,
+      },
+      errors: recentErrors.slice(-20),
+      slow: recentSlowRequests.slice(-20),
+      socketDisconnects: recentSocketDisconnects.slice(-20),
+      bot: { connected: botConnected, channels: botChannels, lastReconnectAt: lastTmiReconnectAt },
+      integrity: getCriticalHashes(),
+      headers: { csp: false, hsts: config.IS_PRODUCTION, cors: '*' },
+    };
+
+    const prompt = `Security snapshot:\n${JSON.stringify(snapRes, null, 2)}\n\nList top security risks and actionable fixes in <=5 bullets (rate limits, auth abuse, bot tamper, missing headers, integrity drift). Be concise.`;
+    const reply = await ai.chat(
+      [
+        { role: 'system', content: 'You are a concise security reviewer. Respond in <=5 bullets.' },
+        { role: 'user', content: prompt },
+      ],
+      { temperature: 0.2 }
+    );
+    res.json({ diagnosis: reply, snapshot: snapRes });
+  } catch (err) {
+    logger.error('security diagnose failed', { error: err.message });
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
 
 function loadKnowledge() {
   ensureKnowledgeStore();
@@ -710,6 +988,21 @@ const io = socketIO(server, {
 
 // Middleware
 app.use(express.json());
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    if (duration > 500) {
+      recentSlowRequests.push({ path: req.path, status: res.statusCode, durationMs: duration, at: Date.now() });
+      if (recentSlowRequests.length > 50) recentSlowRequests.shift();
+    }
+    if (res.statusCode >= 500) {
+      recentErrors.push({ path: req.path, status: res.statusCode, at: Date.now() });
+      if (recentErrors.length > 50) recentErrors.shift();
+    }
+  });
+  next();
+});
 // Serve welcome page at root
 app.get('/', (_req, res) => {
   res.set('Cache-Control', 'no-store');
@@ -849,6 +1142,54 @@ app.get('/catalog', (_req, res) => {
 
 function normalizeChannelName(name) {
   return normalizeChannelNameScoped(name);
+}
+
+function buildOverlaySnapshot(channelRaw) {
+  const channelName = normalizeChannelName(channelRaw || DEFAULT_CHANNEL) || DEFAULT_CHANNEL;
+  const state = getStateForChannel(channelName);
+  const room = io.sockets?.adapter?.rooms?.get(channelName);
+  const sockets = room ? room.size : 0;
+  const players = Object.entries(state.playerStates || {}).map(([login, st]) => ({
+    login,
+    bet: (state.betAmounts && state.betAmounts[login]) || 0,
+    balance: db.getBalance(login),
+    handCount: Array.isArray(st.hand) ? st.hand.length : 0,
+    folded: !!st.folded,
+    stood: !!st.stood,
+  }));
+  return {
+    channel: channelName,
+    timestamp: Date.now(),
+    sockets,
+    mode: state.currentMode,
+    bettingOpen: state.bettingOpen,
+    roundInProgress: state.roundInProgress,
+    pokerPhase: state.pokerPhase,
+    pot: state.pokerPot,
+    currentBet: state.pokerCurrentBet,
+    waitingQueue: state.waitingQueue || [],
+    communityCards: state.communityCards || [],
+    deck: (state.currentDeck || []).length,
+    dealerUp: state.dealerState?.hand?.[0] || null,
+    overlaySettings: overlaySettingsByChannel[channelName] || null,
+    overlayFx: overlayFxByChannel[channelName] || null,
+    players,
+  };
+}
+
+async function runOverlayDiagnosis(channel) {
+  if (!config.OPENAI_API_KEY) return null;
+  const snapshot = buildOverlaySnapshot(channel);
+  const prompt = `You are a concise ops debugger for All-In Chat Poker. Given this overlay/game snapshot JSON, list the top issues and fixes in bullets (<=5), focusing on things that break rounds, overlays, or seating. Keep it short.\nSnapshot:\n${JSON.stringify(snapshot, null, 2)}`;
+  const reply = await ai.chat(
+    [
+      { role: 'system', content: 'You are a terse, action-oriented devops assistant.' },
+      { role: 'user', content: prompt },
+    ],
+    { temperature: 0.2 }
+  );
+  lastOverlayDiagnosis = { channel: snapshot.channel, computedAt: Date.now(), reply, snapshot };
+  return lastOverlayDiagnosis;
 }
 
 function generateLobbyCode() {
@@ -1734,7 +2075,19 @@ function placeBet(username, amount, channel = DEFAULT_CHANNEL) {
     role: 'player',
   });
 
-  getPlayerState(username, channelName); // init state
+  // Init state and refresh avatar for overlays (handles chat joiners without a fresh login)
+  const playerState = getPlayerState(username, channelName);
+  try {
+    const profile = db.getProfile(username);
+    const settings = profile?.settings ? JSON.parse(profile.settings) : {};
+    const avatarUrl = settings?.avatarUrl || getDefaultAvatarForLogin(username, settings?.avatarColor);
+    if (avatarUrl) {
+      playerState.avatarUrl = avatarUrl;
+      io.to(channelName).emit('playerUpdate', { login: username, avatar: avatarUrl, channel: channelName });
+    }
+  } catch {
+    // ignore parse errors and fallback avatar updates
+  }
 
   logger.info('Bet placed', { username, amount, remaining: newBalance });
   const updatedHeur = getHeuristics(username, channelName);
@@ -1930,6 +2283,8 @@ function openBettingWindow(channel = DEFAULT_CHANNEL) {
   state.bettingOpen = true;
   const duration = state.currentMode === 'blackjack' ? config.BJ_BETTING_DURATION_MS : config.BETTING_PHASE_DURATION_MS;
   const endsAt = Date.now() + duration;
+  // Auto-seat AI in queue when betting opens
+  autoBetAiInQueue(channelName);
 
   if (state.bettingTimer) clearTimeout(state.bettingTimer);
   state.bettingTimer = setTimeout(() => {
@@ -2139,6 +2494,25 @@ function addTestBots(channel = DEFAULT_CHANNEL, count = 3, maxSeats = MAX_BLACKJ
     }, 350);
   }
   return added;
+}
+
+function autoBetAiInQueue(channel = DEFAULT_CHANNEL) {
+  const channelName = normalizeChannelName(channel) || DEFAULT_CHANNEL;
+  const state = getStateForChannel(channelName);
+  const queue = Array.isArray(state.waitingQueue) ? [...state.waitingQueue] : [];
+  queue.forEach((login) => {
+    const profile = db.getProfile(login);
+    if (profile?.role === 'ai') {
+      if (db.getBalance(login) < config.GAME_MIN_BET) {
+        db.setBalance(login, Math.max(config.GAME_STARTING_CHIPS, config.GAME_MIN_BET * 10));
+      }
+      const ok = placeBet(login, config.GAME_MIN_BET, channelName);
+      if (ok && Array.isArray(state.waitingQueue)) {
+        state.waitingQueue = state.waitingQueue.filter(u => u !== login);
+      }
+    }
+  });
+  emitQueueUpdate(channelName);
 }
 
 /**
@@ -2387,6 +2761,118 @@ app.post('/admin/token', auth.requireAdmin, (req, res) => {
   const token = db.createToken('admin_overlay', req.ip, ttl);
   logger.info('Ephemeral token created', { ip: req.ip, ttl });
   res.json({ token, ttl });
+});
+
+/**
+ * Admin: overlay/game snapshot for a channel
+ */
+app.get('/admin/overlay-snapshot', auth.requireAdmin, (req, res) => {
+  try {
+    const channel = req.query.channel || DEFAULT_CHANNEL;
+    const snapshot = buildOverlaySnapshot(channel);
+    res.json({ snapshot, lastDiagnosis: lastOverlayDiagnosis });
+  } catch (err) {
+    logger.error('overlay snapshot failed', { error: err.message });
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+/**
+ * Admin: send snapshot to AI for quick diagnosis
+ */
+app.post('/admin/overlay-diagnose', auth.requireAdmin, async (req, res) => {
+  if (!config.OPENAI_API_KEY) return res.status(400).json({ error: 'ai_not_configured' });
+  try {
+    const channel = req.body?.channel || req.query?.channel || DEFAULT_CHANNEL;
+    const result = await runOverlayDiagnosis(channel);
+    res.json({ diagnosis: result });
+  } catch (err) {
+    logger.error('overlay diagnose failed', { error: err.message });
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+/**
+ * Admin: AI test plan + execution
+ */
+app.post('/admin/ai-tests', auth.requireAdmin, async (_req, res) => {
+  try {
+    const report = await runAiTests('manual');
+    res.json(report);
+  } catch (err) {
+    logger.error('AI tests failed', { error: err.message });
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+/**
+ * Admin: get last AI test report
+ */
+app.get('/admin/ai-tests/report', auth.requireAdmin, (_req, res) => {
+  res.json({ report: lastAiTestReport });
+});
+
+/**
+ * Admin: ops summary + controls
+ */
+app.get('/admin/ops-summary', auth.requireAdmin, (_req, res) => {
+  const botChannels = (tmiClient && typeof tmiClient.getChannels === 'function') ? tmiClient.getChannels() : [];
+  const botConnected = !!(tmiClient && typeof tmiClient.readyState === 'function' ? tmiClient.readyState() === 'OPEN' : botChannels.length);
+  const nextAiTest = 'Midnight CST';
+  res.json({
+    synthetic: syntheticHistory.slice(-5),
+    assets: assetChecks.slice(-3),
+    errors: recentErrors.slice(-20),
+    slow: recentSlowRequests.slice(-20),
+    socketDisconnects: recentSocketDisconnects.slice(-20),
+    bot: { connected: botConnected, channels: botChannels, lastReconnectAt: lastTmiReconnectAt },
+    ai: { lastTest: lastAiTestReport, lastOverlayDiagnosis },
+    scheduler: { nextAiTest, lastAiTestRunDateCst, lastSyntheticRun, lastSyntheticAlert },
+    db: { lastBackup: lastDbBackup, lastVacuum },
+    rateLimits: { blockedIps: Array.from(blockedIPs?.keys ? blockedIPs.keys() : []), loginAttempts: adminLoginAttempts.size },
+    integrity: getCriticalHashes(),
+    headers: {
+      csp: false,
+      hsts: config.IS_PRODUCTION,
+      cors: '*',
+    },
+  });
+});
+
+app.post('/admin/ops/run-synthetic', auth.requireAdmin, async (_req, res) => {
+  try {
+    const result = await runSyntheticCheck('manual');
+    res.json({ result });
+  } catch (err) {
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+app.post('/admin/ops/asset-check', auth.requireAdmin, async (_req, res) => {
+  try {
+    const result = await runAssetCheck('manual');
+    res.json({ result });
+  } catch (err) {
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+app.post('/admin/ops/db-backup', auth.requireAdmin, (_req, res) => {
+  try {
+    const backup = backupDb();
+    res.json({ backup });
+  } catch (err) {
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+app.post('/admin/ops/vacuum', auth.requireAdmin, async (_req, res) => {
+  try {
+    const result = await vacuumDb();
+    res.json({ result });
+  } catch (err) {
+    res.status(500).json({ error: 'internal_error' });
+  }
 });
 
 /**
@@ -4437,6 +4923,10 @@ io.on('connection', (socket) => {
   socket.data.channel = channel;
   socket.join(channel);
   logger.debug('Client connected', { socketId: socket.id, channel });
+  socket.on('disconnect', (reason) => {
+    recentSocketDisconnects.push({ reason, at: Date.now(), channel });
+    if (recentSocketDisconnects.length > 50) recentSocketDisconnects.shift();
+  });
 
   // Send current state
   const stateView = getStateForChannel(channel);
@@ -4779,6 +5269,14 @@ async function initializeTwitch() {
       channels: botChannels,
     });
 
+    tmiClient.on('connected', () => {
+      lastTmiReconnectAt = Date.now();
+    });
+
+    tmiClient.on('reconnect', () => {
+      lastTmiReconnectAt = Date.now();
+    });
+
     tmiClient.on('message', (channel, tags, message, self) => {
       if (self) return;
 
@@ -4904,6 +5402,37 @@ async function start() {
 
     // Initialize Twitch (optional)
     await initializeTwitch();
+
+    // Schedule automated AI overlay checks (best-effort)
+    if (config.OPENAI_API_KEY) {
+      setInterval(() => {
+        runOverlayDiagnosis(DEFAULT_CHANNEL).catch(err => logger.warn('overlay auto-check failed', { error: err.message }));
+      }, AUTO_AI_CHECK_MS);
+
+      // Daily AI test run at midnight CST
+      setInterval(() => {
+        try {
+          const parts = getCstParts(new Date());
+          const dateKey = `${parts.year}-${parts.month}-${parts.day}`;
+          if (parts.hour === '00' && lastAiTestRunDateCst !== dateKey) {
+            lastAiTestRunDateCst = dateKey;
+            runAiTests('scheduled').catch(err => logger.warn('scheduled AI tests failed', { error: err.message }));
+          }
+        } catch (err) {
+          logger.warn('AI test scheduler failed', { error: err.message });
+        }
+      }, 5 * 60 * 1000); // check every 5 minutes
+    }
+
+    // Synthetic health check every 10 minutes
+    setInterval(() => {
+      runSyntheticCheck('scheduled').catch(err => logger.warn('synthetic check failed', { error: err.message }));
+    }, 10 * 60 * 1000);
+
+    // Asset sanity check hourly
+    setInterval(() => {
+      runAssetCheck('scheduled').catch(err => logger.warn('asset check failed', { error: err.message }));
+    }, 60 * 60 * 1000);
 
     // Start listening
     server.listen(config.PORT, '0.0.0.0', () => {
