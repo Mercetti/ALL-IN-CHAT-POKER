@@ -16,6 +16,7 @@ const {
   GatewayIntentBits,
   REST,
   Routes,
+  PermissionFlagsBits,
 } = require('discord.js');
 const fetch = global.fetch;
 
@@ -36,6 +37,12 @@ const DISCORD_ALLOWED_CHANNELS = (process.env.DISCORD_ALLOWED_CHANNELS || '')
   .split(',')
   .map(c => c.trim())
   .filter(Boolean);
+const DISCORD_OPS_CHANNEL_ID = process.env.DISCORD_OPS_CHANNEL_ID || '';
+const DISCORD_ADMIN_USERS = (process.env.DISCORD_ADMIN_USERS || '')
+  .split(',')
+  .map(u => u.trim())
+  .filter(Boolean);
+const DEPLOY_WEBHOOK_URL = process.env.DEPLOY_WEBHOOK_URL || '';
 
 let MIN_BET_CACHE = null;
 const stateCache = {};
@@ -123,6 +130,21 @@ async function callAdminPost(path, body) {
     console.error('Admin POST failed', e);
     return false;
   }
+}
+
+async function callAdminJson(path, options = {}) {
+  if (!ADMIN_TOKEN) throw new Error('ADMIN_TOKEN missing for admin call');
+  const { method = 'GET', body } = options;
+  const res = await fetch(`${BACKEND_URL}${path}`, {
+    method,
+    headers: {
+      Authorization: `Bearer ${ADMIN_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) throw new Error(`Admin call failed ${res.status}`);
+  return res.json();
 }
 
 async function callPublic(path) {
@@ -251,6 +273,14 @@ function pickMood(quipsArr, mood, fallbackArr) {
   return pick(quipsArr);
 }
 
+function isDiscordAdmin(interaction) {
+  if (!interaction) return false;
+  const userId = interaction.user?.id;
+  if (userId && DISCORD_ADMIN_USERS.includes(userId)) return true;
+  const hasRole = interaction.memberPermissions?.has?.(PermissionFlagsBits.Administrator);
+  return !!hasRole;
+}
+
 // ---- Discord helper (optional) ----
 const discordCommands = [
   { name: 'ping', description: 'Check bot latency' },
@@ -267,6 +297,62 @@ const discordCommands = [
         description: 'Your study question (math/CS/general)',
         type: 3, // STRING
         required: true,
+      },
+    ],
+  },
+  {
+    name: 'ops',
+    description: 'Post ops summary (admin)',
+  },
+  {
+    name: 'snapshot',
+    description: 'Overlay snapshot for a channel (admin)',
+    options: [
+      {
+        name: 'channel',
+        description: 'Channel login',
+        type: 3,
+        required: false,
+      },
+    ],
+  },
+  {
+    name: 'security',
+    description: 'Run security diagnosis (admin)',
+  },
+  {
+    name: 'deploy',
+    description: 'Trigger a deploy webhook (admin)',
+    options: [
+      {
+        name: 'env',
+        description: 'Environment (staging|prod)',
+        type: 3,
+        required: false,
+      },
+    ],
+  },
+  {
+    name: 'profile',
+    description: 'Look up a player profile (admin)',
+    options: [
+      {
+        name: 'login',
+        description: 'Twitch login',
+        type: 3,
+        required: true,
+      },
+    ],
+  },
+  {
+    name: 'refresh',
+    description: 'Refresh overlay snapshot/cache (admin)',
+    options: [
+      {
+        name: 'channel',
+        description: 'Channel login',
+        type: 3,
+        required: false,
       },
     ],
   },
@@ -300,6 +386,18 @@ function startDiscordBot() {
 
   const replyCooldownMs = 8000;
   const lastDiscordReply = new Map();
+  const sendToOps = async (content) => {
+    if (!DISCORD_OPS_CHANNEL_ID) return null;
+    try {
+      const channel = await client.channels.fetch(DISCORD_OPS_CHANNEL_ID);
+      if (!channel) return null;
+      return channel.send({ content });
+    } catch (err) {
+      console.warn('Failed to post to ops channel', err.message);
+      return null;
+    }
+  };
+
   const canReply = (userId) => {
     const now = Date.now();
     const last = lastDiscordReply.get(userId) || 0;
@@ -338,6 +436,110 @@ function startDiscordBot() {
         content: `I’ll keep it brief.\nQuestion: ${short}\n\nTips: Break it down, define terms, outline steps, and try a practice example. (AI answer stub—wire to a tutor API/model if you want real solutions.)`,
         ephemeral: true,
       });
+    }
+
+    // Admin-only commands below
+    if (['ops', 'snapshot', 'security', 'deploy', 'profile', 'refresh'].includes(commandName)) {
+      if (!isDiscordAdmin(interaction)) {
+        return interaction.reply({ content: 'Admin only.', ephemeral: true });
+      }
+    }
+
+    if (commandName === 'ops') {
+      try {
+        const data = await callAdminJson('/admin/ops-summary');
+        const latestSynthetic = data.synthetic?.length ? data.synthetic[data.synthetic.length - 1] : null;
+        const summary = [
+          `Bot: ${data.bot?.connected ? 'online' : 'offline'} (${(data.bot?.channels || []).length} channels)`,
+          `Errors(last20): ${data.errors?.length || 0}, Slow(last20): ${data.slow?.length || 0}`,
+          latestSynthetic ? `Synthetic: ${latestSynthetic.status || 'n/a'} at ${latestSynthetic.at || 'n/a'}` : 'Synthetic: n/a',
+          `Next AI test: ${data.scheduler?.nextAiTest || 'midnight CST'}`,
+          `DB backup: ${data.db?.lastBackup ? new Date(data.db.lastBackup.at || data.db.lastBackup).toLocaleString() : 'n/a'}`,
+        ].join('\n');
+        await interaction.reply({ content: `Ops summary:\n${summary}`, ephemeral: true });
+        await sendToOps(`Ops summary requested by ${interaction.user.tag}\n${summary}`);
+      } catch (err) {
+        console.error('Ops summary failed', err);
+        return interaction.reply({ content: 'Ops summary failed.', ephemeral: true });
+      }
+    }
+
+    if (commandName === 'snapshot') {
+      const channel = interaction.options.getString('channel') || TARGET_CHANNELS[0] || 'allinchatpoker';
+      try {
+        const snap = await callAdminJson(`/admin/overlay-snapshot?channel=${encodeURIComponent(channel)}`);
+        const meta = snap?.snapshot || {};
+        const info = [
+          `Channel: ${channel}`,
+          `Mode: ${meta.mode || 'n/a'}`,
+          `Betting: ${meta.bettingOpen ? 'open' : 'closed'}`,
+          `Players: ${Array.isArray(meta.players) ? meta.players.length : 0}`,
+          `Waiting: ${Array.isArray(meta.waiting) ? meta.waiting.length : 0}`,
+          `Pot: ${meta.pot || 0}, Current bet: ${meta.currentBet || 0}`,
+        ].join('\n');
+        await interaction.reply({ content: `Overlay snapshot:\n${info}`, ephemeral: true });
+        await sendToOps(`Overlay snapshot (${channel}) by ${interaction.user.tag}\n${info}`);
+      } catch (err) {
+        console.error('Snapshot failed', err);
+        return interaction.reply({ content: 'Snapshot failed.', ephemeral: true });
+      }
+    }
+
+    if (commandName === 'security') {
+      try {
+        const res = await callAdminJson('/admin/security-diagnose', { method: 'POST' });
+        const diag = res?.diagnosis || 'No diagnosis';
+        await interaction.reply({ content: `Security review:\n${diag}`, ephemeral: true });
+        await sendToOps(`Security review by ${interaction.user.tag}\n${diag}`);
+      } catch (err) {
+        console.error('Security diagnose failed', err);
+        return interaction.reply({ content: 'Security diagnose failed.', ephemeral: true });
+      }
+    }
+
+    if (commandName === 'deploy') {
+      const env = (interaction.options.getString('env') || 'prod').toLowerCase();
+      if (!DEPLOY_WEBHOOK_URL) {
+        return interaction.reply({ content: 'DEPLOY_WEBHOOK_URL not set.', ephemeral: true });
+      }
+      try {
+        await fetch(DEPLOY_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ env, actor: interaction.user.tag, at: new Date().toISOString() }),
+        });
+        await interaction.reply({ content: `Deploy triggered for ${env}.`, ephemeral: true });
+        await sendToOps(`Deploy triggered (${env}) by ${interaction.user.tag}`);
+      } catch (err) {
+        console.error('Deploy webhook failed', err);
+        return interaction.reply({ content: 'Deploy webhook failed.', ephemeral: true });
+      }
+    }
+
+    if (commandName === 'profile') {
+      const login = interaction.options.getString('login', true).toLowerCase();
+      try {
+        const profile = await callAdminJson(`/admin/profile/${encodeURIComponent(login)}`);
+        const label = profile?.display_name || profile?.login || login;
+        const link = `${BACKEND_URL}/profile.html?user=${encodeURIComponent(login)}`;
+        const text = `Profile: ${label}\nBalance: ${profile?.chips || profile?.balance || 'n/a'}\nLink: ${link}`;
+        await interaction.reply({ content: text, ephemeral: true });
+      } catch (err) {
+        console.error('Profile lookup failed', err);
+        return interaction.reply({ content: 'Profile not found.', ephemeral: true });
+      }
+    }
+
+    if (commandName === 'refresh') {
+      const channel = interaction.options.getString('channel') || TARGET_CHANNELS[0] || 'allinchatpoker';
+      try {
+        await callAdminJson(`/admin/overlay-snapshot?channel=${encodeURIComponent(channel)}`);
+        await interaction.reply({ content: `Overlay snapshot refreshed for ${channel}.`, ephemeral: true });
+        await sendToOps(`Overlay snapshot refreshed for ${channel} by ${interaction.user.tag}`);
+      } catch (err) {
+        console.error('Overlay refresh failed', err);
+        return interaction.reply({ content: 'Overlay refresh failed.', ephemeral: true });
+      }
     }
   });
 

@@ -237,7 +237,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   let roleWarning = '';
 
   if (devPageBtn) {
-    devPageBtn.style.display = adminToken ? 'inline-flex' : 'none';
+    const userLower = (userLogin || '').toLowerCase();
+    const canSeeDev = !!adminToken || (userLower && (userLower === streamerLogin || userLower === botAdminLogin));
+    devPageBtn.style.display = canSeeDev ? 'inline-flex' : 'none';
   }
 
   if (!adminToken && userToken && userLogin) {
