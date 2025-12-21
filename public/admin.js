@@ -68,6 +68,11 @@ const overlayModalOpen = document.getElementById('btn-open-overlay-modal');
 const overlayModalClose = document.getElementById('overlay-modal-close');
 const addAiButton = document.getElementById('btn-add-ai');
 const addAiStartButton = document.getElementById('btn-add-ai-start');
+const premierLoginInput = document.getElementById('premier-login');
+const premierPresetSelect = document.getElementById('premier-preset');
+const premierLogoInput = document.getElementById('premier-logo-input');
+const premierLogoPreview = document.getElementById('premier-logo-preview');
+const premierProposal = document.getElementById('premier-proposal');
 // Quick modal/popover elements (support both legacy ids and new compact popover ids)
 // Inline highlight helper for quick-nav buttons
 function focusSection(sectionId) {
@@ -667,6 +672,22 @@ function setupEventListeners() {
   overlayModal?.addEventListener('click', (e) => {
     if (e.target === overlayModal) overlayModal.classList.remove('active');
   });
+
+  // Premier logo + AI set
+  document.getElementById('btn-premier-upload')?.addEventListener('click', async () => {
+    try {
+      await uploadPremierLogo();
+    } catch (e) {
+      Toast.error(e.message || 'Upload failed');
+    }
+  });
+  document.getElementById('btn-premier-generate')?.addEventListener('click', async () => {
+    try {
+      await generatePremierSet();
+    } catch (e) {
+      Toast.error(e.message || 'Generate failed');
+    }
+  });
 }
 
 async function loadStats() {
@@ -1186,3 +1207,52 @@ if (saveEarnBtn) saveEarnBtn.addEventListener('click', saveEarnConfig);
 // Initial fetch/load
 fetchPartners();
 loadEarnConfig();
+
+async function fileToDataUrl(file) {
+  if (!file) throw new Error('No file selected');
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('File read failed'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadPremierLogo() {
+  if (!premierLogoInput) throw new Error('Logo input missing');
+  const file = premierLogoInput.files?.[0];
+  if (!file) throw new Error('Choose a logo file');
+  if (file.size > 2 * 1024 * 1024) throw new Error('Max 2MB image');
+  const login = (premierLoginInput?.value || channelParam || '').trim().toLowerCase();
+  if (!login) throw new Error('Streamer login required');
+  const dataUrl = await fileToDataUrl(file);
+  const res = await apiCall('/admin/premier/logo', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ login, dataUrl }),
+  });
+  if (premierLogoPreview && res.logoUrl) {
+    premierLogoPreview.src = res.logoUrl;
+  }
+  Toast.success('Logo saved');
+}
+
+async function generatePremierSet() {
+  const login = (premierLoginInput?.value || channelParam || '').trim().toLowerCase();
+  if (!login) throw new Error('Streamer login required');
+  const preset = premierPresetSelect?.value || 'neon';
+  const res = await apiCall('/admin/premier/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ login, preset }),
+  });
+  if (premierProposal) {
+    premierProposal.textContent = typeof res.proposal === 'string'
+      ? res.proposal
+      : JSON.stringify(res.proposal, null, 2);
+  }
+  if (premierLogoPreview && res.logoUrl) {
+    premierLogoPreview.src = res.logoUrl;
+  }
+  Toast.success('AI set drafted');
+}

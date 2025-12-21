@@ -8,6 +8,8 @@ const tmi = require('tmi.js');
 const socketIO = require('socket.io');
 const path = require('path');
 const fs = require('fs');
+const uploadsDir = path.join(__dirname, 'data', 'uploads');
+fs.mkdirSync(uploadsDir, { recursive: true });
 const { createTwoFilesPatch } = require('diff');
 const { spawn } = require('child_process');
 
@@ -987,7 +989,7 @@ const io = socketIO(server, {
 });
 
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: '5mb' }));
 app.use((req, res, next) => {
   const start = Date.now();
   res.on('finish', () => {
@@ -1114,6 +1116,7 @@ app.get('/auth/twitch/subs/callback', async (req, res) => {
     return res.status(500).send('auth_failed');
   }
 });
+app.use('/uploads', express.static(uploadsDir));
 app.use(express.static('public'));
 
 // Partner payouts: partner-facing summary (Postgres-only)
@@ -1142,6 +1145,24 @@ app.get('/catalog', (_req, res) => {
 
 function normalizeChannelName(name) {
   return normalizeChannelNameScoped(name);
+}
+
+function savePremierLogo(login, dataUrl) {
+  if (!validation.validateUsername(login)) {
+    throw new Error('invalid login');
+  }
+  const match = /^data:(image\/(png|jpeg));base64,(.+)$/i.exec(dataUrl || '');
+  if (!match) throw new Error('invalid image data');
+  const mime = match[1];
+  const ext = mime === 'image/png' ? 'png' : 'jpg';
+  const buf = Buffer.from(match[3], 'base64');
+  if (buf.length > 2 * 1024 * 1024) throw new Error('image too large (max 2MB)');
+  const dir = path.join(uploadsDir, login.toLowerCase());
+  fs.mkdirSync(dir, { recursive: true });
+  const filePath = path.join(dir, `logo.${ext}`);
+  fs.writeFileSync(filePath, buf);
+  const url = `/uploads/${login.toLowerCase()}/logo.${ext}`;
+  return { filePath, url };
 }
 
 function buildOverlaySnapshot(channelRaw) {
@@ -2810,6 +2831,65 @@ app.post('/admin/ai-tests', auth.requireAdmin, async (_req, res) => {
  */
 app.get('/admin/ai-tests/report', auth.requireAdmin, (_req, res) => {
   res.json({ report: lastAiTestReport });
+});
+
+/**
+ * Premier logo upload + AI branded set generator
+ */
+const PREMIER_PRESETS = {
+  neon: 'Neon/tech: high contrast, teal/green glow, rounded corners, subtle glassmorphism, readable at small sizes.',
+  metallic: 'Metal/forged: brushed metal nameplate, dark slate felt, chrome edge on cards/chips, restrained glow.',
+  minimal: 'Minimal/clean: flat color blocks, 2-3 brand colors, thin strokes, high readability, no noise.',
+};
+
+app.post('/admin/premier/logo', auth.requireAdmin, (req, res) => {
+  try {
+    const login = (req.body?.login || '').toLowerCase();
+    const dataUrl = req.body?.dataUrl || '';
+    if (!login || !dataUrl) return res.status(400).json({ error: 'login and dataUrl required' });
+    const saved = savePremierLogo(login, dataUrl);
+    res.json({ ok: true, logoUrl: `${saved.url}?v=${Date.now()}` });
+  } catch (err) {
+    logger.warn('premier logo upload failed', { error: err.message });
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post('/admin/premier/generate', auth.requireAdmin, async (req, res) => {
+  if (!config.OPENAI_API_KEY) return res.status(400).json({ error: 'ai_not_configured' });
+  try {
+    const login = (req.body?.login || '').toLowerCase();
+    const preset = (req.body?.preset || 'neon').toLowerCase();
+    if (!login) return res.status(400).json({ error: 'login required' });
+    if (!PREMIER_PRESETS[preset]) return res.status(400).json({ error: 'invalid preset' });
+    const logoDir = path.join(uploadsDir, login);
+    const logoPath = fs.existsSync(path.join(logoDir, 'logo.png'))
+      ? `/uploads/${login}/logo.png`
+      : fs.existsSync(path.join(logoDir, 'logo.jpg'))
+        ? `/uploads/${login}/logo.jpg`
+        : null;
+    if (!logoPath) return res.status(400).json({ error: 'logo_missing' });
+
+    const prompt = `You are designing a 4-piece branded cosmetic set for a Twitch poker/blackjack overlay.
+Brand login: ${login}
+Logo URL: ${logoPath}
+Style preset: ${preset} — ${PREMIER_PRESETS[preset]}
+
+Return a concise JSON object with keys cardBack, tableSkin, avatarRing, nameplate. Each item should include name, colors (array of hex), finish (matte/gloss/metal), and a short note on how to render. Avoid large text; prioritize readability at small sizes.`;
+
+    const reply = await ai.chat(
+      [
+        { role: 'system', content: 'Respond ONLY with JSON. Keep names short, 4-16 chars. Colors should be 2-4 hex values.' },
+        { role: 'user', content: prompt },
+      ],
+      { temperature: 0.4 }
+    );
+
+    res.json({ login, preset, logoUrl: logoPath, proposal: reply });
+  } catch (err) {
+    logger.error('premier generate failed', { error: err.message });
+    res.status(500).json({ error: 'internal_error' });
+  }
 });
 
 /**

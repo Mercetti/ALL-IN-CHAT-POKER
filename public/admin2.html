@@ -42,6 +42,48 @@
       <a class="btn btn-secondary btn-sm" href="/partner-program.html" target="_blank" rel="noopener">Partner Program</a>
     </div>
 
+    <section class="control-panel compact-card">
+      <div class="section-header">
+        <h2>Premier Branding (logo → AI set)</h2>
+        <div class="mini-meta">
+          <span class="phase-chip subtle">Premier only</span>
+        </div>
+      </div>
+      <div class="form-grid compact-grid">
+        <div class="form-group">
+          <label for="premier-login">Streamer login</label>
+          <input id="premier-login" type="text" class="form-input" placeholder="twitch login">
+        </div>
+        <div class="form-group">
+          <label for="premier-preset">Preset</label>
+          <select id="premier-preset" class="form-input">
+            <option value="neon">Neon</option>
+            <option value="metallic">Metallic</option>
+            <option value="minimal">Minimal</option>
+          </select>
+        </div>
+        <div class="form-group full-span">
+          <label for="premier-logo-input">Upload logo (PNG/JPG, ≤2MB)</label>
+          <input id="premier-logo-input" type="file" accept="image/png,image/jpeg">
+        </div>
+        <div class="form-group compact-buttons">
+          <button id="btn-premier-upload" class="btn btn-primary btn-sm">Save Logo</button>
+          <button id="btn-premier-generate" class="btn btn-secondary btn-sm">Generate Set</button>
+        </div>
+      </div>
+      <div class="inline-lists">
+        <div class="tiny-card">
+          <h4>Logo Preview</h4>
+          <img id="premier-logo-preview" alt="Logo preview" style="max-width: 180px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+        </div>
+        <div class="tiny-card" style="flex:1;">
+          <h4>AI Proposal</h4>
+          <pre id="premier-proposal" class="code-block" style="min-height:120px; white-space:pre-wrap;">—</pre>
+        </div>
+      </div>
+      <small class="muted">Presets guide the AI. Output is JSON with cardBack, tableSkin, avatarRing, nameplate.</small>
+    </section>
+
     <main class="admin-main compact-main">
       <!-- Stats Grid -->
       <section class="stats-grid">
