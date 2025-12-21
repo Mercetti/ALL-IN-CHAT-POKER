@@ -2870,16 +2870,22 @@ app.post('/admin/premier/generate', auth.requireAdmin, async (req, res) => {
         : null;
     if (!logoPath) return res.status(400).json({ error: 'logo_missing' });
 
-    const prompt = `You are designing a 4-piece branded cosmetic set for a Twitch poker/blackjack overlay.
+    const prompt = `You are designing branded cosmetics for a Twitch poker/blackjack overlay.
 Brand login: ${login}
-Logo URL: ${logoPath}
+Logo URL (extract palette from it): ${logoPath}
 Style preset: ${preset} — ${PREMIER_PRESETS[preset]}
 
-Return a concise JSON object with keys cardBack, tableSkin, avatarRing, nameplate. Each item should include name, colors (array of hex), finish (matte/gloss/metal), and a short note on how to render. Avoid large text; prioritize readability at small sizes.`;
+Requirements:
+- Extract a 3-5 color palette from the logo (ensure contrast; include a safe text color).
+- Generate TWO variants: "primary" and "alt".
+- Safe-area guidance: avoid small text, avoid busy patterns behind ranks/suits, leave center readable.
+- Slots: cardBack, tableSkin, avatarRing, nameplate.
+- Each slot: name (4-16 chars), colors (array of hex), finish (matte/gloss/metal), render_note (concise).
+- Keep JSON concise; no prose outside JSON.`;
 
     const reply = await ai.chat(
       [
-        { role: 'system', content: 'Respond ONLY with JSON. Keep names short, 4-16 chars. Colors should be 2-4 hex values.' },
+        { role: 'system', content: 'Respond ONLY with JSON. Keep names short, 4-16 chars. Colors should be 2-4 hex values. Provide top-level keys: palette, variants (array of 2 variants with slots cardBack, tableSkin, avatarRing, nameplate).' },
         { role: 'user', content: prompt },
       ],
       { temperature: 0.4 }
@@ -2888,6 +2894,22 @@ Return a concise JSON object with keys cardBack, tableSkin, avatarRing, nameplat
     res.json({ login, preset, logoUrl: logoPath, proposal: reply });
   } catch (err) {
     logger.error('premier generate failed', { error: err.message });
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+app.post('/admin/premier/apply', auth.requireAdmin, (req, res) => {
+  try {
+    const login = (req.body?.login || '').toLowerCase();
+    const proposal = req.body?.proposal;
+    if (!login || !proposal) return res.status(400).json({ error: 'login and proposal required' });
+    const channelName = normalizeChannelName(login) || login;
+    overlaySettingsByChannel[channelName] = overlaySettingsByChannel[channelName] || {};
+    overlaySettingsByChannel[channelName].brandingProposal = proposal;
+    io.to(channelName).emit('overlaySettings', { settings: overlaySettingsByChannel[channelName], channel: channelName });
+    res.json({ ok: true, channel: channelName });
+  } catch (err) {
+    logger.error('premier apply failed', { error: err.message });
     res.status(500).json({ error: 'internal_error' });
   }
 });

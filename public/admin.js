@@ -73,6 +73,8 @@ const premierPresetSelect = document.getElementById('premier-preset');
 const premierLogoInput = document.getElementById('premier-logo-input');
 const premierLogoPreview = document.getElementById('premier-logo-preview');
 const premierProposal = document.getElementById('premier-proposal');
+const premierApplyBtn = document.getElementById('btn-premier-apply');
+let lastPremierProposal = null;
 // Quick modal/popover elements (support both legacy ids and new compact popover ids)
 // Inline highlight helper for quick-nav buttons
 function focusSection(sectionId) {
@@ -688,6 +690,13 @@ function setupEventListeners() {
       Toast.error(e.message || 'Generate failed');
     }
   });
+  premierApplyBtn?.addEventListener('click', async () => {
+    try {
+      await applyPremierSet();
+    } catch (e) {
+      Toast.error(e.message || 'Apply failed');
+    }
+  });
 }
 
 async function loadStats() {
@@ -1254,5 +1263,26 @@ async function generatePremierSet() {
   if (premierLogoPreview && res.logoUrl) {
     premierLogoPreview.src = res.logoUrl;
   }
+  lastPremierProposal = res.proposal || null;
   Toast.success('AI set drafted');
+}
+
+async function applyPremierSet() {
+  const login = (premierLoginInput?.value || channelParam || '').trim().toLowerCase();
+  if (!login) throw new Error('Streamer login required');
+  let proposal = lastPremierProposal;
+  if (!proposal && premierProposal?.textContent) {
+    try {
+      proposal = JSON.parse(premierProposal.textContent);
+    } catch {
+      proposal = premierProposal.textContent;
+    }
+  }
+  if (!proposal) throw new Error('Generate a set first');
+  await apiCall('/admin/premier/apply', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ login, proposal }),
+  });
+  Toast.success('Applied to overlay (brandingProposal set)');
 }
