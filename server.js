@@ -14,10 +14,11 @@ fs.mkdirSync(uploadsDir, { recursive: true });
 const premierHistory = new Map();
 const stagedCosmetics = [];
 const lastAppliedBranding = new Map();
-const logoCache = new Map(); // hash -> { palette, normalizedPath, thumbnails }
-const thumbCache = new Map(); // key -> dataUrl
+const logoCache = new Map(); // hash -> { palette, normalizedPath, thumbnails, at }
+const thumbCache = new Map(); // key -> { dataUrl, at }
 let aiGenerateBusy = false;
 const MIN_CONTRAST = 3.0;
+const CACHE_TTL_MS = 1000 * 60 * 30; // 30 minutes
 const PNG = require('pngjs').PNG;
 const jpeg = require('jpeg-js');
 const { createTwoFilesPatch } = require('diff');
@@ -1442,6 +1443,7 @@ function validatePremierProposal(proposalRaw) {
     else p.palette = filtered;
   }
   // Strip unknown assets
+  const variantWarnings = [];
   ['cardBack', 'tableSkin', 'avatarRing', 'nameplate'].forEach((k) => {
     p.variants.forEach((v) => {
       if (v[k]?.texture && !VALID_TEXTURES.includes(v[k].texture)) {
@@ -1468,7 +1470,20 @@ function validatePremierProposal(proposalRaw) {
       warnings.push(`Adjusted contrast between ${p.palette[0]} and ${adjust} (was ${cr.toFixed(2)})`);
     }
   }
-  if (warnings.length) p.warnings = warnings;
+  p.variants.forEach((v, idx) => {
+    ['cardBack', 'nameplate'].forEach((slotKey) => {
+      const colors = v[slotKey]?.colors || [];
+      if (colors.length >= 2) {
+        const cr = contrastRatio(colors[0], colors[1]);
+        if (cr && cr < MIN_CONTRAST) {
+          const adjust = colors[0].toLowerCase() > '#777777' ? '#111111' : '#ffffff';
+          v[slotKey].colors[1] = adjust;
+          variantWarnings.push(`Variant ${idx + 1} ${slotKey} contrast boosted to ${adjust} (was ${cr.toFixed(2)})`);
+        }
+      }
+    });
+  });
+  p.warnings = [...warnings, ...variantWarnings];
   return p;
 }
 
@@ -3191,13 +3206,13 @@ app.post('/admin/premier/generate', auth.requireAdmin, async (req, res) => {
     const buf = fs.readFileSync(fsPath);
     const logoHash = hashBuffer(buf);
     let cached = logoCache.get(logoHash);
-    if (!cached) {
+    if (!cached || (Date.now() - (cached.at || 0) > CACHE_TTL_MS)) {
       const normalizedBuf = normalizeLogoToPng(buf) || buf;
       const normalizedPathFs = path.join(logoDir, 'logo-normalized.png');
       fs.writeFileSync(normalizedPathFs, normalizedBuf);
       const normalizedUrl = `/uploads/${login}/logo-normalized.png`;
       const extracted = extractPaletteServer(normalizedPathFs) || palette;
-      cached = { palette: extracted, normalizedPath: normalizedUrl, thumbnails: {} };
+      cached = { palette: extracted, normalizedPath: normalizedUrl, thumbnails: {}, at: Date.now() };
       logoCache.set(logoHash, cached);
     }
     if (!palette) palette = cached.palette;
@@ -3258,15 +3273,16 @@ Requirements:
     const scoreVariant = (variant) => {
       const colors = variant.cardBack?.colors || palette || [];
       const score = colors.length >= 2 ? contrastRatio(colors[0], colors[1]) : 0;
-      return score;
+      const simplicityPenalty = variant.cardBack?.colors?.length > 3 ? 0.5 : 0;
+      return Math.max(0, score - simplicityPenalty);
     };
-    if (validated && Array.isArray(validated.variants) && validated.variants.length > 2) {
+    let bestVariantIndex = 0;
+    if (validated && Array.isArray(validated.variants)) {
       const ranked = validated.variants
         .map((v, idx) => ({ v, s: scoreVariant(v), idx }))
-        .sort((a, b) => b.s - a.s || a.idx - b.idx)
-        .slice(0, 2)
-        .map(r => r.v);
-      validated.variants = ranked;
+        .sort((a, b) => b.s - a.s || a.idx - b.idx);
+      if (ranked.length) bestVariantIndex = ranked[0].idx;
+      validated.variants = ranked.slice(0, 2).map(r => r.v);
     }
 
     if (!validated) {
@@ -3287,18 +3303,18 @@ Requirements:
       const keyName = hashBuffer(Buffer.from(`${logoHash}:${idx}:name:${JSON.stringify(variant.nameplate || {})}`));
       let card = thumbCache.get(keyCard);
       let name = thumbCache.get(keyName);
-      if (!card) {
-        card = renderThumbnail(160, 240, variant.cardBack?.colors || validated.palette || []);
+      if (!card || (card.at && Date.now() - card.at > CACHE_TTL_MS)) {
+        card = { dataUrl: renderThumbnail(160, 240, variant.cardBack?.colors || validated.palette || []), at: Date.now() };
         thumbCache.set(keyCard, card);
       }
-      if (!name) {
-        name = renderThumbnail(220, 80, variant.nameplate?.colors || validated.palette || []);
+      if (!name || (name.at && Date.now() - name.at > CACHE_TTL_MS)) {
+        name = { dataUrl: renderThumbnail(220, 80, variant.nameplate?.colors || validated.palette || []), at: Date.now() };
         thumbCache.set(keyName, name);
       }
-      thumbs.push({ card, nameplate: name });
+      thumbs.push({ card: card.dataUrl, nameplate: name.dataUrl });
     });
 
-    res.json({ login, preset, logoUrl: logoPath, logoHash, proposal: validated, history, thumbnails: { variants: thumbs } });
+    res.json({ login, preset, logoUrl: logoPath, logoHash, proposal: validated, history, thumbnails: { variants: thumbs }, bestVariantIndex });
   } catch (err) {
     logger.error('premier generate failed', { error: err.message });
     res.status(500).json({ error: 'internal_error' });

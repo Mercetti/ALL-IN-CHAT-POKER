@@ -85,6 +85,7 @@ const premierReviewRefresh = document.getElementById('btn-premier-refresh-list')
 const premierReviewApprove = document.getElementById('btn-premier-approve');
 const premierReviewTest = document.getElementById('btn-premier-test');
 const premierReviewRevert = document.getElementById('btn-premier-revert');
+const premierBestBadge = document.getElementById('premier-best');
 const premierBadgeSelect = document.getElementById('premier-badge');
 const premierBundlePriceInput = document.getElementById('premier-bundle-price');
 const premierItemPriceInput = document.getElementById('premier-item-price');
@@ -1345,6 +1346,9 @@ async function generatePremierSet(useCached = false) {
   }
   if (premierHistoryLabel && Array.isArray(res.history)) {
     premierHistoryLabel.textContent = `History: ${res.history.length} saved`;
+  }
+  if (premierBestBadge && typeof res.bestVariantIndex === 'number') {
+    premierBestBadge.textContent = `Best variant: ${res.bestVariantIndex + 1}`;
   }
   Toast.success('AI set drafted');
 }
