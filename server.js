@@ -2916,6 +2916,11 @@ Suggested palette (from logo): ${palette && palette.length ? palette.join(', ') 
 Style preset: ${preset} — ${PREMIER_PRESETS[preset]}
 
 Requirements:
+- Target sizes/ratios: cardBack ~480x680px, avatarRing ~512x512 with padding, nameplate ~512x512 with padding, tableSkin matches existing PNG dims. Keep aspect ratios; fit in transparent canvas.
+- Do/Don't: no text on edges; keep center ~40% low-noise; avoid gradients/patterns behind ranks/suits; avoid tiny text.
+- File/output expectation: transparent PNG layers, no baked backgrounds; modular layers (card frame, center mark, subtle pattern) that can be composed; avoid baked text.
+- Palette: use logo colors (3-5), include a neutral background and a high-contrast text color; provide both dark and light (hover) variants.
+- Reference textures/FX to stay consistent: /assets/table-texture.svg, /assets/cosmetics/effects/chips/chip-100-top.png, /assets/cosmetics/effects/deals/face-down/horizontal_transparent_sheet.png, /assets/cosmetics/cards/basic/card-back-green.png.
 - Extract a 3-5 color palette from the logo (ensure contrast; include a safe text color).
 - Generate TWO variants: "primary" and "alt".
 - Safe-area guidance: avoid small text, avoid busy patterns behind ranks/suits, leave center readable.
