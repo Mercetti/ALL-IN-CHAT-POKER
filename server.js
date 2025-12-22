@@ -17,6 +17,7 @@ const lastAppliedBranding = new Map();
 const logoCache = new Map(); // hash -> { palette, normalizedPath, thumbnails }
 const thumbCache = new Map(); // key -> dataUrl
 let aiGenerateBusy = false;
+const MIN_CONTRAST = 3.0;
 const PNG = require('pngjs').PNG;
 const jpeg = require('jpeg-js');
 const { createTwoFilesPatch } = require('diff');
@@ -1354,7 +1355,7 @@ function normalizeLogoToPng(buf) {
 
   const cropW = maxX - minX + 1;
   const cropH = maxY - minY + 1;
-  const targetSize = 512;
+  const targetSize = 1024;
   const scale = Math.min((targetSize * 0.8) / cropW, (targetSize * 0.8) / cropH);
   const drawW = Math.max(1, Math.floor(cropW * scale));
   const drawH = Math.max(1, Math.floor(cropH * scale));
@@ -1381,7 +1382,34 @@ function normalizeLogoToPng(buf) {
     }
   }
 
-  return PNG.sync.write(out);
+  // Light blur on edges to soften pixelation
+  const blurred = new PNG({ width: targetSize, height: targetSize, colorType: 6 });
+  const kernel = [[1, 2, 1], [2, 4, 2], [1, 2, 1]];
+  const kSum = 16;
+  for (let y = 0; y < targetSize; y++) {
+    for (let x = 0; x < targetSize; x++) {
+      let r = 0, g = 0, b = 0, a = 0;
+      for (let ky = -1; ky <= 1; ky++) {
+        for (let kx = -1; kx <= 1; kx++) {
+          const nx = Math.min(targetSize - 1, Math.max(0, x + kx));
+          const ny = Math.min(targetSize - 1, Math.max(0, y + ky));
+          const idx = (ny * targetSize + nx) * 4;
+          const wght = kernel[ky + 1][kx + 1];
+          r += out.data[idx] * wght;
+          g += out.data[idx + 1] * wght;
+          b += out.data[idx + 2] * wght;
+          a += out.data[idx + 3] * wght;
+        }
+      }
+      const dIdx = (y * targetSize + x) * 4;
+      blurred.data[dIdx] = Math.round(r / kSum);
+      blurred.data[dIdx + 1] = Math.round(g / kSum);
+      blurred.data[dIdx + 2] = Math.round(b / kSum);
+      blurred.data[dIdx + 3] = Math.round(a / kSum);
+    }
+  }
+
+  return PNG.sync.write(blurred);
 }
 
 function validatePremierProposal(proposalRaw) {
@@ -1433,7 +1461,12 @@ function validatePremierProposal(proposalRaw) {
   const warnings = [];
   if (p.palette && p.palette.length >= 2) {
     const cr = contrastRatio(p.palette[0], p.palette[1]);
-    if (cr && cr < 3) warnings.push(`Low contrast between ${p.palette[0]} and ${p.palette[1]} (ratio ${cr.toFixed(2)})`);
+    if (cr && cr < MIN_CONTRAST) {
+      // adjust second color to ensure contrast
+      const adjust = p.palette[0].toLowerCase() > '#777777' ? '#111111' : '#ffffff';
+      p.palette[1] = adjust;
+      warnings.push(`Adjusted contrast between ${p.palette[0]} and ${adjust} (was ${cr.toFixed(2)})`);
+    }
   }
   if (warnings.length) p.warnings = warnings;
   return p;
@@ -3180,10 +3213,11 @@ Requirements:
 - Do/Don't: no text on edges; keep center ~40% low-noise; avoid gradients/patterns behind ranks/suits; avoid tiny text.
 - File/output expectation: transparent PNG layers, no baked backgrounds; modular layers (card frame, center mark, subtle pattern) that can be composed; avoid baked text.
 - Palette: use logo colors (3-5), include a neutral background and a high-contrast text color; provide both dark and light (hover) variants.
+- Per-slot texture hints: cardBack uses card materials (see card-back-green); tableSkin uses felt texture (/assets/table-texture.svg); avatarRing uses soft glow; nameplate uses subtle glass/plastic with glow edge.
 - Layer hints per slot: include layer_notes with frame, center_mark, pattern, glow guidance; include safe_inset_pct (padding suggestion).
 - Reference textures/FX to stay consistent: /assets/table-texture.svg, /assets/cosmetics/effects/chips/chip-100-top.png, /assets/cosmetics/effects/deals/face-down/horizontal_transparent_sheet.png, /assets/cosmetics/cards/basic/card-back-green.png.
 - Extract a 3-5 color palette from the logo (ensure contrast; include a safe text color).
-- Generate TWO variants: "primary" and "alt".
+- Generate THREE variants: "primary", "alt", "clean"; we will keep the best two.
 - Maintain contrast >= 3:1 between primary/background; avoid gradients behind ranks/suits.
 - Safe-area guidance: avoid small text, avoid busy patterns behind ranks/suits, leave center readable.
 - Slots: cardBack, tableSkin, avatarRing, nameplate.
@@ -3220,6 +3254,21 @@ Requirements:
         }
       }
     }
+    // pick best 2 variants by contrast (palette[0]/[1] or per-slot colors)
+    const scoreVariant = (variant) => {
+      const colors = variant.cardBack?.colors || palette || [];
+      const score = colors.length >= 2 ? contrastRatio(colors[0], colors[1]) : 0;
+      return score;
+    };
+    if (validated && Array.isArray(validated.variants) && validated.variants.length > 2) {
+      const ranked = validated.variants
+        .map((v, idx) => ({ v, s: scoreVariant(v), idx }))
+        .sort((a, b) => b.s - a.s || a.idx - b.idx)
+        .slice(0, 2)
+        .map(r => r.v);
+      validated.variants = ranked;
+    }
+
     if (!validated) {
       const lastGood = (premierHistory.get(login) || []).slice(-1)[0] || null;
       if (lastGood) {
