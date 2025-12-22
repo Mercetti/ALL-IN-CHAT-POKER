@@ -84,7 +84,8 @@ const premierReviewRefresh = document.getElementById('btn-premier-refresh-list')
 const premierReviewApprove = document.getElementById('btn-premier-approve');
 const premierReviewTest = document.getElementById('btn-premier-test');
 const premierBadgeSelect = document.getElementById('premier-badge');
-const premierPriceInput = document.getElementById('premier-price');
+const premierBundlePriceInput = document.getElementById('premier-bundle-price');
+const premierItemPriceInput = document.getElementById('premier-item-price');
 const premierRaritySelect = document.getElementById('premier-rarity');
 const premierStagedList = document.getElementById('premier-staged-list');
 // Quick modal/popover elements (support both legacy ids and new compact popover ids)
@@ -1462,12 +1463,21 @@ async function approvePremierSelection() {
   const entry = items[idx];
   if (!entry) throw new Error('No selection');
   const badge = premierBadgeSelect?.value || '';
-  const price = parseFloat(premierPriceInput?.value || '0');
+  const bundlePrice = parseFloat(premierBundlePriceInput?.value || '0');
+  const itemPrice = parseFloat(premierItemPriceInput?.value || '0');
   const rarity = premierRaritySelect?.value || 'legendary';
   await apiCall('/admin/premier/approve', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ login: entry.login, proposal: entry.proposal, logoUrl: entry.logoUrl, badge, price, rarity }),
+    body: JSON.stringify({
+      login: entry.login,
+      proposal: entry.proposal,
+      logoUrl: entry.logoUrl,
+      badge,
+      bundlePrice,
+      itemPrice,
+      rarity,
+    }),
   });
   Toast.success('Marked as approved (manual store step)');
   loadPremierStaged();
@@ -1496,7 +1506,7 @@ async function loadPremierStaged() {
       ? items
           .map(
             (it, idx) =>
-              `<li>${it.login} • $${(it.price_cents || 0 / 100).toFixed ? (it.price_cents / 100).toFixed(2) : (it.price_cents || 0)} • ${it.rarity || '-'} ${it.published ? '(published)' : ''} <button class="btn btn-secondary btn-sm" data-publish="${idx}">Publish</button></li>`
+              `<li>${it.login} • Bundle: $${((it.bundle_price_cents || 0) / 100).toFixed(2)} • Item: $${((it.item_price_cents || 0) / 100).toFixed(2)} • ${it.rarity || '-'} ${it.published ? '(published)' : ''} <button class="btn btn-secondary btn-sm" data-publish="${idx}">Publish</button></li>`
           )
           .join('')
       : '<li class="muted">None staged</li>';

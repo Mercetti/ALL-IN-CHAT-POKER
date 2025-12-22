@@ -2995,7 +2995,8 @@ app.post('/admin/premier/approve', auth.requireAdmin, (req, res) => {
     const login = (req.body?.login || '').toLowerCase();
     const proposal = req.body?.proposal;
     const badge = req.body?.badge || null;
-    const price = Number(req.body?.price || 0);
+    const bundlePrice = Number(req.body?.bundlePrice || 0);
+    const itemPrice = Number(req.body?.itemPrice || 0);
     const rarity = req.body?.rarity || 'legendary';
     if (!login || !proposal) return res.status(400).json({ error: 'login and proposal required' });
     const validated = validatePremierProposal(proposal);
@@ -3006,7 +3007,8 @@ app.post('/admin/premier/approve', auth.requireAdmin, (req, res) => {
     stagedCosmetics.push({
       login,
       badge,
-      price_cents: Math.max(0, Math.round(price * 100)),
+      bundle_price_cents: Math.max(0, Math.round(bundlePrice * 100)),
+      item_price_cents: Math.max(0, Math.round(itemPrice * 100)),
       rarity,
       proposal: validated,
       at: Date.now(),
