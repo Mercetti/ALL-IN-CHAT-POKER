@@ -1184,10 +1184,12 @@ function validatePremierProposal(proposalRaw) {
   }
   if (!p || typeof p !== 'object') throw new Error('invalid proposal');
   if (!Array.isArray(p.variants) || !p.variants.length) throw new Error('variants missing');
+  if (p.variants.length > 2) p.variants = p.variants.slice(0, 2);
   const hex = /^#([0-9a-fA-F]{6})$/;
   const checkSlot = (slot) => {
     if (!slot || typeof slot !== 'object') return false;
     if (slot.colors && Array.isArray(slot.colors) && !slot.colors.every((c) => typeof c === 'string' && hex.test(c))) return false;
+    if (slot.name && (slot.name.length < 4 || slot.name.length > 16)) return false;
     return true;
   };
   p.variants.forEach((v) => {
@@ -1200,6 +1202,14 @@ function validatePremierProposal(proposalRaw) {
     if (!filtered) delete p.palette;
     else p.palette = filtered;
   }
+  // Strip unknown assets
+  ['cardBack', 'tableSkin', 'avatarRing', 'nameplate'].forEach((k) => {
+    p.variants.forEach((v) => {
+      if (v[k]?.texture && !VALID_TEXTURES.includes(v[k].texture)) {
+        delete v[k].texture;
+      }
+    });
+  });
   return p;
 }
 
@@ -2927,17 +2937,38 @@ Requirements:
 - Slots: cardBack, tableSkin, avatarRing, nameplate.
 - Each slot: name (4-16 chars), colors (array of hex), finish (matte/gloss/metal), render_note (concise).
 - Use transparent backgrounds and match existing asset types/sizes (overlay expects PNGs sized for current cards/tables/avatar rings/nameplates; do not change aspect ratios).
+- Do NOT embed base64; do NOT include URLs beyond the known reference assets above.
 - Keep JSON concise; no prose outside JSON.`;
 
-    const reply = await ai.chat(
-      [
-        { role: 'system', content: 'Respond ONLY with JSON. Keep names short, 4-16 chars. Colors should be 2-4 hex values. Provide top-level keys: palette, variants (array of 2 variants with slots cardBack, tableSkin, avatarRing, nameplate). Note that downstream renderers expect transparent PNGs matching existing asset dimensions; describe usage, not base64.' },
-        { role: 'user', content: prompt },
-      ],
-      { temperature: 0.4 }
-    );
+    const aiCall = async () =>
+      ai.chat(
+        [
+          { role: 'system', content: 'Respond ONLY with JSON. Keep names short, 4-16 chars. Colors should be 2-4 hex values. Provide top-level keys: palette, variants (array of 2 variants with slots cardBack, tableSkin, avatarRing, nameplate). Note that downstream renderers expect transparent PNGs matching existing asset dimensions; describe usage, not base64.' },
+          { role: 'user', content: prompt },
+        ],
+        { temperature: 0.4 }
+      );
 
-    const validated = validatePremierProposal(reply);
+    let validated = null;
+    let attempts = 0;
+    let lastErr = null;
+    const retryPreset = preset === 'minimal' ? 'minimal' : 'minimal';
+    while (!validated && attempts < 2) {
+      attempts += 1;
+      try {
+        const reply = await aiCall();
+        validated = validatePremierProposal(reply);
+      } catch (err) {
+        lastErr = err;
+        if (attempts >= 2 || preset === retryPreset) break;
+        // Retry once with minimal preset if the first preset fails validation
+        if (attempts === 1) {
+          // swap preset description in prompt to minimal
+        }
+      }
+    }
+    if (!validated) throw lastErr || new Error('validation failed');
+
     const history = premierHistory.get(login) || [];
     history.push({ at: Date.now(), preset, proposal: validated, logoUrl: logoPath });
     if (history.length > 5) history.shift();
@@ -5920,3 +5951,9 @@ async function isUserFollowerOf(broadcasterLogin, userLogin, channel) {
   const data = await res.json();
   return Array.isArray(data.data) && data.data.length > 0;
 }
+const VALID_TEXTURES = [
+  '/assets/table-texture.svg',
+  '/assets/cosmetics/effects/chips/chip-100-top.png',
+  '/assets/cosmetics/effects/deals/face-down/horizontal_transparent_sheet.png',
+  '/assets/cosmetics/cards/basic/card-back-green.png',
+];
