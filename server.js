@@ -2960,6 +2960,36 @@ app.post('/admin/premier/apply', auth.requireAdmin, (req, res) => {
   }
 });
 
+// Pending review list (last 5 per streamer from history)
+app.get('/admin/premier/pending', auth.requireAdmin, (req, res) => {
+  const all = [];
+  premierHistory.forEach((entries, login) => {
+    entries.slice(-5).forEach((entry) => {
+      all.push({ login, at: entry.at, preset: entry.preset, logoUrl: entry.logoUrl, proposal: entry.proposal });
+    });
+  });
+  all.sort((a, b) => b.at - a.at);
+  res.json({ items: all.slice(0, 20) });
+});
+
+// Approve selected proposal (no auto-store; for human review)
+app.post('/admin/premier/approve', auth.requireAdmin, (req, res) => {
+  try {
+    const login = (req.body?.login || '').toLowerCase();
+    const proposal = req.body?.proposal;
+    if (!login || !proposal) return res.status(400).json({ error: 'login and proposal required' });
+    const validated = validatePremierProposal(proposal);
+    const history = premierHistory.get(login) || [];
+    history.push({ at: Date.now(), preset: 'approved', proposal: validated, logoUrl: req.body?.logoUrl });
+    if (history.length > 5) history.shift();
+    premierHistory.set(login, history);
+    res.json({ ok: true });
+  } catch (err) {
+    logger.error('premier approve failed', { error: err.message });
+    res.status(400).json({ error: err.message });
+  }
+});
+
 /**
  * Admin: ops summary + controls
  */

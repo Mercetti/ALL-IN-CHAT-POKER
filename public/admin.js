@@ -78,6 +78,10 @@ let lastPremierProposal = null;
 const premierPreviewCard = document.getElementById('premier-preview-card');
 const premierPreviewNameplate = document.getElementById('premier-preview-nameplate');
 const premierHistoryLabel = document.getElementById('premier-history');
+const premierReviewSelect = document.getElementById('premier-review-select');
+const premierReviewJson = document.getElementById('premier-review-json');
+const premierReviewRefresh = document.getElementById('btn-premier-refresh-list');
+const premierReviewApprove = document.getElementById('btn-premier-approve');
 // Quick modal/popover elements (support both legacy ids and new compact popover ids)
 // Inline highlight helper for quick-nav buttons
 function focusSection(sectionId) {
@@ -700,6 +704,15 @@ function setupEventListeners() {
       Toast.error(e.message || 'Apply failed');
     }
   });
+  premierReviewRefresh?.addEventListener('click', loadPremierPending);
+  premierReviewApprove?.addEventListener('click', async () => {
+    try {
+      await approvePremierSelection();
+    } catch (e) {
+      Toast.error(e.message || 'Approve failed');
+    }
+  });
+  loadPremierPending();
 }
 
 async function loadStats() {
@@ -1393,4 +1406,52 @@ function drawNameplatePreview(canvas, colors) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText('Nameplate', canvas.width / 2, canvas.height / 2);
+}
+
+async function loadPremierPending() {
+  try {
+    const res = await apiCall('/admin/premier/pending', { method: 'GET' });
+    const items = res?.items || [];
+    if (premierReviewSelect) {
+      premierReviewSelect.innerHTML = '';
+      items.forEach((it, idx) => {
+        const opt = document.createElement('option');
+        const ts = new Date(it.at || Date.now()).toLocaleString();
+        opt.value = idx.toString();
+        opt.textContent = `${it.login} • ${it.preset || 'preset'} • ${ts}`;
+        opt.dataset.index = idx.toString();
+      });
+      premierReviewSelect.dataset.items = JSON.stringify(items);
+      premierReviewSelect.addEventListener('change', () => showPremierPending(items));
+      showPremierPending(items);
+    }
+  } catch (e) {
+    console.warn('loadPremierPending failed', e);
+  }
+}
+
+function showPremierPending(items) {
+  if (!premierReviewSelect || !premierReviewJson) return;
+  const idx = parseInt(premierReviewSelect.value || '0', 10);
+  const entry = items?.[idx];
+  if (!entry) {
+    premierReviewJson.textContent = '—';
+    return;
+  }
+  const proposal = entry.proposal || entry.proposalRaw || {};
+  premierReviewJson.textContent = typeof proposal === 'string' ? proposal : JSON.stringify(proposal, null, 2);
+}
+
+async function approvePremierSelection() {
+  if (!premierReviewSelect || !premierReviewJson) throw new Error('No selection');
+  const items = JSON.parse(premierReviewSelect.dataset.items || '[]');
+  const idx = parseInt(premierReviewSelect.value || '0', 10);
+  const entry = items[idx];
+  if (!entry) throw new Error('No selection');
+  await apiCall('/admin/premier/approve', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ login: entry.login, proposal: entry.proposal, logoUrl: entry.logoUrl }),
+  });
+  Toast.success('Marked as approved (manual store step)');
 }

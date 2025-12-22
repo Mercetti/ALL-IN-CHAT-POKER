@@ -92,6 +92,28 @@
       <small class="muted">Presets guide the AI. Output is JSON with cardBack, tableSkin, avatarRing, nameplate.</small>
     </section>
 
+    <section class="control-panel compact-card" id="premier-review-card">
+      <div class="section-header">
+        <h2>Premier Final Review</h2>
+        <div class="mini-meta"><span class="phase-chip subtle">Manual approval</span></div>
+      </div>
+      <div class="form-grid compact-grid">
+        <div class="form-group full-span">
+          <label for="premier-review-select">Select proposal</label>
+          <select id="premier-review-select" class="form-input"></select>
+        </div>
+        <div class="form-group full-span">
+          <label>Proposal JSON (review before store)</label>
+          <pre id="premier-review-json" class="code-block" style="min-height:140px; white-space:pre-wrap;">—</pre>
+        </div>
+        <div class="form-group compact-buttons">
+          <button id="btn-premier-refresh-list" class="btn btn-secondary btn-sm">Refresh</button>
+          <button id="btn-premier-approve" class="btn btn-success btn-sm">Approve (manual add to store)</button>
+        </div>
+        <small class="muted full-span">Badges live at <code>/assets/cosmetics/badge/</code> for affiliate/partner/premier.</small>
+      </div>
+    </section>
+
     <main class="admin-main compact-main">
       <!-- Stats Grid -->
       <section class="stats-grid">
