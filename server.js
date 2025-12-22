@@ -8,11 +8,15 @@ const tmi = require('tmi.js');
 const socketIO = require('socket.io');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const uploadsDir = path.join(__dirname, 'data', 'uploads');
 fs.mkdirSync(uploadsDir, { recursive: true });
 const premierHistory = new Map();
 const stagedCosmetics = [];
 const lastAppliedBranding = new Map();
+const logoCache = new Map(); // hash -> { palette, normalizedPath, thumbnails }
+const thumbCache = new Map(); // key -> dataUrl
+let aiGenerateBusy = false;
 const PNG = require('pngjs').PNG;
 const jpeg = require('jpeg-js');
 const { createTwoFilesPatch } = require('diff');
@@ -1167,7 +1171,13 @@ function savePremierLogo(login, dataUrl) {
   const filePath = path.join(dir, `logo.${ext}`);
   fs.writeFileSync(filePath, buf);
   const url = `/uploads/${login.toLowerCase()}/logo.${ext}`;
-  return { filePath, url };
+  const normalizedBuf = normalizeLogoToPng(buf) || buf;
+  const normalizedPath = path.join(dir, 'logo-normalized.png');
+  fs.writeFileSync(normalizedPath, normalizedBuf);
+  const hash = hashBuffer(buf);
+  const palette = extractPaletteServer(normalizedPath) || null;
+  logoCache.set(hash, { palette, normalizedPath: `/uploads/${login.toLowerCase()}/logo-normalized.png`, thumbnails: {} });
+  return { filePath, url, hash, normalizedUrl: `/uploads/${login.toLowerCase()}/logo-normalized.png`, palette };
 }
 
 function validatePalette(palette) {
@@ -1291,6 +1301,87 @@ function renderThumbnail(width, height, colors) {
   }
   const buf = PNG.sync.write(png);
   return `data:image/png;base64,${buf.toString('base64')}`;
+}
+
+function hashBuffer(buf) {
+  return crypto.createHash('sha256').update(buf).digest('hex');
+}
+
+function normalizeLogoToPng(buf) {
+  // Decode
+  let img = null;
+  try {
+    if (buf[0] === 0x89 && buf[1] === 0x50) {
+      img = PNG.sync.read(buf);
+    } else {
+      img = jpeg.decode(buf, { useTArray: true });
+    }
+  } catch {
+    return null;
+  }
+  if (!img || !img.width || !img.height) return null;
+  const srcData = img.data;
+  const w = img.width;
+  const h = img.height;
+
+  // Infer background from corners and strip similar pixels to transparent
+  const sample = (x, y) => {
+    const idx = (y * w + x) * 4;
+    return [srcData[idx], srcData[idx + 1], srcData[idx + 2], srcData[idx + 3]];
+  };
+  const corners = [sample(0, 0), sample(w - 1, 0), sample(0, h - 1), sample(w - 1, h - 1)];
+  const bg = corners.reduce((acc, c) => acc.map((v, i) => v + c[i]), [0, 0, 0, 0]).map(v => v / 4);
+  const bgTol = 28;
+
+  let minX = w, minY = h, maxX = 0, maxY = 0, found = false;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const idx = (y * w + x) * 4;
+      const r = srcData[idx], g = srcData[idx + 1], b = srcData[idx + 2], a = srcData[idx + 3];
+      const dist = Math.abs(r - bg[0]) + Math.abs(g - bg[1]) + Math.abs(b - bg[2]);
+      if (a > 10 && dist > bgTol) {
+        found = true;
+        if (x < minX) minX = x;
+        if (y < minY) minY = y;
+        if (x > maxX) maxX = x;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+  if (!found) {
+    minX = 0; minY = 0; maxX = w - 1; maxY = h - 1;
+  }
+
+  const cropW = maxX - minX + 1;
+  const cropH = maxY - minY + 1;
+  const targetSize = 512;
+  const scale = Math.min((targetSize * 0.8) / cropW, (targetSize * 0.8) / cropH);
+  const drawW = Math.max(1, Math.floor(cropW * scale));
+  const drawH = Math.max(1, Math.floor(cropH * scale));
+  const offsetX = Math.floor((targetSize - drawW) / 2);
+  const offsetY = Math.floor((targetSize - drawH) / 2);
+
+  const out = new PNG({ width: targetSize, height: targetSize, colorType: 6 });
+  // Clear to transparent
+  for (let i = 0; i < out.data.length; i += 4) {
+    out.data[i] = 0; out.data[i + 1] = 0; out.data[i + 2] = 0; out.data[i + 3] = 0;
+  }
+
+  // Nearest-neighbor draw
+  for (let y = 0; y < drawH; y++) {
+    for (let x = 0; x < drawW; x++) {
+      const srcX = minX + Math.floor(x / scale);
+      const srcY = minY + Math.floor(y / scale);
+      const sIdx = (srcY * w + srcX) * 4;
+      const dIdx = ((offsetY + y) * targetSize + (offsetX + x)) * 4;
+      out.data[dIdx] = srcData[sIdx];
+      out.data[dIdx + 1] = srcData[sIdx + 1];
+      out.data[dIdx + 2] = srcData[sIdx + 2];
+      out.data[dIdx + 3] = srcData[sIdx + 3];
+    }
+  }
+
+  return PNG.sync.write(out);
 }
 
 function validatePremierProposal(proposalRaw) {
@@ -3031,7 +3122,13 @@ app.post('/admin/premier/logo', auth.requireAdmin, (req, res) => {
     const dataUrl = req.body?.dataUrl || '';
     if (!login || !dataUrl) return res.status(400).json({ error: 'login and dataUrl required' });
     const saved = savePremierLogo(login, dataUrl);
-    res.json({ ok: true, logoUrl: `${saved.url}?v=${Date.now()}` });
+    res.json({
+      ok: true,
+      logoUrl: `${saved.url}?v=${Date.now()}`,
+      normalizedUrl: `${saved.normalizedUrl}?v=${Date.now()}`,
+      palette: saved.palette,
+      hash: saved.hash,
+    });
   } catch (err) {
     logger.warn('premier logo upload failed', { error: err.message });
     res.status(400).json({ error: err.message });
@@ -3041,8 +3138,12 @@ app.post('/admin/premier/logo', auth.requireAdmin, (req, res) => {
 app.post('/admin/premier/generate', auth.requireAdmin, async (req, res) => {
   if (!config.OPENAI_API_KEY) return res.status(400).json({ error: 'ai_not_configured' });
   try {
+    if (aiGenerateBusy) return res.status(429).json({ error: 'busy_try_again' });
+    aiGenerateBusy = true;
+
     const login = (req.body?.login || '').toLowerCase();
     const preset = (req.body?.preset || 'neon').toLowerCase();
+    const useCached = !!req.body?.useCached;
     let palette = validatePalette(req.body?.palette);
     if (!login) return res.status(400).json({ error: 'login required' });
     if (!PREMIER_PRESETS[preset]) return res.status(400).json({ error: 'invalid preset' });
@@ -3053,10 +3154,20 @@ app.post('/admin/premier/generate', auth.requireAdmin, async (req, res) => {
         ? `/uploads/${login}/logo.jpg`
         : null;
     if (!logoPath) return res.status(400).json({ error: 'logo_missing' });
-    if (!palette) {
-      const fsPath = path.join(__dirname, logoPath.replace(/^\//, ''));
-      palette = extractPaletteServer(fsPath) || palette;
+    const fsPath = path.join(__dirname, logoPath.replace(/^\//, ''));
+    const buf = fs.readFileSync(fsPath);
+    const logoHash = hashBuffer(buf);
+    let cached = logoCache.get(logoHash);
+    if (!cached) {
+      const normalizedBuf = normalizeLogoToPng(buf) || buf;
+      const normalizedPathFs = path.join(logoDir, 'logo-normalized.png');
+      fs.writeFileSync(normalizedPathFs, normalizedBuf);
+      const normalizedUrl = `/uploads/${login}/logo-normalized.png`;
+      const extracted = extractPaletteServer(normalizedPathFs) || palette;
+      cached = { palette: extracted, normalizedPath: normalizedUrl, thumbnails: {} };
+      logoCache.set(logoHash, cached);
     }
+    if (!palette) palette = cached.palette;
 
     const prompt = `You are designing branded cosmetics for a Twitch poker/blackjack overlay.
 Brand login: ${login}
@@ -3073,6 +3184,7 @@ Requirements:
 - Reference textures/FX to stay consistent: /assets/table-texture.svg, /assets/cosmetics/effects/chips/chip-100-top.png, /assets/cosmetics/effects/deals/face-down/horizontal_transparent_sheet.png, /assets/cosmetics/cards/basic/card-back-green.png.
 - Extract a 3-5 color palette from the logo (ensure contrast; include a safe text color).
 - Generate TWO variants: "primary" and "alt".
+- Maintain contrast >= 3:1 between primary/background; avoid gradients behind ranks/suits.
 - Safe-area guidance: avoid small text, avoid busy patterns behind ranks/suits, leave center readable.
 - Slots: cardBack, tableSkin, avatarRing, nameplate.
 - Each slot: name (4-16 chars), colors (array of hex), finish (matte/gloss/metal), render_note (concise).
@@ -3108,25 +3220,41 @@ Requirements:
         }
       }
     }
-    if (!validated) throw lastErr || new Error('validation failed');
+    if (!validated) {
+      const lastGood = (premierHistory.get(login) || []).slice(-1)[0] || null;
+      if (lastGood) {
+        return res.status(422).json({ error: 'validation_failed', lastGood });
+      }
+      throw lastErr || new Error('validation failed');
+    }
 
     const history = premierHistory.get(login) || [];
     history.push({ at: Date.now(), preset, proposal: validated, logoUrl: logoPath });
     if (history.length > 5) history.shift();
     premierHistory.set(login, history);
-    let thumbCard = null;
-    let thumbName = null;
-    try {
-      const variant = validated.variants?.[0] || {};
-      thumbCard = renderThumbnail(160, 240, variant.cardBack?.colors || validated.palette || []);
-      thumbName = renderThumbnail(220, 80, variant.nameplate?.colors || validated.palette || []);
-    } catch (e) {
-      throw new Error('thumbnail render failed');
-    }
-    res.json({ login, preset, logoUrl: logoPath, proposal: validated, history, thumbnails: { card: thumbCard, nameplate: thumbName } });
+    const thumbs = [];
+    validated.variants.forEach((variant, idx) => {
+      const keyCard = hashBuffer(Buffer.from(`${logoHash}:${idx}:card:${JSON.stringify(variant.cardBack || {})}`));
+      const keyName = hashBuffer(Buffer.from(`${logoHash}:${idx}:name:${JSON.stringify(variant.nameplate || {})}`));
+      let card = thumbCache.get(keyCard);
+      let name = thumbCache.get(keyName);
+      if (!card) {
+        card = renderThumbnail(160, 240, variant.cardBack?.colors || validated.palette || []);
+        thumbCache.set(keyCard, card);
+      }
+      if (!name) {
+        name = renderThumbnail(220, 80, variant.nameplate?.colors || validated.palette || []);
+        thumbCache.set(keyName, name);
+      }
+      thumbs.push({ card, nameplate: name });
+    });
+
+    res.json({ login, preset, logoUrl: logoPath, logoHash, proposal: validated, history, thumbnails: { variants: thumbs } });
   } catch (err) {
     logger.error('premier generate failed', { error: err.message });
     res.status(500).json({ error: 'internal_error' });
+  } finally {
+    aiGenerateBusy = false;
   }
 });
 

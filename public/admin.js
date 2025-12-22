@@ -74,6 +74,7 @@ const premierLogoInput = document.getElementById('premier-logo-input');
 const premierLogoPreview = document.getElementById('premier-logo-preview');
 const premierProposal = document.getElementById('premier-proposal');
 const premierApplyBtn = document.getElementById('btn-premier-apply');
+const premierRegenBtn = document.getElementById('btn-premier-regen');
 let lastPremierProposal = null;
 const premierPreviewCard = document.getElementById('premier-preview-card');
 const premierPreviewNameplate = document.getElementById('premier-preview-nameplate');
@@ -700,9 +701,16 @@ function setupEventListeners() {
   });
   document.getElementById('btn-premier-generate')?.addEventListener('click', async () => {
     try {
-      await generatePremierSet();
+      await generatePremierSet(false);
     } catch (e) {
       Toast.error(e.message || 'Generate failed');
+    }
+  });
+  premierRegenBtn?.addEventListener('click', async () => {
+    try {
+      await generatePremierSet(true);
+    } catch (e) {
+      Toast.error(e.message || 'Regen failed');
     }
   });
   premierApplyBtn?.addEventListener('click', async () => {
@@ -1285,12 +1293,12 @@ async function uploadPremierLogo() {
   Toast.success('Logo saved');
 }
 
-async function generatePremierSet() {
+async function generatePremierSet(useCached = false) {
   const login = (premierLoginInput?.value || channelParam || '').trim().toLowerCase();
   if (!login) throw new Error('Streamer login required');
   const preset = premierPresetSelect?.value || 'neon';
   const palette = await (async () => {
-    if (!premierLogoPreview?.src) return null;
+    if (!premierLogoPreview?.src || useCached) return null;
     try {
       const img = await loadImage(premierLogoPreview.src);
       return extractPalette(img, 5);
@@ -1301,7 +1309,7 @@ async function generatePremierSet() {
   const res = await apiCall('/admin/premier/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ login, preset, palette }),
+    body: JSON.stringify({ login, preset, palette, useCached }),
   });
   if (premierProposal) {
     premierProposal.textContent = typeof res.proposal === 'string'
@@ -1312,7 +1320,29 @@ async function generatePremierSet() {
     premierLogoPreview.src = res.logoUrl;
   }
   lastPremierProposal = res.proposal || null;
-  renderPremierPreview(lastPremierProposal);
+  if (res.thumbnails?.variants?.length) {
+    const first = res.thumbnails.variants[0];
+    if (premierPreviewCard && first.card) {
+      const img = new Image();
+      img.onload = () => {
+        const ctx = premierPreviewCard.getContext('2d');
+        ctx.clearRect(0, 0, premierPreviewCard.width, premierPreviewCard.height);
+        ctx.drawImage(img, 0, 0, premierPreviewCard.width, premierPreviewCard.height);
+      };
+      img.src = first.card;
+    }
+    if (premierPreviewNameplate && first.nameplate) {
+      const img2 = new Image();
+      img2.onload = () => {
+        const ctx = premierPreviewNameplate.getContext('2d');
+        ctx.clearRect(0, 0, premierPreviewNameplate.width, premierPreviewNameplate.height);
+        ctx.drawImage(img2, 0, 0, premierPreviewNameplate.width, premierPreviewNameplate.height);
+      };
+      img2.src = first.nameplate;
+    }
+  } else {
+    renderPremierPreview(lastPremierProposal);
+  }
   if (premierHistoryLabel && Array.isArray(res.history)) {
     premierHistoryLabel.textContent = `History: ${res.history.length} saved`;
   }
