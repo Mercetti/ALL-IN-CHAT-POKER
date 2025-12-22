@@ -7,6 +7,30 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="stylesheet" href="style-theme.css">
   <link rel="stylesheet" href="style-admin.css">
+  <style>
+    /* Final approval polish */
+    #premier-review-card .form-grid {
+      gap: 12px;
+      align-items: flex-start;
+    }
+    #premier-review-card .code-block {
+      background: linear-gradient(145deg, rgba(12, 16, 28, 0.9), rgba(20, 30, 45, 0.9));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 10px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    #premier-review-card .compact-buttons button {
+      min-width: 150px;
+    }
+    #premier-review-card .muted {
+      color: rgba(255, 255, 255, 0.7);
+    }
+    #premier-review-select {
+      min-height: 42px;
+    }
+  </style>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6226206359050540" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -97,6 +121,7 @@
         <h2>Premier Final Review</h2>
         <div class="mini-meta"><span class="phase-chip subtle">Manual approval</span></div>
       </div>
+      <p class="muted" style="margin:6px 0 12px;">Pick a proposal, skim the JSON, test on sandbox, then approve/stage. Bundle + per-item pricing and badge are optional; add a note if needed.</p>
       <div class="form-grid compact-grid">
         <div class="form-group full-span">
           <label for="premier-review-select">Select proposal</label>
