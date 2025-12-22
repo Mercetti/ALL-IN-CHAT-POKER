@@ -12,6 +12,7 @@ const uploadsDir = path.join(__dirname, 'data', 'uploads');
 fs.mkdirSync(uploadsDir, { recursive: true });
 const premierHistory = new Map();
 const stagedCosmetics = [];
+const lastAppliedBranding = new Map();
 const { createTwoFilesPatch } = require('diff');
 const { spawn } = require('child_process');
 
@@ -1173,6 +1174,36 @@ function validatePalette(palette) {
   return palette.filter((c) => typeof c === 'string' && hex.test(c)).slice(0, 5);
 }
 
+function hexToRgb(hex) {
+  const m = /^#?([0-9a-fA-F]{6})$/.exec(hex || '');
+  if (!m) return null;
+  const int = parseInt(m[1], 16);
+  return {
+    r: (int >> 16) & 255,
+    g: (int >> 8) & 255,
+    b: int & 255,
+  };
+}
+
+function contrastRatio(hex1, hex2) {
+  const c1 = hexToRgb(hex1);
+  const c2 = hexToRgb(hex2);
+  if (!c1 || !c2) return 0;
+  const lum = (c) => {
+    const toLinear = (v) => {
+      const n = v / 255;
+      return n <= 0.03928 ? n / 12.92 : Math.pow((n + 0.055) / 1.055, 2.4);
+    };
+    const r = toLinear(c.r);
+    const g = toLinear(c.g);
+    const b = toLinear(c.b);
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  const l1 = lum(c1) + 0.05;
+  const l2 = lum(c2) + 0.05;
+  return l1 > l2 ? l1 / l2 : l2 / l1;
+}
+
 function validatePremierProposal(proposalRaw) {
   let p = proposalRaw;
   if (typeof p === 'string') {
@@ -1210,6 +1241,13 @@ function validatePremierProposal(proposalRaw) {
       }
     });
   });
+  // Contrast warning (palette first two colors)
+  const warnings = [];
+  if (p.palette && p.palette.length >= 2) {
+    const cr = contrastRatio(p.palette[0], p.palette[1]);
+    if (cr && cr < 3) warnings.push(`Low contrast between ${p.palette[0]} and ${p.palette[1]} (ratio ${cr.toFixed(2)})`);
+  }
+  if (warnings.length) p.warnings = warnings;
   return p;
 }
 
@@ -2930,6 +2968,7 @@ Requirements:
 - Do/Don't: no text on edges; keep center ~40% low-noise; avoid gradients/patterns behind ranks/suits; avoid tiny text.
 - File/output expectation: transparent PNG layers, no baked backgrounds; modular layers (card frame, center mark, subtle pattern) that can be composed; avoid baked text.
 - Palette: use logo colors (3-5), include a neutral background and a high-contrast text color; provide both dark and light (hover) variants.
+- Layer hints per slot: include layer_notes with frame, center_mark, pattern, glow guidance; include safe_inset_pct (padding suggestion).
 - Reference textures/FX to stay consistent: /assets/table-texture.svg, /assets/cosmetics/effects/chips/chip-100-top.png, /assets/cosmetics/effects/deals/face-down/horizontal_transparent_sheet.png, /assets/cosmetics/cards/basic/card-back-green.png.
 - Extract a 3-5 color palette from the logo (ensure contrast; include a safe text color).
 - Generate TWO variants: "primary" and "alt".
@@ -2940,11 +2979,11 @@ Requirements:
 - Do NOT embed base64; do NOT include URLs beyond the known reference assets above.
 - Keep JSON concise; no prose outside JSON.`;
 
-    const aiCall = async () =>
+    const aiCall = async (promptText) =>
       ai.chat(
         [
-          { role: 'system', content: 'Respond ONLY with JSON. Keep names short, 4-16 chars. Colors should be 2-4 hex values. Provide top-level keys: palette, variants (array of 2 variants with slots cardBack, tableSkin, avatarRing, nameplate). Note that downstream renderers expect transparent PNGs matching existing asset dimensions; describe usage, not base64.' },
-          { role: 'user', content: prompt },
+          { role: 'system', content: 'Respond ONLY with JSON. Keep names short, 4-16 chars. Colors should be 2-4 hex values. Provide top-level keys: palette, variants (array of 2 variants with slots cardBack, tableSkin, avatarRing, nameplate). Include safe_inset_pct and layer_notes per slot. Note that downstream renderers expect transparent PNGs matching existing asset dimensions; describe usage, not base64, no unknown URLs.' },
+          { role: 'user', content: promptText },
         ],
         { temperature: 0.4 }
       );
@@ -2952,18 +2991,19 @@ Requirements:
     let validated = null;
     let attempts = 0;
     let lastErr = null;
-    const retryPreset = preset === 'minimal' ? 'minimal' : 'minimal';
+    const retryPreset = 'minimal';
     while (!validated && attempts < 2) {
       attempts += 1;
       try {
-        const reply = await aiCall();
+        const reply = await aiCall(prompt);
         validated = validatePremierProposal(reply);
       } catch (err) {
         lastErr = err;
         if (attempts >= 2 || preset === retryPreset) break;
         // Retry once with minimal preset if the first preset fails validation
         if (attempts === 1) {
-          // swap preset description in prompt to minimal
+          const retryPrompt = prompt.replace(PREMIER_PRESETS[preset], PREMIER_PRESETS[retryPreset] || PREMIER_PRESETS.minimal);
+          prompt = retryPrompt;
         }
       }
     }
@@ -2990,6 +3030,7 @@ app.post('/admin/premier/apply', auth.requireAdmin, (req, res) => {
     overlaySettingsByChannel[channelName] = overlaySettingsByChannel[channelName] || {};
     overlaySettingsByChannel[channelName].brandingProposal = validated;
     io.to(channelName).emit('overlaySettings', { settings: overlaySettingsByChannel[channelName], channel: channelName });
+    lastAppliedBranding.set(channelName, validated);
     res.json({ ok: true, channel: channelName });
   } catch (err) {
     logger.error('premier apply failed', { error: err.message });
@@ -3006,6 +3047,7 @@ app.post('/admin/premier/test-apply', auth.requireAdmin, (req, res) => {
     overlaySettingsByChannel[channel] = overlaySettingsByChannel[channel] || {};
     overlaySettingsByChannel[channel].brandingProposal = validated;
     io.to(channel).emit('overlaySettings', { settings: overlaySettingsByChannel[channel], channel });
+    lastAppliedBranding.set(channel, validated);
     res.json({ ok: true, channel });
   } catch (err) {
     logger.error('premier test apply failed', { error: err.message });
@@ -3071,6 +3113,22 @@ app.post('/admin/premier/publish', auth.requireAdmin, (req, res) => {
     res.json({ ok: true });
   } catch (err) {
     logger.error('premier publish failed', { error: err.message });
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+app.post('/admin/premier/revert', auth.requireAdmin, (req, res) => {
+  try {
+    const channel = normalizeChannelName(req.body?.channel || '') || '';
+    if (!channel) return res.status(400).json({ error: 'channel required' });
+    const prev = lastAppliedBranding.get(channel);
+    if (!prev) return res.status(404).json({ error: 'no previous branding' });
+    overlaySettingsByChannel[channel] = overlaySettingsByChannel[channel] || {};
+    overlaySettingsByChannel[channel].brandingProposal = prev;
+    io.to(channel).emit('overlaySettings', { settings: overlaySettingsByChannel[channel], channel });
+    res.json({ ok: true, channel });
+  } catch (err) {
+    logger.error('premier revert failed', { error: err.message });
     res.status(500).json({ error: 'internal_error' });
   }
 });

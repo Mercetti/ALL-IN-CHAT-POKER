@@ -86,6 +86,7 @@ const premierReviewTest = document.getElementById('btn-premier-test');
 const premierBadgeSelect = document.getElementById('premier-badge');
 const premierBundlePriceInput = document.getElementById('premier-bundle-price');
 const premierItemPriceInput = document.getElementById('premier-item-price');
+const premierNoteInput = document.getElementById('premier-note');
 const premierRaritySelect = document.getElementById('premier-rarity');
 const premierStagedList = document.getElementById('premier-staged-list');
 // Quick modal/popover elements (support both legacy ids and new compact popover ids)
@@ -1465,6 +1466,7 @@ async function approvePremierSelection() {
   const badge = premierBadgeSelect?.value || '';
   const bundlePrice = parseFloat(premierBundlePriceInput?.value || '0');
   const itemPrice = parseFloat(premierItemPriceInput?.value || '0');
+  const note = premierNoteInput?.value || '';
   const rarity = premierRaritySelect?.value || 'legendary';
   await apiCall('/admin/premier/approve', {
     method: 'POST',
@@ -1476,6 +1478,7 @@ async function approvePremierSelection() {
       badge,
       bundlePrice,
       itemPrice,
+      note,
       rarity,
     }),
   });
