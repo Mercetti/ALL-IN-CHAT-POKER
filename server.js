@@ -2881,11 +2881,12 @@ Requirements:
 - Safe-area guidance: avoid small text, avoid busy patterns behind ranks/suits, leave center readable.
 - Slots: cardBack, tableSkin, avatarRing, nameplate.
 - Each slot: name (4-16 chars), colors (array of hex), finish (matte/gloss/metal), render_note (concise).
+- Use transparent backgrounds and match existing asset types/sizes (overlay expects PNGs sized for current cards/tables/avatar rings/nameplates; do not change aspect ratios).
 - Keep JSON concise; no prose outside JSON.`;
 
     const reply = await ai.chat(
       [
-        { role: 'system', content: 'Respond ONLY with JSON. Keep names short, 4-16 chars. Colors should be 2-4 hex values. Provide top-level keys: palette, variants (array of 2 variants with slots cardBack, tableSkin, avatarRing, nameplate).' },
+        { role: 'system', content: 'Respond ONLY with JSON. Keep names short, 4-16 chars. Colors should be 2-4 hex values. Provide top-level keys: palette, variants (array of 2 variants with slots cardBack, tableSkin, avatarRing, nameplate). Note that downstream renderers expect transparent PNGs matching existing asset dimensions; describe usage, not base64.' },
         { role: 'user', content: prompt },
       ],
       { temperature: 0.4 }
