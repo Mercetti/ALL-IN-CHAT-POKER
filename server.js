@@ -11,6 +11,7 @@ const fs = require('fs');
 const uploadsDir = path.join(__dirname, 'data', 'uploads');
 fs.mkdirSync(uploadsDir, { recursive: true });
 const premierHistory = new Map();
+const stagedCosmetics = [];
 const { createTwoFilesPatch } = require('diff');
 const { spawn } = require('child_process');
 
@@ -2960,6 +2961,22 @@ app.post('/admin/premier/apply', auth.requireAdmin, (req, res) => {
   }
 });
 
+app.post('/admin/premier/test-apply', auth.requireAdmin, (req, res) => {
+  try {
+    const proposal = req.body?.proposal;
+    const channel = normalizeChannelName(req.body?.channel || 'sandbox') || 'sandbox';
+    if (!proposal) return res.status(400).json({ error: 'proposal required' });
+    const validated = validatePremierProposal(proposal);
+    overlaySettingsByChannel[channel] = overlaySettingsByChannel[channel] || {};
+    overlaySettingsByChannel[channel].brandingProposal = validated;
+    io.to(channel).emit('overlaySettings', { settings: overlaySettingsByChannel[channel], channel });
+    res.json({ ok: true, channel });
+  } catch (err) {
+    logger.error('premier test apply failed', { error: err.message });
+    res.status(400).json({ error: err.message });
+  }
+});
+
 // Pending review list (last 5 per streamer from history)
 app.get('/admin/premier/pending', auth.requireAdmin, (req, res) => {
   const all = [];
@@ -2977,16 +2994,46 @@ app.post('/admin/premier/approve', auth.requireAdmin, (req, res) => {
   try {
     const login = (req.body?.login || '').toLowerCase();
     const proposal = req.body?.proposal;
+    const badge = req.body?.badge || null;
+    const price = Number(req.body?.price || 0);
+    const rarity = req.body?.rarity || 'legendary';
     if (!login || !proposal) return res.status(400).json({ error: 'login and proposal required' });
     const validated = validatePremierProposal(proposal);
     const history = premierHistory.get(login) || [];
     history.push({ at: Date.now(), preset: 'approved', proposal: validated, logoUrl: req.body?.logoUrl });
     if (history.length > 5) history.shift();
     premierHistory.set(login, history);
+    stagedCosmetics.push({
+      login,
+      badge,
+      price_cents: Math.max(0, Math.round(price * 100)),
+      rarity,
+      proposal: validated,
+      at: Date.now(),
+      published: false,
+    });
     res.json({ ok: true });
   } catch (err) {
     logger.error('premier approve failed', { error: err.message });
     res.status(400).json({ error: err.message });
+  }
+});
+
+app.get('/admin/premier/staged', auth.requireAdmin, (_req, res) => {
+  res.json({ items: stagedCosmetics.slice(-20).reverse() });
+});
+
+app.post('/admin/premier/publish', auth.requireAdmin, (req, res) => {
+  try {
+    const idx = Number(req.body?.index);
+    if (!Number.isInteger(idx) || idx < 0 || idx >= stagedCosmetics.length) {
+      return res.status(400).json({ error: 'invalid index' });
+    }
+    stagedCosmetics[idx].published = true;
+    res.json({ ok: true });
+  } catch (err) {
+    logger.error('premier publish failed', { error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 

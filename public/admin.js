@@ -82,6 +82,11 @@ const premierReviewSelect = document.getElementById('premier-review-select');
 const premierReviewJson = document.getElementById('premier-review-json');
 const premierReviewRefresh = document.getElementById('btn-premier-refresh-list');
 const premierReviewApprove = document.getElementById('btn-premier-approve');
+const premierReviewTest = document.getElementById('btn-premier-test');
+const premierBadgeSelect = document.getElementById('premier-badge');
+const premierPriceInput = document.getElementById('premier-price');
+const premierRaritySelect = document.getElementById('premier-rarity');
+const premierStagedList = document.getElementById('premier-staged-list');
 // Quick modal/popover elements (support both legacy ids and new compact popover ids)
 // Inline highlight helper for quick-nav buttons
 function focusSection(sectionId) {
@@ -712,7 +717,15 @@ function setupEventListeners() {
       Toast.error(e.message || 'Approve failed');
     }
   });
+  premierReviewTest?.addEventListener('click', async () => {
+    try {
+      await testApplyPremier();
+    } catch (e) {
+      Toast.error(e.message || 'Test apply failed');
+    }
+  });
   loadPremierPending();
+  loadPremierStaged();
 }
 
 async function loadStats() {
@@ -1448,10 +1461,58 @@ async function approvePremierSelection() {
   const idx = parseInt(premierReviewSelect.value || '0', 10);
   const entry = items[idx];
   if (!entry) throw new Error('No selection');
+  const badge = premierBadgeSelect?.value || '';
+  const price = parseFloat(premierPriceInput?.value || '0');
+  const rarity = premierRaritySelect?.value || 'legendary';
   await apiCall('/admin/premier/approve', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ login: entry.login, proposal: entry.proposal, logoUrl: entry.logoUrl }),
+    body: JSON.stringify({ login: entry.login, proposal: entry.proposal, logoUrl: entry.logoUrl, badge, price, rarity }),
   });
   Toast.success('Marked as approved (manual store step)');
+  loadPremierStaged();
+}
+
+async function testApplyPremier() {
+  if (!premierReviewSelect || !premierReviewJson) throw new Error('No selection');
+  const items = JSON.parse(premierReviewSelect.dataset.items || '[]');
+  const idx = parseInt(premierReviewSelect.value || '0', 10);
+  const entry = items[idx];
+  if (!entry) throw new Error('No selection');
+  await apiCall('/admin/premier/test-apply', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ channel: 'sandbox', proposal: entry.proposal }),
+  });
+  Toast.success('Pushed to test overlay (channel: sandbox)');
+}
+
+async function loadPremierStaged() {
+  try {
+    const res = await apiCall('/admin/premier/staged', { method: 'GET' });
+    const items = res?.items || [];
+    if (!premierStagedList) return;
+    premierStagedList.innerHTML = items.length
+      ? items
+          .map(
+            (it, idx) =>
+              `<li>${it.login} • $${(it.price_cents || 0 / 100).toFixed ? (it.price_cents / 100).toFixed(2) : (it.price_cents || 0)} • ${it.rarity || '-'} ${it.published ? '(published)' : ''} <button class="btn btn-secondary btn-sm" data-publish="${idx}">Publish</button></li>`
+          )
+          .join('')
+      : '<li class="muted">None staged</li>';
+    premierStagedList.querySelectorAll('button[data-publish]')?.forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const i = parseInt(btn.dataset.publish || '0', 10);
+        await apiCall('/admin/premier/publish', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ index: i }),
+        });
+        Toast.success('Published flag set');
+        loadPremierStaged();
+      });
+    });
+  } catch (e) {
+    console.warn('loadPremierStaged failed', e);
+  }
 }

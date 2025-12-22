@@ -108,9 +108,35 @@
         </div>
         <div class="form-group compact-buttons">
           <button id="btn-premier-refresh-list" class="btn btn-secondary btn-sm">Refresh</button>
-          <button id="btn-premier-approve" class="btn btn-success btn-sm">Approve (manual add to store)</button>
+          <button id="btn-premier-test" class="btn btn-info btn-sm">Push to test overlay</button>
+          <button id="btn-premier-approve" class="btn btn-success btn-sm">Approve (stage for store)</button>
+        </div>
+        <div class="form-group">
+          <label for="premier-badge">Badge (optional)</label>
+          <select id="premier-badge" class="form-input">
+            <option value="">None</option>
+            <option value="/assets/cosmetics/badge/affiliate.png">Affiliate</option>
+            <option value="/assets/cosmetics/badge/partner.png">Partner</option>
+            <option value="/assets/cosmetics/badge/premier.png">Premier</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="premier-price">Price (USD)</label>
+          <input id="premier-price" type="number" class="form-input" placeholder="e.g. 9.99">
+        </div>
+        <div class="form-group">
+          <label for="premier-rarity">Rarity</label>
+          <select id="premier-rarity" class="form-input">
+            <option value="legendary">Legendary</option>
+            <option value="epic">Epic</option>
+            <option value="rare">Rare</option>
+          </select>
         </div>
         <small class="muted full-span">Badges live at <code>/assets/cosmetics/badge/</code> for affiliate/partner/premier.</small>
+      </div>
+      <div class="tiny-card" id="premier-staged-card">
+        <h4>Staged for Store</h4>
+        <ul id="premier-staged-list" class="leaderboard"></ul>
       </div>
     </section>
 
