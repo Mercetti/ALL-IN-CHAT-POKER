@@ -75,6 +75,9 @@ const premierLogoPreview = document.getElementById('premier-logo-preview');
 const premierProposal = document.getElementById('premier-proposal');
 const premierApplyBtn = document.getElementById('btn-premier-apply');
 let lastPremierProposal = null;
+const premierPreviewCard = document.getElementById('premier-preview-card');
+const premierPreviewNameplate = document.getElementById('premier-preview-nameplate');
+const premierHistoryLabel = document.getElementById('premier-history');
 // Quick modal/popover elements (support both legacy ids and new compact popover ids)
 // Inline highlight helper for quick-nav buttons
 function focusSection(sectionId) {
@@ -1250,10 +1253,19 @@ async function generatePremierSet() {
   const login = (premierLoginInput?.value || channelParam || '').trim().toLowerCase();
   if (!login) throw new Error('Streamer login required');
   const preset = premierPresetSelect?.value || 'neon';
+  const palette = await (async () => {
+    if (!premierLogoPreview?.src) return null;
+    try {
+      const img = await loadImage(premierLogoPreview.src);
+      return extractPalette(img, 5);
+    } catch {
+      return null;
+    }
+  })();
   const res = await apiCall('/admin/premier/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ login, preset }),
+    body: JSON.stringify({ login, preset, palette }),
   });
   if (premierProposal) {
     premierProposal.textContent = typeof res.proposal === 'string'
@@ -1264,6 +1276,10 @@ async function generatePremierSet() {
     premierLogoPreview.src = res.logoUrl;
   }
   lastPremierProposal = res.proposal || null;
+  renderPremierPreview(lastPremierProposal);
+  if (premierHistoryLabel && Array.isArray(res.history)) {
+    premierHistoryLabel.textContent = `History: ${res.history.length} saved`;
+  }
   Toast.success('AI set drafted');
 }
 
@@ -1285,4 +1301,96 @@ async function applyPremierSet() {
     body: JSON.stringify({ login, proposal }),
   });
   Toast.success('Applied to overlay (brandingProposal set)');
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+function extractPalette(img, maxColors = 5) {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const w = 40;
+  const h = 40;
+  canvas.width = w;
+  canvas.height = h;
+  ctx.drawImage(img, 0, 0, w, h);
+  const data = ctx.getImageData(0, 0, w, h).data;
+  const freq = {};
+  for (let i = 0; i < data.length; i += 4) {
+    const [r, g, b, a] = [data[i], data[i + 1], data[i + 2], data[i + 3]];
+    if (a < 16) continue;
+    const key = rgbToHex(r, g, b);
+    freq[key] = (freq[key] || 0) + 1;
+  }
+  const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, maxColors);
+  return sorted.map(([hex]) => hex);
+}
+
+function rgbToHex(r, g, b) {
+  return (
+    '#' +
+    [r, g, b]
+      .map((v) => {
+        const s = v.toString(16);
+        return s.length === 1 ? '0' + s : s;
+      })
+      .join('')
+  );
+}
+
+function renderPremierPreview(proposal) {
+  if (!proposal || !premierPreviewCard || !premierPreviewNameplate) return;
+  let parsed = proposal;
+  if (typeof proposal === 'string') {
+    try {
+      parsed = JSON.parse(proposal);
+    } catch {
+      return;
+    }
+  }
+  const variant = Array.isArray(parsed.variants) ? parsed.variants[0] : null;
+  if (!variant) return;
+  const card = variant.cardBack || {};
+  const nameplate = variant.nameplate || {};
+  drawCardPreview(premierPreviewCard, card.colors || parsed.palette || ['#0f3a34', '#0bd4a6']);
+  drawNameplatePreview(premierPreviewNameplate, nameplate.colors || parsed.palette || ['#0bd4a6', '#0f3a34']);
+}
+
+function drawCardPreview(canvas, colors) {
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const [c1, c2, c3] = colors;
+  const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+  grad.addColorStop(0, c1 || '#0f3a34');
+  grad.addColorStop(1, c2 || '#0bd4a6');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = c3 || '#ffffff44';
+  ctx.lineWidth = 6;
+  ctx.strokeRect(6, 6, canvas.width - 12, canvas.height - 12);
+}
+
+function drawNameplatePreview(canvas, colors) {
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const [c1, c2] = colors;
+  const grad = ctx.createLinearGradient(0, 0, canvas.width, 0);
+  grad.addColorStop(0, c1 || '#0bd4a6');
+  grad.addColorStop(1, c2 || '#0f3a34');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#ffffffcc';
+  ctx.font = 'bold 18px Inter, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('Nameplate', canvas.width / 2, canvas.height / 2);
 }

@@ -81,7 +81,14 @@
           <h4>AI Proposal</h4>
           <pre id="premier-proposal" class="code-block" style="min-height:120px; white-space:pre-wrap;">—</pre>
         </div>
+        <div class="tiny-card" style="flex:1;">
+          <h4>Preview</h4>
+          <canvas id="premier-preview-card" width="160" height="240" style="border:1px solid rgba(255,255,255,0.1); border-radius:8px; background:transparent;"></canvas>
+          <canvas id="premier-preview-nameplate" width="220" height="80" style="display:block; margin-top:8px; border:1px solid rgba(255,255,255,0.1); border-radius:12px; background:transparent;"></canvas>
+          <small class="muted">Mock render only; uses variant colors with transparency.</small>
+        </div>
       </div>
+      <div class="muted" id="premier-history" style="margin-top:6px;">History: —</div>
       <small class="muted">Presets guide the AI. Output is JSON with cardBack, tableSkin, avatarRing, nameplate.</small>
     </section>
 

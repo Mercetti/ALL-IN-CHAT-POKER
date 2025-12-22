@@ -10,6 +10,7 @@ const path = require('path');
 const fs = require('fs');
 const uploadsDir = path.join(__dirname, 'data', 'uploads');
 fs.mkdirSync(uploadsDir, { recursive: true });
+const premierHistory = new Map();
 const { createTwoFilesPatch } = require('diff');
 const { spawn } = require('child_process');
 
@@ -1163,6 +1164,42 @@ function savePremierLogo(login, dataUrl) {
   fs.writeFileSync(filePath, buf);
   const url = `/uploads/${login.toLowerCase()}/logo.${ext}`;
   return { filePath, url };
+}
+
+function validatePalette(palette) {
+  if (!Array.isArray(palette) || !palette.length) return null;
+  const hex = /^#([0-9a-fA-F]{6})$/;
+  return palette.filter((c) => typeof c === 'string' && hex.test(c)).slice(0, 5);
+}
+
+function validatePremierProposal(proposalRaw) {
+  let p = proposalRaw;
+  if (typeof p === 'string') {
+    try {
+      p = JSON.parse(p);
+    } catch (e) {
+      throw new Error('invalid JSON');
+    }
+  }
+  if (!p || typeof p !== 'object') throw new Error('invalid proposal');
+  if (!Array.isArray(p.variants) || !p.variants.length) throw new Error('variants missing');
+  const hex = /^#([0-9a-fA-F]{6})$/;
+  const checkSlot = (slot) => {
+    if (!slot || typeof slot !== 'object') return false;
+    if (slot.colors && Array.isArray(slot.colors) && !slot.colors.every((c) => typeof c === 'string' && hex.test(c))) return false;
+    return true;
+  };
+  p.variants.forEach((v) => {
+    ['cardBack', 'tableSkin', 'avatarRing', 'nameplate'].forEach((k) => {
+      if (!checkSlot(v[k])) throw new Error(`slot ${k} invalid`);
+    });
+  });
+  if (p.palette) {
+    const filtered = validatePalette(p.palette);
+    if (!filtered) delete p.palette;
+    else p.palette = filtered;
+  }
+  return p;
 }
 
 function buildOverlaySnapshot(channelRaw) {
@@ -2860,6 +2897,7 @@ app.post('/admin/premier/generate', auth.requireAdmin, async (req, res) => {
   try {
     const login = (req.body?.login || '').toLowerCase();
     const preset = (req.body?.preset || 'neon').toLowerCase();
+    const palette = validatePalette(req.body?.palette);
     if (!login) return res.status(400).json({ error: 'login required' });
     if (!PREMIER_PRESETS[preset]) return res.status(400).json({ error: 'invalid preset' });
     const logoDir = path.join(uploadsDir, login);
@@ -2873,6 +2911,7 @@ app.post('/admin/premier/generate', auth.requireAdmin, async (req, res) => {
     const prompt = `You are designing branded cosmetics for a Twitch poker/blackjack overlay.
 Brand login: ${login}
 Logo URL (extract palette from it): ${logoPath}
+Suggested palette (from logo): ${palette && palette.length ? palette.join(', ') : 'none provided'}
 Style preset: ${preset} — ${PREMIER_PRESETS[preset]}
 
 Requirements:
@@ -2892,7 +2931,12 @@ Requirements:
       { temperature: 0.4 }
     );
 
-    res.json({ login, preset, logoUrl: logoPath, proposal: reply });
+    const validated = validatePremierProposal(reply);
+    const history = premierHistory.get(login) || [];
+    history.push({ at: Date.now(), preset, proposal: validated, logoUrl: logoPath });
+    if (history.length > 5) history.shift();
+    premierHistory.set(login, history);
+    res.json({ login, preset, logoUrl: logoPath, proposal: validated, history });
   } catch (err) {
     logger.error('premier generate failed', { error: err.message });
     res.status(500).json({ error: 'internal_error' });
@@ -2904,9 +2948,10 @@ app.post('/admin/premier/apply', auth.requireAdmin, (req, res) => {
     const login = (req.body?.login || '').toLowerCase();
     const proposal = req.body?.proposal;
     if (!login || !proposal) return res.status(400).json({ error: 'login and proposal required' });
+    const validated = validatePremierProposal(proposal);
     const channelName = normalizeChannelName(login) || login;
     overlaySettingsByChannel[channelName] = overlaySettingsByChannel[channelName] || {};
-    overlaySettingsByChannel[channelName].brandingProposal = proposal;
+    overlaySettingsByChannel[channelName].brandingProposal = validated;
     io.to(channelName).emit('overlaySettings', { settings: overlaySettingsByChannel[channelName], channel: channelName });
     res.json({ ok: true, channel: channelName });
   } catch (err) {
