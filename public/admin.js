@@ -83,6 +83,7 @@ const premierReviewJson = document.getElementById('premier-review-json');
 const premierReviewRefresh = document.getElementById('btn-premier-refresh-list');
 const premierReviewApprove = document.getElementById('btn-premier-approve');
 const premierReviewTest = document.getElementById('btn-premier-test');
+const premierReviewRevert = document.getElementById('btn-premier-revert');
 const premierBadgeSelect = document.getElementById('premier-badge');
 const premierBundlePriceInput = document.getElementById('premier-bundle-price');
 const premierItemPriceInput = document.getElementById('premier-item-price');
@@ -724,6 +725,13 @@ function setupEventListeners() {
       await testApplyPremier();
     } catch (e) {
       Toast.error(e.message || 'Test apply failed');
+    }
+  });
+  premierReviewRevert?.addEventListener('click', async () => {
+    try {
+      await revertPremier();
+    } catch (e) {
+      Toast.error(e.message || 'Revert failed');
     }
   });
   loadPremierPending();
@@ -1498,6 +1506,17 @@ async function testApplyPremier() {
     body: JSON.stringify({ channel: 'sandbox', proposal: entry.proposal }),
   });
   Toast.success('Pushed to test overlay (channel: sandbox)');
+}
+
+async function revertPremier() {
+  const login = (premierLoginInput?.value || channelParam || '').trim().toLowerCase();
+  if (!login) throw new Error('Streamer login required for revert');
+  await apiCall('/admin/premier/revert', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ channel: login }),
+  });
+  Toast.success('Reverted to last applied branding');
 }
 
 async function loadPremierStaged() {

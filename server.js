@@ -13,6 +13,8 @@ fs.mkdirSync(uploadsDir, { recursive: true });
 const premierHistory = new Map();
 const stagedCosmetics = [];
 const lastAppliedBranding = new Map();
+const PNG = require('pngjs').PNG;
+const jpeg = require('jpeg-js');
 const { createTwoFilesPatch } = require('diff');
 const { spawn } = require('child_process');
 
@@ -1204,6 +1206,93 @@ function contrastRatio(hex1, hex2) {
   return l1 > l2 ? l1 / l2 : l2 / l1;
 }
 
+function extractPaletteServer(logoFsPath, maxColors = 5) {
+  if (!fs.existsSync(logoFsPath)) return null;
+  const buf = fs.readFileSync(logoFsPath);
+  let pixels = null;
+  let width = 0;
+  let height = 0;
+  try {
+    if (logoFsPath.toLowerCase().endsWith('.png')) {
+      const img = PNG.sync.read(buf);
+      pixels = img.data;
+      width = img.width;
+      height = img.height;
+    } else {
+      const img = jpeg.decode(buf, { useTArray: true });
+      pixels = img.data;
+      width = img.width;
+      height = img.height;
+    }
+  } catch (e) {
+    return null;
+  }
+  if (!pixels || !width || !height) return null;
+  const freq = {};
+  const stepX = Math.max(1, Math.floor(width / 32));
+  const stepY = Math.max(1, Math.floor(height / 32));
+  for (let y = 0; y < height; y += stepY) {
+    for (let x = 0; x < width; x += stepX) {
+      const idx = (y * width + x) * 4;
+      const a = pixels[idx + 3];
+      if (a < 32) continue;
+      const r = pixels[idx];
+      const g = pixels[idx + 1];
+      const b = pixels[idx + 2];
+      const hex = rgbToHex(r, g, b);
+      freq[hex] = (freq[hex] || 0) + 1;
+    }
+  }
+  const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, maxColors);
+  return sorted.map(([hex]) => hex);
+}
+
+function rgbToHex(r, g, b) {
+  return (
+    '#' +
+    [r, g, b]
+      .map((v) => {
+        const s = v.toString(16);
+        return s.length === 1 ? '0' + s : s;
+      })
+      .join('')
+  );
+}
+
+function clampSafeInset(val, slot) {
+  const defaults = {
+    cardBack: [0.12, 0.18],
+    nameplate: [0.15, 0.2],
+    tableSkin: [0.05, 0.1],
+    avatarRing: [0.1, 0.15],
+  };
+  const [min, max] = defaults[slot] || [0.1, 0.2];
+  if (typeof val !== 'number' || Number.isNaN(val)) return min;
+  return Math.max(min, Math.min(max, val));
+}
+
+function renderThumbnail(width, height, colors) {
+  if (!Array.isArray(colors) || !colors.length) throw new Error('No colors for thumbnail');
+  const png = new PNG({ width, height, colorType: 6 });
+  const c1 = hexToRgb(colors[0] || '#0f3a34') || { r: 15, g: 58, b: 52 };
+  const c2 = hexToRgb(colors[1] || colors[0] || '#0bd4a6') || { r: 11, g: 212, b: 166 };
+  for (let y = 0; y < height; y++) {
+    const t = y / Math.max(1, height - 1);
+    const r = Math.round(c1.r * (1 - t) + c2.r * t);
+    const g = Math.round(c1.g * (1 - t) + c2.g * t);
+    const b = Math.round(c1.b * (1 - t) + c2.b * t);
+    for (let x = 0; x < width; x++) {
+      const idx = (y * width + x) * 4;
+      png.data[idx] = r;
+      png.data[idx + 1] = g;
+      png.data[idx + 2] = b;
+      png.data[idx + 3] = 255;
+    }
+  }
+  const buf = PNG.sync.write(png);
+  return `data:image/png;base64,${buf.toString('base64')}`;
+}
+
 function validatePremierProposal(proposalRaw) {
   let p = proposalRaw;
   if (typeof p === 'string') {
@@ -1238,6 +1327,14 @@ function validatePremierProposal(proposalRaw) {
     p.variants.forEach((v) => {
       if (v[k]?.texture && !VALID_TEXTURES.includes(v[k].texture)) {
         delete v[k].texture;
+      }
+      if (v[k]?.safe_inset_pct !== undefined) {
+        v[k].safe_inset_pct = clampSafeInset(Number(v[k].safe_inset_pct), k);
+      } else {
+        v[k].safe_inset_pct = clampSafeInset(undefined, k);
+      }
+      if (!v[k].layer_notes) {
+        v[k].layer_notes = 'Frame + center mark + subtle pattern + glow (transparent layers)';
       }
     });
   });
@@ -2946,7 +3043,7 @@ app.post('/admin/premier/generate', auth.requireAdmin, async (req, res) => {
   try {
     const login = (req.body?.login || '').toLowerCase();
     const preset = (req.body?.preset || 'neon').toLowerCase();
-    const palette = validatePalette(req.body?.palette);
+    let palette = validatePalette(req.body?.palette);
     if (!login) return res.status(400).json({ error: 'login required' });
     if (!PREMIER_PRESETS[preset]) return res.status(400).json({ error: 'invalid preset' });
     const logoDir = path.join(uploadsDir, login);
@@ -2956,6 +3053,10 @@ app.post('/admin/premier/generate', auth.requireAdmin, async (req, res) => {
         ? `/uploads/${login}/logo.jpg`
         : null;
     if (!logoPath) return res.status(400).json({ error: 'logo_missing' });
+    if (!palette) {
+      const fsPath = path.join(__dirname, logoPath.replace(/^\//, ''));
+      palette = extractPaletteServer(fsPath) || palette;
+    }
 
     const prompt = `You are designing branded cosmetics for a Twitch poker/blackjack overlay.
 Brand login: ${login}
@@ -3013,7 +3114,16 @@ Requirements:
     history.push({ at: Date.now(), preset, proposal: validated, logoUrl: logoPath });
     if (history.length > 5) history.shift();
     premierHistory.set(login, history);
-    res.json({ login, preset, logoUrl: logoPath, proposal: validated, history });
+    let thumbCard = null;
+    let thumbName = null;
+    try {
+      const variant = validated.variants?.[0] || {};
+      thumbCard = renderThumbnail(160, 240, variant.cardBack?.colors || validated.palette || []);
+      thumbName = renderThumbnail(220, 80, variant.nameplate?.colors || validated.palette || []);
+    } catch (e) {
+      throw new Error('thumbnail render failed');
+    }
+    res.json({ login, preset, logoUrl: logoPath, proposal: validated, history, thumbnails: { card: thumbCard, nameplate: thumbName } });
   } catch (err) {
     logger.error('premier generate failed', { error: err.message });
     res.status(500).json({ error: 'internal_error' });
@@ -3031,6 +3141,7 @@ app.post('/admin/premier/apply', auth.requireAdmin, (req, res) => {
     overlaySettingsByChannel[channelName].brandingProposal = validated;
     io.to(channelName).emit('overlaySettings', { settings: overlaySettingsByChannel[channelName], channel: channelName });
     lastAppliedBranding.set(channelName, validated);
+    logger.info('premier apply', { channel: channelName, actor: req.user?.login || 'admin' });
     res.json({ ok: true, channel: channelName });
   } catch (err) {
     logger.error('premier apply failed', { error: err.message });
@@ -3048,6 +3159,7 @@ app.post('/admin/premier/test-apply', auth.requireAdmin, (req, res) => {
     overlaySettingsByChannel[channel].brandingProposal = validated;
     io.to(channel).emit('overlaySettings', { settings: overlaySettingsByChannel[channel], channel });
     lastAppliedBranding.set(channel, validated);
+    logger.info('premier test apply', { channel, actor: req.user?.login || 'admin' });
     res.json({ ok: true, channel });
   } catch (err) {
     logger.error('premier test apply failed', { error: err.message });
@@ -3075,6 +3187,7 @@ app.post('/admin/premier/approve', auth.requireAdmin, (req, res) => {
     const badge = req.body?.badge || null;
     const bundlePrice = Number(req.body?.bundlePrice || 0);
     const itemPrice = Number(req.body?.itemPrice || 0);
+    const note = req.body?.note || '';
     const rarity = req.body?.rarity || 'legendary';
     if (!login || !proposal) return res.status(400).json({ error: 'login and proposal required' });
     const validated = validatePremierProposal(proposal);
@@ -3091,7 +3204,15 @@ app.post('/admin/premier/approve', auth.requireAdmin, (req, res) => {
       proposal: validated,
       at: Date.now(),
       published: false,
+      note,
+      skus: {
+        cardBack: `premier_${login}_cardBack`,
+        tableSkin: `premier_${login}_tableSkin`,
+        avatarRing: `premier_${login}_avatarRing`,
+        nameplate: `premier_${login}_nameplate`,
+      },
     });
+    logger.info('premier approve', { login, badge, bundlePrice, itemPrice, rarity, actor: req.user?.login || 'admin', note });
     res.json({ ok: true });
   } catch (err) {
     logger.error('premier approve failed', { error: err.message });
@@ -3110,6 +3231,7 @@ app.post('/admin/premier/publish', auth.requireAdmin, (req, res) => {
       return res.status(400).json({ error: 'invalid index' });
     }
     stagedCosmetics[idx].published = true;
+    logger.info('premier publish', { login: stagedCosmetics[idx].login, actor: req.user?.login || 'admin' });
     res.json({ ok: true });
   } catch (err) {
     logger.error('premier publish failed', { error: err.message });
@@ -3126,6 +3248,7 @@ app.post('/admin/premier/revert', auth.requireAdmin, (req, res) => {
     overlaySettingsByChannel[channel] = overlaySettingsByChannel[channel] || {};
     overlaySettingsByChannel[channel].brandingProposal = prev;
     io.to(channel).emit('overlaySettings', { settings: overlaySettingsByChannel[channel], channel });
+    logger.info('premier revert', { channel, actor: req.user?.login || 'admin' });
     res.json({ ok: true, channel });
   } catch (err) {
     logger.error('premier revert failed', { error: err.message });
