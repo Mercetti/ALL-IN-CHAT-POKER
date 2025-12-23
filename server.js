@@ -20,6 +20,28 @@ let aiGenerateBusy = false;
 const MIN_CONTRAST = 3.0;
 const CACHE_TTL_MS = 1000 * 60 * 30; // 30 minutes
 const generationQueue = [];
+const rateStore = new Map();
+const securityHeadersMiddleware = (req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+  const csp = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data:",
+    "connect-src 'self'",
+    "font-src 'self'",
+    "frame-ancestors 'self'",
+  ].join('; ');
+  res.setHeader('Content-Security-Policy', csp);
+  if (config.IS_PRODUCTION) {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+  next();
+};
 const PNG = require('pngjs').PNG;
 const jpeg = require('jpeg-js');
 const { createTwoFilesPatch } = require('diff');
@@ -1128,6 +1150,10 @@ app.get('/auth/twitch/subs/callback', async (req, res) => {
     return res.status(500).send('auth_failed');
   }
 });
+
+// Security headers & static assets
+app.disable('x-powered-by');
+app.use(securityHeadersMiddleware);
 app.use('/uploads', express.static(uploadsDir));
 app.use(express.static('public'));
 
@@ -1162,6 +1188,24 @@ function normalizeChannelName(name) {
 function getLastGoodProposal(login) {
   const history = premierHistory.get(login) || [];
   return history.length ? history[history.length - 1] : null;
+}
+
+function rateLimit(key, windowMs, max) {
+  return (req, res, next) => {
+    const now = Date.now();
+    const ip = req.ip || req.headers['x-forwarded-for'] || 'ipless';
+    const rateKey = `${key}:${ip}`;
+    let entry = rateStore.get(rateKey);
+    if (!entry || now > entry.reset) {
+      entry = { count: 0, reset: now + windowMs };
+    }
+    entry.count += 1;
+    rateStore.set(rateKey, entry);
+    if (entry.count > max) {
+      return res.status(429).json({ error: 'rate_limited' });
+    }
+    next();
+  };
 }
 function savePremierLogo(login, dataUrl) {
   if (!validation.validateUsername(login)) {
@@ -3049,7 +3093,7 @@ app.get('/health', (req, res) => {
 /**
  * Admin login endpoint with rate limiting
  */
-app.post('/admin/login', (req, res) => {
+app.post('/admin/login', rateLimit('admin-login', 60 * 1000, 5), (req, res) => {
   try {
     const ip = req.ip;
     const { password } = req.body || {};
@@ -3099,7 +3143,7 @@ app.post('/admin/logout', (req, res) => {
 /**
  * Create ephemeral admin token
  */
-app.post('/admin/token', auth.requireAdmin, (req, res) => {
+app.post('/admin/token', rateLimit('admin-token', 60 * 1000, 5), auth.requireAdmin, (req, res) => {
   // Optional TTL override (seconds)
   const ttl = (req.body && Number(req.body.ttl)) || config.EPHEMERAL_TOKEN_TTL_SECONDS;
   if (!Number.isInteger(ttl) || ttl <= 0 || ttl > 60 * 60 * 24) {
