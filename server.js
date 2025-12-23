@@ -5704,7 +5704,8 @@ io.on('connection', (socket) => {
     const bots = addTestBots(channelName, count, maxSeats);
     logger.info('Added test bots', { channel: channelName, bots });
     if (data.startNow) {
-      startRoundInternal(channelName);
+      // preserve bets from the newly added bots so round can start immediately
+      startRoundInternal(channelName, { preserveBets: true });
     }
   });
 
