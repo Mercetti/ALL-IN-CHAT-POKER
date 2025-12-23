@@ -29,34 +29,6 @@ const signCheckout = (login, packId, orderId) => {
   h.update(`${login}:${packId}:${orderId}`);
   return h.digest('hex');
 };
-const bannedLogins = new Set(
-  (config.BANNED_LOGINS || '')
-    .split(',')
-    .map(s => s.trim())
-    .filter(Boolean)
-);
-const bannedIps = new Set(
-  (config.BANNED_IPS || '')
-    .split(',')
-    .map(s => s.trim())
-    .filter(Boolean)
-);
-const isBanned = (login, ip) => {
-  const l = (login || '').toLowerCase();
-  const ipClean = (ip || '').trim().toLowerCase();
-  return (l && bannedLogins.has(l)) || (ipClean && bannedIps.has(ipClean));
-};
-const validateBody = (body, shape = {}) => {
-  if (typeof body !== 'object' || body === null) return false;
-  return Object.entries(shape).every(([key, type]) => {
-    if (!(key in body)) return false;
-    const val = body[key];
-    if (type === 'string') return typeof val === 'string' && val.trim().length > 0;
-    if (type === 'number') return typeof val === 'number' && Number.isFinite(val);
-    if (type === 'int') return Number.isInteger(val);
-    return false;
-  });
-};
 const socketRateStore = new Map(); // key -> {count, reset}
 const socketRateLimit = (socket, key, windowMs, max) => {
   const now = Date.now();
@@ -147,6 +119,34 @@ const DEFAULT_AVATAR_COLORS = [
   '#d35400',
 ];
 
+const bannedLogins = new Set(
+  (config.BANNED_LOGINS || '')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+);
+const bannedIps = new Set(
+  (config.BANNED_IPS || '')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+);
+const isBanned = (login, ip) => {
+  const l = (login || '').toLowerCase();
+  const ipClean = (ip || '').trim().toLowerCase();
+  return (l && bannedLogins.has(l)) || (ipClean && bannedIps.has(ipClean));
+};
+const validateBody = (body, shape = {}) => {
+  if (typeof body !== 'object' || body === null) return false;
+  return Object.entries(shape).every(([key, type]) => {
+    if (!(key in body)) return false;
+    const val = body[key];
+    if (type === 'string') return typeof val === 'string' && val.trim().length > 0;
+    if (type === 'number') return typeof val === 'number' && Number.isFinite(val);
+    if (type === 'int') return Number.isInteger(val);
+    return false;
+  });
+};
 const logger = new Logger('server');
 let currentMode = 'blackjack';
 let tmiClient = null;
