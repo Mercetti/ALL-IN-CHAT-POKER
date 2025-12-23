@@ -76,6 +76,8 @@ const premierProposal = document.getElementById('premier-proposal');
 const premierApplyBtn = document.getElementById('btn-premier-apply');
 const premierRegenBtn = document.getElementById('btn-premier-regen');
 let lastPremierProposal = null;
+let lastGoodProposal = null;
+let premierGenerating = false;
 const premierPreviewCard = document.getElementById('premier-preview-card');
 const premierPreviewNameplate = document.getElementById('premier-preview-nameplate');
 const premierHistoryLabel = document.getElementById('premier-history');
@@ -92,6 +94,10 @@ const premierItemPriceInput = document.getElementById('premier-item-price');
 const premierNoteInput = document.getElementById('premier-note');
 const premierRaritySelect = document.getElementById('premier-rarity');
 const premierStagedList = document.getElementById('premier-staged-list');
+const premierWarnings = document.getElementById('premier-warnings');
+const premierApplyPrimary = document.getElementById('btn-premier-apply-primary');
+const premierApplyAlt = document.getElementById('btn-premier-apply-alt');
+const premierUseLastGood = document.getElementById('btn-premier-lastgood');
 // Quick modal/popover elements (support both legacy ids and new compact popover ids)
 // Inline highlight helper for quick-nav buttons
 function focusSection(sectionId) {
@@ -743,6 +749,27 @@ function setupEventListeners() {
       Toast.error(e.message || 'Revert failed');
     }
   });
+  premierApplyPrimary?.addEventListener('click', async () => {
+    try {
+      await applyPremierVariant(0);
+    } catch (e) {
+      Toast.error(e.message || 'Apply primary failed');
+    }
+  });
+  premierApplyAlt?.addEventListener('click', async () => {
+    try {
+      await applyPremierVariant(1);
+    } catch (e) {
+      Toast.error(e.message || 'Apply alt failed');
+    }
+  });
+  premierUseLastGood?.addEventListener('click', async () => {
+    try {
+      await useLastGood();
+    } catch (e) {
+      Toast.error(e.message || 'Use last good failed');
+    }
+  });
   loadPremierPending();
   loadPremierStaged();
 }
@@ -1295,6 +1322,9 @@ async function uploadPremierLogo() {
 }
 
 async function generatePremierSet(useCached = false) {
+  if (premierGenerating) return Toast.info('Generation in progress...');
+  premierGenerating = true;
+  setPremierButtonsDisabled(true);
   const login = (premierLoginInput?.value || channelParam || '').trim().toLowerCase();
   if (!login) throw new Error('Streamer login required');
   const preset = premierPresetSelect?.value || 'neon';
@@ -1307,11 +1337,27 @@ async function generatePremierSet(useCached = false) {
       return null;
     }
   })();
-  const res = await apiCall('/admin/premier/generate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ login, preset, palette, useCached }),
-  });
+  let res = null;
+  try {
+    res = await apiCall('/admin/premier/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ login, preset, palette, useCached }),
+    });
+  } catch (err) {
+    premierGenerating = false;
+    setPremierButtonsDisabled(false);
+    if ((err.message || '').includes('busy')) {
+      Toast.warning('Generator busy, try again in a moment.');
+      return;
+    }
+    if ((err.message || '').includes('validation_failed')) {
+      Toast.warning('Validation failed; loading last good set if available.');
+      await useLastGood();
+      return;
+    }
+    throw err;
+  }
   if (premierProposal) {
     premierProposal.textContent = typeof res.proposal === 'string'
       ? res.proposal
@@ -1321,6 +1367,7 @@ async function generatePremierSet(useCached = false) {
     premierLogoPreview.src = res.logoUrl;
   }
   lastPremierProposal = res.proposal || null;
+  lastGoodProposal = res.proposal || null;
   if (res.thumbnails?.variants?.length) {
     const first = res.thumbnails.variants[0];
     if (premierPreviewCard && first.card) {
@@ -1350,7 +1397,26 @@ async function generatePremierSet(useCached = false) {
   if (premierBestBadge && typeof res.bestVariantIndex === 'number') {
     premierBestBadge.textContent = `Best variant: ${res.bestVariantIndex + 1}`;
   }
+  if (premierWarnings && Array.isArray(res.proposal?.warnings) && res.proposal.warnings.length) {
+    premierWarnings.textContent = `Warnings: ${res.proposal.warnings.join(' | ')}`;
+  } else if (premierWarnings) {
+    premierWarnings.textContent = 'Warnings: none';
+  }
   Toast.success('AI set drafted');
+  premierGenerating = false;
+  setPremierButtonsDisabled(false);
+}
+
+function setPremierButtonsDisabled(disabled) {
+  [
+    document.getElementById('btn-premier-generate'),
+    premierRegenBtn,
+    premierApplyBtn,
+    premierApplyPrimary,
+    premierApplyAlt,
+  ].forEach((btn) => {
+    if (btn) btn.disabled = disabled;
+  });
 }
 
 async function applyPremierSet() {
@@ -1371,6 +1437,24 @@ async function applyPremierSet() {
     body: JSON.stringify({ login, proposal }),
   });
   Toast.success('Applied to overlay (brandingProposal set)');
+}
+
+async function applyPremierVariant(idx = 0) {
+  const login = (premierLoginInput?.value || channelParam || '').trim().toLowerCase();
+  if (!login) throw new Error('Streamer login required');
+  if (!lastPremierProposal) throw new Error('No proposal generated');
+  const clone = typeof lastPremierProposal === 'string'
+    ? JSON.parse(lastPremierProposal)
+    : JSON.parse(JSON.stringify(lastPremierProposal));
+  if (Array.isArray(clone.variants) && clone.variants[idx]) {
+    clone.variants = [clone.variants[idx]];
+  }
+  await apiCall('/admin/premier/apply', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ login, proposal: clone }),
+  });
+  Toast.success(`Applied variant ${idx + 1} to overlay`);
 }
 
 function loadImage(src) {
@@ -1551,6 +1635,24 @@ async function revertPremier() {
     body: JSON.stringify({ channel: login }),
   });
   Toast.success('Reverted to last applied branding');
+}
+
+async function useLastGood() {
+  const login = (premierLoginInput?.value || channelParam || '').trim().toLowerCase();
+  if (!login) throw new Error('Streamer login required');
+  try {
+    const res = await apiCall(`/admin/premier/last-good?login=${encodeURIComponent(login)}`, { method: 'GET' });
+    const lg = res?.lastGood;
+    if (!lg) throw new Error('No last good set found');
+    lastPremierProposal = lg.proposal;
+    if (premierProposal) {
+      premierProposal.textContent = JSON.stringify(lg.proposal, null, 2);
+    }
+    renderPremierPreview(lg.proposal);
+    Toast.success('Loaded last good set');
+  } catch (e) {
+    Toast.error(e.message || 'No last good set');
+  }
 }
 
 async function loadPremierStaged() {

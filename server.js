@@ -19,6 +19,7 @@ const thumbCache = new Map(); // key -> { dataUrl, at }
 let aiGenerateBusy = false;
 const MIN_CONTRAST = 3.0;
 const CACHE_TTL_MS = 1000 * 60 * 30; // 30 minutes
+const generationQueue = [];
 const PNG = require('pngjs').PNG;
 const jpeg = require('jpeg-js');
 const { createTwoFilesPatch } = require('diff');
@@ -1158,6 +1159,10 @@ function normalizeChannelName(name) {
   return normalizeChannelNameScoped(name);
 }
 
+function getLastGoodProposal(login) {
+  const history = premierHistory.get(login) || [];
+  return history.length ? history[history.length - 1] : null;
+}
 function savePremierLogo(login, dataUrl) {
   if (!validation.validateUsername(login)) {
     throw new Error('invalid login');
@@ -3370,6 +3375,14 @@ app.get('/admin/premier/pending', auth.requireAdmin, (req, res) => {
   });
   all.sort((a, b) => b.at - a.at);
   res.json({ items: all.slice(0, 20) });
+});
+
+app.get('/admin/premier/last-good', auth.requireAdmin, (req, res) => {
+  const login = (req.query?.login || '').toLowerCase();
+  if (!login) return res.status(400).json({ error: 'login required' });
+  const lastGood = getLastGoodProposal(login);
+  if (!lastGood) return res.status(404).json({ error: 'not_found' });
+  res.json({ lastGood });
 });
 
 // Approve selected proposal (no auto-store; for human review)
