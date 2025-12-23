@@ -108,7 +108,13 @@ class DBHelper {
       CREATE TABLE IF NOT EXISTS profiles (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         twitch_id TEXT UNIQUE,
+        twitch_avatar TEXT,
         login TEXT UNIQUE,
+        email TEXT,
+        password_hash TEXT,
+        discord_id TEXT,
+        discord_login TEXT,
+        discord_avatar TEXT,
         display_name TEXT,
         settings TEXT DEFAULT '{}',
         role TEXT DEFAULT 'player',
@@ -123,6 +129,12 @@ class DBHelper {
     } catch (err) {
       // Ignore if column already exists
     }
+    try { this.db.exec(`ALTER TABLE profiles ADD COLUMN password_hash TEXT`); } catch {}
+    try { this.db.exec(`ALTER TABLE profiles ADD COLUMN email TEXT`); } catch {}
+    try { this.db.exec(`ALTER TABLE profiles ADD COLUMN discord_id TEXT`); } catch {}
+    try { this.db.exec(`ALTER TABLE profiles ADD COLUMN discord_login TEXT`); } catch {}
+    try { this.db.exec(`ALTER TABLE profiles ADD COLUMN discord_avatar TEXT`); } catch {}
+    try { this.db.exec(`ALTER TABLE profiles ADD COLUMN twitch_avatar TEXT`); } catch {}
     try {
       this.db.exec(`ALTER TABLE stats ADD COLUMN handsPlayed INTEGER DEFAULT 0`);
       this.db.exec(`ALTER TABLE stats ADD COLUMN playSeconds INTEGER DEFAULT 0`);
@@ -555,21 +567,69 @@ class DBHelper {
    * @returns {Object}
    */
   upsertProfile(profileData) {
-    const { twitch_id, login, display_name, settings, role } = profileData;
+    const {
+      twitch_id,
+      twitch_avatar,
+      login,
+      display_name,
+      settings,
+      role,
+      email,
+      password_hash,
+      discord_id,
+      discord_login,
+      discord_avatar,
+    } = profileData;
 
     const stmt = this.db.prepare(`
-      INSERT OR REPLACE INTO profiles (twitch_id, login, display_name, settings, role, updated_at)
-      VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      INSERT OR REPLACE INTO profiles (
+        twitch_id, twitch_avatar, login, display_name, settings, role,
+        email, password_hash, discord_id, discord_login, discord_avatar, updated_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
     `);
 
     stmt.run(
-      twitch_id,
+      twitch_id || null,
+      twitch_avatar || null,
       login,
-      display_name,
+      display_name || login,
       JSON.stringify(settings || {}),
-      role || 'player'
+      role || 'player',
+      email || null,
+      password_hash || null,
+      discord_id || null,
+      discord_login || null,
+      discord_avatar || null
     );
 
+    return this.getProfile(login);
+  }
+
+  createLocalUser({ login, email, password_hash }) {
+    const stmt = this.db.prepare(`
+      INSERT INTO profiles (login, email, password_hash, role, created_at, updated_at)
+      VALUES (?, ?, ?, 'player', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    `);
+    stmt.run(login, email || null, password_hash);
+    return this.getProfile(login);
+  }
+
+  updatePassword(login, password_hash) {
+    const stmt = this.db.prepare(`UPDATE profiles SET password_hash=?, updated_at=CURRENT_TIMESTAMP WHERE login=?`);
+    stmt.run(password_hash, login);
+    return this.getProfile(login);
+  }
+
+  linkTwitch(login, { twitch_id, twitch_avatar, display_name }) {
+    const stmt = this.db.prepare(`UPDATE profiles SET twitch_id=?, twitch_avatar=?, display_name=COALESCE(?, display_name), updated_at=CURRENT_TIMESTAMP WHERE login=?`);
+    stmt.run(twitch_id, twitch_avatar || null, display_name || null, login);
+    return this.getProfile(login);
+  }
+
+  linkDiscord(login, { discord_id, discord_login, discord_avatar }) {
+    const stmt = this.db.prepare(`UPDATE profiles SET discord_id=?, discord_login=?, discord_avatar=?, updated_at=CURRENT_TIMESTAMP WHERE login=?`);
+    stmt.run(discord_id, discord_login || null, discord_avatar || null, login);
     return this.getProfile(login);
   }
 
@@ -844,6 +904,11 @@ class DBHelper {
       INSERT INTO purchases (login, item_id, provider, amount_cents, coin_amount, status, txn_id, note, partner_id)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL)
     `).run(login, packId, provider, amount_cents, coins, status, txn_id, note);
+  }
+
+  getPurchaseByTxn(txn_id) {
+    const stmt = this.db.prepare(`SELECT * FROM purchases WHERE txn_id = ? LIMIT 1`);
+    return stmt.get(txn_id);
   }
 
   // ============ PARTNERS ============

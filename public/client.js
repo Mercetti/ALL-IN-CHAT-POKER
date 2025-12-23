@@ -126,6 +126,86 @@ function clearUserToken() {
   setUserToken(null);
 }
 
+async function refreshUserTokenIfNeeded() {
+  const token = getUserToken();
+  if (!token) return;
+  if (!refreshUserTokenIfNeeded.lastWarned) refreshUserTokenIfNeeded.lastWarned = 0;
+  try {
+    const res = await apiCall('/auth/refresh', {
+      method: 'POST',
+      useUserToken: true,
+    });
+    if (res?.token) {
+      setUserToken(res.token);
+      updateTokenBadge('ok');
+    }
+  } catch (err) {
+    console.warn('User token refresh failed', err?.message || err);
+    const now = Date.now();
+    updateTokenBadge('warn');
+    if (window.Toast && now - refreshUserTokenIfNeeded.lastWarned > 5 * 60 * 1000) {
+      Toast.warning('Session refresh failed. You may need to sign in again soon.');
+      refreshUserTokenIfNeeded.lastWarned = now;
+    }
+  }
+}
+
+function ensureTokenBadge() {
+  if (ensureTokenBadge.created) return;
+  const badge = document.createElement('div');
+  badge.id = 'token-status-badge';
+  badge.textContent = 'SESSION';
+  badge.style.position = 'fixed';
+  badge.style.bottom = '12px';
+  badge.style.left = '12px';
+  badge.style.padding = '6px 10px';
+  badge.style.borderRadius = '12px';
+  badge.style.fontSize = '11px';
+  badge.style.fontWeight = '600';
+  badge.style.letterSpacing = '0.6px';
+  badge.style.background = 'rgba(0,0,0,0.5)';
+  badge.style.color = '#ddd';
+  badge.style.zIndex = '9999';
+  badge.style.pointerEvents = 'none';
+  document.body.appendChild(badge);
+  ensureTokenBadge.created = true;
+  updateTokenBadge('init');
+}
+
+function updateTokenBadge(state) {
+  updateTokenBadge.state = state;
+  const badge = document.getElementById('token-status-badge');
+  if (!badge) return;
+  if (state === 'ok') {
+    badge.style.background = 'rgba(16, 185, 129, 0.8)'; // green
+    badge.style.color = '#fff';
+    badge.textContent = 'SESSION OK';
+    badge.dataset.state = 'ok';
+  } else if (state === 'warn') {
+    badge.style.background = 'rgba(234, 179, 8, 0.85)'; // amber
+    badge.style.color = '#111';
+    badge.textContent = 'SESSION CHECK';
+    badge.dataset.state = 'warn';
+  } else {
+    badge.style.background = 'rgba(99, 102, 241, 0.7)'; // indigo
+    badge.style.color = '#fff';
+    badge.textContent = 'SESSION';
+    badge.dataset.state = 'init';
+  }
+}
+
+function getTokenStatus() {
+  return updateTokenBadge.state || 'init';
+}
+
+// Auto-refresh user tokens site-wide (except when explicitly disabled)
+if (typeof window !== 'undefined' && !window.__DISABLE_AUTO_REFRESH) {
+  window.addEventListener('DOMContentLoaded', () => {
+    ensureTokenBadge();
+  });
+  setInterval(() => refreshUserTokenIfNeeded(), 20 * 60 * 1000);
+}
+
 function setAdminBearer(token) {
   if (token) {
     localStorage.setItem('admin_bearer', token);

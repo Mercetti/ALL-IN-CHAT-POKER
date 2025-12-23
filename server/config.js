@@ -17,6 +17,9 @@ module.exports = {
   ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || 'admin123',
   ADMIN_TOKEN: process.env.ADMIN_TOKEN || '',
   ADMIN_ALLOW_LOGINS: process.env.ADMIN_ALLOW_LOGINS || 'mercetti,allinchatpokerbot',
+  CHECKOUT_SIGNING_SECRET: process.env.CHECKOUT_SIGNING_SECRET || process.env.JWT_SECRET || 'change-me-checkout',
+  BANNED_LOGINS: (process.env.BANNED_LOGINS || '').toLowerCase(),
+  BANNED_IPS: (process.env.BANNED_IPS || '').toLowerCase(),
 
   // JWT
   ADMIN_JWT_TTL_SECONDS: 60 * 60, // 1 hour
@@ -43,6 +46,8 @@ module.exports = {
   BOT_JOIN_SECRET: process.env.BOT_JOIN_SECRET || '', // optional secret for chat-based join
   BOT_ADMIN_LOGIN: process.env.BOT_ADMIN_LOGIN || 'allinchatpokerbot',
   TWITCH_REDIRECT_URI: process.env.TWITCH_REDIRECT_URI || '',
+  DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID || '',
+  DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET || '',
 
   // Game settings
   GAME_STARTING_CHIPS: 1000,
@@ -81,7 +86,7 @@ module.exports = {
   
   // Ephemeral tokens
   EPHEMERAL_TOKEN_TTL_SECONDS: parseInt(process.env.EPHEMERAL_TOKEN_TTL_SECONDS || '300', 10),
-  USER_JWT_TTL_SECONDS: parseInt(process.env.USER_JWT_TTL_SECONDS || `${60 * 60 * 24 * 7}`, 10), // 7 days
+  USER_JWT_TTL_SECONDS: parseInt(process.env.USER_JWT_TTL_SECONDS || `${60 * 60 * 24}`, 10), // 1 day default
 
   // Shutdown
   SHUTDOWN_FORCE_TIMEOUT_MS: parseInt(process.env.SHUTDOWN_FORCE_TIMEOUT_MS || '10000', 10),

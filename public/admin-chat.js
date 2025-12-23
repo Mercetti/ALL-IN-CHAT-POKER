@@ -12,6 +12,26 @@ document.addEventListener('DOMContentLoaded', () => {
     window.location.href = '/login.html';
     return;
   }
+  const pill = document.getElementById('session-pill');
+  const refreshPill = () => {
+    if (!pill || typeof getTokenStatus !== 'function') return;
+    const state = getTokenStatus();
+    if (state === 'ok') {
+      pill.textContent = 'Session OK';
+      pill.style.background = 'rgba(16,185,129,0.85)';
+      pill.style.color = '#fff';
+    } else if (state === 'warn') {
+      pill.textContent = 'Session Check';
+      pill.style.background = 'rgba(234,179,8,0.85)';
+      pill.style.color = '#111';
+    } else {
+      pill.textContent = 'Session';
+      pill.style.background = 'rgba(99,102,241,0.7)';
+      pill.style.color = '#fff';
+    }
+  };
+  refreshPill();
+  setInterval(refreshPill, 30000);
 
   const chatLog = document.getElementById('chat-log');
   const chatForm = document.getElementById('chat-form');

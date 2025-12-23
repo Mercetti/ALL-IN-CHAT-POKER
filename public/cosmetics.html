@@ -399,13 +399,18 @@
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
             if (!data?.id) throw new Error('Missing PayPal order id');
+            if (!data?.nonce || !data?.signature) throw new Error('Missing order nonce/signature');
 
-            // Redirect to PayPal and then poll capture on return
+            // Persist nonce client-side to prevent replay
+            sessionStorage.setItem(`paypal_nonce_${data.id}`, data.nonce);
+            sessionStorage.setItem(`paypal_sig_${data.id}`, data.signature);
+
+            // Redirect to PayPal and then return here for capture
             const paypalUrl = `https://www.paypal.com/checkoutnow?token=${data.id}&redirect_uri=${encodeURIComponent(window.location.origin + '/cosmetics.html?paypalOrderId=' + data.id + '&packId=' + packId)}`;
             window.location.href = paypalUrl;
           } catch (err) {
             console.error('Pack purchase failed', err);
-            alert('Could not start PayPal checkout. Please try again.');
+            alert('Could not start PayPal checkout. Please try again. ' + (err?.message || ''));
             btn.disabled = false;
             btn.textContent = 'BUY';
           }
@@ -420,24 +425,38 @@
       const packId = params.get('packId');
       if (!orderId || !packId) return;
       try {
+        const storedNonce = sessionStorage.getItem(`paypal_nonce_${orderId}`) || '';
+        const storedSig = sessionStorage.getItem(`paypal_sig_${orderId}`) || '';
         const res = await fetch('/coins/paypal/capture', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ orderId, packId }),
+          body: JSON.stringify({ orderId, packId, nonce: storedNonce, signature: storedSig }),
         });
         const data = await res.json();
         if (res.ok && data?.success) {
           alert('Purchase complete! Coins added: ' + (data.coins || ''));
-          // clean query params
-          const url = new URL(window.location.href);
-          url.search = '';
-          window.history.replaceState({}, document.title, url.toString());
         } else {
-          alert('PayPal capture failed. Please contact support.');
+          const msg = data?.error === 'invalid_nonce'
+            ? 'Checkout session expired. Please start again.'
+            : data?.error === 'nonce_used'
+              ? 'This checkout was already processed. If coins are missing, contact support.'
+              : data?.error === 'invalid_signature'
+                ? 'Order signature mismatch. Please restart checkout.'
+              : data?.error === 'duplicate_txn'
+                ? 'This payment was already captured. If coins are missing, contact support.'
+                : 'PayPal capture failed. Please try again.';
+          alert(msg);
         }
       } catch (e) {
         console.error('PayPal capture failed', e);
         alert('PayPal capture failed. Please contact support.');
+      } finally {
+        // clean query params and nonce
+        const url = new URL(window.location.href);
+        url.search = '';
+        window.history.replaceState({}, document.title, url.toString());
+        sessionStorage.removeItem(`paypal_nonce_${orderId}`);
+        sessionStorage.removeItem(`paypal_sig_${orderId}`);
       }
     })();
     loadCatalog();

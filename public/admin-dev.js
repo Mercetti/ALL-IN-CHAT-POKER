@@ -512,6 +512,27 @@ document.addEventListener('DOMContentLoaded', async () => {
   const ok = await requireAdmin();
   if (!ok) return;
 
+  const sessionPill = document.getElementById('session-pill');
+  const refreshSessionPill = () => {
+    if (!sessionPill || typeof getTokenStatus !== 'function') return;
+    const state = getTokenStatus();
+    if (state === 'ok') {
+      sessionPill.textContent = 'Session OK';
+      sessionPill.style.background = 'rgba(16, 185, 129, 0.85)';
+      sessionPill.style.color = '#fff';
+    } else if (state === 'warn') {
+      sessionPill.textContent = 'Session Check';
+      sessionPill.style.background = 'rgba(234, 179, 8, 0.85)';
+      sessionPill.style.color = '#111';
+    } else {
+      sessionPill.textContent = 'Session';
+      sessionPill.style.background = 'rgba(99, 102, 241, 0.7)';
+      sessionPill.style.color = '#fff';
+    }
+  };
+  refreshSessionPill();
+  setInterval(refreshSessionPill, 30000);
+
   updateHealthDisplay();
   loadFlags();
   loadEarnConfig();

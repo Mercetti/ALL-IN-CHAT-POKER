@@ -21,6 +21,60 @@ const MIN_CONTRAST = 3.0;
 const CACHE_TTL_MS = 1000 * 60 * 30; // 30 minutes
 const generationQueue = [];
 const rateStore = new Map();
+const validateLocalLogin = (login) => /^[a-zA-Z0-9_]{3,20}$/.test((login || '').trim());
+const REJOIN_COOLDOWN_MS = 5000;
+const lastBetAttempt = new Map(); // login -> timestamp
+const signCheckout = (login, packId, orderId) => {
+  const h = crypto.createHmac('sha256', config.CHECKOUT_SIGNING_SECRET);
+  h.update(`${login}:${packId}:${orderId}`);
+  return h.digest('hex');
+};
+const bannedLogins = new Set(
+  (config.BANNED_LOGINS || '')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+);
+const bannedIps = new Set(
+  (config.BANNED_IPS || '')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+);
+const isBanned = (login, ip) => {
+  const l = (login || '').toLowerCase();
+  const ipClean = (ip || '').trim().toLowerCase();
+  return (l && bannedLogins.has(l)) || (ipClean && bannedIps.has(ipClean));
+};
+const validateBody = (body, shape = {}) => {
+  if (typeof body !== 'object' || body === null) return false;
+  return Object.entries(shape).every(([key, type]) => {
+    if (!(key in body)) return false;
+    const val = body[key];
+    if (type === 'string') return typeof val === 'string' && val.trim().length > 0;
+    if (type === 'number') return typeof val === 'number' && Number.isFinite(val);
+    if (type === 'int') return Number.isInteger(val);
+    return false;
+  });
+};
+const socketRateStore = new Map(); // key -> {count, reset}
+const socketRateLimit = (socket, key, windowMs, max) => {
+  const now = Date.now();
+  const login = (socket?.data?.login || '').toLowerCase();
+  const ip = socket?.handshake?.address || socket?.conn?.remoteAddress || 'ipless';
+  const rateKey = `${key}:${login || 'anon'}:${ip}`;
+  let entry = socketRateStore.get(rateKey);
+  if (!entry || now > entry.reset) {
+    entry = { count: 0, reset: now + windowMs };
+  }
+  entry.count += 1;
+  socketRateStore.set(rateKey, entry);
+  if (entry.count > max) {
+    logger.warn('Socket rate limited', { rateKey, key, login, ip });
+    return false;
+  }
+  return true;
+};
 const securityHeadersMiddleware = (req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
@@ -1048,11 +1102,11 @@ app.get('/index.html', (_req, res) => {
   res.set('Cache-Control', 'no-store');
   res.redirect(301, '/welcome.html');
 });
-// Expose minimal public config for the frontend (no secrets)
-app.get('/public-config.json', (req, res) => {
-  const forwardedProto = (req.headers['x-forwarded-proto'] || '').split(',')[0].trim();
-  const proto = forwardedProto || req.protocol || 'https';
-  const redirectUriRaw =
+  // Expose minimal public config for the frontend (no secrets)
+  app.get('/public-config.json', (req, res) => {
+    const forwardedProto = (req.headers['x-forwarded-proto'] || '').split(',')[0].trim();
+    const proto = forwardedProto || req.protocol || 'https';
+    const redirectUriRaw =
     config.TWITCH_REDIRECT_URI ||
     `${proto}://${req.get('host')}/login.html`;
   const redirectUri = (redirectUriRaw || '').trim().replace(/\\+$/, '');
@@ -1064,14 +1118,172 @@ app.get('/public-config.json', (req, res) => {
     paypalClientId: config.PAYPAL_CLIENT_ID || '',
     minBet: config.GAME_MIN_BET || 0,
     potGlowMultiplier: config.POT_GLOW_MULTIPLIER || 5,
-    defaultChannel: DEFAULT_CHANNEL,
+      defaultChannel: DEFAULT_CHANNEL,
+    });
   });
-});
 
-// Admin-only bot chat page
-app.get('/admin-chat.html', auth.requireAdmin, (_req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin-chat.html'));
-});
+  // First-party auth: register/login and link status
+  app.post('/auth/register', rateLimit('auth_register', 60 * 1000, 5), (req, res) => {
+    try {
+      const { login, password, email } = req.body || {};
+      if (!validateBody({ login, password }, { login: 'string', password: 'string' })) {
+        return res.status(400).json({ error: 'invalid_payload' });
+      }
+      const normalized = (login || '').trim().toLowerCase();
+      if (isBanned(normalized, req.ip)) return res.status(403).json({ error: 'banned' });
+      if (!validateLocalLogin(normalized)) {
+        return res.status(400).json({ error: 'invalid_login' });
+      }
+      if (!password || password.length < 8) {
+        return res.status(400).json({ error: 'invalid_password' });
+      }
+      const existing = db.getProfile(normalized);
+      if (existing && existing.password_hash) {
+        return res.status(409).json({ error: 'login_taken' });
+      }
+      const password_hash = auth.hashPassword(password);
+      let profile = null;
+      try {
+        if (existing) {
+          profile = db.updatePassword(normalized, password_hash);
+        } else {
+          profile = db.createLocalUser({ login: normalized, email, password_hash });
+        }
+      } catch (err) {
+        if (String(err.message || '').includes('UNIQUE') || String(err.code || '') === 'SQLITE_CONSTRAINT') {
+          return res.status(409).json({ error: 'login_taken' });
+        }
+        throw err;
+      }
+      const token = auth.signUserJWT(normalized);
+      return res.json({
+        token,
+        profile: {
+          login: profile.login,
+          role: profile.role,
+          twitchLinked: !!profile.twitch_id,
+          discordLinked: !!profile.discord_id,
+        },
+      });
+    } catch (err) {
+      logger.error('auth register failed', { error: err.message });
+      return res.status(500).json({ error: 'internal_error' });
+    }
+  });
+
+  app.post('/auth/login', rateLimit('auth_login', 60 * 1000, 5), (req, res) => {
+    try {
+      const { login, password } = req.body || {};
+      if (!validateBody({ login, password }, { login: 'string', password: 'string' })) {
+        return res.status(400).json({ error: 'invalid_payload' });
+      }
+      const normalized = (login || '').trim().toLowerCase();
+      if (isBanned(normalized, req.ip)) return res.status(403).json({ error: 'banned' });
+      if (!validateLocalLogin(normalized) || !password) {
+        return res.status(400).json({ error: 'invalid_credentials' });
+      }
+      const profile = db.getProfile(normalized);
+      if (!profile || !profile.password_hash) {
+        return res.status(401).json({ error: 'not_found' });
+      }
+      const ok = auth.verifyPassword(password, profile.password_hash);
+      if (!ok) return res.status(401).json({ error: 'invalid_credentials' });
+      const token = auth.signUserJWT(normalized);
+      return res.json({
+        token,
+        profile: {
+          login: profile.login,
+          role: profile.role,
+          twitchLinked: !!profile.twitch_id,
+          discordLinked: !!profile.discord_id,
+        },
+      });
+    } catch (err) {
+      logger.error('auth login failed', { error: err.message });
+      return res.status(500).json({ error: 'internal_error' });
+    }
+  });
+
+  app.get('/auth/link/status', auth.requireUser, (req, res) => {
+    try {
+      const login = (req.userLogin || '').toLowerCase();
+      const profile = db.getProfile(login);
+      if (!profile) return res.status(404).json({ error: 'not_found' });
+      return res.json({
+        login: profile.login,
+        role: profile.role,
+        twitchLinked: !!profile.twitch_id,
+        discordLinked: !!profile.discord_id,
+        twitchAvatar: profile.twitch_avatar || null,
+        discordAvatar: profile.discord_avatar || null,
+        displayName: profile.display_name || profile.login,
+      });
+    } catch (err) {
+      logger.error('link status failed', { error: err.message });
+      return res.status(500).json({ error: 'internal_error' });
+    }
+  });
+
+  app.post('/auth/link/twitch', auth.requireUser, async (req, res) => {
+    try {
+      const { twitchToken } = req.body || {};
+      if (!twitchToken || typeof twitchToken !== 'string') {
+        return res.status(400).json({ error: 'twitch token required' });
+      }
+      const twitchProfile = await fetchTwitchUser(twitchToken);
+      if (!twitchProfile || !twitchProfile.login) {
+        return res.status(401).json({ error: 'invalid twitch token' });
+      }
+      const profile = db.linkTwitch((req.userLogin || '').toLowerCase(), {
+        twitch_id: twitchProfile.user_id,
+        twitch_avatar: twitchProfile.avatarUrl,
+        display_name: twitchProfile.display_name || twitchProfile.login,
+      });
+      return res.json({
+        ok: true,
+        profile: {
+          login: profile.login,
+          role: profile.role,
+          twitchLinked: !!profile.twitch_id,
+          discordLinked: !!profile.discord_id,
+          twitchAvatar: profile.twitch_avatar || null,
+        },
+      });
+    } catch (err) {
+      logger.error('link twitch failed', { error: err.message });
+      return res.status(500).json({ error: 'internal_error' });
+    }
+  });
+
+  app.post('/auth/link/discord', auth.requireUser, (req, res) => {
+    try {
+      const { discord_id, discord_login, discord_avatar } = req.body || {};
+      if (!discord_id) return res.status(400).json({ error: 'discord_id required' });
+      const profile = db.linkDiscord((req.userLogin || '').toLowerCase(), {
+        discord_id,
+        discord_login: discord_login || discord_id,
+        discord_avatar: discord_avatar || null,
+      });
+      return res.json({
+        ok: true,
+        profile: {
+          login: profile.login,
+          role: profile.role,
+          twitchLinked: !!profile.twitch_id,
+          discordLinked: !!profile.discord_id,
+          discordAvatar: profile.discord_avatar || null,
+        },
+      });
+    } catch (err) {
+      logger.error('link discord failed', { error: err.message });
+      return res.status(500).json({ error: 'internal_error' });
+    }
+  });
+  
+  // Admin-only bot chat page
+  app.get('/admin-chat.html', auth.requireAdmin, (_req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin-chat.html'));
+  });
 
 app.get('/admin-chat', auth.requireAdmin, (_req, res) => {
   res.redirect('/admin-chat.html');
@@ -2402,6 +2614,13 @@ function placeBet(username, amount, channel = DEFAULT_CHANNEL) {
     return false;
   }
 
+  const now = Date.now();
+  const last = lastBetAttempt.get(username) || 0;
+  if (now - last < REJOIN_COOLDOWN_MS) {
+    logger.warn('Bet rejected; cooldown', { username, msRemaining: REJOIN_COOLDOWN_MS - (now - last), channel: channelName });
+    return false;
+  }
+
   const maxPlayers = state.currentMode === 'blackjack' ? MAX_BLACKJACK_PLAYERS : MAX_POKER_PLAYERS;
   const isNewPlayer = state.betAmounts[username] === undefined;
   const activeCount = Object.keys(state.betAmounts).length + (isNewPlayer ? 1 : 0);
@@ -2425,6 +2644,10 @@ function placeBet(username, amount, channel = DEFAULT_CHANNEL) {
   const usingTournamentStack = state.tournamentId && state.tournamentStacks && typeof state.tournamentStacks[username] === 'number';
   const currentBalance = usingTournamentStack ? state.tournamentStacks[username] : db.getBalance(username);
   const available = currentBalance + existingBet; // refund previous bet to recalc
+  if (available < config.GAME_MIN_BET) {
+    logger.warn('Bet rejected; insufficient available funds', { username, available, channel: channelName });
+    return false;
+  }
   const heur = getHeuristics(username, channelName);
   const tiltClamp = Math.max(config.GAME_MIN_BET, Math.floor(available * config.TILT_BET_CLAMP_RATIO));
   let targetAmount = amount;
@@ -2458,6 +2681,7 @@ function placeBet(username, amount, channel = DEFAULT_CHANNEL) {
   }
   state.waitingQueue = state.waitingQueue.filter(u => u !== username);
   recordBetHeuristic(username, targetAmount, newBalance, channelName);
+  lastBetAttempt.set(username, now);
 
   // Ensure profile exists
   db.upsertProfile({
@@ -2488,6 +2712,16 @@ function placeBet(username, amount, channel = DEFAULT_CHANNEL) {
   return true;
 }
 
+const invalidActionLog = new Map(); // key -> count reset every minute
+setInterval(() => invalidActionLog.clear(), 60 * 1000);
+function logInvalidAction(login, action, channel) {
+  const key = `${(login || 'anon').toLowerCase()}:${action}`;
+  const current = invalidActionLog.get(key) || 0;
+  invalidActionLog.set(key, current + 1);
+  if (current + 1 >= 5) {
+    logger.warn('Repeated invalid action', { login, action, channel, count: current + 1 });
+  }
+}
 function startPokerActionTimer(channel = DEFAULT_CHANNEL) {
   const channelName = normalizeChannelName(channel) || DEFAULT_CHANNEL;
   const state = getStateForChannel(channelName);
@@ -2901,6 +3135,9 @@ function autoBetAiInQueue(channel = DEFAULT_CHANNEL) {
       const ok = placeBet(login, config.GAME_MIN_BET, channelName);
       if (ok && Array.isArray(state.waitingQueue)) {
         state.waitingQueue = state.waitingQueue.filter(u => u !== login);
+      }
+      if (!ok) {
+        logger.warn('AI auto-bet failed', { login, channel: channelName });
       }
     }
   });
@@ -4015,19 +4252,18 @@ app.post('/admin/start-round', auth.requireAdmin, (req, res) => {
 /**
  * Player login via Twitch user access token -> user JWT
  */
-app.post('/user/login', async (req, res) => {
-  try {
-    const { twitchToken } = req.body || {};
-    if (!twitchToken || typeof twitchToken !== 'string') {
-      return res.status(400).json({ error: 'twitch token required' });
-    }
-
-    const twitchProfile = await fetchTwitchUser(twitchToken);
-    if (!twitchProfile || !twitchProfile.login) {
-      return res.status(401).json({ error: 'invalid twitch token' });
-    }
-
-  const login = twitchProfile.login;
+  app.post('/user/login', rateLimit('user_login', 60000, 10), async (req, res) => {
+    try {
+      const { twitchToken } = req.body || {};
+      if (!twitchToken || typeof twitchToken !== 'string') {
+        return res.status(400).json({ error: 'twitch token required' });
+      }
+      const twitchProfile = await fetchTwitchUser(twitchToken);
+      if (!twitchProfile || !twitchProfile.login) {
+        return res.status(401).json({ error: 'invalid twitch token' });
+      }
+    const login = twitchProfile.login;
+    if (isBanned(login, req.ip)) return res.status(403).json({ error: 'banned' });
   const existingProfile = db.getProfile(login);
   let parsedSettings = {};
   try {
@@ -4153,36 +4389,67 @@ app.get('/user/coins', (req, res) => {
   return res.json({ coins });
 });
 
-app.post('/coins/paypal/order', async (req, res) => {
-  try {
-    const login = auth.extractUserLogin(req);
-    if (!validation.validateUsername(login || '')) {
-      return res.status(401).json({ error: 'unauthorized' });
+  app.post('/coins/paypal/order', rateLimit('coins_order', 60000, 6), async (req, res) => {
+    try {
+      const login = auth.extractUserLogin(req);
+      if (!validation.validateUsername(login || '')) {
+        return res.status(401).json({ error: 'unauthorized' });
+      }
+      if (!validateBody(req.body, { packId: 'string' })) {
+        return res.status(400).json({ error: 'invalid_payload' });
+      }
+      if (!config.PAYPAL_CLIENT_ID || !config.PAYPAL_CLIENT_SECRET) {
+        return res.status(400).json({ error: 'paypal_not_configured' });
+      }
+      const packId = req.body?.packId;
+      const pack = COIN_PACKS.find(p => p.id === packId);
+      if (!pack) return res.status(400).json({ error: 'invalid_pack' });
+      const dollars = (pack.amount_cents / 100).toFixed(2);
+      const order = await createPayPalOrder(dollars, `${pack.name} (${pack.coins} coins)`);
+      const sig = signCheckout(login, packId, order.id);
+      const nonce = db.createToken(`paypal:${login}:${packId}:${order.id}`, req.ip || 'unknown', 15 * 60);
+      return res.json({ id: order.id, pack, nonce, signature: sig });
+    } catch (err) {
+      logger.error('PayPal coin order failed', { error: err.message });
+      return res.status(500).json({ error: 'paypal_create_failed' });
     }
-    if (!config.PAYPAL_CLIENT_ID || !config.PAYPAL_CLIENT_SECRET) {
-      return res.status(400).json({ error: 'paypal_not_configured' });
-    }
-    const packId = req.body?.packId;
-    const pack = COIN_PACKS.find(p => p.id === packId);
-    if (!pack) return res.status(400).json({ error: 'invalid_pack' });
-    const dollars = (pack.amount_cents / 100).toFixed(2);
-    const order = await createPayPalOrder(dollars, `${pack.name} (${pack.coins} coins)`);
-    return res.json({ id: order.id, pack });
-  } catch (err) {
-    logger.error('PayPal coin order failed', { error: err.message });
-    return res.status(500).json({ error: 'paypal_create_failed' });
-  }
-});
+  });
 
-app.post('/coins/paypal/capture', async (req, res) => {
-  try {
-    const login = auth.extractUserLogin(req);
-    if (!validation.validateUsername(login || '')) {
-      return res.status(401).json({ error: 'unauthorized' });
+  app.post('/coins/paypal/capture', rateLimit('coins_capture', 60000, 6), async (req, res) => {
+    try {
+      const login = auth.extractUserLogin(req);
+      if (!validation.validateUsername(login || '')) {
+        return res.status(401).json({ error: 'unauthorized' });
+      }
+    const { orderId, packId, nonce, signature } = req.body || {};
+    if (!validateBody({ orderId, packId, nonce, signature }, { orderId: 'string', packId: 'string', nonce: 'string', signature: 'string' })) {
+      return res.status(400).json({ error: 'invalid_payload' });
     }
-    const { orderId, packId } = req.body || {};
+    if (!nonce) return res.status(400).json({ error: 'nonce_required' });
+    const tokenRow = db.getToken(nonce);
+    const expectedPurpose = `paypal:${login}:${packId}:${orderId}`;
+    if (!tokenRow || tokenRow.purpose !== expectedPurpose) {
+      logger.warn('PayPal capture invalid nonce', { login, packId, orderId, purpose: tokenRow?.purpose });
+      sendMonitorAlert(`PayPal capture invalid nonce for ${login} pack ${packId} order ${orderId}`);
+      return res.status(400).json({ error: 'invalid_nonce' });
+    }
+    if (!db.consumeToken(nonce)) {
+      return res.status(400).json({ error: 'nonce_used' });
+    }
+    if (!signature || signature !== signCheckout(login, packId, orderId)) {
+      logger.warn('PayPal capture signature mismatch', { login, packId, orderId });
+      sendMonitorAlert(`PayPal capture signature mismatch for ${login} order ${orderId}`);
+      return res.status(400).json({ error: 'invalid_signature' });
+    }
     const pack = COIN_PACKS.find(p => p.id === packId);
     if (!pack) return res.status(400).json({ error: 'invalid_pack' });
+    // Prevent replay of the same PayPal order id
+    const existingTxn = db.getPurchaseByTxn(orderId);
+    if (existingTxn) {
+      logger.warn('PayPal capture replay blocked', { login, orderId, packId });
+      sendMonitorAlert(`PayPal capture replay blocked for ${login} order ${orderId}`);
+      return res.status(409).json({ error: 'duplicate_txn' });
+    }
     const capture = await capturePayPalOrder(orderId);
     const coins = db.addCoins(login, pack.coins);
     db.recordCurrencyPurchase({
@@ -4222,6 +4489,7 @@ app.post('/admin/tournaments/:id/blinds', auth.requireAdmin, (req, res) => {
     const t = db.getTournament(tid);
     if (!t) return res.status(404).json({ error: 'not_found' });
     const levels = Array.isArray(req.body?.levels) ? req.body.levels : [];
+    if (!Array.isArray(levels)) return res.status(400).json({ error: 'invalid_payload' });
     const updated = db.setBlindConfig(tid, levels);
     return res.json({ blinds: db.getBlindConfig(tid), tournament: updated });
   } catch (err) {
@@ -4244,6 +4512,9 @@ app.post('/admin/tournaments', auth.requireAdmin, (req, res) => {
       decks = TOURNAMENT_DEFAULTS.decks,
       blinds = TOURNAMENT_DEFAULTS.blinds,
     } = req.body || {};
+    if (!validateBody({ name: name || 'tournament' }, { name: 'string' })) {
+      return res.status(400).json({ error: 'invalid_payload' });
+    }
     const tid = (id || `t-${Date.now()}`).toLowerCase();
     const next_level_at = new Date(Date.now() + level_seconds * 1000).toISOString();
     const tourney = db.upsertTournament({
@@ -4274,6 +4545,7 @@ app.post('/admin/tournaments/:id/players', auth.requireAdmin, (req, res) => {
     const tid = req.params.id;
     const { login, seat } = req.body || {};
     if (!validation.validateUsername(login || '')) return res.status(400).json({ error: 'invalid login' });
+    if (seat !== undefined && !Number.isInteger(seat)) return res.status(400).json({ error: 'invalid seat' });
     const player = db.addTournamentPlayer(tid, login, seat);
     return res.json(player);
   } catch (err) {
@@ -4287,6 +4559,7 @@ app.post('/admin/tournaments/:id/advance', auth.requireAdmin, (req, res) => {
     const tid = req.params.id;
     const t = db.getTournament(tid);
     if (!t) return res.status(404).json({ error: 'not_found' });
+    if (t.state !== 'active') return res.status(400).json({ error: 'not_active' });
     const level = (t.current_level || 1) + 1;
     const next = new Date(Date.now() + (t.level_seconds || TOURNAMENT_DEFAULTS.level_seconds) * 1000).toISOString();
     const updated = db.upsertTournament({ ...t, current_level: level, next_level_at: next });
@@ -4302,6 +4575,9 @@ app.post('/admin/tournaments/:id/start', auth.requireAdmin, (req, res) => {
     const tid = req.params.id;
     const t = db.getTournament(tid);
     if (!t) return res.status(404).json({ error: 'not_found' });
+    if (t.state === 'active' || t.state === 'complete') {
+      return res.status(400).json({ error: 'already_started' });
+    }
     const now = Date.now();
     const nextLevelMs = (t.blind_config && JSON.parse(t.blind_config || '[]')[0]?.seconds)
       ? JSON.parse(t.blind_config)[0].seconds * 1000
@@ -4429,6 +4705,7 @@ app.post('/admin/tournaments/:id/bracket', auth.requireAdmin, (req, res) => {
     const tid = req.params.id;
     const round = Number(req.body?.round) || 1;
     const tableSize = Math.min(Math.max(Number(req.body?.tableSize) || 6, 2), 10);
+    if (!Number.isInteger(round) || round < 1) return res.status(400).json({ error: 'invalid round' });
     const t = db.getTournament(tid);
     if (!t) return res.status(404).json({ error: 'not_found' });
     const roster = Array.isArray(req.body?.players) && req.body.players.length
@@ -4500,6 +4777,8 @@ app.post('/admin/tournaments/:id/bootstrap-round', auth.requireAdmin, (req, res)
     if (!t) return res.status(404).json({ error: 'not_found' });
     const round = Number(req.body?.round) || 1;
     const tableSize = Math.min(Math.max(Number(req.body?.tableSize) || 6, 2), 10);
+    if (!Number.isInteger(round) || round <= 0) return res.status(400).json({ error: 'invalid_round' });
+    if (!Number.isInteger(tableSize) || tableSize < 2 || tableSize > 10) return res.status(400).json({ error: 'invalid_table_size' });
     const bracket = db.listBracket(tid, round);
     let bracketData = bracket;
     if (!bracket || bracket.length === 0) {
@@ -4562,6 +4841,7 @@ app.post('/admin/tournaments/:id/table/:table/bind', auth.requireAdmin, (req, re
     const table = Number(req.params.table);
     const channel = normalizeChannelName(req.body?.channel || '');
     if (!channel) return res.status(400).json({ error: 'channel required' });
+    if (!Number.isInteger(table) || table < 0) return res.status(400).json({ error: 'invalid_table' });
     const t = db.getTournament(tid);
     if (!t) return res.status(404).json({ error: 'not_found' });
     const state = getStateForChannel(channel);
@@ -4880,7 +5160,7 @@ app.post('/profile', (req, res) => {
 /**
  * Chat-initiated bet (used by the Twitch bot)
  */
-app.post('/chat/bet', (req, res) => {
+app.post('/chat/bet', rateLimit('chat_bet', 15000, 5), (req, res) => {
   try {
     const { login, amount, secret } = req.body || {};
     const channel = getChannelFromReq(req);
@@ -4889,6 +5169,10 @@ app.post('/chat/bet', (req, res) => {
     }
 
     const normalizedLogin = (login || '').toLowerCase();
+    if (isBanned(normalizedLogin, req.ip)) return res.status(403).json({ error: 'banned' });
+    if (!validateBody({ login, amount }, { login: 'string', amount: 'number' }) && !Number.isInteger(parseInt(amount, 10))) {
+      return res.status(400).json({ error: 'invalid_payload' });
+    }
     const betAmount = parseInt(amount, 10);
 
     if (!validation.validateUsername(normalizedLogin)) {
@@ -5100,6 +5384,7 @@ app.post('/admin/dev-purchase', auth.requireAdmin, (req, res) => {
   if (!validation.validateUsername(login || '')) {
     return res.status(400).json({ error: 'invalid username' });
   }
+  if (!itemId || typeof itemId !== 'string') return res.status(400).json({ error: 'invalid itemId' });
   const item = db.getCosmeticById(itemId);
   if (!item) return res.status(400).json({ error: 'invalid itemId' });
 
@@ -5234,10 +5519,14 @@ app.get('/overlay/loadout', (req, res) => {
  * Purchase a cosmetic using soft currency (coins)
  * Body: { itemId }
  */
-app.post('/market/buy', (req, res) => {
+app.post('/market/buy', rateLimit('market_buy', 20000, 5), (req, res) => {
   const login = auth.extractUserLogin(req);
   if (!validation.validateUsername(login || '')) {
     return res.status(401).json({ error: 'unauthorized' });
+  }
+  if (isBanned(login, req.ip)) return res.status(403).json({ error: 'banned' });
+  if (!validateBody(req.body || {}, { itemId: 'string' })) {
+    return res.status(400).json({ error: 'invalid_payload' });
   }
   const itemId = req.body?.itemId;
   const partnerId = (req.body?.partnerId || '').toLowerCase() || null;
@@ -5245,7 +5534,7 @@ app.post('/market/buy', (req, res) => {
   const catalog = db.getCatalog();
   const item = catalog.find(i => i.id === itemId);
   if (!item) return res.status(404).json({ error: 'not_found' });
-  const price = Number.isFinite(item.price_cents) ? item.price_cents : 0;
+  const price = Number.isFinite(item.price_cents) ? Math.max(0, item.price_cents) : 0;
   if (price > 0) {
     const spend = db.spendCoins(login, price);
     if (!spend.ok) {
@@ -5671,6 +5960,7 @@ io.on('connection', (socket) => {
    * Start a new round
    */
   socket.on('startRound', (data) => {
+    if (!socketRateLimit(socket, 'startRound', 5000, 3)) return;
     const channelName = socket.data.channel || DEFAULT_CHANNEL;
     const state = getStateForChannel(channelName);
     if (!auth.isAdminRequest(socket.handshake)) {
@@ -5696,6 +5986,7 @@ io.on('connection', (socket) => {
    * Force a draw/discard decision
    */
   socket.on('forceDraw', (data) => {
+    if (!socketRateLimit(socket, 'forceDraw', 5000, 3)) return;
     const channelName = socket.data.channel || DEFAULT_CHANNEL;
     const state = getStateForChannel(channelName);
     if (!auth.isAdminRequest(socket.handshake)) {
@@ -5719,6 +6010,7 @@ io.on('connection', (socket) => {
    * Overlay tuning (admin only)
    */
   socket.on('overlaySettings', (data) => {
+    if (!socketRateLimit(socket, 'overlaySettings', 5000, 3)) return;
     if (!auth.isAdminRequest(socket.handshake)) {
       logger.warn('Unauthorized overlaySettings attempt', { socketId: socket.id });
       return;
@@ -5737,6 +6029,7 @@ io.on('connection', (socket) => {
    * Add AI test bots (admin-only)
    */
   socket.on('addTestBots', (data = {}) => {
+    if (!socketRateLimit(socket, 'addTestBots', 5000, 2)) return;
     if (!auth.isAdminRequest(socket.handshake)) {
       logger.warn('Unauthorized addTestBots attempt', { socketId: socket.id });
       return;
@@ -5757,6 +6050,7 @@ io.on('connection', (socket) => {
    * Player selects held cards (poker)
    */
   socket.on('playerHold', (data) => {
+    if (!socketRateLimit(socket, 'playerHold', 1000, 5)) return;
     const login = socket.data.login;
     if (!validation.validateUsername(login || '')) {
       logger.warn('Unauthorized playerHold: missing/invalid login', { socketId: socket.id });
@@ -5772,6 +6066,7 @@ io.on('connection', (socket) => {
    * Poker betting: check
    */
   socket.on('playerCheck', () => {
+    if (!socketRateLimit(socket, 'playerCheck', 800, 5)) return;
     const channelName = socket.data.channel || DEFAULT_CHANNEL;
     const state = getStateForChannel(channelName);
     if (!isMultiStreamChannel(channelName) || state.currentMode !== 'poker' || !state.roundInProgress) return;
@@ -5784,6 +6079,7 @@ io.on('connection', (socket) => {
    * Poker betting: call
    */
   socket.on('playerCall', () => {
+    if (!socketRateLimit(socket, 'playerCall', 800, 5)) return;
     const channelName = socket.data.channel || DEFAULT_CHANNEL;
     const state = getStateForChannel(channelName);
     if (!isMultiStreamChannel(channelName) || state.currentMode !== 'poker' || !state.roundInProgress) return;
@@ -5796,20 +6092,25 @@ io.on('connection', (socket) => {
    * Poker betting: raise/bet
    */
   socket.on('playerRaise', (data) => {
+    if (!socketRateLimit(socket, 'playerRaise', 800, 5)) return;
     const channelName = socket.data.channel || DEFAULT_CHANNEL;
-    const state = getStateForChannel(channelName);
-    if (!isMultiStreamChannel(channelName) || state.currentMode !== 'poker' || !state.roundInProgress) return;
-    const login = socket.data.login;
-    if (!validation.validateUsername(login || '')) return;
-    const amount = Number.isInteger(data?.amount) ? data.amount : null;
-    if (amount === null) return;
-    pokerRaiseAction(login, amount, channelName);
-  });
+  const state = getStateForChannel(channelName);
+  if (!isMultiStreamChannel(channelName) || state.currentMode !== 'poker' || !state.roundInProgress) return;
+  const login = socket.data.login;
+  if (!validation.validateUsername(login || '')) return;
+  const amount = Number.isInteger(data?.amount) ? data.amount : null;
+  if (amount === null) {
+    logInvalidAction(login, 'raise_invalid', channelName);
+    return;
+  }
+  pokerRaiseAction(login, amount, channelName);
+});
 
   /**
    * Poker betting: fold
    */
   socket.on('playerFold', () => {
+    if (!socketRateLimit(socket, 'playerFold', 800, 5)) return;
     const channelName = socket.data.channel || DEFAULT_CHANNEL;
     const state = getStateForChannel(channelName);
     if (!isMultiStreamChannel(channelName) || state.currentMode !== 'poker' || !state.roundInProgress) return;
@@ -5822,51 +6123,58 @@ io.on('connection', (socket) => {
    * Blackjack: player requests a hit
    */
   socket.on('playerHit', (data) => {
+    if (!socketRateLimit(socket, 'playerHit', 800, 5)) return;
     const channelName = socket.data.channel || DEFAULT_CHANNEL;
-    const state = getStateForChannel(channelName);
-    if (state.currentMode !== 'blackjack') return;
-    const login = socket.data.login;
-    if (!validation.validateUsername(login || '')) {
-      logger.warn('Unauthorized playerHit: missing/invalid login', { socketId: socket.id });
-      return;
-    }
-    state.blackjackHandlers?.hit?.(login);
-  });
+  const state = getStateForChannel(channelName);
+  if (state.currentMode !== 'blackjack') return;
+  const login = socket.data.login;
+  if (!validation.validateUsername(login || '')) {
+    logger.warn('Unauthorized playerHit: missing/invalid login', { socketId: socket.id });
+    logInvalidAction(login, 'hit_invalid', channelName);
+    return;
+  }
+  state.blackjackHandlers?.hit?.(login);
+});
 
   /**
    * Blackjack: player stands
    */
   socket.on('playerStand', (data) => {
+    if (!socketRateLimit(socket, 'playerStand', 800, 5)) return;
     const channelName = socket.data.channel || DEFAULT_CHANNEL;
-    const state = getStateForChannel(channelName);
-    if (state.currentMode !== 'blackjack') return;
-    const login = socket.data.login;
-    if (!validation.validateUsername(login || '')) {
-      logger.warn('Unauthorized playerStand: missing/invalid login', { socketId: socket.id });
-      return;
-    }
-    state.blackjackHandlers?.stand?.(login);
-  });
+  const state = getStateForChannel(channelName);
+  if (state.currentMode !== 'blackjack') return;
+  const login = socket.data.login;
+  if (!validation.validateUsername(login || '')) {
+    logger.warn('Unauthorized playerStand: missing/invalid login', { socketId: socket.id });
+    logInvalidAction(login, 'stand_invalid', channelName);
+    return;
+  }
+  state.blackjackHandlers?.stand?.(login);
+});
 
   /**
    * Blackjack: player double down
    */
   socket.on('playerDouble', () => {
+    if (!socketRateLimit(socket, 'playerDouble', 800, 3)) return;
     const channelName = socket.data.channel || DEFAULT_CHANNEL;
     const state = getStateForChannel(channelName);
-    if (state.currentMode !== 'blackjack') return;
-    const login = socket.data.login;
-    if (!validation.validateUsername(login || '')) {
-      logger.warn('Unauthorized playerDouble: missing/invalid login', { socketId: socket.id });
-      return;
-    }
-    state.blackjackHandlers?.doubleDown?.(login, state.betAmounts, db);
-  });
+  if (state.currentMode !== 'blackjack') return;
+  const login = socket.data.login;
+  if (!validation.validateUsername(login || '')) {
+    logger.warn('Unauthorized playerDouble: missing/invalid login', { socketId: socket.id });
+    logInvalidAction(login, 'double_invalid', channelName);
+    return;
+  }
+  state.blackjackHandlers?.doubleDown?.(login, state.betAmounts, db);
+});
 
   /**
    * Blackjack: player surrender (forfeit half bet)
    */
   socket.on('playerSurrender', () => {
+    if (!socketRateLimit(socket, 'playerSurrender', 800, 3)) return;
     const channelName = socket.data.channel || DEFAULT_CHANNEL;
     const state = getStateForChannel(channelName);
     if (state.currentMode !== 'blackjack') return;
@@ -5882,45 +6190,51 @@ io.on('connection', (socket) => {
    * Blackjack: player insurance (max 50% of bet when dealer shows Ace)
    */
   socket.on('playerInsurance', (data) => {
+    if (!socketRateLimit(socket, 'playerInsurance', 800, 3)) return;
     const channelName = socket.data.channel || DEFAULT_CHANNEL;
     const state = getStateForChannel(channelName);
-    if (state.currentMode !== 'blackjack') return;
-    const login = socket.data.login;
-    const amount = data && Number(data.amount);
-    if (!validation.validateUsername(login || '')) {
-      logger.warn('Unauthorized playerInsurance: missing/invalid login', { socketId: socket.id });
-      return;
-    }
-    state.blackjackHandlers?.insurance?.(login, amount, state.betAmounts, db);
-  });
+  if (state.currentMode !== 'blackjack') return;
+  const login = socket.data.login;
+  const amount = data && Number(data.amount);
+  if (!validation.validateUsername(login || '')) {
+    logger.warn('Unauthorized playerInsurance: missing/invalid login', { socketId: socket.id });
+    logInvalidAction(login, 'insurance_invalid', channelName);
+    return;
+  }
+  state.blackjackHandlers?.insurance?.(login, amount, state.betAmounts, db);
+});
 
   /**
    * Blackjack: player split (duplicates bet and plays two hands)
    */
   socket.on('playerSplit', () => {
+    if (!socketRateLimit(socket, 'playerSplit', 800, 3)) return;
     const channelName = socket.data.channel || DEFAULT_CHANNEL;
-    const state = getStateForChannel(channelName);
-    if (state.currentMode !== 'blackjack') return;
-    const login = socket.data.login;
-    if (!validation.validateUsername(login || '')) {
-      logger.warn('Unauthorized playerSplit: missing/invalid login', { socketId: socket.id });
-      return;
-    }
-    state.blackjackHandlers?.split?.(login, state.betAmounts, db);
-  });
+  const state = getStateForChannel(channelName);
+  if (state.currentMode !== 'blackjack') return;
+  const login = socket.data.login;
+  if (!validation.validateUsername(login || '')) {
+    logger.warn('Unauthorized playerSplit: missing/invalid login', { socketId: socket.id });
+    logInvalidAction(login, 'split_invalid', channelName);
+    return;
+  }
+  state.blackjackHandlers?.split?.(login, state.betAmounts, db);
+});
 
-  socket.on('playerSwitchHand', (data) => {
-    const channelName = socket.data.channel || DEFAULT_CHANNEL;
-    const state = getStateForChannel(channelName);
-    if (state.currentMode !== 'blackjack') return;
-    const login = socket.data.login;
-    if (!validation.validateUsername(login || '')) {
-      logger.warn('Unauthorized playerSwitchHand: missing/invalid login', { socketId: socket.id });
-      return;
-    }
-    const index = Number.isInteger(data?.index) ? data.index : null;
-    if (index !== null) {
-      state.blackjackHandlers?.switchHand?.(login, index);
+socket.on('playerSwitchHand', (data) => {
+  if (!socketRateLimit(socket, 'playerSwitchHand', 800, 5)) return;
+  const channelName = socket.data.channel || DEFAULT_CHANNEL;
+  const state = getStateForChannel(channelName);
+  if (state.currentMode !== 'blackjack') return;
+  const login = socket.data.login;
+  if (!validation.validateUsername(login || '')) {
+    logger.warn('Unauthorized playerSwitchHand: missing/invalid login', { socketId: socket.id });
+    logInvalidAction(login, 'switchhand_invalid', channelName);
+    return;
+  }
+  const index = Number.isInteger(data?.index) ? data.index : null;
+  if (index !== null) {
+    state.blackjackHandlers?.switchHand?.(login, index);
     }
   });
 
@@ -6389,3 +6703,17 @@ const VALID_TEXTURES = [
   '/assets/cosmetics/effects/deals/face-down/horizontal_transparent_sheet.png',
   '/assets/cosmetics/cards/basic/card-back-green.png',
 ];
+  // User token refresh
+  app.post('/auth/refresh', rateLimit('auth_refresh', 60 * 1000, 10), auth.requireUser, (req, res) => {
+    try {
+      const login = (req.userLogin || '').toLowerCase();
+      if (!validateLocalLogin(login) || isBanned(login, req.ip)) {
+        return res.status(401).json({ error: 'unauthorized' });
+      }
+      const token = auth.signUserJWT(login);
+      return res.json({ token, expiresIn: config.USER_JWT_TTL_SECONDS });
+    } catch (err) {
+      logger.error('auth refresh failed', { error: err.message });
+      return res.status(500).json({ error: 'internal_error' });
+    }
+  });
