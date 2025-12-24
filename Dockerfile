@@ -1,5 +1,5 @@
-# Node 18 on Debian for better-sqlite3 prebuild/compile support
-FROM node:18-bullseye-slim
+# Node 20 on Debian for better-sqlite3 prebuild/compile support
+FROM node:20-bullseye-slim
 
 WORKDIR /app
 
@@ -8,9 +8,8 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends python3 make g++ sqlite3 \
   && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies (force inclusion of package-lock.json)
-COPY package.json package-lock.json ./
-RUN test -f package-lock.json
+# Install dependencies (prefer lockfile but don't fail if absent)
+COPY package*.json ./
 # Prefer deterministic install; fall back to npm install if lock is absent
 RUN if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit=dev; fi
 

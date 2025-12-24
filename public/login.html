@@ -16,18 +16,41 @@
         <img src="logo.png" alt="All-In Chat Poker logo" class="brand-logo">
         <div>
           <h1>All-In Chat Poker</h1>
-          <p class="subtitle">Admin Access</p>
+          <p class="subtitle">Admin & Player Access</p>
         </div>
       </div>
       <button id="login-theme-toggle" class="btn btn-secondary btn-sm" style="margin-bottom: 12px;">Theme</button>
-      <p class="subtitle">Sign in with Twitch to play or manage the table</p>
+      <p class="subtitle">Create a site login, then link Twitch for streamer/admin controls.</p>
 
-      <div class="oauth-section">
+      <div class="role-toggle" aria-label="Choose your role">
+        <button type="button" class="role-option" data-role="player">I'm a player</button>
+        <button type="button" class="role-option" data-role="streamer">I'm a streamer</button>
+      </div>
+      <p id="role-note" class="subtitle small-note">Players go to their profile for cosmetics and purchases.</p>
+
+      <div class="local-auth" style="margin-top:16px;">
+        <h3 style="margin-bottom:6px;">All-In account</h3>
+        <p class="subtitle small-note">Streamers must link Twitch to run overlays/admin. Players can use either.</p>
+        <form id="local-login-form" class="local-form">
+          <input type="text" name="login" autocomplete="username" placeholder="Username" required>
+          <input type="password" name="password" autocomplete="current-password" placeholder="Password (min 8)" required>
+          <button type="submit" class="btn btn-primary btn-sm">Log In</button>
+        </form>
+        <form id="local-register-form" class="local-form">
+          <input type="text" name="login" autocomplete="username" placeholder="New username" required>
+          <input type="email" name="email" autocomplete="email" placeholder="Email (optional)">
+          <input type="password" name="password" autocomplete="new-password" placeholder="New password (min 8)" required>
+          <button type="submit" class="btn btn-secondary btn-sm">Create Account</button>
+        </form>
+        <div id="link-status" class="subtitle small-note" style="margin-top:8px;">Not linked to Twitch/Discord yet.</div>
+      </div>
+
+      <div class="oauth-section" style="margin-top:18px;">
         <button type="button" class="btn btn-oauth" id="twitch-login-btn">
-          Sign in with Twitch
+          Sign in / Link with Twitch
         </button>
         <p class="subtitle" style="margin-top: 10px; font-size: 13px;">
-          Streamer/bot accounts unlock admin controls automatically.
+          Streamer/bot accounts unlock admin controls automatically after linking.
         </p>
         <button type="button" class="btn btn-secondary btn-sm" id="reset-session-btn" style="margin-top:10px;">
           Reset local session

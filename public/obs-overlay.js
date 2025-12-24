@@ -2,21 +2,13 @@
  * OBS table overlay: renders seats, avatars, and player names.
  */
 
+let overlayChannel = typeof getChannelParam === 'function' ? getChannelParam() : '';
+let socket = null;
 const SOCKET_URL = typeof getBackendBase === 'function' ? getBackendBase() : '';
-const overlayChannel = typeof getChannelParam === 'function' ? getChannelParam() : '';
 const isEventForChannel = (payload) => {
   if (!payload || !payload.channel) return true;
-  return payload.channel === overlayChannel;
+  return overlayChannel && payload.channel === overlayChannel;
 };
-const socket = io(SOCKET_URL || undefined, {
-  reconnection: true,
-  reconnectionDelay: 1000,
-  reconnectionDelayMax: 5000,
-  transports: ['websocket', 'polling'],
-  auth: {
-    channel: overlayChannel,
-  },
-});
 
 const DEFAULT_AVATAR = '/logo.png';
 const seatNodes = Array.from(document.querySelectorAll('.seat'));
@@ -130,35 +122,93 @@ function setMode(mode) {
   if (pill) pill.textContent = `Mode: ${mode}`;
 }
 
-socket.on('connect', () => setConnection('connected'));
-socket.on('disconnect', () => setConnection('disconnected'));
-socket.on('reconnect_attempt', () => setConnection('reconnecting'));
+async function resolveOverlayChannel() {
+  // 1) Query param wins
+  if (overlayChannel) return overlayChannel;
 
-socket.on('state', (data) => {
-  if (!isEventForChannel(data)) return;
-  setMode(data?.mode || currentMode);
-  updatePlayers(data?.players || []);
-});
+  // 2) Use logged-in user profile if available
+  const token = typeof getUserToken === 'function' ? getUserToken() : null;
+  if (token && typeof apiCall === 'function') {
+    try {
+      const res = await apiCall('/profile', { useUserToken: true });
+      const login = res?.profile?.login;
+      if (login) {
+        overlayChannel = login.toLowerCase();
+        return overlayChannel;
+      }
+    } catch (e) {
+      console.warn('[overlay] profile lookup failed', e);
+    }
+  }
 
-socket.on('roundStarted', (data) => {
-  if (!isEventForChannel(data)) return;
-  setMode(data?.mode || currentMode);
-  updatePlayers(data?.players || []);
-});
+  // 3) Fallback to public config streamer login
+  try {
+    const cfgRes = await fetch('/public-config.json');
+    if (cfgRes.ok) {
+      const cfg = await cfgRes.json();
+      if (cfg.streamerLogin) {
+        overlayChannel = (cfg.streamerLogin || '').toLowerCase();
+        return overlayChannel;
+      }
+      if (cfg.twitchChannel) {
+        overlayChannel = (cfg.twitchChannel || '').toLowerCase();
+        return overlayChannel;
+      }
+    }
+  } catch (e) {
+    console.warn('[overlay] public-config fallback failed', e);
+  }
 
-socket.on('roundResult', (data) => {
-  if (!isEventForChannel(data)) return;
-  setMode(data?.mode || currentMode);
-  updatePlayers(data?.players || []);
-});
+  return overlayChannel;
+}
 
-socket.on('playerUpdate', (data) => {
-  if (!isEventForChannel(data)) return;
-  mergePlayer(data);
-});
+function initSocket() {
+  if (!overlayChannel) {
+    console.warn('[overlay] No channel resolved; using default connection');
+  }
 
-socket.on('error', (err) => {
-  console.error('Overlay error', err);
-});
+  socket = io(SOCKET_URL || undefined, {
+    reconnection: true,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
+    transports: ['websocket', 'polling'],
+    auth: { channel: overlayChannel || undefined },
+  });
 
-renderSeats();
+  socket.on('connect', () => setConnection('connected'));
+  socket.on('disconnect', () => setConnection('disconnected'));
+  socket.on('reconnect_attempt', () => setConnection('reconnecting'));
+
+  socket.on('state', (data) => {
+    if (!isEventForChannel(data)) return;
+    setMode(data?.mode || currentMode);
+    updatePlayers(data?.players || []);
+  });
+
+  socket.on('roundStarted', (data) => {
+    if (!isEventForChannel(data)) return;
+    setMode(data?.mode || currentMode);
+    updatePlayers(data?.players || []);
+  });
+
+  socket.on('roundResult', (data) => {
+    if (!isEventForChannel(data)) return;
+    setMode(data?.mode || currentMode);
+    updatePlayers(data?.players || []);
+  });
+
+  socket.on('playerUpdate', (data) => {
+    if (!isEventForChannel(data)) return;
+    mergePlayer(data);
+  });
+
+  socket.on('error', (err) => {
+    console.error('Overlay error', err);
+  });
+}
+
+(async () => {
+  await resolveOverlayChannel();
+  initSocket();
+  renderSeats();
+})();

@@ -409,6 +409,10 @@
   gap: var(--spacing-sm);
 }
 
+.drawer-content {
+  display: none;
+}
+
 .table-actions button {
   padding: 4px 8px;
   font-size: var(--font-size-xs);
@@ -579,6 +583,25 @@
 
 .collapsible[open] summary {
   margin-bottom: var(--spacing-sm);
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-sm);
+}
+
+.inline-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .flush {

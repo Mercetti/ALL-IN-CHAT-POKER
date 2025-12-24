@@ -7,6 +7,30 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="stylesheet" href="style-theme.css">
   <link rel="stylesheet" href="style-admin.css">
+  <style>
+    /* Final approval polish */
+    #premier-review-card .form-grid {
+      gap: 12px;
+      align-items: flex-start;
+    }
+    #premier-review-card .code-block {
+      background: linear-gradient(145deg, rgba(12, 16, 28, 0.9), rgba(20, 30, 45, 0.9));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 10px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    #premier-review-card .compact-buttons button {
+      min-width: 150px;
+    }
+    #premier-review-card .muted {
+      color: rgba(255, 255, 255, 0.7);
+    }
+    #premier-review-select {
+      min-height: 42px;
+    }
+  </style>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6226206359050540" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -21,12 +45,14 @@
         </div>
       </div>
           <div class="header-actions">
+            <span id="session-pill" class="pill muted" style="margin-right:8px;">Session</span>
             <div id="admin-countdown" class="countdown">00:00</div>
             <div id="admin-phase" class="phase-chip">Betting</div>
             <button id="admin-theme-toggle" class="btn btn-secondary btn-sm">Theme</button>
             <button id="btn-open-obs-overlay" class="btn btn-secondary btn-sm">OBS Overlay</button>
             <button id="btn-export" class="btn btn-secondary btn-sm">Export</button>
             <button id="btn-reset-session" class="btn btn-secondary btn-sm">Reset Session</button>
+            <a class="btn btn-secondary btn-sm" href="/admin-dev.html" target="_blank" rel="noopener" id="btn-dev-page">Dev</a>
           <button id="btn-logout" class="btn btn-danger btn-sm">Logout</button>
         </div>
     </header>
@@ -37,11 +63,123 @@
       <button class="btn btn-secondary btn-sm" data-open-section="checklist-details">Checklist</button>
       <button class="btn btn-secondary btn-sm" data-open-section="profiles-details">Profiles</button>
       <button class="btn btn-secondary btn-sm" data-open-section="audit-details">Audit Log</button>
-      <a class="btn btn-secondary btn-sm" href="/cosmetics.html" target="_blank" rel="noopener">Cosmetics Page</a>
+      <a class="btn btn-secondary btn-sm" href="/cosmetics.html" target="_blank" rel="noopener">Store</a>
       <a class="btn btn-secondary btn-sm" href="/partner-program.html" target="_blank" rel="noopener">Partner Program</a>
-      <a class="btn btn-secondary btn-sm" href="/partner-privacy.html" target="_blank" rel="noopener">Partner Privacy</a>
-      <a class="btn btn-secondary btn-sm" href="/partner-compensation.html" target="_blank" rel="noopener">Comp Addendum</a>
     </div>
+
+    <section class="control-panel compact-card">
+      <div class="section-header">
+        <h2>Premier Branding (logo → AI set)</h2>
+        <div class="mini-meta">
+          <span class="phase-chip subtle">Premier only</span>
+        </div>
+      </div>
+      <div class="form-grid compact-grid">
+        <div class="form-group">
+          <label for="premier-login">Streamer login</label>
+          <input id="premier-login" type="text" class="form-input" placeholder="twitch login">
+        </div>
+        <div class="form-group">
+          <label for="premier-preset">Preset</label>
+          <select id="premier-preset" class="form-input">
+            <option value="neon">Neon</option>
+            <option value="metallic">Metallic</option>
+            <option value="minimal">Minimal</option>
+          </select>
+        </div>
+        <div class="form-group full-span">
+          <label for="premier-logo-input">Upload logo (PNG/JPG, ≤2MB)</label>
+          <input id="premier-logo-input" type="file" accept="image/png,image/jpeg">
+        </div>
+        <div class="form-group compact-buttons">
+          <button id="btn-premier-upload" class="btn btn-primary btn-sm">Save Logo</button>
+          <button id="btn-premier-generate" class="btn btn-secondary btn-sm">Generate Set (2 variants)</button>
+          <button id="btn-premier-regen" class="btn btn-secondary btn-sm">Regen (same palette)</button>
+          <button id="btn-premier-apply" class="btn btn-success btn-sm">Apply to Overlay</button>
+        </div>
+      </div>
+      <div class="inline-lists">
+        <div class="tiny-card">
+          <h4>Logo Preview</h4>
+          <img id="premier-logo-preview" alt="Logo preview" style="max-width: 180px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+        </div>
+        <div class="tiny-card" style="flex:1;">
+          <h4>AI Proposal</h4>
+          <pre id="premier-proposal" class="code-block" style="min-height:120px; white-space:pre-wrap;">—</pre>
+        </div>
+        <div class="tiny-card" style="flex:1;">
+          <h4>Preview</h4>
+          <canvas id="premier-preview-card" width="160" height="240" style="border:1px solid rgba(255,255,255,0.1); border-radius:8px; background:transparent;"></canvas>
+          <canvas id="premier-preview-nameplate" width="220" height="80" style="display:block; margin-top:8px; border:1px solid rgba(255,255,255,0.1); border-radius:12px; background:transparent;"></canvas>
+          <small class="muted">Mock render only; uses variant colors with transparency.</small>
+        </div>
+      </div>
+      <div class="muted" id="premier-history" style="margin-top:6px;">History: —</div>
+      <small class="muted">Presets guide the AI. Output is JSON with cardBack, tableSkin, avatarRing, nameplate.</small>
+    </section>
+
+    <section class="control-panel compact-card" id="premier-review-card">
+      <div class="section-header">
+        <h2>Premier Final Review</h2>
+        <div class="mini-meta"><span class="phase-chip subtle">Manual approval</span></div>
+      </div>
+      <p class="muted" style="margin:6px 0 12px;">Pick a proposal, skim the JSON, test on sandbox, then approve/stage. Bundle + per-item pricing and badge are optional; add a note if needed.</p>
+      <div class="form-grid compact-grid">
+        <div class="form-group full-span">
+          <label for="premier-review-select">Select proposal</label>
+          <select id="premier-review-select" class="form-input"></select>
+        </div>
+        <div class="form-group full-span">
+          <label>Proposal JSON (review before store)</label>
+          <pre id="premier-review-json" class="code-block" style="min-height:140px; white-space:pre-wrap;">—</pre>
+          <div class="muted" id="premier-best" style="margin-top:6px;">Best variant: -</div>
+          <div class="muted" id="premier-warnings" style="margin-top:6px;">Warnings: none</div>
+        </div>
+        <div class="form-group compact-buttons">
+          <button id="btn-premier-refresh-list" class="btn btn-secondary btn-sm">Refresh</button>
+          <button id="btn-premier-test" class="btn btn-info btn-sm">Push to test overlay</button>
+          <button id="btn-premier-approve" class="btn btn-success btn-sm">Approve (stage for store)</button>
+          <button id="btn-premier-revert" class="btn btn-warning btn-sm">Revert to last applied</button>
+          <button id="btn-premier-apply-primary" class="btn btn-primary btn-sm">Apply Primary</button>
+          <button id="btn-premier-apply-alt" class="btn btn-secondary btn-sm">Apply Alt</button>
+          <button id="btn-premier-lastgood" class="btn btn-secondary btn-sm">Use Last Good</button>
+        </div>
+        <div class="form-group">
+          <label for="premier-badge">Badge (optional)</label>
+          <select id="premier-badge" class="form-input">
+            <option value="">None</option>
+            <option value="/assets/cosmetics/badge/affiliate.png">Affiliate</option>
+            <option value="/assets/cosmetics/badge/partner.png">Partner</option>
+            <option value="/assets/cosmetics/badge/premier.png">Premier</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="premier-bundle-price">Bundle price (USD)</label>
+          <input id="premier-bundle-price" type="number" class="form-input" placeholder="full set e.g. 14.99">
+        </div>
+        <div class="form-group">
+          <label for="premier-item-price">Per-item price (USD)</label>
+          <input id="premier-item-price" type="number" class="form-input" placeholder="single item e.g. 4.99">
+        </div>
+        <div class="form-group full-span">
+          <label for="premier-note">Admin note (optional)</label>
+          <input id="premier-note" type="text" class="form-input" placeholder="Notes before publish">
+        </div>
+        <div class="form-group">
+          <label for="premier-rarity">Rarity</label>
+          <select id="premier-rarity" class="form-input">
+            <option value="legendary">Legendary</option>
+            <option value="epic">Epic</option>
+            <option value="rare">Rare</option>
+          </select>
+        </div>
+        <small class="muted full-span">Badges live at <code>/assets/cosmetics/badge/</code> for affiliate/partner/premier.</small>
+      </div>
+      <div class="tiny-card" id="premier-staged-card">
+        <h4>Staged for Store</h4>
+        <ul id="premier-staged-list" class="leaderboard"></ul>
+      </div>
+    </section>
 
     <main class="admin-main compact-main">
       <!-- Stats Grid -->
@@ -175,10 +313,10 @@
           </div>
         </details>
 
-        <details class="control-panel collapsible" id="tournament-details">
-          <summary>Tournament Tools (backend)</summary>
-          <div class="control-card">
-            <p class="muted">Brackets, tables, ready-up.</p>
+          <details class="control-panel collapsible drawer-content" id="tournament-details">
+            <summary>Tournament Tools (backend)</summary>
+            <div class="control-card">
+              <p class="muted">Brackets, tables, ready-up.</p>
             <div class="form-grid">
               <label>Round</label>
               <input id="t-round" type="number" min="1" value="1" class="form-input">
@@ -202,7 +340,7 @@
         </details>
       </div>
 
-      <details class="control-panel collapsible" id="checklist-details">
+      <details class="control-panel collapsible drawer-content" id="checklist-details">
         <summary>Alpha Test Checklist</summary>
         <div class="control-card">
           <ul class="rules-list">
@@ -252,7 +390,7 @@
       </details>
 
       <!-- Audit Log -->
-      <details class="control-panel collapsible" id="audit-details">
+      <details class="control-panel collapsible drawer-content" id="audit-details">
         <summary>Unblock Audit Log</summary>
         <section class="audit-section flush">
           <table class="audit-table">
@@ -272,58 +410,44 @@
         </section>
       </details>
 
-      <section class="control-panel compact-card" id="partner-panel">
-        <div class="section-header">
-          <h2>Partner Program</h2>
-          <p class="muted small">Manage partner payouts and view sales/views.</p>
-        </div>
-        <div class="form-grid compact-grid">
-          <input id="partner-id" class="form-input" placeholder="partner id (login)">
-          <input id="partner-name" class="form-input" placeholder="Display name">
-          <input id="partner-pct" class="form-input" type="number" min="0" max="90" step="1" placeholder="Payout % (default 10)">
-          <button id="btn-save-partner" class="btn btn-primary btn-sm">Save Partner</button>
-          <button id="btn-refresh-partners" class="btn btn-secondary btn-sm">Refresh</button>
-        </div>
-        <div class="table-responsive">
-          <table class="table slim-table" id="partner-table">
+      <!-- Partner Eligibility -->
+      <details class="control-panel collapsible" id="partner-details">
+        <summary>Partner Eligibility</summary>
+        <div class="control-card">
+          <div class="profiles-toolbar">
+            <button id="btn-refresh-partner" class="btn btn-info btn-sm">
+              Refresh
+            </button>
+            <span class="pill pill-muted" id="partner-met-count">Loading...</span>
+          </div>
+          <table class="profiles-table">
             <thead>
               <tr>
-                <th>Partner</th>
-                <th>Payout %</th>
-                <th>Orders</th>
-                <th>Coins</th>
-                <th>Gross ($)</th>
-                <th>Views</th>
+                <th>Channel</th>
+                <th>Streams (30d)</th>
+                <th>Avg Players</th>
+                <th>Unique Players</th>
+                <th>Rounds</th>
+                <th>Goals Met</th>
               </tr>
             </thead>
-            <tbody>
-              <tr><td colspan="6" class="muted">No data</td></tr>
+            <tbody id="partner-table-body">
+              <tr><td colspan="6">Loading...</td></tr>
             </tbody>
           </table>
         </div>
-      </section>
+      </details>
 
-      <section class="control-panel compact-card" id="viewer-earn-panel">
+      <section class="control-panel compact-card" id="cosmetic-import-panel">
         <div class="section-header">
-          <h2>Viewer Earn Config</h2>
-          <p class="muted small">AIC earn triggers (stored locally; server hooks pending).</p>
+          <h2>Cosmetic Import (JSON)</h2>
+          <p class="muted small">Paste an array of cosmetics to upsert (id, type, name, price_cents, rarity, preview/image_url, unlock_type/value, tags).</p>
         </div>
         <div class="form-grid compact-grid">
-          <label>Chat: 1 AIC per N messages</label>
-          <input id="earn-chat-rate" class="form-input" type="number" min="1" value="5">
-          <label>Chat cap per stream</label>
-          <input id="earn-chat-cap" class="form-input" type="number" min="0" value="500">
-          <label>New follower reward</label>
-          <input id="earn-follower" class="form-input" type="number" min="0" value="25">
-          <label>Sub reward</label>
-          <input id="earn-sub" class="form-input" type="number" min="0" value="100">
-          <label>Raid reward</label>
-          <input id="earn-raid" class="form-input" type="number" min="0" value="250">
-          <label>Channel point redeem reward</label>
-          <input id="earn-redeem" class="form-input" type="number" min="0" value="25">
-          <button id="btn-save-earn" class="btn btn-primary btn-sm full-span">Save (local)</button>
+          <textarea id="cosmetic-import-json" class="form-input" rows="6" placeholder='[{"id":"card-new","type":"cardBack","name":"New Back","price_cents":500,"rarity":"rare","preview":"/assets/cosmetics/cards/new.png"}]'></textarea>
+          <button id="btn-import-cosmetics" class="btn btn-primary btn-sm">Import Cosmetics</button>
+          <div id="cosmetic-import-status" class="muted small"></div>
         </div>
-        <small class="muted">Anti-abuse safeguards (unique chatter cooldown, account age, daily caps) should be enforced server-side.</small>
       </section>
     </main>
   </div>

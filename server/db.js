@@ -108,7 +108,13 @@ class DBHelper {
       CREATE TABLE IF NOT EXISTS profiles (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         twitch_id TEXT UNIQUE,
+        twitch_avatar TEXT,
         login TEXT UNIQUE,
+        email TEXT,
+        password_hash TEXT,
+        discord_id TEXT,
+        discord_login TEXT,
+        discord_avatar TEXT,
         display_name TEXT,
         settings TEXT DEFAULT '{}',
         role TEXT DEFAULT 'player',
@@ -123,6 +129,12 @@ class DBHelper {
     } catch (err) {
       // Ignore if column already exists
     }
+    try { this.db.exec(`ALTER TABLE profiles ADD COLUMN password_hash TEXT`); } catch {}
+    try { this.db.exec(`ALTER TABLE profiles ADD COLUMN email TEXT`); } catch {}
+    try { this.db.exec(`ALTER TABLE profiles ADD COLUMN discord_id TEXT`); } catch {}
+    try { this.db.exec(`ALTER TABLE profiles ADD COLUMN discord_login TEXT`); } catch {}
+    try { this.db.exec(`ALTER TABLE profiles ADD COLUMN discord_avatar TEXT`); } catch {}
+    try { this.db.exec(`ALTER TABLE profiles ADD COLUMN twitch_avatar TEXT`); } catch {}
     try {
       this.db.exec(`ALTER TABLE stats ADD COLUMN handsPlayed INTEGER DEFAULT 0`);
       this.db.exec(`ALTER TABLE stats ADD COLUMN playSeconds INTEGER DEFAULT 0`);
@@ -191,6 +203,37 @@ class DBHelper {
         txn_id TEXT,
         note TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Partner usage (per-channel daily aggregates)
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS partner_usage_daily (
+        channel TEXT,
+        day TEXT,
+        rounds INTEGER DEFAULT 0,
+        unique_players TEXT DEFAULT '[]',
+        PRIMARY KEY (channel, day)
+      )
+    `);
+
+    // Overlay loadouts (per channel)
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS overlay_settings (
+        channel TEXT PRIMARY KEY,
+        data TEXT,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Cached eligibility snapshots
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS partner_eligibility (
+        channel TEXT,
+        computed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        window_days INTEGER,
+        data TEXT,
+        PRIMARY KEY (channel, window_days)
       )
     `);
 
@@ -524,21 +567,69 @@ class DBHelper {
    * @returns {Object}
    */
   upsertProfile(profileData) {
-    const { twitch_id, login, display_name, settings, role } = profileData;
+    const {
+      twitch_id,
+      twitch_avatar,
+      login,
+      display_name,
+      settings,
+      role,
+      email,
+      password_hash,
+      discord_id,
+      discord_login,
+      discord_avatar,
+    } = profileData;
 
     const stmt = this.db.prepare(`
-      INSERT OR REPLACE INTO profiles (twitch_id, login, display_name, settings, role, updated_at)
-      VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      INSERT OR REPLACE INTO profiles (
+        twitch_id, twitch_avatar, login, display_name, settings, role,
+        email, password_hash, discord_id, discord_login, discord_avatar, updated_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
     `);
 
     stmt.run(
-      twitch_id,
+      twitch_id || null,
+      twitch_avatar || null,
       login,
-      display_name,
+      display_name || login,
       JSON.stringify(settings || {}),
-      role || 'player'
+      role || 'player',
+      email || null,
+      password_hash || null,
+      discord_id || null,
+      discord_login || null,
+      discord_avatar || null
     );
 
+    return this.getProfile(login);
+  }
+
+  createLocalUser({ login, email, password_hash }) {
+    const stmt = this.db.prepare(`
+      INSERT INTO profiles (login, email, password_hash, role, created_at, updated_at)
+      VALUES (?, ?, ?, 'player', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    `);
+    stmt.run(login, email || null, password_hash);
+    return this.getProfile(login);
+  }
+
+  updatePassword(login, password_hash) {
+    const stmt = this.db.prepare(`UPDATE profiles SET password_hash=?, updated_at=CURRENT_TIMESTAMP WHERE login=?`);
+    stmt.run(password_hash, login);
+    return this.getProfile(login);
+  }
+
+  linkTwitch(login, { twitch_id, twitch_avatar, display_name }) {
+    const stmt = this.db.prepare(`UPDATE profiles SET twitch_id=?, twitch_avatar=?, display_name=COALESCE(?, display_name), updated_at=CURRENT_TIMESTAMP WHERE login=?`);
+    stmt.run(twitch_id, twitch_avatar || null, display_name || null, login);
+    return this.getProfile(login);
+  }
+
+  linkDiscord(login, { discord_id, discord_login, discord_avatar }) {
+    const stmt = this.db.prepare(`UPDATE profiles SET discord_id=?, discord_login=?, discord_avatar=?, updated_at=CURRENT_TIMESTAMP WHERE login=?`);
+    stmt.run(discord_id, discord_login || null, discord_avatar || null, login);
     return this.getProfile(login);
   }
 
@@ -680,6 +771,46 @@ class DBHelper {
     tx(catalog);
   }
 
+  upsertCosmetics(catalog = []) {
+    const stmt = this.db.prepare(`
+      INSERT INTO cosmetics (id, type, name, price_cents, rarity, preview, tint, color, texture_url, image_url, unlock_type, unlock_value, unlock_note)
+      VALUES (@id, @type, @name, @price_cents, @rarity, @preview, @tint, @color, @texture_url, @image_url, @unlock_type, @unlock_value, @unlock_note)
+      ON CONFLICT(id) DO UPDATE SET
+        type=excluded.type,
+        name=excluded.name,
+        price_cents=excluded.price_cents,
+        rarity=excluded.rarity,
+        preview=excluded.preview,
+        tint=excluded.tint,
+        color=excluded.color,
+        texture_url=excluded.texture_url,
+        image_url=excluded.image_url,
+        unlock_type=excluded.unlock_type,
+        unlock_value=excluded.unlock_value,
+        unlock_note=excluded.unlock_note
+    `);
+    const tx = this.db.transaction((items) => {
+      items.forEach(item => {
+        stmt.run({
+          id: item.id,
+          type: item.type,
+          name: item.name,
+          price_cents: item.price_cents || item.price || 0,
+          rarity: item.rarity || 'common',
+          preview: item.preview || '',
+          tint: item.tint || null,
+          color: item.color || null,
+          texture_url: item.texture_url || null,
+          image_url: item.image_url || null,
+          unlock_type: item.unlock_type || null,
+          unlock_value: item.unlock_value || 0,
+          unlock_note: item.unlock_note || '',
+        });
+      });
+    });
+    tx(catalog || []);
+  }
+
   getCatalog() {
     return this.db.prepare('SELECT * FROM cosmetics ORDER BY type, rarity, name').all();
   }
@@ -773,6 +904,11 @@ class DBHelper {
       INSERT INTO purchases (login, item_id, provider, amount_cents, coin_amount, status, txn_id, note, partner_id)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL)
     `).run(login, packId, provider, amount_cents, coins, status, txn_id, note);
+  }
+
+  getPurchaseByTxn(txn_id) {
+    const stmt = this.db.prepare(`SELECT * FROM purchases WHERE txn_id = ? LIMIT 1`);
+    return stmt.get(txn_id);
   }
 
   // ============ PARTNERS ============
@@ -977,6 +1113,168 @@ class DBHelper {
       return JSON.parse(t.blind_config || '[]');
     } catch (e) {
       return [];
+    }
+  }
+
+  // Partner progression tracking
+  addPartnerUsage(channel, players = []) {
+    if (!channel) return;
+    const day = new Date().toISOString().slice(0, 10);
+    const row = this.db.prepare('SELECT * FROM partner_usage_daily WHERE channel = ? AND day = ?').get(channel, day);
+    const existing = row ? JSON.parse(row.unique_players || '[]') : [];
+    const merged = Array.from(new Set([...(existing || []), ...players.filter(Boolean)]));
+    if (row) {
+      this.db.prepare(`
+        UPDATE partner_usage_daily
+        SET rounds = rounds + 1,
+            unique_players = ?
+        WHERE channel = ? AND day = ?
+      `).run(JSON.stringify(merged), channel, day);
+    } else {
+      this.db.prepare(`
+        INSERT INTO partner_usage_daily (channel, day, rounds, unique_players)
+        VALUES (?, ?, 1, ?)
+      `).run(channel, day, JSON.stringify(merged));
+    }
+  }
+
+  getPartnerUsage(channel, days = 30) {
+    if (!channel) return [];
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    const cutoffStr = cutoff.toISOString().slice(0, 10);
+    return this.db.prepare(`
+      SELECT * FROM partner_usage_daily
+      WHERE channel = ? AND day >= ?
+      ORDER BY day DESC
+    `).all(channel, cutoffStr);
+  }
+
+  getPartnerProgress(channel, days = 30) {
+    const rows = this.getPartnerUsage(channel, days) || [];
+    const streams = rows.length;
+    let rounds = 0;
+    let totalPlayers = 0;
+    const uniquePlayers = new Set();
+    rows.forEach(r => {
+      const players = (() => {
+        try { return JSON.parse(r.unique_players || '[]'); } catch { return []; }
+      })();
+      rounds += Number(r.rounds) || 0;
+      totalPlayers += players.length;
+      players.forEach(p => uniquePlayers.add(p));
+    });
+    const avgPlayersPerStream = streams ? totalPlayers / streams : 0;
+    const estimatedHours = Math.max(rounds * 2 / 60, streams * 2); // rough: 2 min/round, floor 2h/stream requirement baseline
+
+    const goals = {
+      streams4: streams >= 4,
+      hours2PerStream: estimatedHours >= streams * 2,
+      avgPlayers10: avgPlayersPerStream >= 10,
+      uniquePlayers5: uniquePlayers.size >= 5,
+      rounds20: rounds >= 20,
+    };
+
+    return {
+      channel,
+      windowDays: days,
+      streams,
+      rounds,
+      uniquePlayers: uniquePlayers.size,
+      avgPlayersPerStream,
+      estimatedHours,
+      goals,
+    };
+  }
+
+  computeEligibility(channel) {
+    const win30 = this.getPartnerProgress(channel, 30);
+    const win60 = this.getPartnerProgress(channel, 60);
+    const abuseScore = 0; // placeholder until richer signals exist
+
+    const hardPartner = {
+      sessions_count: { value: win30.streams, required: 4, pass: win30.streams >= 4 },
+      valid_minutes: { value: Math.round(win30.estimatedHours * 60), required: 240, pass: win30.estimatedHours * 60 >= 240 },
+      unique_active_players: { value: win30.uniquePlayers, required: 25, pass: win30.uniquePlayers >= 25 },
+      abuse_score: { value: abuseScore, requiredMax: 25, pass: abuseScore <= 25 },
+    };
+
+    const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+    const partnerScore =
+      40 * clamp(win30.uniquePlayers / 60, 0, 1) +
+      25 * clamp(win30.streams / 8, 0, 1) +
+      25 * clamp(win30.rounds / 120, 0, 1) +
+      10 * clamp((win30.uniquePlayers / Math.max(1, win30.streams)) / 0.35, 0, 1);
+
+    let partnerStatus = 'not_eligible';
+    if (partnerScore >= 60 && Object.values(hardPartner).every(g => g.pass)) {
+      partnerStatus = 'auto_approve';
+    } else if (partnerScore >= 45 && Object.values(hardPartner).every(g => g.pass)) {
+      partnerStatus = 'review';
+    }
+
+    const hardPremier = {
+      sessions_count: { value: win60.streams, required: 16, pass: win60.streams >= 16 },
+      valid_minutes: { value: Math.round(win60.estimatedHours * 60), required: 900, pass: win60.estimatedHours * 60 >= 900 },
+      unique_active_players: { value: win60.uniquePlayers, required: 120, pass: win60.uniquePlayers >= 120 },
+      returning_players_ratio: { value: 0, required: 0.3, pass: false }, // not tracked yet
+      abuse_score: { value: abuseScore, requiredMax: 15, pass: abuseScore <= 15 },
+    };
+
+    const premierScore =
+      35 * clamp(win60.uniquePlayers / 200, 0, 1) +
+      25 * clamp(win60.streams / 16, 0, 1) +
+      15 * clamp((win60.uniquePlayers - win30.uniquePlayers) / 60, 0, 1) +
+      15 * clamp(hardPremier.returning_players_ratio.value / 0.35, 0, 1) +
+      10 * 0;
+
+    let premierStatus = 'not_eligible';
+    if (premierScore >= 75 && Object.values(hardPremier).every(g => g.pass)) {
+      premierStatus = 'invite_candidate';
+    } else if (premierScore >= 65 && Object.values(hardPremier).every(g => g.pass)) {
+      premierStatus = 'watchlist';
+    }
+
+    const payload = {
+      channel,
+      affiliate: { linked: true, overlayLaunched: true },
+      partner: { hardGates: hardPartner, score: partnerScore, status: partnerStatus },
+      premier: { hardGates: hardPremier, score: premierScore, status: premierStatus },
+      windows: { win30, win60 },
+    };
+    this.db.prepare(`
+      INSERT INTO partner_eligibility (channel, window_days, data, computed_at)
+      VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+      ON CONFLICT(channel, window_days) DO UPDATE SET data = excluded.data, computed_at = excluded.computed_at
+    `).run(channel, 30, JSON.stringify(payload));
+    return payload;
+  }
+
+  listEligibility() {
+    const profiles = this.listProfiles();
+    return profiles.map(p => this.computeEligibility(p.login));
+  }
+
+  // Overlay loadout (cosmetics/effects) per channel
+  saveOverlayLoadout(channel, payload = {}) {
+    if (!channel) return null;
+    const safe = JSON.stringify(payload || {});
+    this.db.prepare(`
+      INSERT INTO overlay_settings (channel, data, updated_at)
+      VALUES (?, ?, CURRENT_TIMESTAMP)
+      ON CONFLICT(channel) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at
+    `).run(channel, safe);
+    return this.getOverlayLoadout(channel);
+  }
+
+  getOverlayLoadout(channel) {
+    if (!channel) return null;
+    const row = this.db.prepare(`SELECT data FROM overlay_settings WHERE channel = ?`).get(channel);
+    if (!row || !row.data) return null;
+    try {
+      return JSON.parse(row.data);
+    } catch {
+      return null;
     }
   }
 }

@@ -8,6 +8,33 @@ document.addEventListener('DOMContentLoaded', () => {
   const twitchLoginBtn = document.getElementById('twitch-login-btn');
   const twitchRedirectUri = `${window.location.origin}/login.html`;
   let twitchConfig = null;
+  let desiredRole = (localStorage.getItem('loginRole') || 'player').toLowerCase();
+  // background refresh of user JWT every 20 minutes
+  setInterval(() => refreshUserTokenIfNeeded(), 20 * 60 * 1000);
+
+  const roleButtons = Array.from(document.querySelectorAll('.role-option'));
+  const roleNote = document.getElementById('role-note');
+
+  function setRole(role) {
+    desiredRole = role;
+    localStorage.setItem('loginRole', role);
+    roleButtons.forEach(btn => {
+      const isActive = btn.dataset.role === role;
+      btn.classList.toggle('active', isActive);
+    });
+    if (roleNote) {
+      roleNote.textContent = role === 'streamer'
+        ? 'Streamers get the admin panel; players can still join via chat.'
+        : 'Players go to their profile for cosmetics and purchases.';
+    }
+  }
+
+  if (roleButtons.length) {
+    setRole(desiredRole);
+    roleButtons.forEach(btn => {
+      btn.addEventListener('click', () => setRole(btn.dataset.role || 'player'));
+    });
+  }
 
   async function loadTwitchConfig() {
     if (twitchConfig) return twitchConfig;
@@ -51,14 +78,44 @@ document.addEventListener('DOMContentLoaded', () => {
     window.location.href = authUrl;
   });
 
+  async function refreshLinkStatus() {
+    const statusEl = document.getElementById('link-status');
+    if (!statusEl) return;
+    const token = getUserToken();
+    if (!token) {
+      statusEl.textContent = 'Not signed in with site account yet.';
+      return;
+    }
+    try {
+      const data = await apiCall('/auth/link/status', { useUserToken: true });
+      const twitchTxt = data.twitchLinked ? 'Twitch linked' : 'Twitch not linked';
+      const discordTxt = data.discordLinked ? 'Discord linked' : 'Discord not linked';
+      statusEl.textContent = `${twitchTxt} • ${discordTxt}`;
+    } catch (err) {
+      statusEl.textContent = 'Link status unavailable';
+    }
+  }
+
   // Handle Twitch redirect back with access token in URL hash
   (async () => {
     const twitchToken = parseTwitchTokenFromHash();
     if (!twitchToken) return;
     clearHash();
     if (!twitchConfig) twitchConfig = await loadTwitchConfig();
-    Toast.info('Signing in with Twitch...');
+    const existingUserToken = getUserToken();
+    Toast.info(existingUserToken ? 'Linking Twitch to your account...' : 'Signing in with Twitch...');
     try {
+      if (existingUserToken) {
+        await apiCall('/auth/link/twitch', {
+          method: 'POST',
+          body: JSON.stringify({ twitchToken }),
+          useUserToken: true,
+        });
+        Toast.success('Twitch linked to your account');
+        refreshLinkStatus();
+        return;
+      }
+
       const result = await apiCall('/user/login', {
         method: 'POST',
         body: JSON.stringify({ twitchToken }),
@@ -77,27 +134,30 @@ document.addEventListener('DOMContentLoaded', () => {
             (login === (twitchConfig.streamerLogin || '').toLowerCase() ||
               login === (twitchConfig.botAdminLogin || '').toLowerCase());
 
-          if (isAdminRole || isConfiguredAdmin) {
+          const goAdmin = async () => {
+            if (!isAdminRole && !isConfiguredAdmin && desiredRole === 'streamer') {
+              try {
+                await apiCall('/user/role', {
+                  method: 'POST',
+                  body: JSON.stringify({ role: 'streamer' }),
+                });
+              } catch (e) {
+                console.warn('Streamer role set failed', e);
+              }
+            }
             window.location.href = '/admin2.html';
+          };
+
+          const goPlayer = () => {
+            window.location.href = '/profile.html';
+          };
+
+          if (isAdminRole || isConfiguredAdmin || desiredRole === 'streamer') {
+            goAdmin();
             return;
           }
 
-          // Offer to set streamer role on first login
-          const wantStreamer = window.confirm('Are you the streamer? Choose OK to enable the streamer panel.');
-          if (wantStreamer) {
-            apiCall('/user/role', {
-              method: 'POST',
-              body: JSON.stringify({ role: 'streamer' }),
-            })
-              .then(() => {
-                window.location.href = '/admin2.html';
-              })
-              .catch(() => {
-                window.location.href = '/index.html';
-              });
-          } else {
-            window.location.href = '/index.html';
-          }
+          goPlayer();
         }, 300);
       }
     } catch (err) {
@@ -119,6 +179,70 @@ document.addEventListener('DOMContentLoaded', () => {
       clearToken();
       clearUserToken();
       Toast.info('Session cleared. Please sign in again.');
+      refreshLinkStatus();
     });
   }
+
+  const loginForm = document.getElementById('local-login-form');
+  if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(loginForm);
+      const login = (formData.get('login') || '').trim();
+      const password = (formData.get('password') || '').trim();
+      if (!login || !password) {
+        Toast.error('Username and password required');
+        return;
+      }
+      try {
+        const resp = await apiCall('/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({ login, password }),
+          useUserToken: true,
+        });
+        if (resp.token) {
+          setUserToken(resp.token);
+          Toast.success(`Signed in as ${login}`);
+          refreshLinkStatus();
+        }
+      } catch (err) {
+        Toast.error(err.message || 'Login failed');
+      }
+    });
+  }
+
+  const registerForm = document.getElementById('local-register-form');
+  if (registerForm) {
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(registerForm);
+      const login = (formData.get('login') || '').trim();
+      const email = (formData.get('email') || '').trim();
+      const password = (formData.get('password') || '').trim();
+      if (!login || !password) {
+        Toast.error('Username and password required');
+        return;
+      }
+      if (password.length < 8) {
+        Toast.error('Password must be at least 8 characters');
+        return;
+      }
+      try {
+        const resp = await apiCall('/auth/register', {
+          method: 'POST',
+          body: JSON.stringify({ login, email, password }),
+          useUserToken: true,
+        });
+        if (resp.token) {
+          setUserToken(resp.token);
+          Toast.success(`Account created for ${login}`);
+          refreshLinkStatus();
+        }
+      } catch (err) {
+        Toast.error(err.message || 'Registration failed');
+      }
+    });
+  }
+
+  refreshLinkStatus();
 });

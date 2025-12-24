@@ -43,7 +43,16 @@ const partnerIdInput = document.getElementById('partner-id');
 const partnerNameInput = document.getElementById('partner-name');
 const partnerPctInput = document.getElementById('partner-pct');
 const partnerSaveBtn = document.getElementById('btn-save-partner');
-const partnerRefreshBtn = document.getElementById('btn-refresh-partners');
+const partnerRefreshBtn = document.getElementById('btn-refresh-partner');
+const partnerTableBody = document.getElementById('partner-table-body');
+const partnerMetCount = document.getElementById('partner-met-count');
+const importBtn = document.getElementById('btn-import-cosmetics');
+const importJsonInput = document.getElementById('cosmetic-import-json');
+const importStatus = document.getElementById('cosmetic-import-status');
+const devPageBtn = document.getElementById('btn-dev-page');
+const importJsonInput = document.getElementById('cosmetic-import-json');
+const importBtn = document.getElementById('btn-import-cosmetics');
+const importStatus = document.getElementById('cosmetic-import-status');
 const earnInputs = {
   chatRate: document.getElementById('earn-chat-rate'),
   chatCap: document.getElementById('earn-chat-cap'),
@@ -59,6 +68,36 @@ const overlayModalOpen = document.getElementById('btn-open-overlay-modal');
 const overlayModalClose = document.getElementById('overlay-modal-close');
 const addAiButton = document.getElementById('btn-add-ai');
 const addAiStartButton = document.getElementById('btn-add-ai-start');
+const premierLoginInput = document.getElementById('premier-login');
+const premierPresetSelect = document.getElementById('premier-preset');
+const premierLogoInput = document.getElementById('premier-logo-input');
+const premierLogoPreview = document.getElementById('premier-logo-preview');
+const premierProposal = document.getElementById('premier-proposal');
+const premierApplyBtn = document.getElementById('btn-premier-apply');
+const premierRegenBtn = document.getElementById('btn-premier-regen');
+let lastPremierProposal = null;
+let lastGoodProposal = null;
+let premierGenerating = false;
+const premierPreviewCard = document.getElementById('premier-preview-card');
+const premierPreviewNameplate = document.getElementById('premier-preview-nameplate');
+const premierHistoryLabel = document.getElementById('premier-history');
+const premierReviewSelect = document.getElementById('premier-review-select');
+const premierReviewJson = document.getElementById('premier-review-json');
+const premierReviewRefresh = document.getElementById('btn-premier-refresh-list');
+const premierReviewApprove = document.getElementById('btn-premier-approve');
+const premierReviewTest = document.getElementById('btn-premier-test');
+const premierReviewRevert = document.getElementById('btn-premier-revert');
+const premierBestBadge = document.getElementById('premier-best');
+const premierBadgeSelect = document.getElementById('premier-badge');
+const premierBundlePriceInput = document.getElementById('premier-bundle-price');
+const premierItemPriceInput = document.getElementById('premier-item-price');
+const premierNoteInput = document.getElementById('premier-note');
+const premierRaritySelect = document.getElementById('premier-rarity');
+const premierStagedList = document.getElementById('premier-staged-list');
+const premierWarnings = document.getElementById('premier-warnings');
+const premierApplyPrimary = document.getElementById('btn-premier-apply-primary');
+const premierApplyAlt = document.getElementById('btn-premier-apply-alt');
+const premierUseLastGood = document.getElementById('btn-premier-lastgood');
 // Quick modal/popover elements (support both legacy ids and new compact popover ids)
 // Inline highlight helper for quick-nav buttons
 function focusSection(sectionId) {
@@ -76,6 +115,55 @@ let drawerOverlay = null;
 let drawerPanel = null;
 let drawerBody = null;
 let drawerTitle = null;
+let quickModal = null;
+let quickModalBody = null;
+let quickModalClose = null;
+function ensurePopover() {
+  if (quickModal && quickModalBody && quickModalClose) return;
+  quickModal = document.createElement('div');
+  quickModal.id = 'quick-modal';
+  quickModal.className = 'quick-modal';
+  quickModal.style.display = 'none';
+  quickModal.style.position = 'fixed';
+  quickModal.style.top = '90px';
+  quickModal.style.left = '24px';
+  quickModal.style.width = 'min(92vw, 1040px)';
+  quickModal.style.zIndex = 6000;
+  quickModal.style.background = 'var(--card-bg, #0d1b2a)';
+  quickModal.style.border = '1px solid rgba(255,255,255,0.08)';
+  quickModal.style.borderRadius = '12px';
+  quickModal.style.boxShadow = '0 12px 40px rgba(0,0,0,0.35)';
+  quickModal.style.padding = '12px';
+
+  const header = document.createElement('div');
+  header.style.display = 'flex';
+  header.style.alignItems = 'center';
+  header.style.justifyContent = 'space-between';
+  header.style.gap = '10px';
+
+  const title = document.createElement('div');
+  title.id = 'quick-modal-title';
+  title.style.fontWeight = '700';
+  header.appendChild(title);
+
+  quickModalClose = document.createElement('button');
+  quickModalClose.type = 'button';
+  quickModalClose.className = 'btn btn-secondary btn-sm';
+  quickModalClose.textContent = 'Close';
+  quickModalClose.addEventListener('click', () => {
+    quickModal.style.display = 'none';
+    quickModal.classList.remove('active');
+  });
+  header.appendChild(quickModalClose);
+
+  quickModalBody = document.createElement('div');
+  quickModalBody.id = 'quick-modal-body';
+  quickModalBody.style.marginTop = '8px';
+
+  quickModal.appendChild(header);
+  quickModal.appendChild(quickModalBody);
+  document.body.appendChild(quickModal);
+}
 function ensureDrawer() {
   if (drawerOverlay && drawerPanel && drawerBody && drawerTitle) return;
   drawerOverlay = document.createElement('div');
@@ -167,6 +255,26 @@ async function loadPublicConfig() {
 
 document.addEventListener('DOMContentLoaded', async () => {
   await loadPublicConfig();
+  const sessionPill = document.getElementById('session-pill');
+  const refreshSessionPill = () => {
+    if (!sessionPill || typeof getTokenStatus !== 'function') return;
+    const state = getTokenStatus();
+    if (state === 'ok') {
+      sessionPill.textContent = 'Session OK';
+      sessionPill.style.background = 'rgba(16, 185, 129, 0.85)';
+      sessionPill.style.color = '#fff';
+    } else if (state === 'warn') {
+      sessionPill.textContent = 'Session Check';
+      sessionPill.style.background = 'rgba(234, 179, 8, 0.85)';
+      sessionPill.style.color = '#111';
+    } else {
+      sessionPill.textContent = 'Session';
+      sessionPill.style.background = 'rgba(99, 102, 241, 0.7)';
+      sessionPill.style.color = '#fff';
+    }
+  };
+  refreshSessionPill();
+  setInterval(refreshSessionPill, 30000);
 
   // Check if logged in (admin token or streamer user token)
   const adminToken = getToken();
@@ -177,6 +285,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   // This avoids redirect loops when Twitch login succeeds but role lookup fails temporarily.
   let allowed = !!(adminToken || userToken);
   let roleWarning = '';
+
+  if (devPageBtn) {
+    const userLower = (userLogin || '').toLowerCase();
+    const canSeeDev = !!adminToken || (userLower && (userLower === streamerLogin || userLower === botAdminLogin));
+    devPageBtn.style.display = canSeeDev ? 'inline-flex' : 'none';
+  }
 
   if (!adminToken && userToken && userLogin) {
     const lower = userLogin.toLowerCase();
@@ -212,6 +326,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadStats();
   await loadProfiles();
   await loadAuditLog();
+  await loadPartnerTable();
+  initCosmeticImport();
+  initCosmeticImport();
 
   // Setup event listeners
   setupEventListeners();
@@ -222,26 +339,41 @@ document.addEventListener('DOMContentLoaded', async () => {
   setInterval(loadStats, 30000);
   setInterval(loadProfiles, 60000);
   setInterval(loadAuditLog, 60000);
+  setInterval(loadPartnerTable, 60000);
 });
 
-// Fallback delegated handler to ensure popover always opens for quick buttons
-document.addEventListener('click', (e) => {
-  const btn = e.target?.closest?.('[data-open-section]');
-  if (!btn) return;
-  ensurePopover();
-  const targetId = btn.dataset.openSection || 'unknown';
-  try { console.debug('[admin] delegated quick button', targetId); } catch (err) { /* ignore */ }
-  quickModalBody.innerHTML = `<div style="padding:8px;">Loading ${targetId}...</div>`;
-  quickModal.style.position = 'fixed';
-  quickModal.style.top = '90px';
-  quickModal.style.left = '24px';
-  quickModal.style.width = 'min(92vw, 1040px)';
-  quickModal.style.zIndex = 6000;
-  quickModal.style.opacity = '1';
-  quickModal.style.pointerEvents = 'auto';
-  quickModal.style.display = 'block';
-  quickModal.classList.add('active');
-});
+function initCosmeticImport() {
+  if (!importBtn || !importJsonInput) return;
+  importBtn.addEventListener('click', async () => {
+    importStatus.textContent = '';
+    let parsed = null;
+    try {
+      parsed = JSON.parse(importJsonInput.value || '[]');
+      if (!Array.isArray(parsed) || !parsed.length) throw new Error('Provide an array of items');
+    } catch (e) {
+      importStatus.textContent = 'Invalid JSON';
+      return;
+    }
+    importBtn.disabled = true;
+    const original = importBtn.textContent;
+    importBtn.textContent = 'Importing...';
+    try {
+      const res = await apiCall('/admin/cosmetics/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: parsed }),
+      });
+      importStatus.textContent = `Imported ${res.imported || 0} items`;
+    } catch (err) {
+      console.error('Import failed', err);
+      importStatus.textContent = 'Import failed';
+    } finally {
+      importBtn.disabled = false;
+      importBtn.textContent = original;
+    }
+  });
+}
+
 async function ensureSocketConnected() {
   if (!adminSocket) initSocket();
   if (adminSocket?.connected) return true;
@@ -439,12 +571,12 @@ function setupEventListeners() {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       const target = btn.dataset.openSection;
-      // Also scroll to the section in-page for quick context
-      focusSection(target);
-      // And open the drawer with the section contents for immediate controls
+      // Do not scroll; just open the drawer once
       openDrawerForSection(target);
     });
   });
+
+  partnerRefreshBtn?.addEventListener('click', loadPartnerTable);
 
   // Export
   document.getElementById('btn-export')?.addEventListener('click', async () => {
@@ -585,6 +717,81 @@ function setupEventListeners() {
   overlayModal?.addEventListener('click', (e) => {
     if (e.target === overlayModal) overlayModal.classList.remove('active');
   });
+
+  // Premier logo + AI set
+  document.getElementById('btn-premier-upload')?.addEventListener('click', async () => {
+    try {
+      await uploadPremierLogo();
+    } catch (e) {
+      Toast.error(e.message || 'Upload failed');
+    }
+  });
+  document.getElementById('btn-premier-generate')?.addEventListener('click', async () => {
+    try {
+      await generatePremierSet(false);
+    } catch (e) {
+      Toast.error(e.message || 'Generate failed');
+    }
+  });
+  premierRegenBtn?.addEventListener('click', async () => {
+    try {
+      await generatePremierSet(true);
+    } catch (e) {
+      Toast.error(e.message || 'Regen failed');
+    }
+  });
+  premierApplyBtn?.addEventListener('click', async () => {
+    try {
+      await applyPremierSet();
+    } catch (e) {
+      Toast.error(e.message || 'Apply failed');
+    }
+  });
+  premierReviewRefresh?.addEventListener('click', loadPremierPending);
+  premierReviewApprove?.addEventListener('click', async () => {
+    try {
+      await approvePremierSelection();
+    } catch (e) {
+      Toast.error(e.message || 'Approve failed');
+    }
+  });
+  premierReviewTest?.addEventListener('click', async () => {
+    try {
+      await testApplyPremier();
+    } catch (e) {
+      Toast.error(e.message || 'Test apply failed');
+    }
+  });
+  premierReviewRevert?.addEventListener('click', async () => {
+    try {
+      await revertPremier();
+    } catch (e) {
+      Toast.error(e.message || 'Revert failed');
+    }
+  });
+  premierApplyPrimary?.addEventListener('click', async () => {
+    try {
+      await applyPremierVariant(0);
+    } catch (e) {
+      Toast.error(e.message || 'Apply primary failed');
+    }
+  });
+  premierApplyAlt?.addEventListener('click', async () => {
+    try {
+      await applyPremierVariant(1);
+    } catch (e) {
+      Toast.error(e.message || 'Apply alt failed');
+    }
+  });
+  premierUseLastGood?.addEventListener('click', async () => {
+    try {
+      await useLastGood();
+    } catch (e) {
+      Toast.error(e.message || 'Use last good failed');
+    }
+  });
+  loadPremierPending();
+  loadPremierStaged();
 }
 
 async function loadStats() {
@@ -649,6 +856,41 @@ async function loadProfiles() {
       .join('');
   } catch (err) {
     console.error('Failed to load profiles:', err);
+  }
+}
+
+async function loadPartnerTable() {
+  if (!partnerTableBody) return;
+  try {
+    const res = await apiCall('/admin/partner/progress', { method: 'GET' });
+    const rows = res?.rows || [];
+    partnerTableBody.innerHTML = rows
+      .map((r) => {
+        const goals = r.partner?.hardGates || r.goals || {};
+        const goalCount = r.partner?.hardGates ? Object.values(goals).filter(g => g.pass !== false).length : (r.goals ? Object.values(r.goals).filter(Boolean).length : 0);
+        const win30 = r.windows?.win30 || {};
+        return `
+          <tr>
+            <td>${r.channel || '-'}</td>
+            <td>${win30.streams || 0}</td>
+            <td>${(win30.avgPlayersPerStream || 0).toFixed ? (win30.avgPlayersPerStream || 0).toFixed(1) : win30.avgPlayersPerStream || 0}</td>
+            <td>${win30.uniquePlayers || 0}</td>
+            <td>${win30.rounds || 0}</td>
+            <td>${goalCount}</td>
+          </tr>
+        `;
+      })
+      .join('');
+    if (partnerMetCount) {
+      const topMet = Math.max(0, ...rows.map(r => {
+        const goals = r.partner?.hardGates || r.goals || {};
+        return Object.values(goals).filter(g => (g.pass === undefined ? !!g : g.pass)).length;
+      }));
+      partnerMetCount.textContent = `Top goals met: ${topMet}`;
+    }
+  } catch (err) {
+    console.error('Failed to load partner progress', err);
+    partnerTableBody.innerHTML = '<tr><td colspan="6">Partner progress unavailable</td></tr>';
   }
 }
 
@@ -1069,3 +1311,396 @@ if (saveEarnBtn) saveEarnBtn.addEventListener('click', saveEarnConfig);
 // Initial fetch/load
 fetchPartners();
 loadEarnConfig();
+
+async function fileToDataUrl(file) {
+  if (!file) throw new Error('No file selected');
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('File read failed'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadPremierLogo() {
+  if (!premierLogoInput) throw new Error('Logo input missing');
+  const file = premierLogoInput.files?.[0];
+  if (!file) throw new Error('Choose a logo file');
+  if (file.size > 2 * 1024 * 1024) throw new Error('Max 2MB image');
+  const login = (premierLoginInput?.value || channelParam || '').trim().toLowerCase();
+  if (!login) throw new Error('Streamer login required');
+  const dataUrl = await fileToDataUrl(file);
+  const res = await apiCall('/admin/premier/logo', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ login, dataUrl }),
+  });
+  if (premierLogoPreview && res.logoUrl) {
+    premierLogoPreview.src = res.logoUrl;
+  }
+  Toast.success('Logo saved');
+}
+
+async function generatePremierSet(useCached = false) {
+  if (premierGenerating) return Toast.info('Generation in progress...');
+  premierGenerating = true;
+  setPremierButtonsDisabled(true);
+  const login = (premierLoginInput?.value || channelParam || '').trim().toLowerCase();
+  if (!login) throw new Error('Streamer login required');
+  const preset = premierPresetSelect?.value || 'neon';
+  const palette = await (async () => {
+    if (!premierLogoPreview?.src || useCached) return null;
+    try {
+      const img = await loadImage(premierLogoPreview.src);
+      return extractPalette(img, 5);
+    } catch {
+      return null;
+    }
+  })();
+  let res = null;
+  try {
+    res = await apiCall('/admin/premier/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ login, preset, palette, useCached }),
+    });
+  } catch (err) {
+    premierGenerating = false;
+    setPremierButtonsDisabled(false);
+    if ((err.message || '').includes('busy')) {
+      Toast.warning('Generator busy, try again in a moment.');
+      return;
+    }
+    if ((err.message || '').includes('validation_failed')) {
+      Toast.warning('Validation failed; loading last good set if available.');
+      await useLastGood();
+      return;
+    }
+    throw err;
+  }
+  if (premierProposal) {
+    premierProposal.textContent = typeof res.proposal === 'string'
+      ? res.proposal
+      : JSON.stringify(res.proposal, null, 2);
+  }
+  if (premierLogoPreview && res.logoUrl) {
+    premierLogoPreview.src = res.logoUrl;
+  }
+  lastPremierProposal = res.proposal || null;
+  lastGoodProposal = res.proposal || null;
+  if (res.thumbnails?.variants?.length) {
+    const first = res.thumbnails.variants[0];
+    if (premierPreviewCard && first.card) {
+      const img = new Image();
+      img.onload = () => {
+        const ctx = premierPreviewCard.getContext('2d');
+        ctx.clearRect(0, 0, premierPreviewCard.width, premierPreviewCard.height);
+        ctx.drawImage(img, 0, 0, premierPreviewCard.width, premierPreviewCard.height);
+      };
+      img.src = first.card;
+    }
+    if (premierPreviewNameplate && first.nameplate) {
+      const img2 = new Image();
+      img2.onload = () => {
+        const ctx = premierPreviewNameplate.getContext('2d');
+        ctx.clearRect(0, 0, premierPreviewNameplate.width, premierPreviewNameplate.height);
+        ctx.drawImage(img2, 0, 0, premierPreviewNameplate.width, premierPreviewNameplate.height);
+      };
+      img2.src = first.nameplate;
+    }
+  } else {
+    renderPremierPreview(lastPremierProposal);
+  }
+  if (premierHistoryLabel && Array.isArray(res.history)) {
+    premierHistoryLabel.textContent = `History: ${res.history.length} saved`;
+  }
+  if (premierBestBadge && typeof res.bestVariantIndex === 'number') {
+    premierBestBadge.textContent = `Best variant: ${res.bestVariantIndex + 1}`;
+  }
+  if (premierWarnings && Array.isArray(res.proposal?.warnings) && res.proposal.warnings.length) {
+    premierWarnings.textContent = `Warnings: ${res.proposal.warnings.join(' | ')}`;
+  } else if (premierWarnings) {
+    premierWarnings.textContent = 'Warnings: none';
+  }
+  Toast.success('AI set drafted');
+  premierGenerating = false;
+  setPremierButtonsDisabled(false);
+}
+
+function setPremierButtonsDisabled(disabled) {
+  [
+    document.getElementById('btn-premier-generate'),
+    premierRegenBtn,
+    premierApplyBtn,
+    premierApplyPrimary,
+    premierApplyAlt,
+  ].forEach((btn) => {
+    if (btn) btn.disabled = disabled;
+  });
+}
+
+async function applyPremierSet() {
+  const login = (premierLoginInput?.value || channelParam || '').trim().toLowerCase();
+  if (!login) throw new Error('Streamer login required');
+  let proposal = lastPremierProposal;
+  if (!proposal && premierProposal?.textContent) {
+    try {
+      proposal = JSON.parse(premierProposal.textContent);
+    } catch {
+      proposal = premierProposal.textContent;
+    }
+  }
+  if (!proposal) throw new Error('Generate a set first');
+  await apiCall('/admin/premier/apply', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ login, proposal }),
+  });
+  Toast.success('Applied to overlay (brandingProposal set)');
+}
+
+async function applyPremierVariant(idx = 0) {
+  const login = (premierLoginInput?.value || channelParam || '').trim().toLowerCase();
+  if (!login) throw new Error('Streamer login required');
+  if (!lastPremierProposal) throw new Error('No proposal generated');
+  const clone = typeof lastPremierProposal === 'string'
+    ? JSON.parse(lastPremierProposal)
+    : JSON.parse(JSON.stringify(lastPremierProposal));
+  if (Array.isArray(clone.variants) && clone.variants[idx]) {
+    clone.variants = [clone.variants[idx]];
+  }
+  await apiCall('/admin/premier/apply', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ login, proposal: clone }),
+  });
+  Toast.success(`Applied variant ${idx + 1} to overlay`);
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+function extractPalette(img, maxColors = 5) {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const w = 40;
+  const h = 40;
+  canvas.width = w;
+  canvas.height = h;
+  ctx.drawImage(img, 0, 0, w, h);
+  const data = ctx.getImageData(0, 0, w, h).data;
+  const freq = {};
+  for (let i = 0; i < data.length; i += 4) {
+    const [r, g, b, a] = [data[i], data[i + 1], data[i + 2], data[i + 3]];
+    if (a < 16) continue;
+    const key = rgbToHex(r, g, b);
+    freq[key] = (freq[key] || 0) + 1;
+  }
+  const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, maxColors);
+  return sorted.map(([hex]) => hex);
+}
+
+function rgbToHex(r, g, b) {
+  return (
+    '#' +
+    [r, g, b]
+      .map((v) => {
+        const s = v.toString(16);
+        return s.length === 1 ? '0' + s : s;
+      })
+      .join('')
+  );
+}
+
+function renderPremierPreview(proposal) {
+  if (!proposal || !premierPreviewCard || !premierPreviewNameplate) return;
+  let parsed = proposal;
+  if (typeof proposal === 'string') {
+    try {
+      parsed = JSON.parse(proposal);
+    } catch {
+      return;
+    }
+  }
+  const variant = Array.isArray(parsed.variants) ? parsed.variants[0] : null;
+  if (!variant) return;
+  const card = variant.cardBack || {};
+  const nameplate = variant.nameplate || {};
+  drawCardPreview(premierPreviewCard, card.colors || parsed.palette || ['#0f3a34', '#0bd4a6']);
+  drawNameplatePreview(premierPreviewNameplate, nameplate.colors || parsed.palette || ['#0bd4a6', '#0f3a34']);
+}
+
+function drawCardPreview(canvas, colors) {
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const [c1, c2, c3] = colors;
+  const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+  grad.addColorStop(0, c1 || '#0f3a34');
+  grad.addColorStop(1, c2 || '#0bd4a6');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = c3 || '#ffffff44';
+  ctx.lineWidth = 6;
+  ctx.strokeRect(6, 6, canvas.width - 12, canvas.height - 12);
+}
+
+function drawNameplatePreview(canvas, colors) {
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const [c1, c2] = colors;
+  const grad = ctx.createLinearGradient(0, 0, canvas.width, 0);
+  grad.addColorStop(0, c1 || '#0bd4a6');
+  grad.addColorStop(1, c2 || '#0f3a34');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#ffffffcc';
+  ctx.font = 'bold 18px Inter, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('Nameplate', canvas.width / 2, canvas.height / 2);
+}
+
+async function loadPremierPending() {
+  try {
+    const res = await apiCall('/admin/premier/pending', { method: 'GET' });
+    const items = res?.items || [];
+    if (premierReviewSelect) {
+      premierReviewSelect.innerHTML = '';
+      items.forEach((it, idx) => {
+        const opt = document.createElement('option');
+        const ts = new Date(it.at || Date.now()).toLocaleString();
+        opt.value = idx.toString();
+        opt.textContent = `${it.login} • ${it.preset || 'preset'} • ${ts}`;
+        opt.dataset.index = idx.toString();
+      });
+      premierReviewSelect.dataset.items = JSON.stringify(items);
+      premierReviewSelect.addEventListener('change', () => showPremierPending(items));
+      showPremierPending(items);
+    }
+  } catch (e) {
+    console.warn('loadPremierPending failed', e);
+  }
+}
+
+function showPremierPending(items) {
+  if (!premierReviewSelect || !premierReviewJson) return;
+  const idx = parseInt(premierReviewSelect.value || '0', 10);
+  const entry = items?.[idx];
+  if (!entry) {
+    premierReviewJson.textContent = '—';
+    return;
+  }
+  const proposal = entry.proposal || entry.proposalRaw || {};
+  premierReviewJson.textContent = typeof proposal === 'string' ? proposal : JSON.stringify(proposal, null, 2);
+}
+
+async function approvePremierSelection() {
+  if (!premierReviewSelect || !premierReviewJson) throw new Error('No selection');
+  const items = JSON.parse(premierReviewSelect.dataset.items || '[]');
+  const idx = parseInt(premierReviewSelect.value || '0', 10);
+  const entry = items[idx];
+  if (!entry) throw new Error('No selection');
+  const badge = premierBadgeSelect?.value || '';
+  const bundlePrice = parseFloat(premierBundlePriceInput?.value || '0');
+  const itemPrice = parseFloat(premierItemPriceInput?.value || '0');
+  const note = premierNoteInput?.value || '';
+  const rarity = premierRaritySelect?.value || 'legendary';
+  await apiCall('/admin/premier/approve', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      login: entry.login,
+      proposal: entry.proposal,
+      logoUrl: entry.logoUrl,
+      badge,
+      bundlePrice,
+      itemPrice,
+      note,
+      rarity,
+    }),
+  });
+  Toast.success('Marked as approved (manual store step)');
+  loadPremierStaged();
+}
+
+async function testApplyPremier() {
+  if (!premierReviewSelect || !premierReviewJson) throw new Error('No selection');
+  const items = JSON.parse(premierReviewSelect.dataset.items || '[]');
+  const idx = parseInt(premierReviewSelect.value || '0', 10);
+  const entry = items[idx];
+  if (!entry) throw new Error('No selection');
+  await apiCall('/admin/premier/test-apply', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ channel: 'sandbox', proposal: entry.proposal }),
+  });
+  Toast.success('Pushed to test overlay (channel: sandbox)');
+}
+
+async function revertPremier() {
+  const login = (premierLoginInput?.value || channelParam || '').trim().toLowerCase();
+  if (!login) throw new Error('Streamer login required for revert');
+  await apiCall('/admin/premier/revert', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ channel: login }),
+  });
+  Toast.success('Reverted to last applied branding');
+}
+
+async function useLastGood() {
+  const login = (premierLoginInput?.value || channelParam || '').trim().toLowerCase();
+  if (!login) throw new Error('Streamer login required');
+  try {
+    const res = await apiCall(`/admin/premier/last-good?login=${encodeURIComponent(login)}`, { method: 'GET' });
+    const lg = res?.lastGood;
+    if (!lg) throw new Error('No last good set found');
+    lastPremierProposal = lg.proposal;
+    if (premierProposal) {
+      premierProposal.textContent = JSON.stringify(lg.proposal, null, 2);
+    }
+    renderPremierPreview(lg.proposal);
+    Toast.success('Loaded last good set');
+  } catch (e) {
+    Toast.error(e.message || 'No last good set');
+  }
+}
+
+async function loadPremierStaged() {
+  try {
+    const res = await apiCall('/admin/premier/staged', { method: 'GET' });
+    const items = res?.items || [];
+    if (!premierStagedList) return;
+    premierStagedList.innerHTML = items.length
+      ? items
+          .map(
+            (it, idx) =>
+              `<li>${it.login} • Bundle: $${((it.bundle_price_cents || 0) / 100).toFixed(2)} • Item: $${((it.item_price_cents || 0) / 100).toFixed(2)} • ${it.rarity || '-'} ${it.published ? '(published)' : ''} <button class="btn btn-secondary btn-sm" data-publish="${idx}">Publish</button></li>`
+          )
+          .join('')
+      : '<li class="muted">None staged</li>';
+    premierStagedList.querySelectorAll('button[data-publish]')?.forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const i = parseInt(btn.dataset.publish || '0', 10);
+        await apiCall('/admin/premier/publish', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ index: i }),
+        });
+        Toast.success('Published flag set');
+        loadPremierStaged();
+      });
+    });
+  } catch (e) {
+    console.warn('loadPremierStaged failed', e);
+  }
+}

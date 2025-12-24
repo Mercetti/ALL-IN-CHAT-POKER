@@ -49,6 +49,12 @@
   margin-bottom: var(--spacing-lg);
 }
 
+.subtitle.small-note {
+  font-size: 13px;
+  margin-top: -6px;
+  margin-bottom: var(--spacing-md);
+}
+
 .login-form {
   margin-bottom: var(--spacing-lg);
 }
@@ -92,6 +98,35 @@
   margin-bottom: var(--spacing-md);
   color: var(--text-secondary);
   font-size: var(--font-size-sm);
+}
+
+.role-toggle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 10px 0 var(--spacing-md);
+}
+
+.role-option {
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+  padding: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+
+.role-option:hover {
+  transform: translateY(-1px);
+  border-color: rgba(0, 255, 170, 0.4);
+}
+
+.role-option.active {
+  border-color: rgba(0, 255, 170, 0.7);
+  background: rgba(0, 255, 170, 0.08);
+  box-shadow: 0 0 18px rgba(0, 255, 170, 0.2);
 }
 
 .btn-oauth {

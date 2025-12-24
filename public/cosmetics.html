@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cosmetics & Overlay | All-In Chat Poker</title>
+  <title>Store | All-In Chat Poker</title>
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="stylesheet" href="style-theme.css">
   <link rel="stylesheet" href="style-market.css">
@@ -121,12 +121,15 @@
       height: 60px;
       border: none;
       background: url('/assets/buttons/buy_button_normal.png') center/contain no-repeat;
-      color: #effff6;
+      background-color: transparent;
+      color: transparent;
       font-weight: 700;
       letter-spacing: 0.04em;
-      text-shadow: 0 1px 4px rgba(0,0,0,0.35);
+      text-shadow: none;
       cursor: pointer;
       transition: transform 0.08s ease;
+      padding: 0;
+      outline: none;
     }
     .pack-btn:hover:not(:disabled) {
       background-image: url('/assets/buttons/buy_button_hover.png');
@@ -159,7 +162,7 @@
     <div class="cosmetics-header">
       <div>
         <p class="muted" style="margin:0;">All-In Chat Poker</p>
-        <h1 style="margin:0;">Cosmetics & Overlay</h1>
+        <h1 style="margin:0;">Store</h1>
       </div>
       <div class="catalog-controls">
         <label for="filter-type" class="sr-only">Filter by type</label>
@@ -179,12 +182,12 @@
     </div>
 
     <section class="panel" style="margin-bottom:16px;">
-      <h2 style="margin:0 0 8px;">All-In Chips Packs</h2>
-      <p class="muted" style="margin:0 0 12px;">Buy AIC packs with cash; cosmetics are purchased with AIC only.</p>
+      <h2 style="margin:0 0 8px;">AIC Packs</h2>
+      <p class="muted" style="margin:0 0 12px;">Buy All-In Chips with cash; cosmetics are purchased with AIC only.</p>
       <div class="cosmetics-grid" id="aic-pack-grid"></div>
     </section>
 
-    <p class="muted" id="catalog-status">Loading catalog...</p>
+    <p class="muted" id="catalog-status">Loading store...</p>
     <div id="cosmetics-grid" class="cosmetics-grid"></div>
 
     <div id="selection-panel" class="preview-panel" style="display:none;">
@@ -216,6 +219,13 @@
       { id: 'coins-5000', chips: 5000, price: '$49.99', bonus: '+1500', img: '/assets/all_in_chip_x1000.png', tag: 'Whale Pack' },
     ];
 
+    function isPurchasable(item) {
+      const price = Number.isFinite(item?.price_cents) ? item.price_cents : Number(item?.price || 0);
+      const unlock = (item?.unlock_type || '').toLowerCase();
+      const gated = unlock && unlock !== 'basic';
+      return price > 0 && !gated;
+    }
+
     async function loadCatalog() {
       statusEl.textContent = 'Loading catalog...';
       gridEl.innerHTML = '';
@@ -225,7 +235,8 @@
         const res = await fetch('/catalog', { signal: controller.signal });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const items = await res.json();
-        renderCatalog(items || []);
+        const purchasable = (items || []).filter(isPurchasable);
+        renderSections(purchasable);
         statusEl.textContent = '';
       } catch (err) {
         console.error('[cosmetics] catalog load failed', err);
@@ -271,38 +282,68 @@
       return `<div style="width:96px;height:120px;border-radius:10px;border:1px solid var(--border-color);background:${bg};"></div>`;
     }
 
-    function renderCatalog(items) {
+    function renderSections(items) {
       const filter = filterEl.value;
-      const filtered = filter ? items.filter(i => i.type === filter) : items;
-      if (!filtered.length) {
-        gridEl.innerHTML = '<div class="muted" style="padding:12px;">No items found.</div>';
+      const partnerFeatured = items.filter(i => (i.unlock_type || '').toLowerCase() === 'partner' || (i.tags || '').toLowerCase().includes('partner'));
+      const byType = {};
+      items.forEach(i => {
+        if (filter && i.type !== filter) return;
+        const t = i.type || 'other';
+        if (!byType[t]) byType[t] = [];
+        byType[t].push(i);
+      });
+      const typeOrder = ['cardBack', 'cardFace', 'tableSkin', 'avatarRing', 'profileFrame', 'chipSkin', 'nameplate', 'dealFx', 'winFx', 'other'];
+      const sections = [];
+      if (partnerFeatured.length) {
+        sections.push({
+          title: 'Featured Partner Sets',
+          items: partnerFeatured,
+        });
+      }
+      typeOrder.forEach(t => {
+        if (byType[t] && byType[t].length) {
+          sections.push({
+            title: typeLabels[t] || t,
+            items: byType[t],
+          });
+        }
+      });
+
+      if (!sections.length) {
+        gridEl.innerHTML = '<div class="muted" style="padding:12px;">No purchasable items found.</div>';
         return;
       }
-      gridEl.innerHTML = filtered.map(item => {
-        const price = Number.isFinite(item.price_cents) ? ('$' + (item.price_cents / 100).toFixed(2)) : (item.price ? '$' + item.price : 'Free');
-        return `
-          <div class="cosmetic-card">
-            <div class="cosmetic-type">${item.type || ''}</div>
-            <h3>${item.name || item.id}</h3>
-            <div class="cosmetic-preview">${buildPreview(item)}</div>
-            <div class="cosmetic-meta">
-              <span class="badge">${item.rarity || 'common'}</span>
-              <span>${price}</span>
+
+      gridEl.innerHTML = sections.map(section => {
+        const cards = section.items.map(item => {
+          const price = Number.isFinite(item.price_cents) ? `${item.price_cents} AIC` : (item.price ? `${item.price} AIC` : 'Free');
+          return `
+            <div class="cosmetic-card">
+              <div class="cosmetic-type">${item.type || ''}</div>
+              <h3>${item.name || item.id}</h3>
+              <div class="cosmetic-preview">${buildPreview(item)}</div>
+              <div class="cosmetic-meta">
+                <span class="badge">${item.rarity || 'common'}</span>
+                <span>${price}</span>
+              </div>
+              <p class="muted" style="min-height:32px;">${item.description || item.unlock_note || ''}</p>
+              <button class="btn btn-secondary btn-sm" data-select="${item.id}">Preview</button>
             </div>
-            <p class="muted" style="min-height:32px;">${item.description || item.unlock_note || ''}</p>
-            <button class="btn btn-secondary btn-sm" data-select="${item.id}">Preview</button>
-          </div>
-        `;
+          `;
+        }).join('');
+        return `<div class="panel" style="grid-column:1/-1;"><h2 style="margin:0 0 8px;">${section.title}</h2><div class="cosmetics-grid">${cards}</div></div>`;
       }).join('');
 
       gridEl.querySelectorAll('button[data-select]').forEach(btn => {
         btn.addEventListener('click', () => {
-          const item = filtered.find(i => i.id === btn.dataset.select);
-          if (item) showSelection(item);
+          const itemId = btn.dataset.select;
+          const found = items.find(i => i.id === itemId);
+          if (found) showSelection(found);
         });
       });
 
-      if (filtered[0]) showSelection(filtered[0]);
+      const first = sections.find(s => s.items && s.items[0]);
+      if (first?.items?.[0]) showSelection(first.items[0]);
     }
 
     function showSelection(item) {
@@ -319,7 +360,7 @@
       nameEl.textContent = item.name || item.id;
       typeEl.textContent = item.type || '';
       rarityEl.textContent = item.rarity || 'common';
-      priceEl.textContent = Number.isFinite(item.price_cents) ? ('$' + (item.price_cents / 100).toFixed(2)) : (item.price ? '$' + item.price : 'Free');
+      priceEl.textContent = Number.isFinite(item.price_cents) ? `${item.price_cents} AIC` : (item.price ? `${item.price} AIC` : 'Free');
       unlockEl.textContent = item.unlock_note || '';
       descEl.textContent = item.description || '';
       previewEl.innerHTML = buildPreview(item);
@@ -358,13 +399,18 @@
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
             if (!data?.id) throw new Error('Missing PayPal order id');
+            if (!data?.nonce || !data?.signature) throw new Error('Missing order nonce/signature');
 
-            // Redirect to PayPal and then poll capture on return
+            // Persist nonce client-side to prevent replay
+            sessionStorage.setItem(`paypal_nonce_${data.id}`, data.nonce);
+            sessionStorage.setItem(`paypal_sig_${data.id}`, data.signature);
+
+            // Redirect to PayPal and then return here for capture
             const paypalUrl = `https://www.paypal.com/checkoutnow?token=${data.id}&redirect_uri=${encodeURIComponent(window.location.origin + '/cosmetics.html?paypalOrderId=' + data.id + '&packId=' + packId)}`;
             window.location.href = paypalUrl;
           } catch (err) {
             console.error('Pack purchase failed', err);
-            alert('Could not start PayPal checkout. Please try again.');
+            alert('Could not start PayPal checkout. Please try again. ' + (err?.message || ''));
             btn.disabled = false;
             btn.textContent = 'BUY';
           }
@@ -379,24 +425,38 @@
       const packId = params.get('packId');
       if (!orderId || !packId) return;
       try {
+        const storedNonce = sessionStorage.getItem(`paypal_nonce_${orderId}`) || '';
+        const storedSig = sessionStorage.getItem(`paypal_sig_${orderId}`) || '';
         const res = await fetch('/coins/paypal/capture', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ orderId, packId }),
+          body: JSON.stringify({ orderId, packId, nonce: storedNonce, signature: storedSig }),
         });
         const data = await res.json();
         if (res.ok && data?.success) {
           alert('Purchase complete! Coins added: ' + (data.coins || ''));
-          // clean query params
-          const url = new URL(window.location.href);
-          url.search = '';
-          window.history.replaceState({}, document.title, url.toString());
         } else {
-          alert('PayPal capture failed. Please contact support.');
+          const msg = data?.error === 'invalid_nonce'
+            ? 'Checkout session expired. Please start again.'
+            : data?.error === 'nonce_used'
+              ? 'This checkout was already processed. If coins are missing, contact support.'
+              : data?.error === 'invalid_signature'
+                ? 'Order signature mismatch. Please restart checkout.'
+              : data?.error === 'duplicate_txn'
+                ? 'This payment was already captured. If coins are missing, contact support.'
+                : 'PayPal capture failed. Please try again.';
+          alert(msg);
         }
       } catch (e) {
         console.error('PayPal capture failed', e);
         alert('PayPal capture failed. Please contact support.');
+      } finally {
+        // clean query params and nonce
+        const url = new URL(window.location.href);
+        url.search = '';
+        window.history.replaceState({}, document.title, url.toString());
+        sessionStorage.removeItem(`paypal_nonce_${orderId}`);
+        sessionStorage.removeItem(`paypal_sig_${orderId}`);
       }
     })();
     loadCatalog();

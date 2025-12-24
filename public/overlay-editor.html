@@ -23,6 +23,7 @@
     .item-card .meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-muted); }
     .item-card.selected { outline: 2px solid var(--accent-400); }
     .preview { display: grid; gap: 10px; }
+    .panel.preview { position: sticky; top: 12px; align-self: start; }
     .preview .canvas-wrap, .preview .img-wrap { height: 260px; border-radius: 12px; border: 1px solid var(--border-color); background: radial-gradient(circle at 30% 30%, rgba(68,255,210,0.12), rgba(12,30,48,0.9)); display: grid; place-items: center; overflow: hidden; }
     .preview img { max-width: 100%; max-height: 100%; }
     .field { display: flex; flex-direction: column; gap: 6px; }
@@ -35,6 +36,7 @@
     .modal canvas, .modal img, .modal div { max-width:80vw; max-height:70vh; }
     @media (max-width: 1080px) {
       .layout { grid-template-columns: 1fr; }
+      .panel.preview { position: static; }
       .preview .canvas-wrap { height: 220px; }
     }
   </style>
@@ -47,7 +49,10 @@
         <h1 style="margin:4px 0 0;">Overlay Editor</h1>
         <p class="muted" style="margin:4px 0 0;">Pick one cosmetic at a time on the left; preview on the right.</p>
       </div>
-      <div class="muted">Saved locally (overlayCosmeticSelection + overlayFxChoice)</div>
+      <div class="muted" style="display:flex; align-items:center; gap:8px;">
+        <span id="session-pill" class="pill muted">Session</span>
+        <span>Saved locally (overlayCosmeticSelection + overlayFxChoice)</span>
+      </div>
     </div>
 
     <div class="layout">
@@ -85,6 +90,27 @@
   </div>
 
   <script>
+    const sessionPill = document.getElementById('session-pill');
+    const refreshSessionPill = () => {
+      if (!sessionPill || typeof getTokenStatus !== 'function') return;
+      const state = getTokenStatus();
+      if (state === 'ok') {
+        sessionPill.textContent = 'Session OK';
+        sessionPill.style.background = 'rgba(16,185,129,0.85)';
+        sessionPill.style.color = '#fff';
+      } else if (state === 'warn') {
+        sessionPill.textContent = 'Session Check';
+        sessionPill.style.background = 'rgba(234,179,8,0.85)';
+        sessionPill.style.color = '#111';
+      } else {
+        sessionPill.textContent = 'Session';
+        sessionPill.style.background = 'rgba(99,102,241,0.7)';
+        sessionPill.style.color = '#fff';
+      }
+    };
+    refreshSessionPill();
+    setInterval(refreshSessionPill, 30000);
+
     const statusEl = document.getElementById('catalog-status');
     const categoryRail = document.getElementById('category-rail');
     const itemGrid = document.getElementById('item-grid');
@@ -102,6 +128,7 @@
 
     let effectsMeta = null;
     let catalog = [];
+    let catalogMap = {};
     let activeType = 'cardBack';
     let selectedItem = null;
     const cache = {};
@@ -132,7 +159,7 @@
     };
     let rarityFilter = '';
     let sortKey = 'name';
-    let syncEnabled = false;
+    let syncEnabled = true;
     const missingImages = new Set();
 
     async function loadEffectsMeta() {
@@ -141,6 +168,23 @@
         effectsMeta = res.ok ? await res.json() : null;
       } catch (e) {
         console.warn('Failed to load effects meta', e);
+      }
+    }
+
+    async function loadRemoteLoadout() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const channel = params.get('channel') || '';
+        const qs = channel ? `?channel=${encodeURIComponent(channel)}` : '';
+        const data = await apiCall(`/overlay/loadout${qs}`, { method: 'GET', useUserToken: true, noToast: true });
+        if (data?.cosmetics) {
+          localStorage.setItem('overlayCosmeticSelection', JSON.stringify(data.cosmetics));
+        }
+        if (data?.effects) {
+          localStorage.setItem('overlayFxChoice', JSON.stringify(data.effects));
+        }
+      } catch (e) {
+        console.warn('[overlay-editor] loadout fetch failed', e);
       }
     }
 
@@ -164,13 +208,14 @@
       const current = loadStoredCosmetics();
       const next = { ...current, ...partial };
       localStorage.setItem('overlayCosmeticSelection', JSON.stringify(next));
+      if (syncEnabled) syncOverlay(next, null);
     }
 
     function saveFxChoice(partial) {
       const current = loadStoredFxChoice();
       const next = { ...current, ...partial };
       localStorage.setItem('overlayFxChoice', JSON.stringify(next));
-      if (syncEnabled) syncOverlay();
+      if (syncEnabled) syncOverlay(null, next);
     }
 
     async function loadImage(src) {
@@ -217,6 +262,21 @@
       draw();
     }
 
+    function getEquippedCardBackImage() {
+      const saved = loadStoredCosmetics();
+      const backId = saved.cardBack;
+      const item = backId ? catalogMap[backId] : null;
+      return item?.image_url || item?.preview || '/assets/card-back.png';
+    }
+    function getEquippedCardFaceSample() {
+      const saved = loadStoredCosmetics();
+      const faceId = saved.cardFace;
+      const item = faceId ? catalogMap[faceId] : null;
+      const base = item?.image_url || item?.preview || '/assets/cosmetics/cards/faces/classic';
+      const trimmed = base.endsWith('/') ? base.slice(0, -1) : base;
+      return `${trimmed}/ace_of_spades.png`;
+    }
+
     async function previewFx(key, canvas) {
       if (!effectsMeta?.animations) return;
       const meta = effectsMeta.animations[key];
@@ -228,6 +288,16 @@
       if (!spritePath) return;
       try {
         const img = await loadImage(spritePath);
+        const backImg = getEquippedCardBackImage();
+        const faceSample = getEquippedCardFaceSample();
+        const bgStack = [];
+        if (key.includes('flip') || key.includes('face')) {
+          bgStack.push(`url('${faceSample}') center/contain no-repeat`);
+        }
+        if (backImg) {
+          bgStack.push(`url('${backImg}') center/cover no-repeat`);
+        }
+        canvas.style.background = bgStack.join(',') || '';
         playSprite(img, meta, canvas);
       } catch (e) {
         console.warn('Preview failed', key, e);
@@ -245,7 +315,7 @@
       const hasImg = Boolean(img);
       if (item.type === 'tableSkin') {
         const bgImg = hasImg ? `, url('${img}') center/cover no-repeat` : '';
-        return `<div style="width:100%;height:100%;background:linear-gradient(135deg,${tint}, #0c1c2c)${bgImg};display:grid;place-items:center;color:${item.color || '#8ef5d0'};font-weight:700;">TABLE</div>`;
+        return `<div style="width:100%;height:100%;background:radial-gradient(circle at 40% 35%, rgba(255,255,255,0.12), rgba(0,0,0,0.45)), linear-gradient(135deg,${tint}, #0c1c2c)${bgImg};display:grid;place-items:center;color:${item.color || '#8ef5d0'};font-weight:700;">TABLE</div>`;
       }
       if (item.type === 'avatarRing') {
         const bg = hasImg ? `url('${img}') center/cover no-repeat` : 'transparent';
@@ -334,7 +404,7 @@
           <div class="thumb">${buildThumb(item)}</div>
           <div class="meta">
             <span>${item.rarity || 'common'}</span>
-            <span>${Number.isFinite(item.price_cents) ? '$' + (item.price_cents/100).toFixed(2) : 'Free'}</span>
+            <span>${Number.isFinite(item.price_cents) ? `${item.price_cents} AIC` : 'Free'}</span>
           </div>
           <div style="font-weight:600;">${item.name || item.id}</div>
           <div class="muted" style="font-size:0.85rem;">${item.description || item.unlock_note || ''}</div>
@@ -360,7 +430,7 @@
       previewName.textContent = item.name || item.id;
       previewType.textContent = item.type || '';
       previewRarity.textContent = item.rarity || 'common';
-      previewPrice.textContent = Number.isFinite(item.price_cents) ? '$' + (item.price_cents / 100).toFixed(2) : 'Free';
+      previewPrice.textContent = Number.isFinite(item.price_cents) ? `${item.price_cents} AIC` : 'Free';
       previewDesc.textContent = item.description || item.unlock_note || '';
       const thumb = buildThumb(item);
       previewVisual.innerHTML = thumb;
@@ -477,7 +547,7 @@
       sortSel.style.width = '160px';
       sortSel.innerHTML = `
         <option value="name">Sort: Name</option>
-        <option value="price">Sort: Price</option>
+        <option value="price">Sort: Price (AIC)</option>
         <option value="rarity">Sort: Rarity</option>
       `;
       sortSel.value = sortKey;
@@ -540,15 +610,15 @@
       sectionSubtitle.parentElement.insertBefore(controls, sectionSubtitle.nextSibling);
     }
 
-    function syncOverlay() {
+    function syncOverlay(cosmeticsOverride = null, effectsOverride = null) {
       const payload = {
-        cosmetics: loadStoredCosmetics(),
-        effects: loadStoredFxChoice(),
+        cosmetics: cosmeticsOverride || loadStoredCosmetics(),
+        effects: effectsOverride || loadStoredFxChoice(),
       };
-      fetch('/overlay/sync', {
+      apiCall('/overlay/sync', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
+        useUserToken: true,
       }).catch(err => console.warn('Overlay sync failed', err));
     }
 
@@ -556,10 +626,13 @@
       statusEl.textContent = 'Loading catalog...';
       itemGrid.innerHTML = '';
       try {
+        await loadRemoteLoadout();
         const res = await fetch('/catalog');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const items = await res.json();
         catalog = (items || []).filter(i => typeLabels[i.type]);
+        catalogMap = {};
+        catalog.forEach(it => { if (it?.id) catalogMap[it.id] = it; });
         await preflightImages(catalog);
         renderCategories();
         statusEl.textContent = '';
@@ -573,13 +646,14 @@
     equipBtn.addEventListener('click', () => {
       if (!selectedItem) return;
       saveCosmeticSelection({ [selectedItem.type]: selectedItem.id });
-      equipBtn.textContent = 'Equipped (saved locally)';
-      setTimeout(() => { equipBtn.textContent = 'Equip (local)'; }, 1400);
+      if (syncEnabled) syncOverlay();
+      equipBtn.textContent = syncEnabled ? 'Saved to overlay' : 'Equipped';
+      setTimeout(() => { equipBtn.textContent = 'Equip'; }, 1400);
     });
 
     refreshBtn.addEventListener('click', loadCatalog);
 
-    syncEnabled = localStorage.getItem('overlaySyncEnabled') === '1';
+    syncEnabled = localStorage.getItem('overlaySyncEnabled') !== '0';
     renderControls();
     loadEffectsMeta().then(renderGrid);
     loadCatalog();

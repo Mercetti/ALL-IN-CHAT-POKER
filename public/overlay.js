@@ -162,6 +162,8 @@ let dealSprite = null;
 let dealMeta = null;
 let overlayFx = { dealFx: 'card_deal_24', winFx: 'win_burst_6' };
 let allInFrames = 6;
+let loadoutApplied = false;
+let catalogCache = null;
 
 async function loadAllInSprite() {
   const img = await loadImageCached(ALL_IN_EFFECT_SPRITE);
@@ -247,6 +249,87 @@ function loadFxChoice() {
 loadFxChoice();
 loadWinSprite(overlayFx.winFx);
 loadDealSprite(overlayFx.dealFx);
+loadOverlayLoadout();
+
+async function fetchCatalogForLoadout() {
+  if (catalogCache) return catalogCache;
+  try {
+    const res = await fetch('/catalog');
+    if (res.ok) {
+      catalogCache = await res.json();
+    }
+  } catch (e) {
+    console.warn('[overlay] catalog fetch failed', e);
+  }
+  return catalogCache || [];
+}
+
+function mapLoadoutToOverlaySettings(loadout = {}, catalog = []) {
+  const map = {};
+  (catalog || []).forEach((item) => {
+    if (item?.id) map[item.id] = item;
+  });
+  const cosmetics = loadout.cosmetics || {};
+  const pick = (slot, fallback) => map[cosmetics[slot]] || (fallback ? map[fallback] : null);
+
+  const cardBackItem = pick('cardBack', 'card-default');
+  const tableItem = pick('tableSkin', 'table-default');
+  const ringItem = pick('avatarRing', 'ring-default');
+  const frameItem = pick('profileFrame', 'frame-default');
+  const faceItem = pick('cardFace', 'card-face-classic');
+
+  const settings = {};
+  if (cardBackItem) {
+    if (cardBackItem.tint) settings.cardBackTint = cardBackItem.tint;
+    if (cardBackItem.image_url || cardBackItem.preview) {
+      settings.cardBackImage = cardBackItem.image_url || cardBackItem.preview;
+    }
+  }
+  if (tableItem) {
+    if (tableItem.tint) settings.tableTint = tableItem.tint;
+    if (tableItem.color) settings.tableLogoColor = tableItem.color;
+    if (tableItem.texture_url || tableItem.image_url || tableItem.preview) {
+      settings.tableTexture = tableItem.texture_url || tableItem.image_url || tableItem.preview;
+    }
+  }
+  if (ringItem) {
+    if (ringItem.color) settings.avatarRingColor = ringItem.color;
+    if (ringItem.image_url || ringItem.preview) {
+      settings.avatarRingImage = ringItem.image_url || ringItem.preview;
+    }
+  }
+  if (frameItem && frameItem.color) {
+    settings.profileCardBorder = frameItem.color;
+  }
+  if (faceItem && (faceItem.image_url || faceItem.preview)) {
+    settings.cardFaceBase = faceItem.image_url || faceItem.preview;
+  }
+
+  return { settings, fx: loadout.effects || {} };
+}
+
+async function loadOverlayLoadout() {
+  try {
+    const qs = overlayChannel ? `?channel=${encodeURIComponent(overlayChannel)}` : '';
+    const res = await fetch(`/overlay/loadout${qs}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const catalog = await fetchCatalogForLoadout();
+    const mapped = mapLoadoutToOverlaySettings(data || {}, catalog);
+    if (mapped.settings && Object.keys(mapped.settings).length) {
+      overlayTuning = { ...overlayTuning, ...mapped.settings };
+      applyVisualSettings();
+    }
+    if (mapped.fx && Object.keys(mapped.fx).length) {
+      overlayFx = { ...overlayFx, ...mapped.fx };
+      loadDealSprite(overlayFx.dealFx);
+      loadWinSprite(overlayFx.winFx);
+    }
+    loadoutApplied = true;
+  } catch (err) {
+    console.warn('[overlay] loadout fetch failed', err);
+  }
+}
 
 async function loadWinSprite(key) {
   try {
@@ -738,11 +821,14 @@ function renderPlayerHands(players) {
 
     const ringImg = cosmetics.avatarRingImage;
     const ringStyle = ringImg ? `style="--avatar-ring-img:url('${ringImg}')"` : '';
+    const avatarSrc = player.avatar || 'https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/default-profile_image.png';
     wrapper.innerHTML = `
       <div class="player-header">
         <div class="player-avatar-wrapper ${ringImg ? 'has-ring-img' : ''}" ${ringStyle}>
           ${ringImg ? '<div class="avatar-ring-img"></div>' : ''}
-          <img class="player-avatar" src="${player.avatar || 'https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/default-profile_image.png'}" alt="${player.login}">
+          <div class="avatar-mask">
+            <img class="player-avatar" src="${avatarSrc}" alt="${player.login}">
+          </div>
         </div>
         <div>
           <div class="player-name">${player.login}</div>
@@ -1259,6 +1345,11 @@ socket.on('overlaySettings', (data) => {
     potGlowMultiplier = settings.potGlowMultiplier;
   }
   applyVisualSettings();
+  if (data?.fx) {
+    overlayFx = { ...overlayFx, ...data.fx };
+    loadDealSprite(overlayFx.dealFx);
+    loadWinSprite(overlayFx.winFx);
+  }
 });
 
 function applyVisualSettings() {

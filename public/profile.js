@@ -12,6 +12,7 @@ let winFxSprite = null;
 let winFxMeta = null;
 const fxImageCache = {};
 const fxRunners = { deal: null, win: null };
+let partnerProgress = null;
 
 function loadImage(src) {
   return new Promise((resolve) => {
@@ -38,7 +39,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   applyTheme();
   // Get username from URL or use default
   const params = new URLSearchParams(window.location.search);
-  const username = params.get('user') || 'guest';
+  const tokenUser = (() => {
+    const tok = getUserToken && getUserToken();
+    if (!tok) return null;
+    try {
+      const payload = JSON.parse(atob(tok.split('.')[1]));
+      return payload.user || payload.login || null;
+    } catch (e) {
+      return null;
+    }
+  })();
+  const username = params.get('user') || tokenUser || 'guest';
 
   // Require user token; redirect to login if missing
   const token = getUserToken();
@@ -50,6 +61,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadProfile(username);
   await loadCosmetics();
   await loadEffectsMeta();
+  await loadPartnerProgress();
   initTabs();
   setupEventListeners();
 });
@@ -71,6 +83,7 @@ async function loadProfile(username) {
     updateForm();
     updatePreview();
     updateStreamLinks();
+    await loadPartnerProgress();
   } catch (err) {
     Toast.error('Failed to load profile: ' + err.message);
   }
@@ -90,6 +103,50 @@ async function loadCosmetics() {
     userItems = { owned: [], equipped: {} };
   }
   renderCosmetics();
+}
+
+async function loadPartnerProgress() {
+  try {
+    partnerProgress = await apiCall('/partner/progress', { method: 'GET', useUserToken: true });
+    renderPartnerProgress();
+  } catch (e) {
+    const pill = document.getElementById('partner-status');
+    if (pill) pill.textContent = 'Progress unavailable';
+  }
+}
+
+function renderPartnerProgress() {
+  if (!partnerProgress) return;
+  const {
+    streams = 0,
+    rounds = 0,
+    uniquePlayers = 0,
+    avgPlayersPerStream = 0,
+    goals = {},
+    windowDays = 30,
+  } = partnerProgress;
+  const setBar = (id, val, target) => {
+    const fill = document.getElementById(id);
+    const label = document.getElementById(`${id}-val`);
+    const pct = target ? Math.min(100, Math.round((val / target) * 100)) : 0;
+    if (fill) fill.style.width = `${pct}%`;
+    if (label) label.textContent = `${val.toFixed ? val.toFixed(1) : val}`;
+  };
+
+  setBar('pg-streams', streams, 4);
+  setBar('pg-avg-players', avgPlayersPerStream, 10);
+  setBar('pg-unique', uniquePlayers, 5);
+  setBar('pg-rounds', rounds, 20);
+
+  const note = document.getElementById('partner-note');
+  if (note) note.textContent = `Last ${windowDays} days. Meet 4+ streams, 2h/stream, avg 10+ players, 5+ unique players, 20+ rounds.`;
+
+  const metCount = Object.values(goals || {}).filter(Boolean).length;
+  const pill = document.getElementById('partner-status');
+  if (pill) {
+    pill.textContent = `${metCount} goals met`;
+    pill.classList.toggle('pill-success', metCount >= 4);
+  }
 }
 
 async function loadEffectsMeta() {

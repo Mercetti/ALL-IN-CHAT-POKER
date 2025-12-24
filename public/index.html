@@ -45,20 +45,42 @@
       0% { background-position: 0 0; }
       100% { background-position: 100% 0; }
     }
+    /* Hide legacy hero CTA rows (redundant with navbar) */
+    .hero-landing .cta-grid,
+    .hero-landing .cta-row,
+    .hero-landing .hero-actions,
+    .hero-landing .cta-links,
+    .hero-landing .cta-buttons {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
   <div class="container">
+    <!-- Landing hero -->
+    <section class="hero-landing">
+      <div class="hero-content">
+        <div class="hero-tag">All-In Chat Poker</div>
+        <h1 class="hero-title">Bring Twitch Chat to the Table</h1>
+        <p class="hero-lede">
+          Spin up live Blackjack and Video Poker rounds where viewers join with <code>!join</code> or place bets right from chat.
+          Drop the overlay into OBS, start rounds from the admin panel, and let the hype take over.
+        </p>
+        <div class="hero-status">Status: Alpha testing (multi-stream lobbies + avatars)</div>
+      </div>
+      <div class="hero-logo-glow" aria-hidden="true"></div>
+    </section>
+
     <!-- Header -->
     <header class="header">
       <div class="header-content">
-        <div class="brand">
+        <a class="brand" href="/welcome.html">
           <img src="logo.png" alt="All-In Chat Poker logo" class="brand-logo">
           <div class="brand-text">
             <h1>All-In Chat Poker</h1>
             <p class="brand-subtitle">Chat-powered video poker</p>
           </div>
-        </div>
+        </a>
           <div class="header-info">
             <div class="user-auth">
               <span id="user-pill" class="badge badge-secondary subtle">Signed out</span>
