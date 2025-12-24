@@ -213,7 +213,8 @@ document.addEventListener('DOMContentLoaded', () => {
           setUserToken(resp.token);
           Toast.success(`Signed in as ${login}`);
           refreshLinkStatus();
-          setTimeout(() => redirectAfterLogin(desiredRole), 200);
+          const roleHint = (resp.profile?.role || '').toLowerCase();
+          setTimeout(() => redirectAfterLogin(roleHint || desiredRole), 150);
         }
       } catch (err) {
         Toast.error(err.message || 'Login failed');
@@ -247,7 +248,8 @@ document.addEventListener('DOMContentLoaded', () => {
           setUserToken(resp.token);
           Toast.success(`Account created for ${login}`);
           refreshLinkStatus();
-          setTimeout(() => redirectAfterLogin(desiredRole), 200);
+          const roleHint = (resp.profile?.role || '').toLowerCase();
+          setTimeout(() => redirectAfterLogin(roleHint || desiredRole), 150);
         }
       } catch (err) {
         Toast.error(err.message || 'Registration failed');
