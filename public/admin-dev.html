@@ -98,6 +98,47 @@
         </div>
       </section>
 
+      <section class="control-panel compact-card" id="partner-tax-panel">
+        <div class="section-header">
+          <h2>Partner Tax Forms</h2>
+          <p class="muted small">Collect payout details + W-9/W-8 uploads (admin-only; encrypted).</p>
+        </div>
+        <div class="form-grid compact-grid">
+          <input id="tax-partner-id" class="form-input" placeholder="partner id (login)">
+          <input id="tax-full-name" class="form-input" placeholder="Legal name">
+          <input id="tax-address" class="form-input" placeholder="Address">
+          <input id="tax-country" class="form-input" placeholder="Country">
+          <input id="tax-email" class="form-input" placeholder="Payout email">
+          <select id="tax-form-type" class="form-input">
+            <option value="w9">W-9 (US)</option>
+            <option value="w8">W-8 (non-US)</option>
+          </select>
+          <input id="tax-id" class="form-input" placeholder="Tax ID (encrypted)">
+          <input id="tax-file" class="form-input" type="file" accept=".pdf" />
+          <button id="btn-submit-tax" class="btn btn-primary btn-sm full-span">Upload tax form</button>
+        </div>
+        <div class="table-responsive">
+          <table class="table slim-table" id="tax-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Partner</th>
+                <th>Name</th>
+                <th>Country</th>
+                <th>Form</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>File</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="8" class="muted">No submissions</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+
       <section class="control-panel compact-card" id="overlay-health-panel">
         <div class="section-header">
           <h2>Overlay Health</h2>

@@ -247,6 +247,30 @@ class DBHelper {
       )
     `);
 
+    // Partner tax forms (files stored separately; limited PII here)
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS partners_tax_forms (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        partner_id TEXT,
+        full_name TEXT,
+        address TEXT,
+        country TEXT,
+        payout_email TEXT,
+        form_type TEXT,
+        tax_id_enc BLOB,
+        tax_id_iv BLOB,
+        file_path TEXT,
+        file_name TEXT,
+        status TEXT DEFAULT 'submitted',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        created_by TEXT,
+        reviewed_by TEXT,
+        reviewed_at DATETIME,
+        note TEXT
+      )
+    `);
+    this.db.exec(`CREATE INDEX IF NOT EXISTS idx_partners_tax_forms_partner ON partners_tax_forms(partner_id)`);
+
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS partner_views (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -933,6 +957,50 @@ class DBHelper {
 
   listPartners() {
     return this.db.prepare('SELECT * FROM partners ORDER BY display_name').all();
+  }
+
+  savePartnerTaxForm(form) {
+    const stmt = this.db.prepare(`
+      INSERT INTO partners_tax_forms
+        (partner_id, full_name, address, country, payout_email, form_type, tax_id_enc, tax_id_iv, file_path, file_name, status, created_by, note)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    const info = stmt.run(
+      (form.partner_id || '').toLowerCase(),
+      form.full_name || '',
+      form.address || '',
+      form.country || '',
+      form.payout_email || '',
+      form.form_type || '',
+      form.tax_id_enc || null,
+      form.tax_id_iv || null,
+      form.file_path || '',
+      form.file_name || '',
+      form.status || 'submitted',
+      form.created_by || '',
+      form.note || ''
+    );
+    return info.lastInsertRowid;
+  }
+
+  listPartnerTaxForms() {
+    return this.db.prepare(`
+      SELECT id, partner_id, full_name, country, payout_email, form_type, status, created_at, created_by, file_name
+      FROM partners_tax_forms
+      ORDER BY created_at DESC
+    `).all();
+  }
+
+  getPartnerTaxForm(id) {
+    return this.db.prepare(`SELECT * FROM partners_tax_forms WHERE id = ?`).get(id);
+  }
+
+  updatePartnerTaxFormStatus(id, status = 'submitted', reviewer = null, note = null) {
+    return this.db.prepare(`
+      UPDATE partners_tax_forms
+      SET status = ?, reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP, note = COALESCE(?, note)
+      WHERE id = ?
+    `).run(status, reviewer, note, id);
   }
 
   recordPartnerView(partnerId, login = null) {

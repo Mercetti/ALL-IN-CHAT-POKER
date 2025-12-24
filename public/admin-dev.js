@@ -145,6 +145,93 @@ async function savePartner() {
   }
 }
 
+async function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderTaxForms(forms = []) {
+  const tbody = el('tax-table')?.querySelector('tbody');
+  if (!tbody) return;
+  if (!forms.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="muted">No submissions</td></tr>';
+    return;
+  }
+  tbody.innerHTML = forms
+    .map(f => {
+      const created = f.created_at ? new Date(f.created_at).toLocaleString() : '-';
+      const download = f.id ? `<a href="/admin/partners/tax-forms/${f.id}/download" target="_blank" rel="noopener">Download</a>` : '-';
+      return `
+        <tr>
+          <td>${f.id}</td>
+          <td>${f.partner_id || ''}</td>
+          <td>${f.full_name || ''}</td>
+          <td>${f.country || ''}</td>
+          <td>${f.form_type || ''}</td>
+          <td>${f.status || ''}</td>
+          <td>${created}</td>
+          <td>${download}</td>
+        </tr>
+      `;
+    })
+    .join('');
+}
+
+async function loadTaxForms() {
+  try {
+    const res = await apiCall('/admin/partners/tax-forms', { method: 'GET' });
+    const list = Array.isArray(res?.forms) ? res.forms : Array.isArray(res) ? res : [];
+    renderTaxForms(list);
+  } catch (err) {
+    console.error(err);
+    renderTaxForms([]);
+  }
+}
+
+async function submitTaxForm() {
+  const partnerId = el('tax-partner-id')?.value || '';
+  const fullName = el('tax-full-name')?.value || '';
+  const address = el('tax-address')?.value || '';
+  const country = el('tax-country')?.value || '';
+  const payoutEmail = el('tax-email')?.value || '';
+  const formType = el('tax-form-type')?.value || 'w9';
+  const taxId = el('tax-id')?.value || '';
+  const file = el('tax-file')?.files?.[0];
+  if (!partnerId || !fullName || !payoutEmail || !file) {
+    return Toast.error('Partner id, name, email, and file are required');
+  }
+  if (file.size > 8 * 1024 * 1024) {
+    return Toast.error('File too large (max 8MB)');
+  }
+  try {
+    const dataUrl = await fileToDataUrl(file);
+    await apiCall('/admin/partners/tax-forms', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        partnerId,
+        fullName,
+        address,
+        country,
+        payoutEmail,
+        formType,
+        taxId,
+        fileName: file.name,
+        fileData: dataUrl,
+      }),
+    });
+    Toast.success('Tax form uploaded');
+    loadTaxForms();
+  } catch (err) {
+    console.error(err);
+    Toast.error('Upload failed: ' + err.message);
+  }
+}
+
 function loadEarnConfig() {
   const cfg = JSON.parse(localStorage.getItem('viewerEarnConfig') || '{}');
   const setVal = (id, def) => {
@@ -537,6 +624,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadFlags();
   loadEarnConfig();
   loadPartners();
+  loadTaxForms();
   loadPartnerSnapshot();
   loadLastAiReport();
   loadOpsSummary();
@@ -544,6 +632,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   el('btn-save-partner')?.addEventListener('click', savePartner);
   el('btn-refresh-partners')?.addEventListener('click', loadPartners);
+  el('btn-submit-tax')?.addEventListener('click', submitTaxForm);
   el('btn-save-earn')?.addEventListener('click', saveEarnConfig);
 
   el('btn-open-audit')?.addEventListener('click', () => openNewTab('/admin/audit?limit=200'));
