@@ -14,6 +14,10 @@ primary_region = "iad"
   NODE_ENV = "production"
   PORT = "3000"
 
+[processes]
+  app = "node server.js"
+  bot = "node bot/bot.js"
+
 [[mounts]]
   source = "dbdata"
   destination = "/data"
