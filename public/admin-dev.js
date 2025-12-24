@@ -181,7 +181,7 @@ function renderTaxForms(forms = []) {
     .join('');
 }
 
-async function loadTaxForms() {
+  async function loadTaxForms() {
   try {
     const res = await apiCall('/admin/partners/tax-forms', { method: 'GET' });
     const list = Array.isArray(res?.forms) ? res.forms : Array.isArray(res) ? res : [];
@@ -229,6 +229,81 @@ async function submitTaxForm() {
   } catch (err) {
     console.error(err);
     Toast.error('Upload failed: ' + err.message);
+  }
+}
+
+async function loadPremierPending() {
+  const tbody = el('premier-table')?.querySelector('tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="4" class="muted">Loading...</td></tr>';
+  try {
+    const res = await apiCall('/admin/premier/pending', { method: 'GET' });
+    const items = Array.isArray(res?.items) ? res.items : [];
+    if (!items.length) {
+      tbody.innerHTML = '<tr><td colspan="4" class="muted">No pending items</td></tr>';
+      return;
+    }
+    tbody.innerHTML = items
+      .map(item => {
+        const at = item.at ? new Date(item.at).toLocaleString() : '-';
+        return `
+          <tr>
+            <td>${item.login || ''}</td>
+            <td>${item.preset || ''}</td>
+            <td>${at}</td>
+            <td>
+              <button class="btn btn-secondary btn-sm" data-action="test" data-login="${item.login}">Test</button>
+              <button class="btn btn-primary btn-sm" data-action="approve" data-login="${item.login}">Approve</button>
+              <button class="btn btn-secondary btn-sm" data-action="publish" data-login="${item.login}">Publish</button>
+            </td>
+          </tr>
+        `;
+      })
+      .join('');
+    tbody.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const login = btn.dataset.login;
+        const action = btn.dataset.action;
+        try {
+          if (action === 'test') {
+            await apiCall('/admin/premier/test-apply', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ channel: login }) });
+            Toast.success('Test applied');
+          } else if (action === 'approve') {
+            await apiCall('/admin/premier/approve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ login }) });
+            Toast.success('Approved');
+          } else if (action === 'publish') {
+            await apiCall('/admin/premier/publish', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ login }) });
+            Toast.success('Published');
+          }
+          loadPremierPending();
+        } catch (err) {
+          Toast.error(`${action} failed: ${err.message}`);
+        }
+      });
+    });
+  } catch (err) {
+    console.error(err);
+    tbody.innerHTML = '<tr><td colspan="4" class="muted">Failed to load</td></tr>';
+  }
+}
+
+async function importCosmetics() {
+  const text = el('cosmetic-import-text')?.value || '';
+  const status = el('cosmetic-import-status');
+  if (!text.trim()) return Toast.error('Paste JSON first');
+  try {
+    const parsed = JSON.parse(text);
+    const res = await apiCall('/admin/cosmetics/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(parsed),
+    });
+    Toast.success(`Imported ${res?.imported || 0} items`);
+    if (status) status.textContent = `Imported ${res?.imported || 0} items`;
+  } catch (err) {
+    console.error(err);
+    Toast.error('Import failed: ' + err.message);
+    if (status) status.textContent = 'Import failed';
   }
 }
 
@@ -625,6 +700,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadEarnConfig();
   loadPartners();
   loadTaxForms();
+  loadPremierPending();
   loadPartnerSnapshot();
   loadLastAiReport();
   loadOpsSummary();
@@ -633,6 +709,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   el('btn-save-partner')?.addEventListener('click', savePartner);
   el('btn-refresh-partners')?.addEventListener('click', loadPartners);
   el('btn-submit-tax')?.addEventListener('click', submitTaxForm);
+  el('btn-premier-refresh')?.addEventListener('click', loadPremierPending);
+  el('btn-import-cosmetics')?.addEventListener('click', importCosmetics);
   el('btn-save-earn')?.addEventListener('click', saveEarnConfig);
 
   el('btn-open-audit')?.addEventListener('click', () => openNewTab('/admin/audit?limit=200'));

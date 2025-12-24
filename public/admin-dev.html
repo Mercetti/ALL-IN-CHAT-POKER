@@ -98,6 +98,43 @@
         </div>
       </section>
 
+      <section class="control-panel compact-card" id="premier-review-panel">
+        <div class="section-header">
+          <h2>Premier Final Review</h2>
+          <p class="muted small">Review pending Premier sets, test-apply, and approve/publish.</p>
+        </div>
+        <div class="button-row">
+          <button id="btn-premier-refresh" class="btn btn-secondary btn-sm">Refresh pending</button>
+        </div>
+        <div class="table-responsive">
+          <table class="table slim-table" id="premier-table">
+            <thead>
+              <tr>
+                <th>Login</th>
+                <th>Preset</th>
+                <th>Submitted</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="4" class="muted">No pending items</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="control-panel compact-card" id="cosmetic-import-panel">
+        <div class="section-header">
+          <h2>Cosmetic Import (JSON)</h2>
+          <p class="muted small">Paste a JSON array of cosmetics and import (admin-only).</p>
+        </div>
+        <textarea id="cosmetic-import-text" class="form-input" rows="6" placeholder='[{"id":"card-new","type":"cardBack",...}]'></textarea>
+        <div class="button-row" style="margin-top:8px;">
+          <button id="btn-import-cosmetics" class="btn btn-primary btn-sm">Import</button>
+        </div>
+        <div id="cosmetic-import-status" class="muted small"></div>
+      </section>
+
       <section class="control-panel compact-card" id="partner-tax-panel">
         <div class="section-header">
           <h2>Partner Tax Forms</h2>
