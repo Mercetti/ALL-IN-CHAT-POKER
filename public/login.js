@@ -66,7 +66,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function redirectAfterLogin(roleHint = 'player') {
     const role = (roleHint || desiredRole || 'player').toLowerCase();
-    if (role === 'streamer') {
+    const wantsAdmin = (desiredRole || '').toLowerCase() === 'streamer';
+    const isAdminRole = role === 'streamer' || role === 'admin';
+    if (isAdminRole || wantsAdmin) {
       window.location.href = '/admin2.html';
     } else {
       window.location.href = '/profile.html';
