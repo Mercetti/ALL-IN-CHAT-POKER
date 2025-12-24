@@ -207,7 +207,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const resp = await apiCall('/auth/login', {
           method: 'POST',
           body: JSON.stringify({ login, password }),
-          useUserToken: true,
         });
         if (resp.token) {
           setUserToken(resp.token);
@@ -241,7 +240,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const resp = await apiCall('/auth/register', {
           method: 'POST',
           body: JSON.stringify({ login, email, password }),
-          useUserToken: true,
         });
         if (resp.token) {
           setUserToken(resp.token);
