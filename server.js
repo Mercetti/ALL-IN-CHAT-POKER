@@ -111,21 +111,13 @@ const securityHeadersMiddleware = (req, res, next) => {
   res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
 
   const csp = [
-
     "default-src 'self'",
-
-    "script-src 'self' 'unsafe-inline'",
-
+    "script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com https://www.googletagmanager.com",
     "style-src 'self' 'unsafe-inline'",
-
-    "img-src 'self' data:",
-
-    "connect-src 'self'",
-
+    "img-src 'self' data: https://static-cdn.jtvnw.net https://pagead2.googlesyndication.com",
+    "connect-src 'self' https://id.twitch.tv https://gql.twitch.tv https://www.twitch.tv",
     "font-src 'self'",
-
     "frame-ancestors 'self'",
-
   ].join('; ');
 
   res.setHeader('Content-Security-Policy', csp);
