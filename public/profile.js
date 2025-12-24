@@ -64,6 +64,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadPartnerProgress();
   initTabs();
   setupEventListeners();
+  const premierBtn = document.getElementById('premier-submit');
+  if (premierBtn) premierBtn.addEventListener('click', submitPremierRequest);
 });
 
 async function loadProfile(username) {
@@ -76,6 +78,7 @@ async function loadProfile(username) {
       theme: data?.profile?.settings?.theme || 'dark',
       startingChips: data?.profile?.settings?.startingChips || 1000,
       avatarUrl: data?.profile?.settings?.avatarUrl || '',
+      role: data?.profile?.role || 'player',
       stats: data?.stats || {},
       balance: data?.balance,
     };
@@ -302,6 +305,16 @@ function updatePreview() {
   const avatar = document.getElementById('preview-avatar');
   if (avatar) {
     avatar.src = profileData.avatarUrl || 'https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/default-profile_image.png';
+  }
+
+  const premierBlock = document.getElementById('premier-branding');
+  const premierStatus = document.getElementById('premier-status');
+  if (premierBlock) {
+    const isPartner = ['partner', 'premier', 'admin', 'streamer'].includes((profileData.role || '').toLowerCase());
+    premierBlock.style.display = isPartner ? 'block' : 'none';
+    if (premierStatus) {
+      premierStatus.textContent = isPartner ? 'Upload to request an AI-branded set (admin review required).' : 'Partner-only.';
+    }
   }
 
   if (profileData.stats) {
@@ -542,6 +555,37 @@ function switchTab(tab, opts = {}) {
       if (opts.focusPane) pane.focus();
     }
   });
+}
+
+
+async function submitPremierRequest() {
+  const logoInput = document.getElementById('premier-logo');
+  const notes = document.getElementById('premier-notes')?.value || '';
+  const statusEl = document.getElementById('premier-status');
+  if (!logoInput?.files?.length) {
+    Toast.error('Please choose a logo file');
+    return;
+  }
+  const file = logoInput.files[0];
+  const reader = new FileReader();
+  reader.onload = async () => {
+    try {
+      await apiCall('/admin/premier/logo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dataUrl: reader.result, login: profileData.username, notes }),
+        useUserToken: true,
+      });
+      Toast.success('Logo sent for review');
+      if (statusEl) statusEl.textContent = 'Submitted for review.';
+    } catch (err) {
+      console.error(err);
+      Toast.error('Submit failed: ' + err.message);
+      if (statusEl) statusEl.textContent = 'Submit failed.';
+    }
+  };
+  reader.onerror = () => Toast.error('Failed to read file');
+  reader.readAsDataURL(file);
 }
 
 async function saveProfile(e) {

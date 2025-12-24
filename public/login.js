@@ -64,6 +64,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function redirectAfterLogin(roleHint = 'player') {
+    const role = (roleHint || desiredRole || 'player').toLowerCase();
+    if (role === 'streamer') {
+      window.location.href = '/admin2.html';
+    } else {
+      window.location.href = '/profile.html';
+    }
+  }
+
   // Twitch login button
   twitchLoginBtn.addEventListener('click', async () => {
     const cfg = await loadTwitchConfig();
@@ -204,6 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
           setUserToken(resp.token);
           Toast.success(`Signed in as ${login}`);
           refreshLinkStatus();
+          setTimeout(() => redirectAfterLogin(desiredRole), 200);
         }
       } catch (err) {
         Toast.error(err.message || 'Login failed');
@@ -237,10 +247,25 @@ document.addEventListener('DOMContentLoaded', () => {
           setUserToken(resp.token);
           Toast.success(`Account created for ${login}`);
           refreshLinkStatus();
+          setTimeout(() => redirectAfterLogin(desiredRole), 200);
         }
       } catch (err) {
         Toast.error(err.message || 'Registration failed');
       }
+    });
+  }
+
+  const forgotBtn = document.getElementById('forgot-password-btn');
+  if (forgotBtn) {
+    forgotBtn.addEventListener('click', () => {
+      Toast.info('Password reset: contact support or admin to reset your account.');
+    });
+  }
+
+  const discordBtn = document.getElementById('discord-login-btn');
+  if (discordBtn) {
+    discordBtn.addEventListener('click', () => {
+      Toast.info('Discord linking coming soon.');
     });
   }
 

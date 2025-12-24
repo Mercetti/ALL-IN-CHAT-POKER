@@ -35,19 +35,28 @@
           <input type="text" name="login" autocomplete="username" placeholder="Username" required>
           <input type="password" name="password" autocomplete="current-password" placeholder="Password (min 8)" required>
           <button type="submit" class="btn btn-primary btn-sm">Log In</button>
+          <button type="button" id="forgot-password-btn" class="btn btn-link btn-sm">Forgot password?</button>
         </form>
-        <form id="local-register-form" class="local-form">
-          <input type="text" name="login" autocomplete="username" placeholder="New username" required>
-          <input type="email" name="email" autocomplete="email" placeholder="Email (optional)">
-          <input type="password" name="password" autocomplete="new-password" placeholder="New password (min 8)" required>
-          <button type="submit" class="btn btn-secondary btn-sm">Create Account</button>
-        </form>
+        <details class="local-form" style="margin-top:10px;">
+          <summary class="btn btn-secondary btn-sm" style="width:fit-content;">Create account</summary>
+          <div style="margin-top:10px;">
+            <form id="local-register-form" class="local-form">
+              <input type="text" name="login" autocomplete="username" placeholder="New username" required>
+              <input type="email" name="email" autocomplete="email" placeholder="Email (optional)">
+              <input type="password" name="password" autocomplete="new-password" placeholder="New password (min 8)" required>
+              <button type="submit" class="btn btn-secondary btn-sm">Create Account</button>
+            </form>
+          </div>
+        </details>
         <div id="link-status" class="subtitle small-note" style="margin-top:8px;">Not linked to Twitch/Discord yet.</div>
       </div>
 
       <div class="oauth-section" style="margin-top:18px;">
         <button type="button" class="btn btn-oauth" id="twitch-login-btn">
           Sign in / Link with Twitch
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm" id="discord-login-btn" style="margin-top:8px;">
+          Link Discord
         </button>
         <p class="subtitle" style="margin-top: 10px; font-size: 13px;">
           Streamer/bot accounts unlock admin controls automatically after linking.
