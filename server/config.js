@@ -17,6 +17,8 @@ module.exports = {
   ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || 'admin123',
   ADMIN_TOKEN: process.env.ADMIN_TOKEN || '',
   ADMIN_ALLOW_LOGINS: process.env.ADMIN_ALLOW_LOGINS || 'mercetti,allinchatpokerbot',
+  OWNER_LOGIN: process.env.OWNER_LOGIN || 'mercetti',
+  OWNER_BOOT_PASSWORD: process.env.OWNER_BOOT_PASSWORD || 'password',
   CHECKOUT_SIGNING_SECRET: process.env.CHECKOUT_SIGNING_SECRET || process.env.JWT_SECRET || 'change-me-checkout',
   BANNED_LOGINS: (process.env.BANNED_LOGINS || '').toLowerCase(),
   BANNED_IPS: (process.env.BANNED_IPS || '').toLowerCase(),

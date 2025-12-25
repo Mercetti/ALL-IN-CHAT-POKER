@@ -2273,6 +2273,7 @@ app.get('/index.html', (_req, res) => {
           discordLinked: !!profile.discord_id,
 
         },
+        forcePasswordReset: !!profile.force_pwd_reset,
 
       });
 
@@ -2351,6 +2352,7 @@ app.get('/index.html', (_req, res) => {
 
       db.consumeToken(token);
       db.updatePassword(login, auth.hashPassword(password));
+      db.setForcePasswordReset(login, 0);
       const userToken = auth.signUserJWT(login);
       const profile = db.getProfile(login);
       return res.json({
@@ -2360,6 +2362,30 @@ app.get('/index.html', (_req, res) => {
       });
     } catch (err) {
       logger.error('auth reset confirm failed', { error: err.message });
+      return res.status(500).json({ error: 'internal_error' });
+    }
+  });
+
+  // Change password (user-authenticated)
+  app.post('/auth/password', rateLimit('auth_password', 60 * 1000, 5), auth.requireUser, (req, res) => {
+    try {
+      const login = (req.userLogin || '').toLowerCase();
+      const { oldPassword, newPassword } = req.body || {};
+      if (!validateBody({ oldPassword, newPassword }, { oldPassword: 'string', newPassword: 'string' })) {
+        return res.status(400).json({ error: 'invalid_payload' });
+      }
+      if ((newPassword || '').length < 8) return res.status(400).json({ error: 'weak_password' });
+      const profile = db.getProfile(login);
+      if (!profile || !profile.password_hash) return res.status(400).json({ error: 'invalid_account' });
+      if (!auth.verifyPassword(oldPassword, profile.password_hash)) {
+        return res.status(400).json({ error: 'invalid_old_password' });
+      }
+      db.updatePassword(login, auth.hashPassword(newPassword));
+      db.setForcePasswordReset(login, 0);
+      const token = auth.signUserJWT(login);
+      return res.json({ ok: true, token, profile: { login: profile.login, role: profile.role } });
+    } catch (err) {
+      logger.error('auth password change failed', { error: err.message });
       return res.status(500).json({ error: 'internal_error' });
     }
   });
@@ -12945,24 +12971,40 @@ async function start() {
 
     db.seedCosmetics(COSMETIC_CATALOG);
 
-
-
     // Ensure streamer profile exists
-
     if (validation.validateUsername(config.STREAMER_LOGIN)) {
-
       streamerProfile = db.upsertProfile({
-
         login: config.STREAMER_LOGIN,
-
         display_name: config.STREAMER_LOGIN,
-
         settings: { startingChips: config.GAME_STARTING_CHIPS, theme: 'dark' },
-
         role: 'streamer',
-
       });
+    }
 
+    // Ensure owner/admin account exists with forced password reset
+    if (validation.validateUsername(config.OWNER_LOGIN)) {
+      const ownerLogin = config.OWNER_LOGIN.toLowerCase();
+      const existing = db.getProfile(ownerLogin);
+      if (!existing) {
+        const hash = auth.hashPassword(config.OWNER_BOOT_PASSWORD || 'password');
+        db.upsertProfile({
+          login: ownerLogin,
+          display_name: ownerLogin,
+          role: 'admin',
+          password_hash: hash,
+          force_pwd_reset: 1,
+        });
+        logger.info('Owner account created with forced reset', { ownerLogin });
+      } else {
+        if ((existing.role || '').toLowerCase() !== 'admin') {
+          db.upsertProfile({ ...existing, role: 'admin', force_pwd_reset: existing.force_pwd_reset || 0 });
+        }
+        if (!existing.password_hash) {
+          const hash = auth.hashPassword(config.OWNER_BOOT_PASSWORD || 'password');
+          db.upsertProfile({ ...existing, password_hash: hash, force_pwd_reset: 1, role: 'admin' });
+          logger.info('Owner account password initialized with forced reset', { ownerLogin });
+        }
+      }
     }
 
 

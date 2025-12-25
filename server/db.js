@@ -118,6 +118,7 @@ class DBHelper {
         display_name TEXT,
         settings TEXT DEFAULT '{}',
         role TEXT DEFAULT 'player',
+        force_pwd_reset INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
@@ -135,6 +136,7 @@ class DBHelper {
     try { this.db.exec(`ALTER TABLE profiles ADD COLUMN discord_login TEXT`); } catch {}
     try { this.db.exec(`ALTER TABLE profiles ADD COLUMN discord_avatar TEXT`); } catch {}
     try { this.db.exec(`ALTER TABLE profiles ADD COLUMN twitch_avatar TEXT`); } catch {}
+    try { this.db.exec(`ALTER TABLE profiles ADD COLUMN force_pwd_reset INTEGER DEFAULT 0`); } catch {}
     try {
       this.db.exec(`ALTER TABLE stats ADD COLUMN handsPlayed INTEGER DEFAULT 0`);
       this.db.exec(`ALTER TABLE stats ADD COLUMN playSeconds INTEGER DEFAULT 0`);
@@ -603,14 +605,23 @@ class DBHelper {
       discord_id,
       discord_login,
       discord_avatar,
+      force_pwd_reset,
     } = profileData;
+
+    const existing = this.getProfile(login) || {};
+    const forceFlag =
+      typeof force_pwd_reset === 'number'
+        ? force_pwd_reset
+        : typeof existing.force_pwd_reset === 'number'
+        ? existing.force_pwd_reset
+        : 0;
 
     const stmt = this.db.prepare(`
       INSERT OR REPLACE INTO profiles (
         twitch_id, twitch_avatar, login, display_name, settings, role,
-        email, password_hash, discord_id, discord_login, discord_avatar, updated_at
+        email, password_hash, discord_id, discord_login, discord_avatar, force_pwd_reset, updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
     `);
 
     stmt.run(
@@ -624,7 +635,8 @@ class DBHelper {
       password_hash || null,
       discord_id || null,
       discord_login || null,
-      discord_avatar || null
+      discord_avatar || null,
+      forceFlag
     );
 
     return this.getProfile(login);
@@ -642,6 +654,11 @@ class DBHelper {
   updatePassword(login, password_hash) {
     const stmt = this.db.prepare(`UPDATE profiles SET password_hash=?, updated_at=CURRENT_TIMESTAMP WHERE login=?`);
     stmt.run(password_hash, login);
+    return this.getProfile(login);
+  }
+
+  setForcePasswordReset(login, flag = 0) {
+    this.db.prepare(`UPDATE profiles SET force_pwd_reset=? WHERE login=?`).run(flag ? 1 : 0, login);
     return this.getProfile(login);
   }
 

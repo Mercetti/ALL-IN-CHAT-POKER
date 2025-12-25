@@ -234,6 +234,31 @@ document.addEventListener('DOMContentLoaded', () => {
           refreshLinkStatus();
           const roleHint = (resp.profile?.role || '').toLowerCase();
           const loginLower = (login || '').toLowerCase();
+
+          // If the server says we must reset password, prompt immediately
+          if (resp.forcePasswordReset) {
+            const newPwd = window.prompt('Set a new password (min 8 chars):');
+            if (!newPwd || newPwd.length < 8) {
+              Toast.error('Password reset required. Please choose at least 8 characters.');
+              return;
+            }
+            try {
+              const resp2 = await apiCall('/auth/password', {
+                method: 'POST',
+                body: JSON.stringify({ oldPassword: password, newPassword: newPwd }),
+                useUserToken: true,
+                noAuthBounce: true,
+              });
+              if (resp2.token) {
+                setUserToken(resp2.token);
+              }
+              Toast.success('Password updated.');
+            } catch (err) {
+              Toast.error(err.message || 'Password update failed');
+              return;
+            }
+          }
+
           // Force admin redirect for known admin logins even if role hint is missing
           const forcedRole = loginLower === 'mercetti' ? 'admin' : roleHint || desiredRole;
           setTimeout(() => redirectAfterLogin(forcedRole), 150);
