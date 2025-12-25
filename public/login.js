@@ -305,15 +305,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         if (resetHint) {
           resetHint.style.display = 'block';
-          resetHint.textContent = resp.token
-            ? `Reset token: ${resp.token} (valid ~15 min)`
-            : 'If the account exists, a reset token was created.';
+          if (resp.delivered) {
+            resetHint.textContent = 'If the account exists, a reset link/token was delivered.';
+          } else if (resp.token) {
+            resetHint.textContent = `Reset token: ${resp.token} (valid ~15 min)`;
+          } else {
+            resetHint.textContent = 'If the account exists, a reset token was created.';
+          }
         }
-        if (resp.token) {
+        if (!resp.delivered && resp.token) {
           const tokenInput = resetConfirmForm?.querySelector('input[name=\"reset-token\"]');
           if (tokenInput) tokenInput.value = resp.token;
         }
-        Toast.success('Reset request processed');
+        Toast.success(resp.delivered ? 'Reset request sent' : 'Reset token generated');
       } catch (err) {
         Toast.error(err.message || 'Reset request failed');
       }

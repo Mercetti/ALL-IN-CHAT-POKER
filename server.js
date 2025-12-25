@@ -2300,7 +2300,30 @@ app.get('/index.html', (_req, res) => {
         return res.json({ ok: true });
       }
       const token = db.createToken(`pwdreset:${normalized}`, req.ip || '', 15 * 60);
-      return res.json({ ok: true, token, expiresIn: 900 });
+
+      // Optional: send to webhook (e.g., Discord) instead of exposing token
+      let delivered = false;
+      if (config.RESET_WEBHOOK_URL) {
+        try {
+          fetch(config.RESET_WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'password_reset',
+              login: normalized,
+              token,
+              expiresInSeconds: 900,
+              ip: req.ip || '',
+            }),
+          }).catch(() => {});
+          delivered = true;
+        } catch (err) {
+          logger.warn('reset webhook failed', { error: err.message });
+        }
+      }
+
+      // Only include token in response when we have no delivery channel
+      return res.json({ ok: true, delivered, token: delivered ? null : token, expiresIn: 900 });
     } catch (err) {
       logger.error('auth reset request failed', { error: err.message });
       return res.status(500).json({ error: 'internal_error' });
