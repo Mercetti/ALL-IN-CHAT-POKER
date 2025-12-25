@@ -2286,6 +2286,61 @@ app.get('/index.html', (_req, res) => {
 
   });
 
+  // Request password reset token (returns token for now; add email/discord delivery later)
+  app.post('/auth/reset/request', rateLimit('auth_reset_req', 5 * 60 * 1000, 5), (req, res) => {
+    try {
+      const { login } = req.body || {};
+      const normalized = (login || '').trim().toLowerCase();
+      if (!validateLocalLogin(normalized)) {
+        return res.status(400).json({ error: 'invalid_payload' });
+      }
+      const profile = db.getProfile(normalized);
+      if (!profile) {
+        // Do not leak existence; return generic ok
+        return res.json({ ok: true });
+      }
+      const token = db.createToken(`pwdreset:${normalized}`, req.ip || '', 15 * 60);
+      return res.json({ ok: true, token, expiresIn: 900 });
+    } catch (err) {
+      logger.error('auth reset request failed', { error: err.message });
+      return res.status(500).json({ error: 'internal_error' });
+    }
+  });
+
+  // Confirm password reset with token
+  app.post('/auth/reset/confirm', rateLimit('auth_reset_confirm', 60 * 1000, 5), (req, res) => {
+    try {
+      const { token, password } = req.body || {};
+      if (!validateBody({ token, password }, { token: 'string', password: 'string' })) {
+        return res.status(400).json({ error: 'invalid_payload' });
+      }
+      if ((password || '').length < 8) return res.status(400).json({ error: 'weak_password' });
+
+      const row = db.getToken(token);
+      if (!row || row.consumed || !row.purpose || !row.purpose.startsWith('pwdreset:')) {
+        return res.status(400).json({ error: 'invalid_token' });
+      }
+      if (row.expires_at && new Date(row.expires_at) <= new Date()) {
+        return res.status(400).json({ error: 'expired' });
+      }
+      const login = row.purpose.split(':')[1];
+      if (!login || isBanned(login, req.ip)) return res.status(400).json({ error: 'invalid_token' });
+
+      db.consumeToken(token);
+      db.updatePassword(login, auth.hashPassword(password));
+      const userToken = auth.signUserJWT(login);
+      const profile = db.getProfile(login);
+      return res.json({
+        ok: true,
+        token: userToken,
+        profile: profile ? { login: profile.login, role: profile.role } : null,
+      });
+    } catch (err) {
+      logger.error('auth reset confirm failed', { error: err.message });
+      return res.status(500).json({ error: 'internal_error' });
+    }
+  });
+
 
 
   app.get('/auth/link/status', auth.requireUser, (req, res) => {

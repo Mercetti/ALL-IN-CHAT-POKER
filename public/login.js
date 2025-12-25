@@ -277,9 +277,79 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const forgotBtn = document.getElementById('forgot-password-btn');
-  if (forgotBtn) {
+  const resetPanel = document.getElementById('reset-panel');
+  const resetHint = document.getElementById('reset-hint');
+  const resetRequestForm = document.getElementById('reset-request-form');
+  const resetConfirmForm = document.getElementById('reset-confirm-form');
+
+  if (forgotBtn && resetPanel) {
     forgotBtn.addEventListener('click', () => {
-      Toast.info('Password reset: contact support or admin to reset your account.');
+      const isHidden = resetPanel.style.display === 'none' || !resetPanel.style.display;
+      resetPanel.style.display = isHidden ? 'block' : 'none';
+    });
+  }
+
+  if (resetRequestForm) {
+    resetRequestForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const login = (resetRequestForm.querySelector('input[name=\"reset-login\"]')?.value || '').trim();
+      if (!login) {
+        Toast.error('Username required');
+        return;
+      }
+      try {
+        const resp = await apiCall('/auth/reset/request', {
+          method: 'POST',
+          body: JSON.stringify({ login }),
+          noAuthBounce: true,
+        });
+        if (resetHint) {
+          resetHint.style.display = 'block';
+          resetHint.textContent = resp.token
+            ? `Reset token: ${resp.token} (valid ~15 min)`
+            : 'If the account exists, a reset token was created.';
+        }
+        if (resp.token) {
+          const tokenInput = resetConfirmForm?.querySelector('input[name=\"reset-token\"]');
+          if (tokenInput) tokenInput.value = resp.token;
+        }
+        Toast.success('Reset request processed');
+      } catch (err) {
+        Toast.error(err.message || 'Reset request failed');
+      }
+    });
+  }
+
+  if (resetConfirmForm) {
+    resetConfirmForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const token = (resetConfirmForm.querySelector('input[name=\"reset-token\"]')?.value || '').trim();
+      const password = (resetConfirmForm.querySelector('input[name=\"reset-password\"]')?.value || '').trim();
+      if (!token || !password) {
+        Toast.error('Token and new password required');
+        return;
+      }
+      if (password.length < 8) {
+        Toast.error('Password must be at least 8 characters');
+        return;
+      }
+      try {
+        const resp = await apiCall('/auth/reset/confirm', {
+          method: 'POST',
+          body: JSON.stringify({ token, password }),
+          noAuthBounce: true,
+        });
+        if (resp.token) {
+          setUserToken(resp.token);
+          const roleHint = (resp.profile?.role || desiredRole).toLowerCase();
+          Toast.success('Password reset. Signed in.');
+          setTimeout(() => redirectAfterLogin(roleHint), 150);
+        } else {
+          Toast.success('Password reset. Please sign in.');
+        }
+      } catch (err) {
+        Toast.error(err.message || 'Reset failed');
+      }
     });
   }
 

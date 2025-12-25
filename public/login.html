@@ -37,6 +37,19 @@
           <button type="submit" class="btn btn-primary btn-sm">Log In</button>
           <button type="button" id="forgot-password-btn" class="btn btn-link btn-sm">Forgot password?</button>
         </form>
+        <div id="reset-panel" class="local-form" style="display:none; margin-top:8px;">
+          <h4 style="margin-bottom:6px;">Reset password</h4>
+          <form id="reset-request-form" class="local-form">
+            <input type="text" name="reset-login" autocomplete="username" placeholder="Username" required>
+            <button type="submit" class="btn btn-secondary btn-sm">Send reset token</button>
+          </form>
+          <form id="reset-confirm-form" class="local-form" style="margin-top:8px;">
+            <input type="text" name="reset-token" placeholder="Reset token" required>
+            <input type="password" name="reset-password" autocomplete="new-password" placeholder="New password (min 8)" required>
+            <button type="submit" class="btn btn-primary btn-sm">Apply reset</button>
+          </form>
+          <div id="reset-hint" class="subtitle small-note" style="margin-top:6px; display:none;"></div>
+        </div>
         <details class="local-form" style="margin-top:10px;">
           <summary class="btn btn-secondary btn-sm" style="width:fit-content;">Create account</summary>
           <div style="margin-top:10px;">
