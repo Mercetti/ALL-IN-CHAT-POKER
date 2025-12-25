@@ -64,6 +64,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // If already signed in, skip login page
+  async function autoRedirectIfSignedIn() {
+    const existing = getUserToken && getUserToken();
+    if (!existing) return;
+    try {
+      // Try to fetch link/status to infer role; if it fails, fall back to desiredRole
+      const status = await apiCall('/auth/link/status', { useUserToken: true, noAuthBounce: true });
+      const role = (status?.role || '').toLowerCase();
+      redirectAfterLogin(role || desiredRole);
+    } catch (err) {
+      redirectAfterLogin(desiredRole);
+    }
+  }
+
   function redirectAfterLogin(roleHint = 'player') {
     const role = (roleHint || desiredRole || 'player').toLowerCase();
     const wantsAdmin = (desiredRole || '').toLowerCase() === 'streamer';
@@ -74,6 +88,9 @@ document.addEventListener('DOMContentLoaded', () => {
       window.location.href = '/profile.html';
     }
   }
+
+  // If user already has a token, skip the login UI
+  autoRedirectIfSignedIn();
 
   // Twitch login button
   twitchLoginBtn.addEventListener('click', async () => {
