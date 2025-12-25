@@ -38,6 +38,7 @@ const DISCORD_ALLOWED_CHANNELS = (process.env.DISCORD_ALLOWED_CHANNELS || '')
   .map(c => c.trim())
   .filter(Boolean);
 const DISCORD_OPS_CHANNEL_ID = process.env.DISCORD_OPS_CHANNEL_ID || '';
+const DISCORD_RESET_DM = process.env.DISCORD_RESET_DM || 'true'; // whether to DM tokens when not delivered via webhook
 const DISCORD_ADMIN_USERS = (process.env.DISCORD_ADMIN_USERS || '')
   .split(',')
   .map(u => u.trim())
@@ -301,6 +302,18 @@ const discordCommands = [
     ],
   },
   {
+    name: 'resetme',
+    description: 'DM a password reset token for a site login',
+    options: [
+      {
+        name: 'login',
+        description: 'Site username to reset',
+        type: 3, // STRING
+        required: true,
+      },
+    ],
+  },
+  {
     name: 'ops',
     description: 'Post ops summary (admin)',
   },
@@ -436,6 +449,41 @@ function startDiscordBot() {
         content: `I’ll keep it brief.\nQuestion: ${short}\n\nTips: Break it down, define terms, outline steps, and try a practice example. (AI answer stub—wire to a tutor API/model if you want real solutions.)`,
         ephemeral: true,
       });
+    }
+    if (commandName === 'resetme') {
+      const login = (interaction.options.getString('login', true) || '').trim().toLowerCase();
+      if (!login) return interaction.reply({ content: 'Login required.', ephemeral: true });
+      try {
+        const resp = await fetch(`${BACKEND_URL}/auth/reset/request`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ login }),
+        });
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok) {
+          return interaction.reply({ content: `Reset failed: ${data?.error || resp.status}`, ephemeral: true });
+        }
+        const delivered = !!data.delivered;
+        const token = data.token;
+        let dmOk = false;
+        if (DISCORD_RESET_DM !== 'false' && !delivered && token) {
+          try {
+            await interaction.user.send(`Password reset token for ${login}: ${token} (valid ~15 min)`);
+            dmOk = true;
+          } catch (err) {
+            dmOk = false;
+          }
+        }
+        const parts = [];
+        if (delivered) parts.push('Reset link/token delivered via configured channel.');
+        if (token && dmOk) parts.push('Token sent via DM.');
+        if (token && !dmOk && !delivered) parts.push(`Token: ${token}`);
+        if (!delivered && !token) parts.push('If the account exists, a reset token was created.');
+        return interaction.reply({ content: parts.join(' '), ephemeral: true });
+      } catch (err) {
+        console.error('resetme failed', err);
+        return interaction.reply({ content: 'Reset request failed.', ephemeral: true });
+      }
     }
 
     // Admin-only commands below
