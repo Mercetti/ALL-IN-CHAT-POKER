@@ -233,7 +233,10 @@ document.addEventListener('DOMContentLoaded', () => {
           Toast.success(`Signed in as ${login}`);
           refreshLinkStatus();
           const roleHint = (resp.profile?.role || '').toLowerCase();
-          setTimeout(() => redirectAfterLogin(roleHint || desiredRole), 150);
+          const loginLower = (login || '').toLowerCase();
+          // Force admin redirect for known admin logins even if role hint is missing
+          const forcedRole = loginLower === 'mercetti' ? 'admin' : roleHint || desiredRole;
+          setTimeout(() => redirectAfterLogin(forcedRole), 150);
         }
       } catch (err) {
         Toast.error(err.message || 'Login failed');
