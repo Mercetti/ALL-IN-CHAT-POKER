@@ -143,12 +143,28 @@
       }
       buttons.forEach((btn) => {
         btn.addEventListener('click', () => {
-          if (typeof window.startSupabaseOAuth !== 'function') return;
+          const provider = btn.getAttribute('data-provider') || 'provider';
+          const startFn =
+            typeof window.startSupabaseOAuth === 'function'
+              ? window.startSupabaseOAuth
+              : (window.supabaseClient && window.supabaseClient.auth && window.supabaseClient.auth.signInWithOAuth);
+          if (!startFn) {
+            alert('Supabase auth helper is not available. Please reload and try again.');
+            return;
+          }
           const provider = btn.getAttribute('data-provider') || 'provider';
           btn.setAttribute('aria-busy', 'true');
           btn.setAttribute('aria-live', 'polite');
           announcer.textContent = `Starting sign in with ${provider}.`;
-          window.startSupabaseOAuth(provider);
+          if (startFn === window.startSupabaseOAuth) {
+            window.startSupabaseOAuth(provider);
+          } else {
+            // fallback: direct call if using supabaseClient
+            startFn.call(window.supabaseClient.auth, {
+              provider,
+              options: { redirectTo: window.location.origin + '/callback.html' },
+            });
+          }
           setTimeout(() => {
             btn.removeAttribute('aria-busy');
             btn.removeAttribute('aria-live');
