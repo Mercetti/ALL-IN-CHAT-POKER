@@ -92,11 +92,20 @@ function renderRoundDebug() {
 
 async function requireAdmin() {
   const adminToken = typeof getToken === 'function' ? getToken() : null;
-  if (!adminToken) {
-    window.location.href = '/login.html';
-    return false;
+  const userToken = typeof getUserToken === 'function' ? getUserToken() : null;
+  if (adminToken) return true;
+  if (userToken) {
+    try {
+      const profileRes = await apiCall('/auth/link/status', { useUserToken: true, noAuthBounce: true });
+      const role = (profileRes?.role || '').toLowerCase();
+      if (role === 'admin' || role === 'streamer') return true;
+    } catch (e) {
+      // fall through
+    }
   }
-  return true;
+  const redirect = encodeURIComponent('/admin-dev.html');
+  window.location.href = `/login.html?redirect=${redirect}`;
+  return false;
 }
 
 async function loadPartners() {
