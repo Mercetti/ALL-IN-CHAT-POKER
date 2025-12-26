@@ -308,7 +308,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   if (!allowed) {
-    window.location.href = '/login.html';
+    const currentPath = `${window.location.pathname}${window.location.search || ''}${window.location.hash || ''}`;
+    const redirect = encodeURIComponent(currentPath || '/admin2.html');
+    window.location.href = `/login.html?redirect=${redirect}`;
     return;
   }
 
