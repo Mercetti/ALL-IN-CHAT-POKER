@@ -686,6 +686,31 @@ async function loadSecuritySummary() {
   }
 }
 
+function updateSupabaseEdgeStatus() {
+  const pill = document.getElementById('supabase-edge-pill');
+  if (!pill) return;
+  const raw = localStorage.getItem('supabaseEdgeResult');
+  if (!raw) {
+    pill.textContent = 'Supabase: -';
+    pill.className = 'pill muted';
+    return;
+  }
+  try {
+    const data = JSON.parse(raw);
+    const ts = data.at ? new Date(data.at).toLocaleTimeString() : '';
+    if (data.ok) {
+      pill.textContent = `Supabase: ok ${ts}`;
+      pill.className = 'pill success';
+    } else {
+      pill.textContent = `Supabase: failed ${ts}`;
+      pill.className = 'pill warning';
+    }
+  } catch {
+    pill.textContent = 'Supabase: -';
+    pill.className = 'pill muted';
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   const ok = await requireAdmin();
   if (!ok) return;
@@ -710,6 +735,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
   refreshSessionPill();
   setInterval(refreshSessionPill, 30000);
+  updateSupabaseEdgeStatus();
 
   updateHealthDisplay();
   loadFlags();

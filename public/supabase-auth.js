@@ -48,7 +48,17 @@
     });
     const body = await resp.json().catch(() => ({}));
     if (!resp.ok || !body.ok) {
+      try {
+        localStorage.setItem('supabaseEdgeResult', JSON.stringify({ ok: false, body, at: Date.now() }));
+      } catch {
+        /* ignore */
+      }
       throw new Error(body.error || 'Upsert failed');
+    }
+    try {
+      localStorage.setItem('supabaseEdgeResult', JSON.stringify({ ok: true, body, at: Date.now() }));
+    } catch {
+      /* ignore */
     }
     return { session, user };
   }
