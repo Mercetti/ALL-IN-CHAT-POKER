@@ -312,6 +312,33 @@
   </script>
   <script src="overlay.js"></script>
   <script>
+    // Gate protected links (admin/dev/profile/overlay) to login
+    (function gateProtectedLinks() {
+      const protectedPaths = new Set([
+        '/admin2.html',
+        '/admin-dev.html',
+        '/profile.html',
+        '/obs-overlay.html',
+        '/overlay-editor.html',
+      ]);
+      document.addEventListener('click', (e) => {
+        const a = e.target.closest('a');
+        if (!a || !a.href) return;
+        try {
+          const url = new URL(a.href, window.location.origin);
+          if (!protectedPaths.has(url.pathname)) return;
+          const token = getUserToken && getUserToken();
+          if (token) return;
+          e.preventDefault();
+          const redirect = encodeURIComponent(url.pathname + url.search + url.hash);
+          window.location.href = `/login.html?redirect=${redirect}`;
+        } catch {
+          // ignore parse errors
+        }
+      });
+    })();
+  </script>
+  <script>
     // Animate the all-in preview and auto-derive frame count from the sprite sheet
     (() => {
       const el = document.getElementById('allin-sprite-preview-index');
