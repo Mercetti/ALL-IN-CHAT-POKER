@@ -280,17 +280,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   const adminToken = getToken();
   const userToken = getUserToken();
   const userLogin = decodeUserLogin(userToken || '');
+  let userRole = '';
 
   // Loosen gate: if either token exists, let the page load and let API calls/auth enforce server-side.
   // This avoids redirect loops when Twitch login succeeds but role lookup fails temporarily.
   let allowed = !!(adminToken || userToken);
   let roleWarning = '';
-
-  if (devPageBtn) {
-    const userLower = (userLogin || '').toLowerCase();
-    const canSeeDev = !!adminToken || (userLower && (userLower === streamerLogin || userLower === botAdminLogin));
-    devPageBtn.style.display = canSeeDev ? 'inline-flex' : 'none';
-  }
 
   if (!adminToken && userToken && userLogin) {
     const lower = userLogin.toLowerCase();
@@ -299,7 +294,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
       try {
         const profileRes = await apiCall(`/profile?login=${encodeURIComponent(userLogin)}`, { useUserToken: true });
-        if (profileRes?.profile?.role === 'streamer' || profileRes?.profile?.role === 'admin') {
+        userRole = (profileRes?.profile?.role || '').toLowerCase();
+        if (userRole === 'streamer' || userRole === 'admin') {
           allowed = true;
         } else {
           roleWarning = 'Viewer role token; some admin actions may be blocked.';
@@ -314,6 +310,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!allowed) {
     window.location.href = '/login.html';
     return;
+  }
+
+  if (devPageBtn) {
+    const userLower = (userLogin || '').toLowerCase();
+    const canSeeDev =
+      !!adminToken ||
+      userRole === 'admin' ||
+      userLower === 'mercetti' ||
+      (userLower && (userLower === streamerLogin || userLower === botAdminLogin));
+    devPageBtn.style.display = canSeeDev ? 'inline-flex' : 'none';
   }
 
   useUserToken = !adminToken && !!userToken;
