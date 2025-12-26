@@ -115,7 +115,7 @@ const securityHeadersMiddleware = (req, res, next) => {
     "script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com https://www.googletagmanager.com https://cdn.jsdelivr.net https://ertwjobuopcnrmdojeps.supabase.co",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https://static-cdn.jtvnw.net https://pagead2.googlesyndication.com",
-    "connect-src 'self' https://id.twitch.tv https://gql.twitch.tv https://www.twitch.tv https://ertwjobuopcnrmdojeps.supabase.co",
+    "connect-src 'self' https://id.twitch.tv https://gql.twitch.tv https://www.twitch.tv https://ertwjobuopcnrmdojeps.supabase.co https://cdn.jsdelivr.net",
     "font-src 'self'",
     "frame-ancestors 'self'",
   ].join('; ');

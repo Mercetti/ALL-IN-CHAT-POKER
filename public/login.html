@@ -81,7 +81,7 @@
             <button type="submit" class="btn btn-secondary btn-sm">Send reset token</button>
           </form>
           <form id="reset-confirm-form" class="local-form" style="margin-top:8px;">
-            <input type="text" name="reset-token" placeholder="Reset token" required>
+            <input type="text" name="reset-token" autocomplete="one-time-code" placeholder="Reset token" required>
             <input type="password" name="reset-password" autocomplete="new-password" placeholder="New password (min 8)" required>
             <button type="submit" class="btn btn-primary btn-sm">Apply reset</button>
           </form>
