@@ -112,6 +112,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const isStreamer = role === 'streamer';
     const isAdminRole = role === 'streamer' || role === 'admin';
     const loginLower = (loginHint || '').toLowerCase();
+    if (loginLower === 'mercetti') {
+      window.location.href = '/admin-dev.html';
+      return;
+    }
     if (isAdminRole || wantsAdmin) {
       const isDev = role === 'admin' || loginLower === 'mercetti';
       window.location.href = isDev ? '/admin-dev.html' : '/admin2.html';
