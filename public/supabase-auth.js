@@ -2,6 +2,7 @@
 (function() {
   const SUPABASE_URL = 'https://ertwjobuopcnrmdojeps.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_b_GSUmpGQPhTBh_vow7O8g_S3IblsBa';
+  const EDGE_FN_URL = 'https://ertwjobuopcnrmdojeps.supabase.co/functions/v1/validate-token-upsert';
 
   if (!window.supabase) {
     console.warn('Supabase JS not loaded');
@@ -36,15 +37,19 @@
     const user = session?.user;
     if (!session || !user) throw new Error('No session found');
 
-    // Upsert profile using the authed session (RLS should allow auth.uid())
-    const profile = {
-      id: user.id,
-      email: user.email,
-      full_name: user.user_metadata?.full_name || user.user_metadata?.name || user.email || 'Unknown',
-      provider: user.app_metadata?.provider || user.user_metadata?.provider || 'unknown',
-    };
-    const { error: upsertError } = await client.from('profiles').upsert(profile, { onConflict: 'id' });
-    if (upsertError) throw upsertError;
+    // Call Edge Function to validate token and upsert profile server-side
+    const resp = await fetch(EDGE_FN_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({}),
+    });
+    const body = await resp.json().catch(() => ({}));
+    if (!resp.ok || !body.ok) {
+      throw new Error(body.error || 'Upsert failed');
+    }
     return { session, user };
   }
 
