@@ -134,6 +134,7 @@ async function refreshUserTokenIfNeeded() {
     const res = await apiCall('/auth/refresh', {
       method: 'POST',
       useUserToken: true,
+      noAuthBounce: true,
     });
     if (res?.token) {
       setUserToken(res.token);
@@ -259,6 +260,11 @@ function handleAuthFailure() {
   Toast.warning('Session expired. Please sign in again.');
   if (!window.location.pathname.endsWith('/login.html')) {
     window.location.href = '/login.html';
+  } else {
+    // Already on login page; avoid redirect loop and allow re-login
+    setTimeout(() => {
+      __authBounce = false;
+    }, 3000);
   }
 }
 
