@@ -31,6 +31,21 @@
   }
 
   async function handleCallbackAndUpsert() {
+    // If code is present (PKCE), exchange for session first
+    try {
+      const params = new URLSearchParams(window.location.search || '');
+      const code = params.get('code');
+      if (code && typeof client.auth.exchangeCodeForSession === 'function') {
+        const { error: exErr } = await client.auth.exchangeCodeForSession({
+          code,
+          redirectTo: getRedirectUrl(),
+        });
+        if (exErr) console.warn('Supabase code exchange failed', exErr);
+      }
+    } catch (ex) {
+      console.warn('Code exchange attempt failed', ex);
+    }
+
     const { data, error } = await client.auth.getSession();
     if (error) throw error;
     const session = data?.session;
