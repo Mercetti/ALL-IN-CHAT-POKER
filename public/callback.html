@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signing you in…</title>
+  <link rel="stylesheet" href="/style-login.css">
+</head>
+<body>
+  <main class="login-container">
+    <h1>Signing you in…</h1>
+    <p id="status">Connecting to Supabase…</p>
+    <p id="error" style="color:red;"></p>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase-auth.js"></script>
+  <script>
+    (async () => {
+      const statusEl = document.getElementById('status');
+      const errEl = document.getElementById('error');
+      try {
+        statusEl.textContent = 'Checking session...';
+        const { session, user } = await window.handleSupabaseCallbackAndUpsert();
+        statusEl.textContent = `Signed in as ${user.email || user.id}`;
+        // Redirect to welcome or profile
+        setTimeout(() => {
+          window.location.href = '/welcome.html';
+        }, 600);
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Sign-in failed.';
+        errEl.textContent = err.message || 'Unknown error';
+      }
+    })();
+  </script>
+</body>
+</html>

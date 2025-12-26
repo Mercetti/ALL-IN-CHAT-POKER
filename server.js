@@ -2720,6 +2720,11 @@ app.use('/uploads', express.static(uploadsDir));
 
 app.use(express.static('public'));
 
+// Supabase OAuth callback/consent helpers
+app.get(['/callback.html', '/auth/callback', '/welcome.html/oauth/consent'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'callback.html'));
+});
+
 
 
 // Partner payouts: partner-facing summary (Postgres-only)

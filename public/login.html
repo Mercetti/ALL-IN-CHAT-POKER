@@ -28,6 +28,16 @@
       </div>
       <p id="role-note" class="subtitle small-note">Players go to their profile for cosmetics and purchases.</p>
 
+      <div class="oauth-section" style="margin-top:12px;">
+        <h3 style="margin-bottom:6px;">Sign in with Supabase OAuth</h3>
+        <div class="button-row" style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" class="btn btn-primary btn-sm" id="sb-google">Google</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="sb-twitch">Twitch</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="sb-discord">Discord</button>
+        </div>
+        <p class="subtitle small-note" style="margin-top:6px;">You can also use the local account form below.</p>
+      </div>
+
       <div class="local-auth" style="margin-top:16px;">
         <h3 style="margin-bottom:6px;">All-In account</h3>
         <p class="subtitle small-note">Streamers must link Twitch to run overlays/admin. Players can use either.</p>
@@ -88,7 +98,21 @@
   <!-- Toast Notifications -->
   <div id="toast-container" class="toast-container"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase-auth.js"></script>
   <script src="client.js"></script>
   <script src="login.js"></script>
+  <script>
+    (function wireSupabaseButtons() {
+      const bind = (id, provider) => {
+        const node = document.getElementById(id);
+        if (!node || typeof window.startSupabaseOAuth !== 'function') return;
+        node.addEventListener('click', () => window.startSupabaseOAuth(provider));
+      };
+      bind('sb-google', 'google');
+      bind('sb-twitch', 'twitch');
+      bind('sb-discord', 'discord');
+    })();
+  </script>
 </body>
 </html>
