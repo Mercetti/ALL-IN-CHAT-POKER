@@ -9,6 +9,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const twitchRedirectUri = `${window.location.origin}/login.html`;
   let twitchConfig = null;
   let desiredRole = (localStorage.getItem('loginRole') || 'player').toLowerCase();
+  const urlParams = new URLSearchParams(window.location.search || '');
+  const redirectTarget = (() => {
+    const r = urlParams.get('redirect') || '';
+    if (!r) return '';
+    try {
+      const url = new URL(r, window.location.origin);
+      if (url.origin !== window.location.origin) return '';
+      return url.pathname + url.search + url.hash;
+    } catch {
+      return '';
+    }
+  })();
   // background refresh of user JWT every 20 minutes
   setInterval(() => refreshUserTokenIfNeeded(), 20 * 60 * 1000);
 
@@ -79,6 +91,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function redirectAfterLogin(roleHint = 'player') {
+    if (redirectTarget) {
+      window.location.href = redirectTarget;
+      return;
+    }
     const role = (roleHint || desiredRole || 'player').toLowerCase();
     const wantsAdmin = (desiredRole || '').toLowerCase() === 'streamer';
     const isStreamer = role === 'streamer';
