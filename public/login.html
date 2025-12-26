@@ -143,7 +143,6 @@
       }
       buttons.forEach((btn) => {
         btn.addEventListener('click', () => {
-          const provider = btn.getAttribute('data-provider') || 'provider';
           const startFn =
             typeof window.startSupabaseOAuth === 'function'
               ? window.startSupabaseOAuth
