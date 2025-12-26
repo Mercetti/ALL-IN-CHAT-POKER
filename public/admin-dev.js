@@ -105,17 +105,11 @@ async function requireAdmin() {
   const adminToken = typeof getToken === 'function' ? getToken() : null;
   const userToken = typeof getUserToken === 'function' ? getUserToken() : null;
   const userLogin = decodeUserLogin(userToken || '');
+  // Loosen the gate: if we have any token, let the server APIs enforce auth.
+  // Special-case mercetti to avoid redirect loops.
   if (adminToken) return true;
+  if (userToken) return true;
   if (userLogin === 'mercetti') return true;
-  if (userToken) {
-    try {
-      const profileRes = await apiCall('/auth/link/status', { useUserToken: true, noAuthBounce: true });
-      const role = (profileRes?.role || '').toLowerCase();
-      if (role === 'admin' || role === 'streamer') return true;
-    } catch (e) {
-      // fall through
-    }
-  }
   const redirect = encodeURIComponent('/admin-dev.html');
   window.location.href = `/login.html?redirect=${redirect}`;
   return false;
