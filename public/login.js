@@ -9,6 +9,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const twitchRedirectUri = `${window.location.origin}/login.html`;
   let twitchConfig = null;
   let desiredRole = (localStorage.getItem('loginRole') || 'player').toLowerCase();
+  const decodeLoginFromToken = (tok) => {
+    if (!tok || typeof tok !== 'string') return '';
+    try {
+      const payload = tok.split('.')[1];
+      const pad = payload.length % 4 === 2 ? '==' : payload.length % 4 === 3 ? '=' : '';
+      const data = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/') + pad));
+      return (data.user || data.login || '').toLowerCase();
+    } catch {
+      return '';
+    }
+  };
   const urlParams = new URLSearchParams(window.location.search || '');
   const redirectTarget = (() => {
     const r = urlParams.get('redirect') || '';
@@ -79,18 +90,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // If already signed in, skip login page
   async function autoRedirectIfSignedIn() {
     const existing = getUserToken && getUserToken();
+    const existingLogin = decodeLoginFromToken(existing);
     if (!existing) return;
     try {
       // Try to fetch link/status to infer role; if it fails, fall back to desiredRole
       const status = await apiCall('/auth/link/status', { useUserToken: true, noAuthBounce: true });
       const role = (status?.role || '').toLowerCase();
-      redirectAfterLogin(role || desiredRole);
+      redirectAfterLogin(role || desiredRole, existingLogin);
     } catch (err) {
-      redirectAfterLogin(desiredRole);
+      redirectAfterLogin(desiredRole, existingLogin);
     }
   }
 
-  function redirectAfterLogin(roleHint = 'player') {
+  function redirectAfterLogin(roleHint = 'player', loginHint = '') {
     if (redirectTarget) {
       window.location.href = redirectTarget;
       return;
@@ -99,8 +111,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const wantsAdmin = (desiredRole || '').toLowerCase() === 'streamer';
     const isStreamer = role === 'streamer';
     const isAdminRole = role === 'streamer' || role === 'admin';
+    const loginLower = (loginHint || '').toLowerCase();
     if (isAdminRole || wantsAdmin) {
-      const isDev = role === 'admin';
+      const isDev = role === 'admin' || loginLower === 'mercetti';
       window.location.href = isDev ? '/admin-dev.html' : '/admin2.html';
     } else {
       window.location.href = '/profile.html';
@@ -279,7 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
           // Force admin redirect for known admin logins even if role hint is missing
           const forcedRole = loginLower === 'mercetti' ? 'admin' : roleHint || desiredRole;
-          setTimeout(() => redirectAfterLogin(forcedRole), 150);
+          setTimeout(() => redirectAfterLogin(forcedRole, loginLower), 150);
         }
       } catch (err) {
         Toast.error(err.message || 'Login failed');
@@ -314,7 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
           Toast.success(`Account created for ${login}`);
           refreshLinkStatus();
           const roleHint = (resp.profile?.role || '').toLowerCase();
-          setTimeout(() => redirectAfterLogin(roleHint || desiredRole), 150);
+          setTimeout(() => redirectAfterLogin(roleHint || desiredRole, login.toLowerCase()), 150);
         }
       } catch (err) {
         Toast.error(err.message || 'Registration failed');
@@ -392,8 +405,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (resp.token) {
           setUserToken(resp.token);
           const roleHint = (resp.profile?.role || desiredRole).toLowerCase();
+          const loginHint = (resp.profile?.login || '').toLowerCase();
           Toast.success('Password reset. Signed in.');
-          setTimeout(() => redirectAfterLogin(roleHint), 150);
+          setTimeout(() => redirectAfterLogin(roleHint, loginHint), 150);
         } else {
           Toast.success('Password reset. Please sign in.');
         }
