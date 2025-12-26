@@ -13,7 +13,7 @@
     auth: { persistSession: true },
   });
 
-  const getRedirectUrl = () => `${window.location.origin}/callback.html`;
+  const getRedirectUrl = () => `${window.location.origin}/auth/callback`;
 
   async function startOAuth(provider) {
     try {
