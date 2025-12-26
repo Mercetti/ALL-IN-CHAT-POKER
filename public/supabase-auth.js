@@ -55,6 +55,7 @@
     // Call Edge Function to validate token and upsert profile server-side
     const resp = await fetch(EDGE_FN_URL, {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${session.access_token}`,
