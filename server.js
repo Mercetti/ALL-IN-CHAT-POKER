@@ -232,6 +232,38 @@ const DEFAULT_AVATAR_COLORS = [
 
 ];
 
+async function fetchSupabaseUser(token) {
+  if (!token) throw new Error('missing_token');
+  const url = `${config.SUPABASE_URL.replace(/\/$/, '')}/auth/v1/user`;
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    const msg = body?.error?.message || body?.error_description || `supabase_${res.status}`;
+    throw new Error(msg);
+  }
+  const data = await res.json();
+  return data;
+}
+
+function deriveLoginFromSupabaseUser(user) {
+  if (!user) return '';
+  const meta = user.user_metadata || {};
+  const preferred =
+    meta.preferred_username ||
+    meta.user_name ||
+    meta.username ||
+    (typeof user.email === 'string' ? user.email.split('@')[0] : '');
+  const base = (preferred || user.phone || '').toLowerCase().replace(/[^a-z0-9_]/g, '');
+  if (base && base.length >= 3) return base.slice(0, 20);
+  if (typeof user.id === 'string' && user.id.length >= 6) return `sb_${user.id.slice(0, 12).toLowerCase()}`;
+  return '';
+}
+
 
 
 const bannedLogins = new Set(
@@ -2285,6 +2317,41 @@ app.get('/index.html', (_req, res) => {
 
     }
 
+  });
+
+  app.post('/auth/supabase/exchange', rateLimit('auth_supabase_exchange', 60 * 1000, 10), async (req, res) => {
+    try {
+      const authHeader = (req.get && req.get('authorization')) || req.headers.authorization || '';
+      let supabaseToken = (req.body && req.body.token) || '';
+      if (!supabaseToken && authHeader.toLowerCase().startsWith('bearer ')) {
+        supabaseToken = authHeader.slice(7).trim();
+      }
+      if (!supabaseToken) return res.status(400).json({ error: 'missing_token' });
+      const supUser = await fetchSupabaseUser(supabaseToken);
+      const login = deriveLoginFromSupabaseUser(supUser);
+      if (!login || !validateLocalLogin(login)) {
+        return res.status(400).json({ error: 'invalid_login' });
+      }
+      if (isBanned(login, req.ip)) return res.status(403).json({ error: 'banned' });
+      const existing = db.getProfile(login);
+      const profile = db.upsertProfile({
+        login,
+        display_name: existing?.display_name || login,
+        email: supUser.email || existing?.email || '',
+        role: existing?.role || 'player',
+        settings: existing?.settings || { startingChips: config.GAME_STARTING_CHIPS, theme: 'dark' },
+      });
+      const token = auth.signUserJWT(login, config.USER_JWT_TTL_SECONDS);
+      return res.json({
+        token,
+        login,
+        email: profile?.email || supUser.email || '',
+        expiresIn: config.USER_JWT_TTL_SECONDS,
+      });
+    } catch (err) {
+      logger.warn('Supabase token exchange failed', { error: err.message });
+      return res.status(401).json({ error: 'supabase_invalid' });
+    }
   });
 
   // Request password reset token (returns token for now; add email/discord delivery later)

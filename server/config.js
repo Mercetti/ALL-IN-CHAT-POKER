@@ -22,6 +22,7 @@ module.exports = {
   CHECKOUT_SIGNING_SECRET: process.env.CHECKOUT_SIGNING_SECRET || process.env.JWT_SECRET || 'change-me-checkout',
   BANNED_LOGINS: (process.env.BANNED_LOGINS || '').toLowerCase(),
   BANNED_IPS: (process.env.BANNED_IPS || '').toLowerCase(),
+  SUPABASE_URL: process.env.SUPABASE_URL || 'https://ertwjobuopcnrmdojeps.supabase.co',
 
   // JWT
   ADMIN_JWT_TTL_SECONDS: 60 * 60, // 1 hour

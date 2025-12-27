@@ -32,13 +32,28 @@
         } catch {
           /* ignore */
         }
+        let exchanged = null;
         try {
-          // Store Supabase access token as the app's user token so auth guards stop bouncing
-          if (typeof setUserToken === 'function' && session?.access_token) {
-            setUserToken(session.access_token);
+          if (session?.access_token) {
+            const res = await fetch('/auth/supabase/exchange', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${session.access_token}`,
+              },
+              body: JSON.stringify({ token: session.access_token }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && data?.token && typeof setUserToken === 'function') {
+              setUserToken(data.token);
+              exchanged = data;
+            }
           }
         } catch {
           /* ignore */
+        }
+        if (!exchanged && typeof setUserToken === 'function' && session?.access_token) {
+          setUserToken(session.access_token);
         }
         setTimeout(() => {
           window.location.href = target;
