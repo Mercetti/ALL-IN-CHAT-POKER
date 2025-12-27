@@ -207,10 +207,9 @@
     </div>
   </div>
 
-  <script src="client.js"></script>
   <script>
     (function () {
-    if (typeof enforceAuthenticatedPage === 'function' && !enforceAuthenticatedPage({ page: 'store', markOkBadge: true })) return;
+    // Store is public to browse; actions that need auth will fail gracefully
     const gridEl = document.getElementById('cosmetics-grid');
     const statusEl = document.getElementById('catalog-status');
     const filterEl = document.getElementById('filter-type');

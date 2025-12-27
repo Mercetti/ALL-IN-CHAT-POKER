@@ -11204,9 +11204,14 @@ app.get('/overlay/loadout', (req, res) => {
 
   const channel = normalizeChannelName(req.query?.channel || req.query?.c || '') || DEFAULT_CHANNEL;
 
-  const data = db.getOverlayLoadout(channel);
-
-  if (!data) return res.json({ channel, cosmetics: {}, effects: {} });
+  let data = db.getOverlayLoadout(channel);
+  if (!data) {
+    const inv = getUserInventory(channel);
+    data = {
+      cosmetics: inv?.equipped || {},
+      effects: { dealFx: 'card_deal_24', winFx: 'win_burst_6' },
+    };
+  }
 
   return res.json({ channel, ...data });
 
