@@ -482,11 +482,11 @@ const COSMETIC_CATALOG = [
 
   { id: 'chip-500-classic', type: 'chipSkin', name: '$500 Classic Chip', price_cents: 125, rarity: 'epic', preview: '/assets/cosmetics/effects/chips/chip-500-top.png', image_url: '/assets/cosmetics/effects/chips/chip-500-top.png' },
 
-  { id: 'table-default', type: 'tableSkin', name: 'Default Felt', price_cents: 0, rarity: 'common', preview: '/assets/cosmetics/table/basic/table_streamer_neon_twitch.png', image_url: '/assets/cosmetics/table/basic/table_streamer_neon_twitch.png', tint: '#0c4c3b', color: '#8ef5d0', texture_url: '/assets/table-texture.svg' },
+  { id: 'table-default', type: 'tableSkin', name: 'Default Felt', price_cents: 0, rarity: 'common', preview: '/assets/cosmetics/table/table-default.png', image_url: '/assets/cosmetics/table/table-default.png', tint: '#0c4c3b', color: '#8ef5d0', texture_url: '/assets/table-texture.svg' },
 
-  { id: 'table-night', type: 'tableSkin', name: 'Night Felt', price_cents: 2000, rarity: 'rare', preview: '/assets/cosmetics/table/basic/table_streamer_neon_twitch.png', image_url: '/assets/cosmetics/table/basic/table_streamer_neon_twitch.png', tint: '#0a2c2c', color: '#6fffd3', texture_url: '/assets/table-texture.svg' },
+  { id: 'table-night', type: 'tableSkin', name: 'Night Felt', price_cents: 2000, rarity: 'rare', preview: '/assets/cosmetics/table/table-night.png', image_url: '/assets/cosmetics/table/table-night.png', tint: '#0a2c2c', color: '#6fffd3', texture_url: '/assets/table-texture.svg' },
 
-  { id: 'table-neon', type: 'tableSkin', name: 'Neon Felt', price_cents: 3500, rarity: 'rare', preview: '/assets/cosmetics/table/basic/table_streamer_neon_twitch.png', image_url: '/assets/cosmetics/table/basic/table_streamer_neon_twitch.png', tint: '#0f5d4f', color: '#8ef5d0', texture_url: '/assets/table-texture.svg' },
+  { id: 'table-neon', type: 'tableSkin', name: 'Neon Felt', price_cents: 3500, rarity: 'rare', preview: '/assets/cosmetics/table/table-neon.png', image_url: '/assets/cosmetics/table/table-neon.png', tint: '#0f5d4f', color: '#8ef5d0', texture_url: '/assets/table-texture.svg' },
 
   { id: 'ring-default', type: 'avatarRing', name: 'Emerald Ring', price_cents: 0, rarity: 'common', preview: '/logo.png', color: '#00d4a6' },
 
