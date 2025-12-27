@@ -22,9 +22,17 @@
         statusEl.textContent = 'Checking session...';
         const { session, user } = await window.handleSupabaseCallbackAndUpsert();
         statusEl.textContent = `Signed in as ${user.email || user.id}`;
-        // Redirect to welcome or profile
+        // Redirect to stored target (fallback to welcome)
+        let target = '/welcome.html';
+        try {
+          const saved = sessionStorage.getItem('postLoginRedirect');
+          if (saved) target = saved;
+          sessionStorage.removeItem('postLoginRedirect');
+        } catch {
+          /* ignore */
+        }
         setTimeout(() => {
-          window.location.href = '/welcome.html';
+          window.location.href = target;
         }, 600);
       } catch (err) {
         console.error(err);

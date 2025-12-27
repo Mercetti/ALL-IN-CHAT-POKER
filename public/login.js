@@ -9,6 +9,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const twitchRedirectUri = `${window.location.origin}/login.html`;
   let twitchConfig = null;
   let desiredRole = (localStorage.getItem('loginRole') || 'player').toLowerCase();
+  const computePostLoginRedirect = () => {
+    const role = (desiredRole || 'player').toLowerCase();
+    if (redirectTarget) return redirectTarget;
+    return role === 'streamer' ? '/admin2.html' : '/profile.html';
+  };
+  const setPostLoginRedirect = () => {
+    try {
+      sessionStorage.setItem('postLoginRedirect', computePostLoginRedirect());
+    } catch {
+      /* ignore */
+    }
+  };
   const decodeLoginFromToken = (tok) => {
     if (!tok || typeof tok !== 'string') return '';
     try {
@@ -41,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function setRole(role) {
     desiredRole = role;
     localStorage.setItem('loginRole', role);
+    setPostLoginRedirect();
     roleButtons.forEach(btn => {
       const isActive = btn.dataset.role === role;
       btn.classList.toggle('active', isActive);
@@ -58,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', () => setRole(btn.dataset.role || 'player'));
     });
   }
+  setPostLoginRedirect();
 
   async function loadTwitchConfig() {
     if (twitchConfig) return twitchConfig;
@@ -134,6 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
       Toast.error('Twitch OAuth not configured on server');
       return;
     }
+    setPostLoginRedirect();
     const cleanRedirect = (cfg.redirectUri || twitchRedirectUri || '').trim().replace(/\\+$/, '');
     const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${encodeURIComponent(
       cfg.twitchClientId
