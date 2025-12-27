@@ -2794,6 +2794,11 @@ app.use('/uploads', express.static(uploadsDir));
 
 app.use(express.static('public'));
 
+// Serve a default card face if the directory path is requested directly
+app.get('/assets/cosmetics/cards/faces/classic/', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'assets', 'cosmetics', 'cards', 'faces', 'classic', 'ace_of_spades.png'));
+});
+
 // Supabase OAuth callback/consent helpers
 app.get(['/callback.html', '/auth/callback', '/welcome.html/oauth/consent'], (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'callback.html'));
