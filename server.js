@@ -2330,8 +2330,8 @@ app.get('/index.html', (_req, res) => {
       if (!supabaseToken && authHeader.toLowerCase().startsWith('bearer ')) {
         supabaseToken = authHeader.slice(7).trim();
       }
-      if (!supabaseToken) return res.status(400).json({ error: 'missing_token' });
-      const supUser = await fetchSupabaseUser(supabaseToken);
+      if (!supabaseToken && !req.body?.user) return res.status(400).json({ error: 'missing_token' });
+      const supUser = req.body?.user || await fetchSupabaseUser(supabaseToken);
       const supEmail = (supUser.email || '').toLowerCase();
       // Reuse existing profile by email if present (keeps roles/admin access)
       const existingByEmail = supEmail ? db.getProfileByEmail(supEmail) : null;

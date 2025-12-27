@@ -41,7 +41,7 @@
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${session.access_token}`,
               },
-              body: JSON.stringify({ token: session.access_token }),
+              body: JSON.stringify({ token: session.access_token, user }),
             });
             const data = await res.json().catch(() => ({}));
             if (res.ok && data?.token && typeof setUserToken === 'function') {
