@@ -2332,7 +2332,10 @@ app.get('/index.html', (_req, res) => {
       }
       if (!supabaseToken) return res.status(400).json({ error: 'missing_token' });
       const supUser = await fetchSupabaseUser(supabaseToken);
-      const login = deriveLoginFromSupabaseUser(supUser);
+      const supEmail = (supUser.email || '').toLowerCase();
+      // Reuse existing profile by email if present (keeps roles/admin access)
+      const existingByEmail = supEmail ? db.getProfileByEmail(supEmail) : null;
+      const login = existingByEmail?.login || deriveLoginFromSupabaseUser(supUser);
       if (!login || !validateLocalLogin(login)) {
         return res.status(400).json({ error: 'invalid_login' });
       }
@@ -2340,10 +2343,10 @@ app.get('/index.html', (_req, res) => {
       const existing = db.getProfile(login);
       const profile = db.upsertProfile({
         login,
-        display_name: existing?.display_name || login,
-        email: supUser.email || existing?.email || '',
-        role: existing?.role || 'player',
-        settings: existing?.settings || { startingChips: config.GAME_STARTING_CHIPS, theme: 'dark' },
+        display_name: existing?.display_name || existingByEmail?.display_name || login,
+        email: supUser.email || existing?.email || existingByEmail?.email || '',
+        role: existing?.role || existingByEmail?.role || 'player',
+        settings: existing?.settings || existingByEmail?.settings || { startingChips: config.GAME_STARTING_CHIPS, theme: 'dark' },
       });
       const token = auth.signUserJWT(login, config.USER_JWT_TTL_SECONDS);
       return res.json({

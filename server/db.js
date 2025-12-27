@@ -657,6 +657,17 @@ class DBHelper {
     return this.getProfile(login);
   }
 
+  /**
+   * Get profile by email (case-insensitive)
+   * @param {string} email
+   * @returns {Object|null}
+   */
+  getProfileByEmail(email) {
+    if (!email) return null;
+    const stmt = this.db.prepare('SELECT * FROM profiles WHERE LOWER(email) = LOWER(?)');
+    return stmt.get(email);
+  }
+
   setForcePasswordReset(login, flag = 0) {
     this.db.prepare(`UPDATE profiles SET force_pwd_reset=? WHERE login=?`).run(flag ? 1 : 0, login);
     return this.getProfile(login);
