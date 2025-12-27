@@ -170,6 +170,28 @@
       img.onerror = (e) => console.warn('[winburst] failed to load sprite', e);
       img.src = SPRITE_URL;
     })();
+
+    // Ensure overlay link opens the signed-in streamer's channel
+    (function () {
+      const overlayLink = document.querySelector('a.nav-link[href="/obs-overlay.html"]');
+      if (!overlayLink) return;
+      const decodeLogin = (tok) => {
+        if (!tok || typeof tok !== 'string') return '';
+        try {
+          const payload = tok.split('.')[1];
+          const pad = payload.length % 4 === 2 ? '==' : payload.length % 4 === 3 ? '=' : '';
+          const data = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/') + pad));
+          return (data.user || data.login || '').toLowerCase();
+        } catch {
+          return '';
+        }
+      };
+      const tok = (localStorage.getItem && localStorage.getItem('user_jwt')) || '';
+      const login = decodeLogin(tok);
+      if (login) {
+        overlayLink.href = `/obs-overlay.html?channel=${encodeURIComponent(login)}`;
+      }
+    })();
   </script>
 </body>
 </html>
