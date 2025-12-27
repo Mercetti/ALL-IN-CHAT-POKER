@@ -210,6 +210,17 @@
   <script>
     (function () {
     // Store is public to browse; actions that need auth will fail gracefully
+    const typeLabels = {
+      cardBack: 'Card Backs',
+      cardFace: 'Card Faces',
+      tableSkin: 'Table Skins',
+      avatarRing: 'Avatar Rings',
+      profileFrame: 'Profile Frames',
+      chipSkin: 'Chips',
+      nameplate: 'Name Plates',
+      dealFx: 'Deal Effects',
+      winFx: 'Win Effects',
+    };
     const gridEl = document.getElementById('cosmetics-grid');
     const statusEl = document.getElementById('catalog-status');
     const filterEl = document.getElementById('filter-type');
