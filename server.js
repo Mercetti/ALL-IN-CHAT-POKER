@@ -532,7 +532,7 @@ const COSMETIC_CATALOG = [
 
   { id: 'table-streamer-gold-star', type: 'tableSkin', name: 'Streamer Gold Star', price_cents: 5000, rarity: 'legendary', preview: '/assets/cosmetics/table/streamer/table_streamer_gold_star.png', image_url: '/assets/cosmetics/table/streamer/table_streamer_gold_star.png', unlock_type: 'streamer_goal', unlock_value: 100, unlock_note: 'Streamer: unlock after 100 hands' },
 
-  { id: 'table-streamer-neon-twitch', type: 'tableSkin', name: 'Streamer Neon Twitch', price_cents: 5000, rarity: 'legendary', preview: '/assets/cosmetics/table/streamer/table_streamer_neon_twitch.png', image_url: '/assets/cosmetics/table/streamer/table_streamer_neon_twitch.png', unlock_type: 'streamer_goal', unlock_value: 120, unlock_note: 'Streamer: unlock after 120 hands' },
+  { id: 'table-streamer-neon-twitch', type: 'tableSkin', name: 'Streamer Neon Twitch', price_cents: 5000, rarity: 'legendary', preview: '/assets/cosmetics/table/table-streamer-neon-twitch.png', image_url: '/assets/cosmetics/table/table-streamer-neon-twitch.png', unlock_type: 'streamer_goal', unlock_value: 120, unlock_note: 'Streamer: unlock after 120 hands' },
 
   { id: 'table-drop-glitch-twitch', type: 'tableSkin', name: 'Twitch Drop: Glitch Table', price_cents: 5000, rarity: 'epic', preview: '/assets/cosmetics/table/drops/table_streamer_glitch_twitch.png', image_url: '/assets/cosmetics/table/drops/table_streamer_glitch_twitch.png', unlock_type: 'twitch_drop', unlock_note: 'Earned via Twitch Drops' },
 
