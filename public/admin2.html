@@ -580,6 +580,29 @@
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <script src="client.js"></script>
   <script>
+    (function () {
+      const btn = document.getElementById('btn-open-obs-overlay');
+      if (!btn) return;
+      const decodeLogin = (tok) => {
+        if (!tok || typeof tok !== 'string') return '';
+        try {
+          const payload = tok.split('.')[1];
+          const pad = payload.length % 4 === 2 ? '==' : payload.length % 4 === 3 ? '=' : '';
+          const data = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/') + pad));
+          return (data.user || data.login || '').toLowerCase();
+        } catch {
+          return '';
+        }
+      };
+      const tok = (localStorage.getItem && localStorage.getItem('user_jwt')) || '';
+      const login = decodeLogin(tok);
+      const href = login ? `/obs-overlay.html?channel=${encodeURIComponent(login)}` : '/obs-overlay.html';
+      btn.addEventListener('click', () => {
+        window.open(href, '_blank', 'noopener');
+      });
+    })();
+  </script>
+  <script>
     enforceAuthenticatedPage({ page: 'admin' });
   </script>
   <script src="admin.js"></script>
