@@ -261,7 +261,10 @@ function deriveLoginFromSupabaseUser(user) {
     (typeof user.email === 'string' ? user.email.split('@')[0] : '');
   const base = (preferred || user.phone || '').toLowerCase().replace(/[^a-z0-9_]/g, '');
   if (base && base.length >= 3) return base.slice(0, 20);
-  if (typeof user.id === 'string' && user.id.length >= 6) return `sb_${user.id.slice(0, 12).toLowerCase()}`;
+  if (typeof user.id === 'string' && user.id.length >= 6) {
+    const cleaned = user.id.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (cleaned.length >= 3) return `sb_${cleaned.slice(0, 12)}`;
+  }
   return '';
 }
 
