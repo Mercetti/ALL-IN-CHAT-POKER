@@ -18,7 +18,7 @@
         Drop the overlay into OBS, point it at the live backend, then let chat join with <code>!join</code> or bet with <code>!bet &lt;amount&gt;</code>. Use the bot to mirror chat into the game without leaving Twitch.
       </p>
       <div class="button-row">
-        <a class="btn" href="/obs-overlay.html" target="_blank" rel="noopener">Open OBS Overlay</a>
+        <a class="btn overlay-link" href="/obs-overlay.html" target="_blank" rel="noopener">Open OBS Overlay</a>
         <a class="btn" href="/admin2.html" target="_blank" rel="noopener">Admin Dashboard</a>
       </div>
     </div>
@@ -28,8 +28,8 @@
         <h2>1) OBS Browser Source</h2>
         <p class="muted">Add a browser source and point it at the overlay URL.</p>
         <ol>
-          <li>URL: <code>https://all-in-chat-poker.fly.dev/obs-overlay.html</code> (or your domain)</li>
-          <li>If you’re not logged in on that machine, append <code>?channel=&lt;your_twitch_login&gt;</code></li>
+          <li>URL: <code id="overlay-url">https://all-in-chat-poker.fly.dev/obs-overlay.html</code> (or your domain)</li>
+          <li>If you're not logged in on that machine, append <code>?channel=&lt;your_twitch_login&gt;</code></li>
           <li>Width: 1920 · Height: 1080 (or your canvas); FPS: 60; enable hardware accel.</li>
           <li>Place above your background, below webcam.</li>
         </ol>
@@ -92,5 +92,32 @@
       </div>
     </div>
   </div>
+
+  <script src="client.js"></script>
+  <script src="setup.js"></script>
+  <script>
+    (function () {
+      const decodeLogin = (tok) => {
+        if (!tok || typeof tok !== 'string') return '';
+        try {
+          const payload = tok.split('.')[1];
+          const pad = payload.length % 4 === 2 ? '==' : payload.length % 4 === 3 ? '=' : '';
+          const data = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/') + pad));
+          return (data.user || data.login || '').toLowerCase();
+        } catch {
+          return '';
+        }
+      };
+      const tok = (localStorage.getItem && localStorage.getItem('user_jwt')) || '';
+      const login = decodeLogin(tok);
+      const link = document.querySelector('a.overlay-link');
+      const urlEl = document.getElementById('overlay-url');
+      if (login) {
+        const href = `/obs-overlay.html?channel=${encodeURIComponent(login)}`;
+        if (link) link.href = href;
+        if (urlEl) urlEl.textContent = `${window.location.origin || ''}${href}`;
+      }
+    })();
+  </script>
 </body>
 </html>
