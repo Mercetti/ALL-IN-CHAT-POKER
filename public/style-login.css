@@ -7,21 +7,21 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-tertiary) 100%);
+  background: radial-gradient(120% 120% at 20% 20%, rgba(68,255,210,0.08), transparent 60%), var(--bg-primary);
 }
 
 .login-container {
   width: 100%;
-  max-width: 400px;
-  padding: var(--spacing-md);
+  max-width: 420px;
+  padding: var(--spacing-lg);
 }
 
 .login-card {
   background-color: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-xl);
-  box-shadow: var(--shadow-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-md);
 }
 
 .login-brand {
@@ -44,14 +44,14 @@
 }
 
 .subtitle {
-  text-align: center;
+  text-align: left;
   color: var(--text-secondary);
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
 }
 
 .subtitle.small-note {
   font-size: 13px;
-  margin-top: -6px;
+  margin-top: -4px;
   margin-bottom: var(--spacing-md);
 }
 
@@ -92,6 +92,10 @@
 
 .oauth-section {
   text-align: center;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
 }
 
 .oauth-label {
@@ -140,6 +144,49 @@
   background-color: #7c3aed;
 }
 
+.summary-btn {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background: rgba(255,255,255,0.05);
+  color: var(--text-primary);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.minimal-block {
+  margin-top: 12px;
+}
+
+.compact-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 8px 0;
+}
+
+.muted-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.stack-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.subtle-actions {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  background: rgba(255,255,255,0.02);
+}
+
 .login-footer {
   text-align: center;
   margin-top: var(--spacing-xl);
@@ -148,7 +195,7 @@
 }
 
 /* OAuth provider buttons */
-.auth-providers { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+.auth-providers { display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:12px; align-items:center; }
 .provider-btn {
   display: inline-flex;
   align-items: center;
