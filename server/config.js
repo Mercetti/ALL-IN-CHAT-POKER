@@ -23,6 +23,7 @@ module.exports = {
   BANNED_LOGINS: (process.env.BANNED_LOGINS || '').toLowerCase(),
   BANNED_IPS: (process.env.BANNED_IPS || '').toLowerCase(),
   SUPABASE_URL: process.env.SUPABASE_URL || 'https://ertwjobuopcnrmdojeps.supabase.co',
+  SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || 'sb_publishable_b_GSUmpGQPhTBh_vow7O8g_S3IblsBa',
 
   // JWT
   ADMIN_JWT_TTL_SECONDS: 60 * 60, // 1 hour

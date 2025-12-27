@@ -238,6 +238,7 @@ async function fetchSupabaseUser(token) {
   const res = await fetch(url, {
     headers: {
       Authorization: `Bearer ${token}`,
+      apikey: config.SUPABASE_ANON_KEY,
       'Content-Type': 'application/json',
     },
   });
