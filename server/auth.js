@@ -13,6 +13,10 @@ const adminAllowList = (config.ADMIN_ALLOW_LOGINS || '')
   .split(',')
   .map(s => s.trim().toLowerCase())
   .filter(Boolean);
+const adminAllowEmails = (config.ADMIN_ALLOW_EMAILS || '')
+  .split(',')
+  .map(s => s.trim().toLowerCase())
+  .filter(Boolean);
 
 /**
  * Read a header from either an Express request or a Socket.IO handshake
@@ -106,6 +110,8 @@ function isAdminRequest(req) {
           const profile = db.getProfile(user);
           const role = (profile && profile.role || '').toLowerCase();
           if (role === 'streamer' || role === 'admin') return true;
+          const email = (profile && profile.email || '').toLowerCase();
+          if (email && adminAllowEmails.includes(email)) return true;
         }
       } catch (e) {
         // ignore
