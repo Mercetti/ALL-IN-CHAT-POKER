@@ -110,8 +110,11 @@ async function requireAdmin() {
   if (adminToken) return true;
   if (userToken) return true;
   if (userLogin === 'mercetti') return true;
-  const redirect = encodeURIComponent('/admin-dev.html');
-  window.location.href = `/login.html?redirect=${redirect}`;
+  const loginUrl =
+    typeof buildLoginRedirectUrl === 'function'
+      ? buildLoginRedirectUrl('/admin-dev.html')
+      : '/login.html?redirect=%2Fadmin-dev.html';
+  window.location.href = loginUrl;
   return false;
 }
 

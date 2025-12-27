@@ -251,6 +251,32 @@ function setThemeButtonLabel(btn) {
   btn.textContent = t === 'light' ? 'Dark Theme' : 'Light Theme';
 }
 
+function buildLoginRedirectUrl(nextPath = '') {
+  if (typeof window === 'undefined') return '/login.html';
+  const target = nextPath || `${window.location.pathname}${window.location.search || ''}${window.location.hash || ''}`;
+  const safeTarget = target.startsWith('/') ? target : `/${target}`.replace(/\/{2,}/g, '/');
+  return `/login.html?redirect=${encodeURIComponent(safeTarget)}`;
+}
+
+function enforceAuthenticatedPage(options = {}) {
+  if (typeof window === 'undefined') return true;
+  const allowUser = options.allowUserToken !== false;
+  const allowAdmin = options.allowAdminToken !== false;
+  const hasUser = allowUser && !!getUserToken();
+  const hasAdminCookie = allowAdmin && !!getToken();
+  const hasAdminBearer = allowAdmin && !!getAdminBearer();
+  if (hasUser || hasAdminCookie || hasAdminBearer) {
+    if (options.markOkBadge) updateTokenBadge('ok');
+    return true;
+  }
+  if (options.toast !== false && window.Toast) {
+    Toast.warning('Please sign in to continue.');
+  }
+  const loginUrl = buildLoginRedirectUrl(options.nextPath);
+  window.location.replace(loginUrl);
+  return false;
+}
+
 let __authBounce = false;
 function handleAuthFailure() {
   if (__authBounce) return;
@@ -258,8 +284,9 @@ function handleAuthFailure() {
   clearToken();
   clearUserToken();
   Toast.warning('Session expired. Please sign in again.');
+  const loginUrl = buildLoginRedirectUrl();
   if (!window.location.pathname.endsWith('/login.html')) {
-    window.location.href = '/login.html';
+    window.location.href = loginUrl;
   } else {
     // Already on login page; avoid redirect loop and allow re-login
     setTimeout(() => {
@@ -330,3 +357,5 @@ window.getTheme = getTheme;
 window.setThemeButtonLabel = setThemeButtonLabel;
 window.getBackendBase = getBackendBase;
 window.buildApiUrl = buildApiUrl;
+window.buildLoginRedirectUrl = buildLoginRedirectUrl;
+window.enforceAuthenticatedPage = enforceAuthenticatedPage;

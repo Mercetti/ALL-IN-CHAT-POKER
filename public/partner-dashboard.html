@@ -138,7 +138,10 @@
     </div>
   </div>
 
+  <script src="client.js"></script>
   <script>
+    (function () {
+    if (typeof enforceAuthenticatedPage === 'function' && !enforceAuthenticatedPage({ page: 'partner', markOkBadge: true })) return;
     // Placeholder data hooks; replace with real API calls
     const eligibilityBanner = document.getElementById('eligibility-banner');
     const partnerTier = document.getElementById('partner-tier');
@@ -289,6 +292,7 @@
     };
     refreshPill();
     setInterval(refreshPill, 30000);
+    })();
   </script>
 </body>
 </html>

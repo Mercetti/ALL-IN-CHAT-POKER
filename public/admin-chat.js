@@ -5,13 +5,11 @@
 document.addEventListener('DOMContentLoaded', () => {
   applyTheme();
 
+  if (typeof enforceAuthenticatedPage === 'function' && !enforceAuthenticatedPage({ page: 'admin', markOkBadge: true })) return;
+
   const adminToken = getToken();
   const userToken = getUserToken();
   window.__DEFAULT_USE_USER_TOKEN = !adminToken && !!userToken;
-  if (!adminToken && !userToken) {
-    window.location.href = '/login.html';
-    return;
-  }
   const pill = document.getElementById('session-pill');
   const refreshPill = () => {
     if (!pill || typeof getTokenStatus !== 'function') return;

@@ -23,6 +23,7 @@
         <span id="supabase-edge-pill" class="pill muted" style="margin-right:8px;">Supabase: -</span>
         <a class="btn btn-secondary btn-sm" href="/admin2.html">Back to Admin</a>
         <a class="btn btn-secondary btn-sm" href="/admin-chat.html" target="_blank" rel="noopener">AI Bot Chat</a>
+        <a class="btn btn-secondary btn-sm" href="/admin-code.html" target="_blank" rel="noopener">Code Proposals</a>
       </div>
     </header>
 
@@ -357,6 +358,9 @@
   <div id="toast-container" class="toast-container"></div>
 
   <script src="client.js"></script>
+  <script>
+    enforceAuthenticatedPage({ page: 'admin' });
+  </script>
   <script src="/socket.io/socket.io.js"></script>
   <script src="admin-dev.js"></script>
 </body>

@@ -89,7 +89,10 @@
 
   </div>
 
+  <script src="client.js"></script>
   <script>
+    (function () {
+    if (typeof enforceAuthenticatedPage === 'function' && !enforceAuthenticatedPage({ page: 'editor', markOkBadge: true })) return;
     const sessionPill = document.getElementById('session-pill');
     const refreshSessionPill = () => {
       if (!sessionPill || typeof getTokenStatus !== 'function') return;
@@ -666,6 +669,7 @@
     renderControls();
     loadEffectsMeta().then(renderGrid);
     loadCatalog();
+    })();
   </script>
 </body>
 </html>

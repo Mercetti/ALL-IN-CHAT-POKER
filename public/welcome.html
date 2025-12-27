@@ -136,25 +136,27 @@
       preview.style.setProperty('--frames', 6);
     })();
 
-    // Animate the win burst grid sprite (5x5 frames)
+    // Animate the win burst sprite (24-frame horizontal sheet)
     (function () {
       const canvas = document.getElementById('winburst-canvas');
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
-      const meta = { columns: 3, rows: 2, frameCount: 6, fps: 18 };
+      const SPRITE_URL = '/assets/cosmetics/effects/win/AllInChatPoker_Glitch_24Frames_1024x1024_Horizontal_FIXED.png';
+      const meta = { columns: 24, rows: 1, frameCount: 24, fps: 18, frameWidth: 1024, frameHeight: 1024 };
       canvas.width = 256;
       canvas.height = 180;
       const img = new Image();
       img.onload = () => {
-        const cols = meta.columns || 5;
-        const rows = meta.rows || 5;
+        const cols = Math.max(1, meta.columns || Math.floor(img.naturalWidth / (meta.frameWidth || img.naturalWidth)));
+        const rows = Math.max(1, meta.rows || Math.ceil((meta.frameCount || cols) / cols));
+        const frames = meta.frameCount || cols * rows;
         const fw = meta.frameWidth || Math.floor(img.naturalWidth / cols);
         const fh = meta.frameHeight || Math.floor(img.naturalHeight / rows);
         let frame = 0;
-        console.debug('[winburst] loaded', { w: img.naturalWidth, h: img.naturalHeight, fw, fh, cols, rows });
+        console.debug('[winburst] loaded', { w: img.naturalWidth, h: img.naturalHeight, fw, fh, cols, rows, frames });
         const draw = () => {
           if (!canvas.isConnected) return;
-          const f = frame % meta.frameCount;
+          const f = frame % frames;
           const col = f % cols;
           const row = Math.floor(f / cols);
           const sx = col * fw;
@@ -167,7 +169,7 @@
         draw();
       };
       img.onerror = (e) => console.warn('[winburst] failed to load sprite', e);
-      img.src = '/assets/cosmetics/effects/win/winburst_25frame_sprite.png';
+      img.src = SPRITE_URL;
     })();
   </script>
 </body>

@@ -338,7 +338,7 @@ async function loadWinSprite(key) {
     if (!meta) return;
       const spritePath = meta.image
         ? (meta.image.startsWith('http') ? meta.image : `/assets/cosmetics/effects/win/${meta.image}`)
-        : '/assets/cosmetics/effects/win/winburst_25frame_sprite.png';
+        : '/assets/cosmetics/effects/win/AllInChatPoker_Glitch_24Frames_1024x1024_Horizontal_FIXED.png';
     const img = await loadImageCached(spritePath);
     if (img) {
       winSprite = img;

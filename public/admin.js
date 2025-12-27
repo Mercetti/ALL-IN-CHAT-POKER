@@ -255,6 +255,7 @@ async function loadPublicConfig() {
 
 document.addEventListener('DOMContentLoaded', async () => {
   await loadPublicConfig();
+  if (typeof enforceAuthenticatedPage === 'function' && !enforceAuthenticatedPage({ page: 'admin', markOkBadge: true })) return;
   const sessionPill = document.getElementById('session-pill');
   const refreshSessionPill = () => {
     if (!sessionPill || typeof getTokenStatus !== 'function') return;
