@@ -19,6 +19,7 @@ const path = require('path');
 const fs = require('fs');
 
 const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
 const uploadsDir = path.join(__dirname, 'data', 'uploads');
 fs.mkdirSync(uploadsDir, { recursive: true });
 const taxDir = path.join(uploadsDir, 'tax');
@@ -13750,6 +13751,48 @@ const VALID_TEXTURES = [
 
     }
 
+  });
+
+  // Debug auth state (whoami + TTL)
+  app.get('/auth/debug', (req, res) => {
+    try {
+      const login = auth.extractUserLogin(req);
+      const profile = login ? db.getProfile((login || '').toLowerCase()) : null;
+      const role = profile?.role || null;
+      const isAdmin = auth.isAdminRequest(req);
+
+      const rawToken = (() => {
+        const h = auth.getHeader(req, 'authorization') || '';
+        if (h.toLowerCase().startsWith('bearer ')) return h.slice(7).trim();
+        const cookie = auth.getHeader(req, 'cookie') || '';
+        const m = cookie.match(/\badmin_jwt=([^;]+)/);
+        if (m) return m[1];
+        return null;
+      })();
+
+      let ttlSeconds = null;
+      if (rawToken) {
+        try {
+          const payload = jwt.verify(rawToken, config.JWT_SECRET);
+          if (payload?.exp) {
+            ttlSeconds = payload.exp - Math.floor(Date.now() / 1000);
+          }
+        } catch (err) {
+          logger.warn('auth debug token verify failed', { error: err.message });
+        }
+      }
+
+      return res.json({
+        ok: true,
+        login: login || null,
+        role,
+        admin: !!isAdmin,
+        ttlSeconds,
+      });
+    } catch (err) {
+      logger.error('auth debug failed', { error: err.message });
+      return res.status(500).json({ error: 'internal_error' });
+    }
   });
 
 

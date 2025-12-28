@@ -138,7 +138,7 @@ async function refreshUserTokenIfNeeded() {
     });
     if (res?.token) {
       setUserToken(res.token);
-      updateTokenBadge('ok');
+      updateTokenBadge('ok', 'user');
     }
   } catch (err) {
     console.warn('User token refresh failed', err?.message || err);
@@ -173,15 +173,31 @@ function ensureTokenBadge() {
   updateTokenBadge('init');
 }
 
-function updateTokenBadge(state) {
+function getSessionKind() {
+  const hasAdmin = !!getToken() || !!getAdminBearer();
+  const hasUser = !!getUserToken();
+  if (hasAdmin) return 'admin';
+  if (hasUser) return 'user';
+  return 'none';
+}
+
+function updateTokenBadge(state, kind) {
   updateTokenBadge.state = state;
+  const sessionKind = kind || getSessionKind();
   const badge = document.getElementById('token-status-badge');
   if (!badge) return;
   if (state === 'ok') {
-    badge.style.background = 'rgba(16, 185, 129, 0.8)'; // green
-    badge.style.color = '#fff';
-    badge.textContent = 'SESSION OK';
-    badge.dataset.state = 'ok';
+    if (sessionKind === 'admin') {
+      badge.style.background = 'rgba(59, 130, 246, 0.85)'; // blue
+      badge.style.color = '#fff';
+      badge.textContent = 'ADMIN OK';
+      badge.dataset.state = 'ok-admin';
+    } else {
+      badge.style.background = 'rgba(16, 185, 129, 0.8)'; // green
+      badge.style.color = '#fff';
+      badge.textContent = 'USER OK';
+      badge.dataset.state = 'ok-user';
+    }
   } else if (state === 'warn') {
     badge.style.background = 'rgba(234, 179, 8, 0.85)'; // amber
     badge.style.color = '#111';
@@ -266,7 +282,7 @@ function enforceAuthenticatedPage(options = {}) {
   const hasAdminCookie = allowAdmin && !!getToken();
   const hasAdminBearer = allowAdmin && !!getAdminBearer();
   if (hasUser || hasAdminCookie || hasAdminBearer) {
-    if (options.markOkBadge) updateTokenBadge('ok');
+    if (options.markOkBadge) updateTokenBadge('ok', hasAdminCookie || hasAdminBearer ? 'admin' : 'user');
     return true;
   }
   if (options.toast !== false && window.Toast) {
@@ -316,6 +332,7 @@ async function apiCall(endpoint, options = {}) {
 
   try {
     const url = buildApiUrl(endpoint);
+    const sessionKind = token ? 'user' : adminBearer ? 'admin' : 'none';
     const response = await fetch(url, {
       ...options,
       headers,
@@ -328,6 +345,10 @@ async function apiCall(endpoint, options = {}) {
         handleAuthFailure();
       }
       throw new Error(data.error || `HTTP ${response.status}`);
+    }
+
+    if (!options.noAuthBounce && sessionKind !== 'none') {
+      updateTokenBadge('ok', sessionKind);
     }
 
     return data;
