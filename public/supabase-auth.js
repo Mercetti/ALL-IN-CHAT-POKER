@@ -31,9 +31,20 @@
   }
 
   async function handleCallbackAndUpsert() {
+    // If the provider redirected back with an error, surface it early
+    const params = new URLSearchParams(window.location.search || '');
+    const redirectError = params.get('error');
+    const redirectErrorDesc = params.get('error_description');
+    if (redirectError) {
+      throw new Error(
+        redirectErrorDesc
+          ? `Supabase redirect error: ${redirectErrorDesc}`
+          : `Supabase redirect error: ${redirectError}`
+      );
+    }
+
     // If code is present (PKCE), exchange for session first
     try {
-      const params = new URLSearchParams(window.location.search || '');
       const code = params.get('code');
       if (code && typeof client.auth.exchangeCodeForSession === 'function') {
         const { error: exErr } = await client.auth.exchangeCodeForSession({
