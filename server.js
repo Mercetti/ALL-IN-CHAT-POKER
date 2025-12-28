@@ -2340,7 +2340,7 @@ app.get('/index.html', (_req, res) => {
         return res.status(400).json({ error: 'invalid_login' });
       }
       if (isBanned(login, req.ip)) return res.status(403).json({ error: 'banned' });
-      const existing = db.getProfile(login);
+      const existing = existingByEmail || db.getProfile(login);
       const profile = db.upsertProfile({
         login,
         display_name: existing?.display_name || existingByEmail?.display_name || login,
