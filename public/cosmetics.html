@@ -76,6 +76,15 @@
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 12px;
     }
+    .carousel-controls {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .carousel-controls button {
+      padding: 4px 8px;
+      font-size: 11px;
+    }
     .cosmetic-card {
       background: radial-gradient(circle at 40% 20%, rgba(129, 224, 255, 0.08), rgba(15, 25, 40, 0.95));
       border: 1px solid rgba(119, 214, 255, 0.15);
@@ -251,6 +260,7 @@
       .collection-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
     }
   </style>
+  <script src="client.js"></script>
 </head>
 <body>
   <div class="cosmetics-page">
@@ -331,6 +341,10 @@
     const statusEl = document.getElementById('catalog-status');
     const filterEl = document.getElementById('filter-type');
     const packGrid = document.getElementById('aic-pack-grid');
+    let userItems = { owned: [], equipped: {} };
+    let selectedId = null;
+    const pageState = {};
+    const itemsPerPage = 6;
     const chipPacks = [
       { id: 'coins-100', chips: 100, price: '$0.99', img: '/assets/all_in_chip_x1.png', tag: 'Starter' },
       { id: 'coins-500', chips: 500, price: '$4.99', bonus: '+50', img: '/assets/all_in_chip_x10.png', tag: 'Best Deal' },
@@ -346,12 +360,31 @@
       return price > 0 && !gated;
     }
 
+    function hasUserToken() {
+      try {
+        return typeof getUserToken === 'function' && !!getUserToken();
+      } catch {
+        return false;
+      }
+    }
+
+    async function loadUserItems() {
+      if (!hasUserToken()) return;
+      try {
+        const inv = await apiCall('/user/items', { useUserToken: true, noToast: true });
+        userItems = inv || { owned: [], equipped: {} };
+      } catch {
+        userItems = { owned: [], equipped: {} };
+      }
+    }
+
     async function loadCatalog() {
       statusEl.textContent = 'Loading catalog...';
       gridEl.innerHTML = '';
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 8000);
       try {
+        await loadUserItems();
         const res = await fetch('/catalog', { signal: controller.signal });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const items = await res.json();
@@ -435,10 +468,18 @@
       }
 
       gridEl.innerHTML = sections.map(section => {
-        const cards = section.items.map(item => {
+        const key = section.title;
+        const totalPages = Math.max(1, Math.ceil(section.items.length / itemsPerPage));
+        const currentPage = Math.min(pageState[key] || 0, totalPages - 1);
+        pageState[key] = currentPage;
+        const visible = section.items.slice(currentPage * itemsPerPage, currentPage * itemsPerPage + itemsPerPage);
+        const cards = visible.map(item => {
           const price = Number.isFinite(item.price_cents) ? `${item.price_cents} AIC` : (item.price ? `${item.price} AIC` : 'Free');
+          const ownedSet = new Set(userItems.owned || []);
+          const owned = ownedSet.has(item.id) || price === 'Free';
+          const eq = Object.values(userItems.equipped || {}).includes(item.id);
           return `
-            <div class="cosmetic-card" data-card-id="${item.id}">
+            <div class="cosmetic-card ${eq ? 'active' : ''}" data-card-id="${item.id}">
               <div class="cosmetic-type">${typeLabels[item.type] || item.type || ''}</div>
               <div class="cosmetic-preview">${buildPreview(item)}</div>
               <div class="cosmetic-meta">
@@ -447,11 +488,18 @@
               </div>
               <h3>${item.name || item.id}</h3>
               <p class="muted" style="min-height:32px;">${item.description || item.unlock_note || ''}</p>
+              <div class="cosmetic-meta">
+                <span>${owned ? (eq ? 'Equipped' : 'Owned') : 'Locked'}</span>
+                <button class="btn btn-secondary btn-sm" data-equip="${item.id}" ${owned && hasUserToken() ? '' : 'disabled'}>${eq ? 'Equipped' : 'Equip'}</button>
+              </div>
             </div>
           `;
         }).join('');
         return `
-          <div class="collection-title" style="margin-top:10px;">${section.title}</div>
+          <div class="collection-title" style="margin-top:10px;">
+            <span>${section.title}</span>
+            ${totalPages > 1 ? `<div class="carousel-controls"><button data-page="${key}" data-dir="-1" class="btn btn-ghost btn-sm" ${currentPage === 0 ? 'disabled' : ''}>Prev</button><span class="muted" style="font-size:11px;">${currentPage + 1} / ${totalPages}</span><button data-page="${key}" data-dir="1" class="btn btn-ghost btn-sm" ${currentPage === totalPages - 1 ? 'disabled' : ''}>Next</button></div>` : ''}
+          </div>
           <div class="collection-grid">${cards}</div>
         `;
       }).join('');
@@ -460,14 +508,53 @@
         const found = items.find(i => i.id === id);
         if (found) showSelection(found);
         gridEl.querySelectorAll('.cosmetic-card').forEach(c => c.classList.toggle('active', c.dataset.cardId === id));
+        selectedId = id;
       };
 
       gridEl.querySelectorAll('.cosmetic-card').forEach(card => {
         card.addEventListener('click', () => selectCard(card.dataset.cardId));
       });
 
+      gridEl.querySelectorAll('button[data-page]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const key = btn.dataset.page;
+          const dir = Number(btn.dataset.dir) || 0;
+          const totalPages = Math.max(1, Math.ceil((sections.find(s => s.title === key)?.items.length || 0) / itemsPerPage));
+          const next = Math.max(0, Math.min(totalPages - 1, (pageState[key] || 0) + dir));
+          pageState[key] = next;
+          renderSections(items);
+        });
+      });
+
+      gridEl.querySelectorAll('button[data-equip]').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const id = btn.dataset.equip;
+          try {
+            if (!hasUserToken()) {
+              Toast.warning('Sign in to equip items.');
+              return;
+            }
+            btn.disabled = true;
+            await apiCall('/user/equip', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ itemId: id }),
+              useUserToken: true,
+            });
+            Toast.success('Equipped');
+            await loadUserItems();
+            renderSections(items);
+          } catch (err) {
+            Toast.error('Equip failed: ' + (err.message || err));
+          } finally {
+            btn.disabled = false;
+          }
+        });
+      });
+
       const first = sections.find(s => s.items && s.items[0]);
-      if (first?.items?.[0]) selectCard(first.items[0].id);
+      if (!selectedId && first?.items?.[0]) selectCard(first.items[0].id);
+      if (selectedId) selectCard(selectedId);
     }
 
     function showSelection(item) {
@@ -489,12 +576,26 @@
       unlockEl.textContent = item.unlock_note || '';
       descEl.textContent = item.description || '';
       const heroImg = item.image_url || item.preview || '';
-      if (heroImg) {
-        previewEl.style.backgroundImage = `url('${heroImg}')`;
-        previewEl.innerHTML = '';
-      } else {
-        previewEl.style.backgroundImage = 'none';
+      const bgMap = {
+        cardBack: 'radial-gradient(circle at 50% 30%, rgba(124, 231, 255, 0.08), rgba(6, 14, 24, 0.95))',
+        cardFace: 'radial-gradient(circle at 50% 40%, rgba(255, 214, 102, 0.08), rgba(12, 18, 30, 0.95))',
+        tableSkin: 'radial-gradient(circle at 50% 60%, rgba(112, 255, 205, 0.1), rgba(8, 14, 18, 0.96))',
+        avatarRing: 'radial-gradient(circle at 50% 40%, rgba(140, 196, 255, 0.1), rgba(8, 12, 20, 0.95))',
+        profileFrame: 'radial-gradient(circle at 50% 40%, rgba(255, 196, 140, 0.08), rgba(10, 16, 22, 0.95))',
+        nameplate: 'radial-gradient(circle at 50% 40%, rgba(255, 170, 120, 0.08), rgba(12, 16, 22, 0.95))',
+        chipSkin: 'radial-gradient(circle at 50% 50%, rgba(120, 255, 196, 0.08), rgba(10, 14, 18, 0.95))',
+      };
+      previewEl.style.backgroundImage = heroImg ? `url('${heroImg}')` : 'none';
+      previewEl.style.backgroundColor = 'transparent';
+      previewEl.style.backgroundBlendMode = 'screen';
+      previewEl.style.backgroundSize = 'contain';
+      previewEl.style.backgroundRepeat = 'no-repeat';
+      previewEl.style.backgroundPosition = 'center';
+      previewEl.parentElement.querySelector('.hero-stage').style.background = bgMap[item.type] || bgMap.cardBack;
+      if (!heroImg) {
         previewEl.innerHTML = `<div class="placeholder">No preview</div>`;
+      } else {
+        previewEl.innerHTML = '';
       }
     }
 
