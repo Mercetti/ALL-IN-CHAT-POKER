@@ -2,6 +2,13 @@
  * Dev-only admin page for partner + earn config and debug tools
  */
 
+// Prefer user token if no admin cookie is present (mirrors admin-code/admin-chat behavior)
+const __adminCookie = typeof getToken === 'function' ? getToken() : null;
+const __userToken = typeof getUserToken === 'function' ? getUserToken() : null;
+if (typeof window !== 'undefined') {
+  window.__DEFAULT_USE_USER_TOKEN = !__adminCookie && !!__userToken;
+}
+
 let devSocket = null;
 const overlayHealth = {
   status: 'disconnected',
