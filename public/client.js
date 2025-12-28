@@ -219,6 +219,7 @@ function getTokenStatus() {
 if (typeof window !== 'undefined' && !window.__DISABLE_AUTO_REFRESH) {
   window.addEventListener('DOMContentLoaded', () => {
     ensureTokenBadge();
+    normalizeLinkTargets();
   });
   setInterval(() => refreshUserTokenIfNeeded(), 20 * 60 * 1000);
 }
@@ -380,3 +381,42 @@ window.getBackendBase = getBackendBase;
 window.buildApiUrl = buildApiUrl;
 window.buildLoginRedirectUrl = buildLoginRedirectUrl;
 window.enforceAuthenticatedPage = enforceAuthenticatedPage;
+window.getTokenStatus = getTokenStatus;
+window.updateTokenBadge = updateTokenBadge;
+window.getChannelParam = getChannelParam;
+
+// Normalize link behavior: keep overlay links in a new tab, open other internal links in the same tab
+function normalizeLinkTargets() {
+  const allowNewTab = (url) => {
+    try {
+      const u = new URL(url, window.location.origin);
+      const isOverlay =
+        u.pathname.includes('obs-overlay') ||
+        u.pathname.endsWith('/overlay.html') ||
+        u.pathname.includes('overlay-editor');
+      const isExternal = u.origin !== window.location.origin;
+      return isOverlay || isExternal;
+    } catch {
+      return false;
+    }
+  };
+
+  // Adjust existing anchors
+  document.querySelectorAll('a[target="_blank"]').forEach((a) => {
+    const href = a.getAttribute('href') || '';
+    if (!allowNewTab(href)) {
+      a.removeAttribute('target');
+      a.removeAttribute('rel');
+    }
+  });
+
+  // Patch window.open to avoid new tabs for internal nav
+  const originalOpen = window.open;
+  window.open = function patchedOpen(url, target, features) {
+    if (url && !allowNewTab(url)) {
+      window.location.href = url;
+      return window;
+    }
+    return originalOpen.call(window, url, target, features);
+  };
+}
