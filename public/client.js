@@ -458,7 +458,7 @@ async function initDebugTools() {
   debugState.session = who;
   attachDebugUI();
   attachGlobalDebugListeners();
-  if (debugState.featureFlags.overlayHealth && who.admin) runOverlayHealth();
+  if (debugState.featureFlags.overlayHealth) runOverlayHealth();
   if (debugState.featureFlags.assetCheck) runAssetCheck();
   if (debugState.featureFlags.perfWatch) startPerfWatch();
 }
@@ -511,16 +511,23 @@ function formatMs(ms) {
 }
 
 async function runOverlayHealth() {
-  if (!debugState.session?.admin) return;
   try {
     const channel = getChannelParam() || 'default';
-    const res = await apiCall(`/admin/overlay-snapshot?channel=${encodeURIComponent(channel)}`, {
-      method: 'GET',
-      noToast: true,
-    });
+    const res = await apiCall(
+      `/admin/overlay-snapshot?channel=${encodeURIComponent(channel)}`,
+      {
+        method: 'GET',
+        noToast: true,
+        noAuthBounce: true,
+      }
+    );
     debugState.overlay = { ok: true, channel, at: Date.now(), data: res };
   } catch (err) {
-    debugState.overlay = { ok: false, error: err.message || String(err), at: Date.now() };
+    debugState.overlay = {
+      ok: false,
+      error: err?.message || String(err),
+      at: Date.now(),
+    };
   }
   renderDebugPanel();
 }
