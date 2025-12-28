@@ -220,6 +220,7 @@ if (typeof window !== 'undefined' && !window.__DISABLE_AUTO_REFRESH) {
   window.addEventListener('DOMContentLoaded', () => {
     ensureTokenBadge();
     normalizeLinkTargets();
+    initDebugTools();
   });
   setInterval(() => refreshUserTokenIfNeeded(), 20 * 60 * 1000);
 }
@@ -384,6 +385,7 @@ window.enforceAuthenticatedPage = enforceAuthenticatedPage;
 window.getTokenStatus = getTokenStatus;
 window.updateTokenBadge = updateTokenBadge;
 window.getChannelParam = getChannelParam;
+window.initDebugTools = initDebugTools;
 
 // Normalize link behavior: keep overlay links in a new tab, open other internal links in the same tab
 function normalizeLinkTargets() {
@@ -420,3 +422,327 @@ function normalizeLinkTargets() {
     return originalOpen.call(window, url, target, features);
   };
 }
+
+// ============== Debug tools (dev/admin only) ==============
+const debugState = {
+  enabled: false,
+  session: null,
+  apiLog: [],
+  cspEvents: [],
+  resourceErrors: [],
+  overlay: null,
+  assets: [],
+  longTasks: [],
+  featureFlags: {
+    apiLogEnabled: true,
+    overlayHealth: true,
+    assetCheck: false,
+    perfWatch: false,
+  },
+};
+
+function hasPrivilegedSession() {
+  if (getToken() || getAdminBearer()) return true;
+  return !!getUserToken();
+}
+
+async function initDebugTools() {
+  if (initDebugTools.started) return;
+  initDebugTools.started = true;
+  if (!hasPrivilegedSession()) return;
+  const who = await fetchAuthDebug().catch(() => null);
+  const allowed =
+    who && (who.admin || ['admin', 'dev', 'ai'].includes((who.role || '').toLowerCase()));
+  if (!allowed) return;
+  debugState.enabled = true;
+  debugState.session = who;
+  attachDebugUI();
+  attachGlobalDebugListeners();
+  if (debugState.featureFlags.overlayHealth) runOverlayHealth();
+  if (debugState.featureFlags.assetCheck) runAssetCheck();
+  if (debugState.featureFlags.perfWatch) startPerfWatch();
+}
+
+async function fetchAuthDebug() {
+  const useUser = !!getUserToken() && !getToken() && !getAdminBearer();
+  return apiCall('/auth/debug', { method: 'GET', useUserToken: useUser, noAuthBounce: true });
+}
+
+function logApiCall(entry) {
+  if (!debugState.featureFlags.apiLogEnabled || !debugState.enabled) return;
+  debugState.apiLog.unshift(entry);
+  debugState.apiLog = debugState.apiLog.slice(0, 50);
+  renderDebugPanel();
+}
+
+function attachGlobalDebugListeners() {
+  window.addEventListener('securitypolicyviolation', (e) => {
+    if (!debugState.enabled) return;
+    debugState.cspEvents.unshift({
+      blockedURI: e.blockedURI,
+      violatedDirective: e.violatedDirective,
+      sourceFile: e.sourceFile,
+      lineNumber: e.lineNumber,
+      time: Date.now(),
+    });
+    debugState.cspEvents = debugState.cspEvents.slice(0, 20);
+    renderDebugPanel();
+  });
+  window.addEventListener(
+    'error',
+    (e) => {
+      if (!debugState.enabled) return;
+      if (e.target && e.target.tagName && e.target.src) {
+        debugState.resourceErrors.unshift({
+          tag: e.target.tagName,
+          src: e.target.src,
+          time: Date.now(),
+        });
+        debugState.resourceErrors = debugState.resourceErrors.slice(0, 20);
+        renderDebugPanel();
+      }
+    },
+    true
+  );
+}
+
+function formatMs(ms) {
+  return `${ms.toFixed(0)}ms`;
+}
+
+async function runOverlayHealth() {
+  try {
+    const channel = getChannelParam() || 'default';
+    const res = await apiCall(`/admin/overlay-snapshot?channel=${encodeURIComponent(channel)}`, {
+      method: 'GET',
+      noToast: true,
+    });
+    debugState.overlay = { ok: true, channel, at: Date.now(), data: res };
+  } catch (err) {
+    debugState.overlay = { ok: false, error: err.message || String(err), at: Date.now() };
+  }
+  renderDebugPanel();
+}
+
+async function runAssetCheck(limit = 8) {
+  try {
+    const cat = await apiCall('/catalog', { method: 'GET', useUserToken: true, noToast: true });
+    const entries = Array.isArray(cat?.items) ? cat.items : [];
+    const missing = entries
+      .filter((i) => !i.image_url)
+      .slice(0, limit)
+      .map((i) => ({ name: i.name || i.id, issue: 'missing image_url' }));
+    const broken = [];
+    const promises = entries
+      .filter((i) => i.image_url)
+      .slice(0, limit)
+      .map(
+        (i) =>
+          new Promise((resolve) => {
+            const img = new Image();
+            const done = (issue) => {
+              if (issue) broken.push({ name: i.name || i.id, issue });
+              resolve();
+            };
+            img.onload = () => done(null);
+            img.onerror = () => done('load error');
+            img.src = i.image_url;
+            setTimeout(() => done('timeout'), 4000);
+          })
+      );
+    await Promise.all(promises);
+    debugState.assets = { ok: missing.length === 0 && broken.length === 0, missing, broken, at: Date.now() };
+  } catch (err) {
+    debugState.assets = { ok: false, error: err.message || String(err), at: Date.now() };
+  }
+  renderDebugPanel();
+}
+
+function startPerfWatch() {
+  try {
+    if ('PerformanceObserver' in window) {
+      const longTasks = [];
+      const obs = new PerformanceObserver((list) => {
+        list.getEntries().forEach((e) => {
+          longTasks.push({ name: e.name, dur: e.duration, start: e.startTime });
+        });
+        debugState.longTasks = longTasks.slice(-20);
+        renderDebugPanel();
+      });
+      obs.observe({ entryTypes: ['longtask'] });
+    }
+  } catch (_) {
+    // ignore
+  }
+}
+
+function renderDebugPanel() {
+  if (!debugState.enabled) return;
+  const panel = document.getElementById('debug-drawer');
+  if (!panel || panel.dataset.open !== '1') return;
+  const apiRows = debugState.apiLog
+    .slice(0, 10)
+    .map(
+      (e) =>
+        `<div class="row"><span class="${e.ok ? 'ok' : 'err'}">${e.status || ''}</span> <code>${e.endpoint}</code> <span>${formatMs(
+          e.ms
+        )}</span> ${e.error ? `<em>${e.error}</em>` : ''}</div>`
+    )
+    .join('');
+  const cspRows = (debugState.cspEvents || [])
+    .slice(0, 5)
+    .map((e) => `<div class="row"><strong>${e.violatedDirective}</strong> ${e.blockedURI || ''}</div>`)
+    .join('');
+  const resRows = (debugState.resourceErrors || [])
+    .slice(0, 5)
+    .map((e) => `<div class="row">${e.tag}: ${e.src}</div>`)
+    .join('');
+  const overlay = debugState.overlay
+    ? debugState.overlay.ok
+      ? `OK (${debugState.overlay.channel || ''})`
+      : `Err: ${debugState.overlay.error || 'unknown'}`
+    : '—';
+  const assets = debugState.assets
+    ? debugState.assets.ok
+      ? 'OK'
+      : `Missing: ${debugState.assets.missing?.length || 0}, Broken: ${debugState.assets.broken?.length || 0}`
+    : '—';
+  const session = debugState.session;
+  const longTasks =
+    debugState.longTasks && debugState.longTasks.length
+      ? debugState.longTasks
+          .slice(-3)
+          .map((t) => `${formatMs(t.dur)} @ ${formatMs(t.start)}`)
+          .join(', ')
+      : '—';
+
+  panel.querySelector('[data-section="session"]').innerHTML = `
+    <div>Login: <strong>${session?.login || 'n/a'}</strong> (${session?.role || 'none'})</div>
+    <div>Admin: ${session?.admin ? 'yes' : 'no'} · TTL: ${session?.ttlSeconds ?? 'n/a'}s</div>
+    <div>Channel: ${getChannelParam() || 'default'}</div>
+    <div>Long tasks: ${longTasks}</div>
+  `;
+  panel.querySelector('[data-section="api"]').innerHTML = apiRows || '<div class="muted">No calls</div>';
+  panel.querySelector('[data-section="csp"]').innerHTML = cspRows || '<div class="muted">No CSP blocks</div>';
+  panel.querySelector('[data-section="res"]').innerHTML = resRows || '<div class="muted">No resource errors</div>';
+  panel.querySelector('[data-section="overlay"]').textContent = overlay;
+  panel.querySelector('[data-section="assets"]').textContent = assets;
+}
+
+function attachDebugUI() {
+  if (document.getElementById('debug-drawer')) return;
+  const btn = document.createElement('button');
+  btn.id = 'debug-toggle';
+  btn.textContent = 'DEBUG';
+  Object.assign(btn.style, {
+    position: 'fixed',
+    bottom: '12px',
+    right: '12px',
+    zIndex: '10000',
+    background: '#0f172a',
+    color: '#fff',
+    border: '1px solid #334155',
+    borderRadius: '10px',
+    padding: '6px 10px',
+    fontSize: '12px',
+    cursor: 'pointer',
+    opacity: '0.7',
+  });
+  btn.addEventListener('mouseenter', () => (btn.style.opacity = '1'));
+  btn.addEventListener('mouseleave', () => (btn.style.opacity = '0.7'));
+  btn.addEventListener('click', () => {
+    const panel = document.getElementById('debug-drawer');
+    if (!panel) return;
+    const isOpen = panel.dataset.open === '1';
+    panel.dataset.open = isOpen ? '0' : '1';
+    panel.style.display = isOpen ? 'none' : 'block';
+    if (!isOpen) renderDebugPanel();
+  });
+
+  const panel = document.createElement('div');
+  panel.id = 'debug-drawer';
+  panel.dataset.open = '0';
+  Object.assign(panel.style, {
+    position: 'fixed',
+    bottom: '50px',
+    right: '12px',
+    width: '360px',
+    maxHeight: '70vh',
+    overflowY: 'auto',
+    background: '#0b1220',
+    color: '#e2e8f0',
+    border: '1px solid #334155',
+    borderRadius: '12px',
+    padding: '10px',
+    fontSize: '12px',
+    display: 'none',
+    zIndex: '9999',
+    boxShadow: '0 8px 20px rgba(0,0,0,0.45)',
+  });
+  panel.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <strong>Debug</strong>
+      <div style="display:flex;gap:6px;">
+        <button data-action="refresh">Auth</button>
+        <button data-action="clear">Clear</button>
+        <button data-action="overlay">Overlay</button>
+        <button data-action="assets">Assets</button>
+      </div>
+    </div>
+    <div class="section"><div class="title">Session</div><div data-section="session"></div></div>
+    <div class="section"><div class="title">Overlay</div><div data-section="overlay"></div></div>
+    <div class="section"><div class="title">Assets</div><div data-section="assets"></div></div>
+    <div class="section"><div class="title">API (last 10)</div><div data-section="api"></div></div>
+    <div class="section"><div class="title">CSP</div><div data-section="csp"></div></div>
+    <div class="section"><div class="title">Resources</div><div data-section="res"></div></div>
+  `;
+  panel.querySelectorAll('button[data-action]').forEach((b) => {
+    b.style.fontSize = '11px';
+    b.style.padding = '2px 6px';
+  });
+  panel.addEventListener('click', async (e) => {
+    const act = e.target.dataset.action;
+    if (!act) return;
+    if (act === 'refresh') {
+      debugState.session = await fetchAuthDebug().catch(() => debugState.session);
+      renderDebugPanel();
+    } else if (act === 'clear') {
+      debugState.apiLog = [];
+      debugState.cspEvents = [];
+      debugState.resourceErrors = [];
+      debugState.longTasks = [];
+      renderDebugPanel();
+    } else if (act === 'overlay') {
+      runOverlayHealth();
+    } else if (act === 'assets') {
+      runAssetCheck();
+    }
+  });
+  panel.querySelectorAll('.section .title').forEach((t) => {
+    t.style.fontWeight = '700';
+    t.style.marginBottom = '2px';
+  });
+  document.body.appendChild(btn);
+  document.body.appendChild(panel);
+}
+
+// Hook API logging
+const __apiCallOriginal = apiCall;
+apiCall = async function apiCallWithLog(endpoint, options = {}) {
+  const started = performance.now();
+  try {
+    const res = await __apiCallOriginal(endpoint, options);
+    logApiCall({ endpoint, ok: true, status: 'ok', ms: performance.now() - started });
+    return res;
+  } catch (err) {
+    logApiCall({
+      endpoint,
+      ok: false,
+      status: err?.message?.match(/HTTP (\\d+)/)?.[1] || 'err',
+      ms: performance.now() - started,
+      error: err?.message || String(err),
+    });
+    throw err;
+  }
+};
+window.apiCall = apiCall;
