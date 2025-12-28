@@ -50,9 +50,6 @@ const importBtn = document.getElementById('btn-import-cosmetics');
 const importJsonInput = document.getElementById('cosmetic-import-json');
 const importStatus = document.getElementById('cosmetic-import-status');
 const devPageBtn = document.getElementById('btn-dev-page');
-const importJsonInput = document.getElementById('cosmetic-import-json');
-const importBtn = document.getElementById('btn-import-cosmetics');
-const importStatus = document.getElementById('cosmetic-import-status');
 const earnInputs = {
   chatRate: document.getElementById('earn-chat-rate'),
   chatCap: document.getElementById('earn-chat-cap'),
