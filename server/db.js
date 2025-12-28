@@ -609,12 +609,23 @@ class DBHelper {
     } = profileData;
 
     const existing = this.getProfile(login) || {};
+
+    const resolvedRole = role !== undefined && role !== null ? role : existing.role || 'player';
+    const resolvedEmail = email !== undefined ? email : existing.email || null;
+    const resolvedPasswordHash =
+      password_hash !== undefined ? password_hash : existing.password_hash || null;
+    const resolvedSettings = settings !== undefined ? settings : existing.settings || {};
     const forceFlag =
       typeof force_pwd_reset === 'number'
         ? force_pwd_reset
         : typeof existing.force_pwd_reset === 'number'
         ? existing.force_pwd_reset
         : 0;
+
+    const settingsJson =
+      typeof resolvedSettings === 'string'
+        ? resolvedSettings
+        : JSON.stringify(resolvedSettings || {});
 
     const stmt = this.db.prepare(`
       INSERT OR REPLACE INTO profiles (
@@ -629,10 +640,10 @@ class DBHelper {
       twitch_avatar || null,
       login,
       display_name || login,
-      JSON.stringify(settings || {}),
-      role || 'player',
-      email || null,
-      password_hash || null,
+      settingsJson,
+      resolvedRole,
+      resolvedEmail,
+      resolvedPasswordHash,
       discord_id || null,
       discord_login || null,
       discord_avatar || null,
