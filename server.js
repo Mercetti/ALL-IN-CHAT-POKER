@@ -6896,7 +6896,7 @@ app.get('/admin/security-snapshot', auth.requireAdmin, (_req, res) => {
 
     headers: {
 
-      csp: false,
+      csp: true,
 
       hsts: config.IS_PRODUCTION,
 
@@ -6942,7 +6942,7 @@ app.post('/admin/security-diagnose', auth.requireAdmin, async (_req, res) => {
 
       integrity: getCriticalHashes(),
 
-      headers: { csp: false, hsts: config.IS_PRODUCTION, cors: '*' },
+      headers: { csp: true, hsts: config.IS_PRODUCTION, cors: '*' },
 
     };
 
