@@ -304,6 +304,15 @@ const isBanned = (login, ip) => {
 
 };
 
+// Premier/branding helpers
+const canPremierActForAny = (req) => {
+  if (auth.isAdminRequest(req)) return true;
+  const actor = (auth.extractUserLogin(req) || '').toLowerCase();
+  if (!actor) return false;
+  const role = (db.getProfile(actor)?.role || '').toLowerCase();
+  return role === 'admin' || role === 'premier';
+};
+
 const validateBody = (body, shape = {}) => {
 
   if (typeof body !== 'object' || body === null) return false;
@@ -7098,7 +7107,7 @@ app.post('/admin/premier/logo', auth.requireAdminOrRole(['premier']), (req, res)
 
     const actorLogin = (auth.extractUserLogin(req) || '').toLowerCase();
 
-    const login = auth.isAdminRequest(req)
+    const login = canPremierActForAny(req)
 
       ? (req.body?.login || '').toLowerCase()
 
@@ -7150,7 +7159,7 @@ app.post('/admin/premier/generate', auth.requireAdminOrRole(['premier']), async 
 
     const actorLogin = (auth.extractUserLogin(req) || '').toLowerCase();
 
-    const login = auth.isAdminRequest(req)
+    const login = canPremierActForAny(req)
 
       ? (req.body?.login || '').toLowerCase()
 
@@ -7428,7 +7437,7 @@ app.post('/admin/premier/apply', auth.requireAdminOrRole(['premier']), (req, res
 
     const actorLogin = (auth.extractUserLogin(req) || '').toLowerCase();
 
-    const login = auth.isAdminRequest(req)
+    const login = canPremierActForAny(req)
 
       ? (req.body?.login || '').toLowerCase()
 
@@ -7476,7 +7485,7 @@ app.post('/admin/premier/test-apply', auth.requireAdminOrRole(['premier']), (req
 
     const isAdmin = auth.isAdminRequest(req);
 
-    const channel = isAdmin
+    const channel = (isAdmin || canPremierActForAny(req))
 
       ? (normalizeChannelName(req.body?.channel || 'sandbox') || 'sandbox')
 
