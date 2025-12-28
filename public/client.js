@@ -458,7 +458,7 @@ async function initDebugTools() {
   debugState.session = who;
   attachDebugUI();
   attachGlobalDebugListeners();
-  if (debugState.featureFlags.overlayHealth) runOverlayHealth();
+  if (debugState.featureFlags.overlayHealth && who.admin) runOverlayHealth();
   if (debugState.featureFlags.assetCheck) runAssetCheck();
   if (debugState.featureFlags.perfWatch) startPerfWatch();
 }
@@ -511,6 +511,7 @@ function formatMs(ms) {
 }
 
 async function runOverlayHealth() {
+  if (!debugState.session?.admin) return;
   try {
     const channel = getChannelParam() || 'default';
     const res = await apiCall(`/admin/overlay-snapshot?channel=${encodeURIComponent(channel)}`, {
