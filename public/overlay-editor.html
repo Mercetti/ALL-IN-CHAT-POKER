@@ -20,6 +20,9 @@
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
     .item-card { border: 1px solid var(--border-color); border-radius: 10px; padding: 10px; background: var(--bg-tertiary); cursor: pointer; display: grid; gap: 8px; }
     .item-card .thumb { height: 120px; border-radius: 10px; border: 1px solid var(--border-color); background: #0c1c2c; display: grid; place-items: center; overflow: hidden; }
+    .item-card .thumb img { max-width: 100%; max-height: 100%; display: block; }
+    .table-thumb { width: 100%; height: 100%; display: grid; place-items: center; position: relative; overflow: hidden; border-radius: 10px; }
+    .table-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .item-card .meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-muted); }
     .item-card.selected { outline: 2px solid var(--accent-400); }
     .preview { display: grid; gap: 10px; }
@@ -43,6 +46,31 @@
 </head>
 <body>
   <div class="wrap">
+    <section class="panel" id="premier-panel" style="display:none; margin-bottom:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+        <div>
+          <h3 style="margin:0;">Branding Generator</h3>
+          <p class="muted" style="margin:2px 0 0;">Upload a logo and generate a set for any streamer (premier/admin only).</p>
+        </div>
+        <span id="premier-editor-status" class="muted"></span>
+      </div>
+      <div class="controls" style="margin-top:8px; flex-wrap:wrap;">
+        <label class="sr-only" for="premier-target-login">Streamer login</label>
+        <input id="premier-target-login" class="form-input" placeholder="twitch login" style="min-width:160px;">
+        <select id="premier-preset-editor" class="form-input">
+          <option value="neon">Neon</option>
+          <option value="metallic">Metallic</option>
+          <option value="minimal">Minimal</option>
+        </select>
+        <input id="premier-logo-editor" type="file" accept="image/png,image/jpeg">
+        <input id="premier-notes-editor" class="form-input" placeholder="Notes (colors/style)" style="flex:1; min-width:200px;">
+        <button class="btn btn-secondary btn-sm" id="premier-upload-editor">Upload logo</button>
+        <button class="btn btn-primary btn-sm" id="premier-generate-editor">Generate set</button>
+        <button class="btn btn-success btn-sm" id="premier-apply-editor">Apply set</button>
+      </div>
+      <div class="muted small" id="premier-proposal-editor" style="white-space:pre-wrap; max-height:140px; overflow:auto; margin-top:6px;"></div>
+    </section>
+
     <div class="header">
       <div>
         <p class="muted" style="margin:0;">All-In Chat Poker</p>
@@ -164,6 +192,9 @@
     let sortKey = 'name';
     let syncEnabled = true;
     const missingImages = new Set();
+    let userRole = '';
+    let userLogin = '';
+    let premierProposalDraft = null;
 
     async function loadEffectsMeta() {
       try {
@@ -189,6 +220,118 @@
       } catch (e) {
         console.warn('[overlay-editor] loadout fetch failed', e);
       }
+    }
+
+    function decodeUserLogin(token) {
+      if (!token) return null;
+      try {
+        const payload = token.split('.')[1];
+        const pad = payload.length % 4 === 2 ? '==' : payload.length % 4 === 3 ? '=' : '';
+        const data = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/') + pad));
+        return data.user || data.login || null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    async function initPremierEditor() {
+      const panel = document.getElementById('premier-panel');
+      if (!panel) return;
+      const tok = getUserToken && getUserToken();
+      const login = decodeUserLogin(tok);
+      if (!login) return;
+      userLogin = login;
+      try {
+        const prof = await apiCall(`/profile?login=${encodeURIComponent(login)}`, { useUserToken: true, noToast: true });
+        userRole = (prof?.profile?.role || '').toLowerCase();
+      } catch {}
+      const allowed = userRole === 'admin' || userRole === 'premier';
+      panel.style.display = allowed ? 'block' : 'none';
+      const target = document.getElementById('premier-target-login');
+      if (target && !target.value) target.value = login;
+      document.getElementById('premier-upload-editor')?.addEventListener('click', async () => {
+        try { await uploadPremierLogoEditor(); Toast.success('Logo uploaded'); } catch (e) { Toast.error(e.message || 'Upload failed'); }
+      });
+      document.getElementById('premier-generate-editor')?.addEventListener('click', async () => {
+        try { await generatePremierEditor(); Toast.success('Draft generated'); } catch (e) { Toast.error(e.message || 'Generate failed'); }
+      });
+      document.getElementById('premier-apply-editor')?.addEventListener('click', async () => {
+        try { await applyPremierEditor(); Toast.success('Applied'); } catch (e) { Toast.error(e.message || 'Apply failed'); }
+      });
+    }
+
+    function editorTargetLogin() {
+      const input = document.getElementById('premier-target-login');
+      return (input?.value || userLogin || '').trim().toLowerCase();
+    }
+
+    async function fileToDataUrlEditor(file) {
+      if (!file) throw new Error('No file selected');
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error('File read failed'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function setPremierStatus(msg) {
+      const el = document.getElementById('premier-editor-status');
+      if (el) el.textContent = msg || '';
+    }
+
+    async function uploadPremierLogoEditor() {
+      if (!(userRole === 'admin' || userRole === 'premier')) throw new Error('Premier only');
+      const file = document.getElementById('premier-logo-editor')?.files?.[0];
+      if (!file) throw new Error('Choose a logo file');
+      if (file.size > 2 * 1024 * 1024) throw new Error('Max 2MB image');
+      const login = editorTargetLogin();
+      if (!login) throw new Error('Streamer login required');
+      const dataUrl = await fileToDataUrlEditor(file);
+      await apiCall('/admin/premier/logo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ login, dataUrl }),
+        useUserToken: true,
+      });
+      setPremierStatus(`Logo uploaded for ${login}`);
+    }
+
+    async function generatePremierEditor() {
+      if (!(userRole === 'admin' || userRole === 'premier')) throw new Error('Premier only');
+      const login = editorTargetLogin();
+      if (!login) throw new Error('Streamer login required');
+      const preset = document.getElementById('premier-preset-editor')?.value || 'neon';
+      const notes = document.getElementById('premier-notes-editor')?.value || '';
+      const res = await apiCall('/admin/premier/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ login, preset, notes }),
+        useUserToken: true,
+      });
+      premierProposalDraft = res?.proposal || res;
+      const box = document.getElementById('premier-proposal-editor');
+      if (box) box.textContent = premierProposalDraft ? JSON.stringify(premierProposalDraft, null, 2) : 'No proposal';
+      setPremierStatus(`Draft ready for ${login}`);
+    }
+
+    async function applyPremierEditor() {
+      if (!(userRole === 'admin' || userRole === 'premier')) throw new Error('Premier only');
+      const login = editorTargetLogin();
+      if (!login) throw new Error('Streamer login required');
+      let proposal = premierProposalDraft;
+      const box = document.getElementById('premier-proposal-editor');
+      if (!proposal && box?.textContent) {
+        try { proposal = JSON.parse(box.textContent); } catch {}
+      }
+      if (!proposal) throw new Error('Generate a set first');
+      await apiCall('/admin/premier/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ login, proposal }),
+        useUserToken: true,
+      });
+      setPremierStatus(`Applied to ${login} overlay`);
     }
 
     function loadStoredFxChoice() {
@@ -317,16 +460,18 @@
       const img = item.image_url || item.preview || '';
       const hasImg = Boolean(img);
       if (item.type === 'tableSkin') {
-        const bgImg = hasImg ? `, url('${img}') center/cover no-repeat` : '';
-        return `<div style="width:100%;height:100%;background:radial-gradient(circle at 40% 35%, rgba(255,255,255,0.12), rgba(0,0,0,0.45)), linear-gradient(135deg,${tint}, #0c1c2c)${bgImg};display:grid;place-items:center;color:${item.color || '#8ef5d0'};font-weight:700;">TABLE</div>`;
+        const bg = `radial-gradient(circle at 40% 35%, rgba(255,255,255,0.12), rgba(0,0,0,0.45)), linear-gradient(135deg,${tint}, #0c1c2c)`;
+        const imgTag = hasImg ? `<img src="${img}" alt="${item.name || 'Table skin'}">` : '<div class="muted">No image</div>';
+        return `<div class="table-thumb" style="background:${bg}; color:${item.color || '#8ef5d0'}; font-weight:700;">${imgTag}</div>`;
       }
       if (item.type === 'avatarRing') {
         const bg = hasImg ? `url('${img}') center/cover no-repeat` : 'transparent';
         return `<div style="width:70px;height:70px;border-radius:50%;border:3px solid ${item.color || '#00d4a6'};box-shadow:0 0 12px ${item.color || '#00d4a6'};background:${bg};"></div>`;
       }
       if (item.type === 'cardBack') {
-        const bg = hasImg ? `url('${img}') center/cover no-repeat, ${tint}` : `linear-gradient(135deg, ${tint}, #0d1f2d)`;
-        return `<div style="width:96px;height:120px;border-radius:10px;border:1px solid var(--border-color);background:${bg};box-shadow:0 0 10px rgba(0,0,0,0.4);"></div>`;
+        const bg = `linear-gradient(135deg, ${tint}, #0d1f2d)`;
+        const imgTag = hasImg ? `<img src="${img}" alt="${item.name || 'Card back'}">` : '';
+        return `<div style="width:96px;height:120px;border-radius:10px;border:1px solid var(--border-color);background:${bg};box-shadow:0 0 10px rgba(0,0,0,0.4);display:grid;place-items:center;">${imgTag}</div>`;
       }
       if (item.type === 'cardFace') {
         const trimmed = img && img.endsWith('/') ? img.slice(0, -1) : img;
@@ -668,6 +813,7 @@
     syncEnabled = localStorage.getItem('overlaySyncEnabled') !== '0';
     renderControls();
     loadEffectsMeta().then(renderGrid);
+    initPremierEditor();
     loadCatalog();
     })();
   </script>

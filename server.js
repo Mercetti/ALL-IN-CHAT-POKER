@@ -455,11 +455,11 @@ const TOURNAMENT_DEFAULTS = {
 
 const COSMETIC_CATALOG = [
 
-  { id: 'card-default', type: 'cardBack', name: 'Default Emerald', price_cents: 0, rarity: 'common', preview: '/assets/card-back.png', tint: '#0b1b1b' },
+  { id: 'card-default', type: 'cardBack', name: 'Default Emerald', price_cents: 0, rarity: 'common', preview: '/assets/card-back.png', image_url: '/assets/cosmetics/cards/basic/card-back-green.png', tint: '#0b1b1b' },
 
-  { id: 'card-azure', type: 'cardBack', name: 'Azure Edge', price_cents: 500, rarity: 'rare', preview: '/assets/card-back.png', tint: '#2d9cff' },
+  { id: 'card-azure', type: 'cardBack', name: 'Azure Edge', price_cents: 500, rarity: 'rare', preview: '/assets/card-back.png', image_url: '/assets/cosmetics/cards/basic/card-back-blue.png', tint: '#2d9cff' },
 
-  { id: 'card-magenta', type: 'cardBack', name: 'Magenta Bloom', price_cents: 500, rarity: 'rare', preview: '/assets/card-back.png', tint: '#c94cff' },
+  { id: 'card-magenta', type: 'cardBack', name: 'Magenta Bloom', price_cents: 500, rarity: 'rare', preview: '/assets/card-back.png', image_url: '/assets/cosmetics/cards/basic/card-back-purple.png', tint: '#c94cff' },
 
   { id: 'card-back-black', type: 'cardBack', name: 'Onyx Back', price_cents: 250, rarity: 'common', preview: '/assets/cosmetics/cards/basic/card-back-black.png', image_url: '/assets/cosmetics/cards/basic/card-back-black.png' },
 
