@@ -233,6 +233,7 @@
     ];
 
     function isPurchasable(item) {
+      if (item?.hidden) return false;
       const price = Number.isFinite(item?.price_cents) ? item.price_cents : Number(item?.price || 0);
       const unlock = (item?.unlock_type || '').toLowerCase();
       const gated = unlock && unlock !== 'basic';

@@ -472,15 +472,15 @@ const COSMETIC_CATALOG = [
 
   // Chip skins (top-view)
 
-  { id: 'chip-1-classic', type: 'chipSkin', name: '$1 Classic Chip', price_cents: 0, rarity: 'common', preview: '/assets/cosmetics/effects/chips/chip-1-top.png', image_url: '/assets/cosmetics/effects/chips/chip-1-top.png', unlock_note: 'Default chip' },
+  { id: 'chip-1-classic', type: 'chipSkin', name: '$1 Classic Chip', price_cents: 0, rarity: 'common', preview: '/assets/cosmetics/effects/chips/chip-1-top.png', image_url: '/assets/cosmetics/effects/chips/chip-1-top.png', unlock_note: 'Default chip', hidden: true },
 
-  { id: 'chip-5-classic', type: 'chipSkin', name: '$5 Classic Chip', price_cents: 50, rarity: 'uncommon', preview: '/assets/cosmetics/effects/chips/chip-5-top.png', image_url: '/assets/cosmetics/effects/chips/chip-5-top.png' },
+  { id: 'chip-5-classic', type: 'chipSkin', name: '$5 Classic Chip', price_cents: 0, rarity: 'uncommon', preview: '/assets/cosmetics/effects/chips/chip-5-top.png', image_url: '/assets/cosmetics/effects/chips/chip-5-top.png', unlock_type: 'basic', hidden: true },
 
-  { id: 'chip-25-classic', type: 'chipSkin', name: '$25 Classic Chip', price_cents: 75, rarity: 'rare', preview: '/assets/cosmetics/effects/chips/chip-25-top.png', image_url: '/assets/cosmetics/effects/chips/chip-25-top.png' },
+  { id: 'chip-25-classic', type: 'chipSkin', name: '$25 Classic Chip', price_cents: 0, rarity: 'rare', preview: '/assets/cosmetics/effects/chips/chip-25-top.png', image_url: '/assets/cosmetics/effects/chips/chip-25-top.png', unlock_type: 'basic', hidden: true },
 
-  { id: 'chip-100-classic', type: 'chipSkin', name: '$100 Classic Chip', price_cents: 0, rarity: 'common', preview: '/assets/cosmetics/effects/chips/chip-100-top.png', image_url: '/assets/cosmetics/effects/chips/chip-100-top.png', unlock_note: 'Included' },
+  { id: 'chip-100-classic', type: 'chipSkin', name: '$100 Classic Chip', price_cents: 0, rarity: 'common', preview: '/assets/cosmetics/effects/chips/chip-100-top.png', image_url: '/assets/cosmetics/effects/chips/chip-100-top.png', unlock_note: 'Included', hidden: true },
 
-  { id: 'chip-500-classic', type: 'chipSkin', name: '$500 Classic Chip', price_cents: 125, rarity: 'epic', preview: '/assets/cosmetics/effects/chips/chip-500-top.png', image_url: '/assets/cosmetics/effects/chips/chip-500-top.png' },
+  { id: 'chip-500-classic', type: 'chipSkin', name: '$500 Classic Chip', price_cents: 0, rarity: 'epic', preview: '/assets/cosmetics/effects/chips/chip-500-top.png', image_url: '/assets/cosmetics/effects/chips/chip-500-top.png', unlock_type: 'basic', hidden: true },
 
   { id: 'table-default', type: 'tableSkin', name: 'Default Felt', price_cents: 0, rarity: 'common', preview: '/assets/cosmetics/table/table-streamer-neon-twitch.png', image_url: '/assets/cosmetics/table/table-streamer-neon-twitch.png', tint: '#0c4c3b', color: '#8ef5d0', texture_url: '/assets/table-texture.svg' },
 
@@ -7092,11 +7092,17 @@ const PREMIER_PRESETS = {
 
 
 
-app.post('/admin/premier/logo', auth.requireAdmin, (req, res) => {
+app.post('/admin/premier/logo', auth.requireAdminOrRole(['premier']), (req, res) => {
 
   try {
 
-    const login = (req.body?.login || '').toLowerCase();
+    const actorLogin = (auth.extractUserLogin(req) || '').toLowerCase();
+
+    const login = auth.isAdminRequest(req)
+
+      ? (req.body?.login || '').toLowerCase()
+
+      : actorLogin;
 
     const dataUrl = req.body?.dataUrl || '';
 
@@ -7130,7 +7136,7 @@ app.post('/admin/premier/logo', auth.requireAdmin, (req, res) => {
 
 
 
-app.post('/admin/premier/generate', auth.requireAdmin, async (req, res) => {
+app.post('/admin/premier/generate', auth.requireAdminOrRole(['premier']), async (req, res) => {
 
   if (!config.OPENAI_API_KEY) return res.status(400).json({ error: 'ai_not_configured' });
 
@@ -7142,7 +7148,13 @@ app.post('/admin/premier/generate', auth.requireAdmin, async (req, res) => {
 
 
 
-    const login = (req.body?.login || '').toLowerCase();
+    const actorLogin = (auth.extractUserLogin(req) || '').toLowerCase();
+
+    const login = auth.isAdminRequest(req)
+
+      ? (req.body?.login || '').toLowerCase()
+
+      : actorLogin;
 
     const preset = (req.body?.preset || 'neon').toLowerCase();
 
@@ -7410,11 +7422,17 @@ Requirements:
 
 
 
-app.post('/admin/premier/apply', auth.requireAdmin, (req, res) => {
+app.post('/admin/premier/apply', auth.requireAdminOrRole(['premier']), (req, res) => {
 
   try {
 
-    const login = (req.body?.login || '').toLowerCase();
+    const actorLogin = (auth.extractUserLogin(req) || '').toLowerCase();
+
+    const login = auth.isAdminRequest(req)
+
+      ? (req.body?.login || '').toLowerCase()
+
+      : actorLogin;
 
     const proposal = req.body?.proposal;
 
@@ -7448,13 +7466,21 @@ app.post('/admin/premier/apply', auth.requireAdmin, (req, res) => {
 
 
 
-app.post('/admin/premier/test-apply', auth.requireAdmin, (req, res) => {
+app.post('/admin/premier/test-apply', auth.requireAdminOrRole(['premier']), (req, res) => {
 
   try {
 
     const proposal = req.body?.proposal;
 
-    const channel = normalizeChannelName(req.body?.channel || 'sandbox') || 'sandbox';
+    const actorLogin = (auth.extractUserLogin(req) || '').toLowerCase();
+
+    const isAdmin = auth.isAdminRequest(req);
+
+    const channel = isAdmin
+
+      ? (normalizeChannelName(req.body?.channel || 'sandbox') || 'sandbox')
+
+      : (normalizeChannelName(actorLogin) || actorLogin || 'sandbox');
 
     if (!proposal) return res.status(400).json({ error: 'proposal required' });
 
@@ -11942,7 +11968,7 @@ app.post('/admin/player-color', auth.requireAdmin, (req, res) => {
 
  */
 
-app.post('/admin/cosmetics/import', auth.requireAdmin, (req, res) => {
+app.post('/admin/cosmetics/import', auth.requireAdminOrRole(['premier']), (req, res) => {
 
   try {
 

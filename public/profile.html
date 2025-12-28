@@ -200,6 +200,61 @@
       </section>
 
       <section id="tab-customize" class="tab-pane" role="tabpanel" aria-labelledby="tab-btn-customize" tabindex="-1" hidden>
+        <div id="premier-tools" class="customize-card" style="display:none;">
+          <div class="section-header">
+            <h3>Premier Branding (logo → AI set)</h3>
+            <span class="pill pill-muted">Premier partners</span>
+          </div>
+          <p class="muted">Upload your logo, pick a preset, and generate a branded set. Only available to premier partners/admin.</p>
+          <div class="form-grid compact-grid">
+            <div class="form-group">
+              <label for="premier-preset-profile">Preset</label>
+              <select id="premier-preset-profile" class="form-input">
+                <option value="neon">Neon</option>
+                <option value="metallic">Metallic</option>
+                <option value="minimal">Minimal</option>
+              </select>
+            </div>
+            <div class="form-group full-span">
+              <label for="premier-logo-profile">Upload logo (PNG/JPG, &lt;2MB)</label>
+              <input id="premier-logo-profile" type="file" accept="image/png,image/jpeg">
+            </div>
+            <div class="form-group full-span">
+              <label for="premier-notes-profile">Notes (colors/style)</label>
+              <textarea id="premier-notes-profile" class="form-input" rows="3" placeholder="Palette or style hints (optional)"></textarea>
+            </div>
+            <div class="form-group compact-buttons full-span">
+              <button id="premier-upload-profile" class="btn btn-secondary btn-sm">Upload logo</button>
+              <button id="premier-generate-profile" class="btn btn-primary btn-sm">Generate set</button>
+              <button id="premier-apply-profile" class="btn btn-success btn-sm">Apply set</button>
+            </div>
+          </div>
+          <div class="inline-lists">
+            <div class="tiny-card">
+              <h4>Logo Preview</h4>
+              <img id="premier-logo-preview-profile" alt="Logo preview" style="max-width: 200px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+            </div>
+            <div class="tiny-card" style="flex:1;">
+              <h4>AI Proposal</h4>
+              <pre id="premier-proposal-profile" class="code-block" style="min-height:120px; white-space:pre-wrap;">-</pre>
+              <div class="muted" id="premier-status-profile" style="margin-top:6px;">Premier only.</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="premier-import" class="customize-card" style="display:none;">
+          <div class="section-header">
+            <h3>Cosmetic Import (JSON)</h3>
+            <span class="pill pill-muted">Premier partners</span>
+          </div>
+          <p class="muted">Paste cosmetic JSON to upsert items for your overlay. Use carefully; contact support if unsure.</p>
+          <textarea id="premier-import-json" class="form-input" rows="6" placeholder='[{"id":"card-new","type":"cardBack","name":"New Back","price_cents":0,"rarity":"rare","preview":"/assets/cosmetics/cards/new.png"}]'></textarea>
+          <div class="compact-buttons" style="margin-top:8px;">
+            <button id="premier-import-btn" class="btn btn-primary btn-sm">Import cosmetics</button>
+            <div id="premier-import-status" class="muted small"></div>
+          </div>
+        </div>
+
         <div class="customize-card">
           <div class="section-header">
             <h3>Skins &amp; Cosmetics</h3>

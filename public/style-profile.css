@@ -625,6 +625,17 @@
   color: var(--text-primary);
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
+
+.code-block {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 10px;
+  font-family: var(--mono-font, Consolas, monospace);
+  font-size: 13px;
+  overflow: auto;
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .profile-content {

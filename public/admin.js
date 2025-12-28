@@ -95,6 +95,7 @@ const premierWarnings = document.getElementById('premier-warnings');
 const premierApplyPrimary = document.getElementById('btn-premier-apply-primary');
 const premierApplyAlt = document.getElementById('btn-premier-apply-alt');
 const premierUseLastGood = document.getElementById('btn-premier-lastgood');
+const premierReviewCard = document.getElementById('premier-review-card');
 // Quick modal/popover elements (support both legacy ids and new compact popover ids)
 // Inline highlight helper for quick-nav buttons
 function focusSection(sectionId) {
@@ -223,6 +224,10 @@ function openDrawerForSection(sectionId) {
     drawerBody.innerHTML = section.innerHTML;
   }
   drawerOverlay.style.display = 'flex';
+  if (section) {
+    if (section.tagName.toLowerCase() === 'details') section.open = true;
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }
 
 function decodeUserLogin(token) {
@@ -319,7 +324,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       userRole === 'admin' ||
       userLower === 'mercetti' ||
       (userLower && (userLower === streamerLogin || userLower === botAdminLogin));
+    const canSeePremierReview = !!adminToken || userRole === 'admin' || userLower === 'mercetti';
     devPageBtn.style.display = canSeeDev ? 'inline-flex' : 'none';
+    if (premierReviewCard) {
+      premierReviewCard.style.display = canSeePremierReview ? 'block' : 'none';
+    }
   }
 
   useUserToken = !adminToken && !!userToken;

@@ -13,6 +13,7 @@ let winFxMeta = null;
 const fxImageCache = {};
 const fxRunners = { deal: null, win: null };
 let partnerProgress = null;
+let premierProposalProfile = null;
 
 function loadImage(src) {
   return new Promise((resolve) => {
@@ -67,6 +68,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   const premierBtn = document.getElementById('premier-submit');
   if (premierBtn) premierBtn.addEventListener('click', submitPremierRequest);
 });
+
+function isPremierRole(role) {
+  const r = (role || '').toLowerCase();
+  return r === 'premier' || r === 'admin';
+}
 
 async function loadProfile(username) {
   try {
@@ -317,6 +323,18 @@ function updatePreview() {
     }
   }
 
+  const isPremier = isPremierRole(profileData.role);
+  const premierTools = document.getElementById('premier-tools');
+  const premierImport = document.getElementById('premier-import');
+  if (premierTools) premierTools.style.display = isPremier ? 'block' : 'none';
+  if (premierImport) premierImport.style.display = isPremier ? 'block' : 'none';
+  const premierStatusProfile = document.getElementById('premier-status-profile');
+  if (premierStatusProfile) {
+    premierStatusProfile.textContent = isPremier
+      ? 'Upload and generate your branded set (premier only).'
+      : 'Premier partners only.';
+  }
+
   if (profileData.stats) {
     document.getElementById('preview-rounds-played').textContent = profileData.stats.roundsPlayed || 0;
     document.getElementById('preview-rounds-won').textContent = profileData.stats.roundsWon || 0;
@@ -414,6 +432,43 @@ function setupEventListeners() {
       if (sel === dealSel) previewDealFx(sel.value);
       if (sel === winSel) previewWinFx(sel.value);
     });
+  });
+
+  document.getElementById('premier-upload-profile')?.addEventListener('click', async () => {
+    try {
+      await uploadPremierLogoProfile();
+      Toast.success('Logo uploaded');
+    } catch (e) {
+      Toast.error(e.message || 'Upload failed');
+    }
+  });
+  document.getElementById('premier-generate-profile')?.addEventListener('click', async () => {
+    try {
+      await generatePremierProfile();
+      Toast.success('Draft generated');
+    } catch (e) {
+      Toast.error(e.message || 'Generate failed');
+    }
+  });
+  document.getElementById('premier-apply-profile')?.addEventListener('click', async () => {
+    try {
+      await applyPremierProfile();
+      Toast.success('Applied to overlay');
+    } catch (e) {
+      Toast.error(e.message || 'Apply failed');
+    }
+  });
+  document.getElementById('premier-import-btn')?.addEventListener('click', async () => {
+    const status = document.getElementById('premier-import-status');
+    if (status) status.textContent = '';
+    try {
+      await importPremierCosmetics();
+      if (status) status.textContent = 'Imported successfully';
+      Toast.success('Cosmetics imported');
+    } catch (e) {
+      if (status) status.textContent = e.message || 'Import failed';
+      Toast.error(e.message || 'Import failed');
+    }
   });
 }
 
@@ -764,5 +819,85 @@ if (modalBackdrop) {
     if (e.target === modalBackdrop) {
       modalBackdrop.style.display = 'none';
     }
+  });
+}
+
+async function fileToDataUrlProfile(file) {
+  if (!file) throw new Error('No file selected');
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('File read failed'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadPremierLogoProfile() {
+  if (!profileData || !isPremierRole(profileData.role)) throw new Error('Premier only');
+  const file = document.getElementById('premier-logo-profile')?.files?.[0];
+  if (!file) throw new Error('Choose a logo file');
+  if (file.size > 2 * 1024 * 1024) throw new Error('Max 2MB image');
+  const dataUrl = await fileToDataUrlProfile(file);
+  const res = await apiCall('/admin/premier/logo', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ login: profileData.username, dataUrl }),
+    useUserToken: true,
+  });
+  const preview = document.getElementById('premier-logo-preview-profile');
+  if (preview && res?.logoUrl) preview.src = res.logoUrl;
+}
+
+async function generatePremierProfile() {
+  if (!profileData || !isPremierRole(profileData.role)) throw new Error('Premier only');
+  const preset = document.getElementById('premier-preset-profile')?.value || 'neon';
+  const notes = document.getElementById('premier-notes-profile')?.value || '';
+  const res = await apiCall('/admin/premier/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ login: profileData.username, preset, notes }),
+    useUserToken: true,
+  });
+  const proposal = res?.proposal || res;
+  premierProposalProfile = proposal;
+  const pre = document.getElementById('premier-proposal-profile');
+  if (pre && proposal) pre.textContent = JSON.stringify(proposal, null, 2);
+}
+
+async function applyPremierProfile() {
+  if (!profileData || !isPremierRole(profileData.role)) throw new Error('Premier only');
+  let proposal = premierProposalProfile;
+  const pre = document.getElementById('premier-proposal-profile');
+  if (!proposal && pre?.textContent) {
+    try {
+      proposal = JSON.parse(pre.textContent);
+    } catch {
+      proposal = pre.textContent;
+    }
+  }
+  if (!proposal) throw new Error('Generate a set first');
+  await apiCall('/admin/premier/apply', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ login: profileData.username, proposal }),
+    useUserToken: true,
+  });
+}
+
+async function importPremierCosmetics() {
+  if (!profileData || !isPremierRole(profileData.role)) throw new Error('Premier only');
+  const raw = document.getElementById('premier-import-json')?.value || '[]';
+  let parsed = null;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw new Error('Invalid JSON');
+  }
+  if (!Array.isArray(parsed) || !parsed.length) throw new Error('Provide an array of items');
+  await apiCall('/admin/cosmetics/import', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ items: parsed }),
+    useUserToken: true,
   });
 }

@@ -187,6 +187,33 @@ function requireAdmin(req, res, next) {
   next();
 }
 
+function getUserRole(req) {
+  const login = extractUserLogin(req);
+  if (!login) return null;
+  try {
+    const profile = db.getProfile((login || '').toLowerCase());
+    return (profile?.role || '').toLowerCase() || null;
+  } catch {
+    return null;
+  }
+}
+
+function requireAdminOrRole(roles = []) {
+  const allowed = (Array.isArray(roles) ? roles : [roles])
+    .map(r => (r || '').toLowerCase())
+    .filter(Boolean);
+  return (req, res, next) => {
+    if (isAdminRequest(req)) return next();
+    const role = getUserRole(req);
+    if (role && allowed.includes(role)) {
+      req.userLogin = req.userLogin || extractUserLogin(req);
+      return next();
+    }
+    logger.warn('Unauthorized admin/role access attempt', { ip: req.ip, role });
+    return res.status(403).json({ error: 'not authorized' });
+  };
+}
+
 /**
  * Extract a user login from request headers or query
  * @param {Object} req
@@ -258,6 +285,7 @@ module.exports = {
   createAdminJWT,
   getAdminCookieOptions,
   requireAdmin,
+  requireAdminOrRole,
   extractUserLogin,
   requireUser,
   hashPassword,
