@@ -7097,6 +7097,8 @@ const PREMIER_PRESETS = {
 
   minimal: 'Minimal/clean: flat color blocks, 2-3 brand colors, thin strokes, high readability, no noise.',
 
+  holiday: 'Holiday/event: festive palette aligned to the occasion (e.g., red/green/gold for winter, orange/purple for Halloween), tasteful glow, readable overlays.',
+
 };
 
 
@@ -7166,6 +7168,7 @@ app.post('/admin/premier/generate', auth.requireAdminOrRole(['premier']), async 
       : actorLogin;
 
     const preset = (req.body?.preset || 'neon').toLowerCase();
+    const theme = (req.body?.theme || '').trim();
 
     const useCached = !!req.body?.useCached;
 
@@ -7227,9 +7230,9 @@ Logo URL (extract palette from it): ${logoPath}
 
 Suggested palette (from logo): ${palette && palette.length ? palette.join(', ') : 'none provided'}
 
-Style preset: ${preset} ΓÇö ${PREMIER_PRESETS[preset]}
+Style preset: ${preset} - ${PREMIER_PRESETS[preset]}
 
-
+${theme ? 'Occasion/theme: ' + theme : ''}
 
 Requirements:
 
@@ -13748,4 +13751,5 @@ const VALID_TEXTURES = [
     }
 
   });
+
 
