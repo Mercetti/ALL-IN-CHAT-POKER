@@ -8,66 +8,23 @@
   <link rel="stylesheet" href="style-theme.css">
   <link rel="stylesheet" href="style-market.css">
   <style>
+    body {
+      background: radial-gradient(circle at 20% 20%, rgba(33, 101, 132, 0.18), transparent 32%),
+        radial-gradient(circle at 80% 10%, rgba(84, 62, 140, 0.16), transparent 30%),
+        linear-gradient(135deg, #0a0f1a, #0c1b2b 40%, #0a0f1a);
+    }
     .cosmetics-page {
-      max-width: 1200px;
+      max-width: 1300px;
       margin: 0 auto;
       padding: 24px;
+      color: #e6f3ff;
     }
     .cosmetics-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-end;
       gap: 16px;
-      margin-bottom: 16px;
-    }
-    .cosmetics-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 14px;
-    }
-    .cosmetic-card {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      box-shadow: var(--shadow-sm);
-    }
-    .cosmetic-card h3 {
-      margin: 0;
-      font-size: 1rem;
-    }
-    .cosmetic-type {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    .cosmetic-preview {
-      height: 120px;
-      border-radius: 10px;
-      border: 1px solid var(--border-color);
-      background: var(--bg-tertiary);
-      display: grid;
-      place-items: center;
-      overflow: hidden;
-    }
-    .cosmetic-meta {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.9rem;
-      color: var(--text-muted);
-    }
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.08);
-      color: var(--text-primary);
-      font-size: 0.75rem;
+      margin-bottom: 12px;
     }
     .catalog-controls {
       display: flex;
@@ -78,37 +35,173 @@
     .catalog-controls select {
       min-width: 180px;
     }
-    .cosmetic-card button {
-      width: 100%;
-    }
-    .preview-panel {
-      margin-top: 18px;
+    .aic-section {
+      background: linear-gradient(135deg, rgba(32, 52, 70, 0.35), rgba(18, 36, 61, 0.6));
+      border: 1px solid rgba(119, 214, 255, 0.2);
+      border-radius: 14px;
       padding: 14px;
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      background: var(--bg-secondary);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+      margin-bottom: 16px;
+    }
+    .cosmetics-stage {
       display: grid;
-      grid-template-columns: 320px 1fr;
+      grid-template-columns: 360px 1fr 320px;
       gap: 16px;
-      box-shadow: var(--shadow-md);
+      align-items: start;
     }
-    .preview-panel .large-preview {
-      height: 240px;
-      border-radius: 12px;
-      border: 1px solid var(--border-color);
-      display: grid;
-      place-items: center;
-      background: var(--bg-tertiary);
-      overflow: hidden;
+    .collection-panel {
+      background: linear-gradient(180deg, rgba(20, 32, 50, 0.9), rgba(12, 22, 36, 0.95));
+      border: 1px solid rgba(119, 214, 255, 0.18);
+      border-radius: 14px;
+      padding: 12px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
     }
-    .preview-meta {
-      display: grid;
-      gap: 6px;
-    }
-    .preview-meta .row {
+    .collection-title {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #a3c9ff;
+      margin-bottom: 10px;
+    }
+    .collection-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(150px, 1fr));
+      gap: 10px;
+    }
+    .cosmetics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .cosmetic-card {
+      background: radial-gradient(circle at 40% 20%, rgba(129, 224, 255, 0.08), rgba(15, 25, 40, 0.95));
+      border: 1px solid rgba(119, 214, 255, 0.15);
+      border-radius: 12px;
+      padding: 8px;
+      display: grid;
+      gap: 6px;
+      position: relative;
+      transition: border-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+    }
+    .cosmetic-card:hover {
+      border-color: rgba(119, 214, 255, 0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    }
+    .cosmetic-card.active {
+      border-color: #7ce7ff;
+      box-shadow: 0 0 0 2px rgba(124, 231, 255, 0.25), 0 14px 30px rgba(0, 0, 0, 0.55);
+    }
+    .cosmetic-card h3 {
+      margin: 0;
+      font-size: 0.95rem;
+      color: #eaf4ff;
+    }
+    .cosmetic-type {
+      font-size: 0.75rem;
+      color: #7ca4d7;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .cosmetic-preview {
+      height: 120px;
+      border-radius: 10px;
+      border: 1px solid rgba(119, 214, 255, 0.18);
+      background: radial-gradient(circle at 50% 10%, rgba(124, 231, 255, 0.08), rgba(8, 16, 26, 0.9));
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+    .cosmetic-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      color: #a8c5e2;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #ffcc70, #ff8f3f);
+      color: #1a1006;
+      font-weight: 700;
+      font-size: 0.72rem;
+      letter-spacing: 0.02em;
+    }
+    .badge.common { background: linear-gradient(135deg, #6b7b8c, #3d4c5f); color: #e8f1ff; }
+    .badge.rare { background: linear-gradient(135deg, #5dd6ff, #1c9ed8); color: #031520; }
+    .badge.epic { background: linear-gradient(135deg, #b478ff, #6e3ad2); color: #fff; }
+    .badge.legendary { background: linear-gradient(135deg, #ffd86f, #f4a23a); color: #1a0f04; }
+    .detail-panel {
+      background: linear-gradient(180deg, rgba(25, 35, 52, 0.95), rgba(14, 23, 38, 0.96));
+      border: 1px solid rgba(119, 214, 255, 0.18);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+      display: grid;
+      gap: 8px;
+    }
+    .detail-panel h2 {
+      margin: 0;
+      font-size: 1.4rem;
+      letter-spacing: 0.03em;
+    }
+    .detail-meta {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      color: #9fc1e6;
+      font-size: 0.9rem;
+    }
+    .detail-desc {
+      color: #cfddee;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      min-height: 60px;
+    }
+    .hero-panel {
+      position: relative;
+      background: radial-gradient(circle at 50% 20%, rgba(124, 231, 255, 0.05), rgba(10, 16, 24, 0.9));
+      border: 1px solid rgba(119, 214, 255, 0.2);
+      border-radius: 16px;
+      min-height: 480px;
+      overflow: hidden;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
+    }
+    .hero-stage {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 70%, rgba(66, 196, 255, 0.12), transparent 50%),
+        radial-gradient(circle at 50% 100%, rgba(36, 140, 200, 0.16), transparent 45%);
+      filter: blur(0.2px);
+    }
+    .hero-preview {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+      display: grid;
+      place-items: center;
+      z-index: 1;
+    }
+    .hero-preview .placeholder {
+      color: #7ca4d7;
+      letter-spacing: 0.05em;
+      font-size: 0.95rem;
+    }
+    .panel {
+      background: rgba(11, 19, 32, 0.9);
+      border: 1px solid rgba(119, 214, 255, 0.12);
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
     }
     .pack-card {
       display: flex;
@@ -150,10 +243,12 @@
       display: block;
       filter: drop-shadow(0 8px 14px rgba(0,0,0,0.35));
     }
-    @media (max-width: 768px) {
-      .preview-panel {
+    @media (max-width: 1100px) {
+      .cosmetics-stage {
         grid-template-columns: 1fr;
       }
+      .hero-panel { min-height: 380px; }
+      .collection-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
     }
   </style>
 </head>
@@ -181,28 +276,39 @@
       </div>
     </div>
 
-    <section class="panel" style="margin-bottom:16px;">
+    <section class="aic-section" style="margin-bottom:16px;">
       <h2 style="margin:0 0 8px;">AIC Packs</h2>
       <p class="muted" style="margin:0 0 12px;">Buy All-In Chips with cash; cosmetics are purchased with AIC only.</p>
       <div class="cosmetics-grid" id="aic-pack-grid"></div>
     </section>
 
     <p class="muted" id="catalog-status">Loading store...</p>
-    <div id="cosmetics-grid" class="cosmetics-grid"></div>
 
-    <div id="selection-panel" class="preview-panel" style="display:none;">
-      <div class="large-preview" id="selection-preview" aria-label="Selected cosmetic preview"></div>
-      <div class="preview-meta">
-        <h2 id="selection-name" style="margin:0;"></h2>
-        <div class="row">
-          <span class="badge" id="selection-type"></span>
-          <span class="badge" id="selection-rarity"></span>
+    <div class="cosmetics-stage">
+      <div class="collection-panel">
+        <div class="collection-title">
+          <span>Skins</span>
+          <span style="color:#7ca4d7;font-size:0.85rem;">Select to preview</span>
         </div>
-        <div class="row">
+        <div id="cosmetics-grid" class="collection-grid"></div>
+      </div>
+
+      <div class="hero-panel">
+        <div class="hero-stage"></div>
+        <div id="selection-preview" class="hero-preview" aria-label="Selected cosmetic preview">
+          <div class="placeholder">Select a cosmetic</div>
+        </div>
+      </div>
+
+      <div class="detail-panel">
+        <h2 id="selection-name" style="margin:0;">Cosmetic</h2>
+        <div class="detail-meta">
+          <span class="badge" id="selection-rarity">common</span>
+          <span class="badge common" id="selection-type">type</span>
           <span id="selection-price"></span>
-          <span id="selection-unlock" class="muted"></span>
         </div>
-        <p id="selection-desc" class="muted"></p>
+        <div class="detail-desc" id="selection-desc">Choose an item to see details.</div>
+        <div class="muted" id="selection-unlock"></div>
       </div>
     </div>
   </div>
@@ -332,36 +438,39 @@
         const cards = section.items.map(item => {
           const price = Number.isFinite(item.price_cents) ? `${item.price_cents} AIC` : (item.price ? `${item.price} AIC` : 'Free');
           return `
-            <div class="cosmetic-card">
-              <div class="cosmetic-type">${item.type || ''}</div>
-              <h3>${item.name || item.id}</h3>
+            <div class="cosmetic-card" data-card-id="${item.id}">
+              <div class="cosmetic-type">${typeLabels[item.type] || item.type || ''}</div>
               <div class="cosmetic-preview">${buildPreview(item)}</div>
               <div class="cosmetic-meta">
-                <span class="badge">${item.rarity || 'common'}</span>
+                <span class="badge ${String(item.rarity || '').toLowerCase()}">${item.rarity || 'common'}</span>
                 <span>${price}</span>
               </div>
+              <h3>${item.name || item.id}</h3>
               <p class="muted" style="min-height:32px;">${item.description || item.unlock_note || ''}</p>
-              <button class="btn btn-secondary btn-sm" data-select="${item.id}">Preview</button>
             </div>
           `;
         }).join('');
-        return `<div class="panel" style="grid-column:1/-1;"><h2 style="margin:0 0 8px;">${section.title}</h2><div class="cosmetics-grid">${cards}</div></div>`;
+        return `
+          <div class="collection-title" style="margin-top:10px;">${section.title}</div>
+          <div class="collection-grid">${cards}</div>
+        `;
       }).join('');
 
-      gridEl.querySelectorAll('button[data-select]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const itemId = btn.dataset.select;
-          const found = items.find(i => i.id === itemId);
-          if (found) showSelection(found);
-        });
+      const selectCard = (id) => {
+        const found = items.find(i => i.id === id);
+        if (found) showSelection(found);
+        gridEl.querySelectorAll('.cosmetic-card').forEach(c => c.classList.toggle('active', c.dataset.cardId === id));
+      };
+
+      gridEl.querySelectorAll('.cosmetic-card').forEach(card => {
+        card.addEventListener('click', () => selectCard(card.dataset.cardId));
       });
 
       const first = sections.find(s => s.items && s.items[0]);
-      if (first?.items?.[0]) showSelection(first.items[0]);
+      if (first?.items?.[0]) selectCard(first.items[0].id);
     }
 
     function showSelection(item) {
-      const panel = document.getElementById('selection-panel');
       const nameEl = document.getElementById('selection-name');
       const typeEl = document.getElementById('selection-type');
       const rarityEl = document.getElementById('selection-rarity');
@@ -369,17 +478,24 @@
       const unlockEl = document.getElementById('selection-unlock');
       const descEl = document.getElementById('selection-desc');
       const previewEl = document.getElementById('selection-preview');
-      if (!panel) return;
+      if (!previewEl) return;
 
       nameEl.textContent = item.name || item.id;
-      typeEl.textContent = item.type || '';
+      typeEl.textContent = typeLabels[item.type] || item.type || '';
+      typeEl.className = 'badge common';
       rarityEl.textContent = item.rarity || 'common';
+      rarityEl.className = `badge ${String(item.rarity || '').toLowerCase()}`;
       priceEl.textContent = Number.isFinite(item.price_cents) ? `${item.price_cents} AIC` : (item.price ? `${item.price} AIC` : 'Free');
       unlockEl.textContent = item.unlock_note || '';
       descEl.textContent = item.description || '';
-      previewEl.innerHTML = buildPreview(item);
-      panel.style.display = 'grid';
-      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const heroImg = item.image_url || item.preview || '';
+      if (heroImg) {
+        previewEl.style.backgroundImage = `url('${heroImg}')`;
+        previewEl.innerHTML = '';
+      } else {
+        previewEl.style.backgroundImage = 'none';
+        previewEl.innerHTML = `<div class="placeholder">No preview</div>`;
+      }
     }
 
     document.getElementById('btn-refresh-catalog')?.addEventListener('click', loadCatalog);
