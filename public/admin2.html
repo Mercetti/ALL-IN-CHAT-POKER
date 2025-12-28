@@ -285,11 +285,13 @@
           <p class="muted small">Create a code, then use it in both admin and overlay URLs.</p>
         </div>
         <div class="form-grid compact-grid">
+          <label for="lobby-code-output" class="sr-only">Lobby code</label>
           <button id="btn-create-lobby" class="btn btn-primary btn-sm">Create Lobby</button>
           <input id="lobby-code-output" class="form-input" type="text" readonly placeholder="lobby code here">
           <button id="btn-copy-lobby" class="btn btn-secondary btn-sm">Copy Code</button>
         </div>
         <div class="form-grid compact-grid" style="margin-top:8px;">
+          <label for="lobby-join-input" class="sr-only">Enter lobby code</label>
           <input id="lobby-join-input" class="form-input" type="text" placeholder="Enter lobby code to join">
           <button id="btn-join-lobby" class="btn btn-success btn-sm">Join Lobby</button>
         </div>
@@ -315,23 +317,23 @@
 
           <details class="control-panel collapsible drawer-content" id="tournament-details">
             <summary>Tournament Tools (backend)</summary>
-            <div class="control-card">
-              <p class="muted">Brackets, tables, ready-up.</p>
+          <div class="control-card">
+            <p class="muted">Brackets, tables, ready-up.</p>
             <div class="form-grid">
-              <label>Round</label>
+              <label for="t-round">Round</label>
               <input id="t-round" type="number" min="1" value="1" class="form-input">
-              <label>Table size</label>
+              <label for="t-table-size">Table size</label>
               <input id="t-table-size" type="number" min="2" max="10" value="6" class="form-input">
-              <label>Players (comma list, optional)</label>
+              <label for="t-players">Players (comma list, optional)</label>
               <textarea id="t-players" class="form-input" rows="2" placeholder="player1, player2"></textarea>
               <button id="btn-gen-bracket" class="btn">Generate Bracket</button>
               <button id="btn-bootstrap-round" class="btn btn-secondary">Bootstrap Round</button>
-              <label>Channel to bind</label>
+              <label for="t-channel">Channel to bind</label>
               <input id="t-channel" class="form-input" placeholder="t-<id>-r<round>-table-1">
-              <label>Table #</label>
+              <label for="t-table-num">Table #</label>
               <input id="t-table-num" type="number" min="1" value="1" class="form-input">
               <button id="btn-bind-table" class="btn btn-secondary">Bind Table</button>
-              <label>Ready (channel)</label>
+              <label for="t-ready-channel">Ready (channel)</label>
               <input id="t-ready-channel" class="form-input" placeholder="t-<id>-r<round>-table-1">
               <button id="btn-ready-ping" class="btn btn-secondary">Ready Up (self)</button>
               <div id="ready-status" class="muted small"></div>
