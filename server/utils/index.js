@@ -6,7 +6,6 @@ const crypto = require('./crypto');
 const color = require('./color');
 const image = require('./image');
 const fileOps = require('./file-ops');
-const timerManager = require('./timer-manager');
 const performance = require('./performance');
 const dbOptimizer = require('./db-optimizer');
 const cardLookup = require('./card-lookup');
@@ -18,7 +17,6 @@ module.exports = {
   color,
   image,
   fileOps,
-  timerManager,
   performance,
   dbOptimizer,
   cardLookup,
