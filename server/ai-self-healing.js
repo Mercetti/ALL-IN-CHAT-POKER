@@ -6,7 +6,9 @@
 const aiErrorManager = require('./ai-error-manager');
 const aiPerformanceOptimizer = require('./ai-performance-optimizer');
 const aiUXMonitor = require('./ai-ux-monitor');
-const { logger } = require('./logger');
+const Logger = require('./logger');
+
+const logger = new Logger();
 
 class AISelfHealingMiddleware {
   constructor(options = {}) {

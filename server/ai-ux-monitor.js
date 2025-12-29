@@ -5,7 +5,9 @@
 
 const ai = require('./ai');
 const config = require('./config');
-const { logger } = require('./logger');
+const Logger = require('./logger');
+
+const logger = new Logger();
 
 class AIUXMonitor {
   constructor(options = {}) {

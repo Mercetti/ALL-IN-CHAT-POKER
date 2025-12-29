@@ -6,7 +6,9 @@
 const AIEnhancedChatBot = require('../bot/ai-chatbot');
 const EnhancedCosmeticAI = require('./enhanced-cosmetic-ai');
 const config = require('./config');
-const { logger } = require('./logger');
+const Logger = require('./logger');
+
+const logger = new Logger();
 
 class UnifiedAISystem {
   constructor(options = {}) {
