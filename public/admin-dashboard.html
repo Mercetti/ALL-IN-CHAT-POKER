@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Admin Dashboard - All-In Chat Poker</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="style-theme.css">
+  <link rel="stylesheet" href="style-admin.css">
+  
+  <!-- Modern Dashboard Styles -->
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --secondary: #8b5cf6;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --info: #3b82f6;
+      --dark: #1f2937;
+      --light: #f3f4f6;
+      --glass: rgba(255, 255, 255, 0.1);
+      --glass-border: rgba(255, 255, 255, 0.2);
+    }
+
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .dashboard-container {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      grid-template-rows: 70px 1fr;
+      height: 100vh;
+      gap: 0;
+    }
+
+    /* Header */
+    .dashboard-header {
+      grid-column: 1 / -1;
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+      color: white;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .header-brand img {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+    }
+
+    .header-brand h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--glass);
+      border-radius: 20px;
+      font-size: 0.875rem;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Sidebar */
+    .dashboard-sidebar {
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      border-right: 1px solid var(--glass-border);
+      padding: 1.5rem 1rem;
+      overflow-y: auto;
+    }
+
+    .nav-section {
+      margin-bottom: 2rem;
+    }
+
+    .nav-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.05em;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.25rem;
+      border-radius: 8px;
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .nav-item:hover {
+      background: var(--glass);
+      color: white;
+      transform: translateX(4px);
+    }
+
+    .nav-item.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .nav-icon {
+      width: 20px;
+      height: 20px;
+      opacity: 0.8;
+    }
+
+    /* Main Content */
+    .dashboard-main {
+      padding: 2rem;
+      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      color: white;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .card-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .card-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--primary);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+    }
+
+    .metric-value {
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 0.5rem 0;
+    }
+
+    .metric-label {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 0.875rem;
+    }
+
+    .metric-change {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 12px;
+      margin-top: 0.5rem;
+    }
+
+    .metric-change.positive {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--success);
+    }
+
+    .metric-change.negative {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--danger);
+    }
+
+    /* AI Chat Section */
+    .ai-chat-section {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 1.5rem;
+      height: 500px;
+    }
+
+    .chat-container {
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-header {
+      padding: 1rem 1.5rem;
+      background: var(--glass);
+      border-bottom: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 1.5rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .message {
+      max-width: 70%;
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background: var(--primary);
+      color: white;
+    }
+
+    .message.ai {
+      align-self: flex-start;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+
+    .chat-input-container {
+      padding: 1rem 1.5rem;
+      background: var(--glass);
+      border-top: 1px solid var(--glass-border);
+      display: flex;
+      gap: 1rem;
+    }
+
+    .chat-input {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      padding: 0.75rem;
+      color: white;
+      font-size: 0.875rem;
+    }
+
+    .chat-input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .chat-send {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0.75rem 1.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .chat-send:hover {
+      background: var(--primary-dark);
+    }
+
+    /* AI Tools Panel */
+    .ai-tools-panel {
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      overflow-y: auto;
+    }
+
+    .tool-section {
+      margin-bottom: 2rem;
+    }
+
+    .tool-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: white;
+    }
+
+    .tool-button {
+      width: 100%;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      padding: 0.75rem;
+      color: white;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 0.5rem;
+    }
+
+    .tool-button:hover {
+      background: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 0.5rem;
+    }
+
+    .status-badge.online {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--success);
+    }
+
+    .status-badge.offline {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--danger);
+    }
+
+    .status-badge.warning {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--warning);
+    }
+
+    /* Health Indicators */
+    .health-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .health-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+    }
+
+    .health-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .health-dot.good { background: var(--success); }
+    .health-dot.warning { background: var(--warning); }
+    .health-dot.error { background: var(--danger); }
+
+    .health-label {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    /* Loading States */
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .dashboard-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: 70px auto 1fr;
+      }
+
+      .dashboard-sidebar {
+        display: none;
+      }
+
+      .ai-chat-section {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+
+      .ai-tools-panel {
+        order: -1;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .dashboard-main {
+        padding: 1rem;
+      }
+
+      .card {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="header-brand">
+        <img src="logo.png" alt="All-In Chat Poker">
+        <div>
+          <h1>AI Admin Dashboard</h1>
+          <p style="margin: 0; font-size: 0.875rem; opacity: 0.8;">Intelligent Control Center</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="status-indicator">
+          <div class="status-dot"></div>
+          <span id="system-status">System Healthy</span>
+        </div>
+        <div id="session-info" class="status-indicator">
+          <span id="session-time">00:00</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar">
+      <nav class="nav-section">
+        <div class="nav-title">Overview</div>
+        <a href="#overview" class="nav-item active" data-section="overview">
+          <span class="nav-icon">📊</span>
+          Dashboard
+        </a>
+        <a href="#ai-status" class="nav-item" data-section="ai-status">
+          <span class="nav-icon">🤖</span>
+          AI Status
+        </a>
+        <a href="#performance" class="nav-item" data-section="performance">
+          <span class="nav-icon">⚡</span>
+          Performance
+        </a>
+      </nav>
+
+      <nav class="nav-section">
+        <div class="nav-title">AI Tools</div>
+        <a href="#error-manager" class="nav-item" data-section="error-manager">
+          <span class="nav-icon">🔧</span>
+          Error Manager
+        </a>
+        <a href="#cosmetic-ai" class="nav-item" data-section="cosmetic-ai">
+          <span class="nav-icon">🎨</span>
+          Cosmetic AI
+        </a>
+        <a href="#audio-generator" class="nav-item" data-section="audio-generator">
+          <span class="nav-icon">🎵</span>
+          Audio Generator
+        </a>
+        <a href="#ux-monitor" class="nav-item" data-section="ux-monitor">
+          <span class="nav-icon">👥</span>
+          UX Monitor
+        </a>
+      </nav>
+
+      <nav class="nav-section">
+        <div class="nav-title">System</div>
+        <a href="#users" class="nav-item" data-section="users">
+          <span class="nav-icon">👤</span>
+          Users
+        </a>
+        <a href="#games" class="nav-item" data-section="games">
+          <span class="nav-icon">🎮</span>
+          Games
+        </a>
+        <a href="#settings" class="nav-item" data-section="settings">
+          <span class="nav-icon">⚙️</span>
+          Settings
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+      <!-- Overview Dashboard -->
+      <section id="overview-section" class="dashboard-section">
+        <div class="dashboard-grid">
+          <!-- System Health Card -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">System Health</h3>
+                <p class="metric-label">Overall status</p>
+              </div>
+              <div class="card-icon">💚</div>
+            </div>
+            <div class="metric-value" id="health-score">95%</div>
+            <div class="metric-change positive">
+              <span>↑</span>
+              <span>2% from last hour</span>
+            </div>
+            <div class="health-grid">
+              <div class="health-item">
+                <div class="health-dot good"></div>
+                <span class="health-label">AI Systems</span>
+              </div>
+              <div class="health-item">
+                <div class="health-dot good"></div>
+                <span class="health-label">Database</span>
+              </div>
+              <div class="health-item">
+                <div class="health-dot warning"></div>
+                <span class="health-label">Memory</span>
+              </div>
+              <div class="health-item">
+                <div class="health-dot good"></div>
+                <span class="health-label">Network</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Users Card -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">Active Users</h3>
+                <p class="metric-label">Currently online</p>
+              </div>
+              <div class="card-icon">👥</div>
+            </div>
+            <div class="metric-value" id="active-users">247</div>
+            <div class="metric-change positive">
+              <span>↑</span>
+              <span>12% from yesterday</span>
+            </div>
+          </div>
+
+          <!-- AI Performance Card -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">AI Performance</h3>
+                <p class="metric-label">Response time</p>
+              </div>
+              <div class="card-icon">🤖</div>
+            </div>
+            <div class="metric-value" id="ai-response-time">142ms</div>
+            <div class="metric-change positive">
+              <span>↑</span>
+              <span>15% faster</span>
+            </div>
+          </div>
+
+          <!-- Error Rate Card -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">Error Rate</h3>
+                <p class="metric-label">Last 24 hours</p>
+              </div>
+              <div class="card-icon">⚠️</div>
+            </div>
+            <div class="metric-value" id="error-rate">0.2%</div>
+            <div class="metric-change positive">
+              <span>↓</span>
+              <span>50% improvement</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Chat Section -->
+        <div class="ai-chat-section">
+          <div class="chat-container">
+            <div class="chat-header">
+              <h3 style="margin: 0;">AI Assistant</h3>
+              <span class="status-badge online">Online</span>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+              <div class="message ai">
+                👋 Hello! I'm your AI assistant. I can help you monitor system health, analyze performance, and manage the poker game. What would you like to know?
+              </div>
+            </div>
+            <div class="chat-input-container">
+              <input type="text" class="chat-input" id="chat-input" placeholder="Ask me anything about the system...">
+              <button class="chat-send" id="chat-send">Send</button>
+            </div>
+          </div>
+
+          <div class="ai-tools-panel">
+            <div class="tool-section">
+              <h4 class="tool-title">Quick Actions</h4>
+              <button class="tool-button" onclick="runHealthCheck()">
+                🏥 Run Health Check
+              </button>
+              <button class="tool-button" onclick="optimizePerformance()">
+                ⚡ Optimize Performance
+              </button>
+              <button class="tool-button" onclick="clearCaches()">
+                🗑️ Clear Caches
+              </button>
+              <button class="tool-button" onclick="restartServices()">
+                🔄 Restart Services
+              </button>
+            </div>
+
+            <div class="tool-section">
+              <h4 class="tool-title">AI Status</h4>
+              <div class="health-item">
+                <div class="health-dot good"></div>
+                <span class="health-label">Chat Bot</span>
+                <span class="status-badge online">Active</span>
+              </div>
+              <div class="health-item">
+                <div class="health-dot good"></div>
+                <span class="health-label">Error Manager</span>
+                <span class="status-badge online">Monitoring</span>
+              </div>
+              <div class="health-item">
+                <div class="health-dot warning"></div>
+                <span class="health-label">Performance</span>
+                <span class="status-badge warning">Optimizing</span>
+              </div>
+              <div class="health-item">
+                <div class="health-dot good"></div>
+                <span class="health-label">UX Monitor</span>
+                <span class="status-badge online">Tracking</span>
+              </div>
+            </div>
+
+            <div class="tool-section">
+              <h4 class="tool-title">Recent Activity</h4>
+              <div id="recent-activity">
+                <div class="health-item">
+                  <div class="health-dot good"></div>
+                  <span class="health-label">Auto-fixed database error</span>
+                </div>
+                <div class="health-item">
+                  <div class="health-dot good"></div>
+                  <span class="health-label">Memory optimization applied</span>
+                </div>
+                <div class="health-item">
+                  <div class="health-dot warning"></div>
+                  <span class="health-label">High CPU usage detected</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Audio Generator Section -->
+      <section id="audio-generator-section" class="dashboard-section" style="display: none;">
+        <div class="dashboard-grid">
+          <!-- Audio Library Card -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">Audio Library</h3>
+                <p class="metric-label">Available sounds and music</p>
+              </div>
+              <div class="card-icon">🎵</div>
+            </div>
+            <div class="metric-value" id="audio-count">0</div>
+            <div class="metric-change positive">
+              <span>🎼</span>
+              <span>Ready to generate</span>
+            </div>
+            <button class="tool-button" onclick="loadAudioLibrary()">📚 Load Library</button>
+          </div>
+
+          <!-- Generation Status Card -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">Generation Status</h3>
+                <p class="metric-label">AI audio generation</p>
+              </div>
+              <div class="card-icon">🎛️</div>
+            </div>
+            <div class="metric-value" id="generation-status">Ready</div>
+            <div class="metric-change positive">
+              <span>✅</span>
+              <span>AI available</span>
+            </div>
+            <button class="tool-button" onclick="checkAudioStatus()">🔍 Check Status</button>
+          </div>
+
+          <!-- Quick Actions Card -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">Quick Actions</h3>
+                <p class="metric-label">Generate audio instantly</p>
+              </div>
+              <div class="card-icon">⚡</div>
+            </div>
+            <button class="tool-button" onclick="generateMainTheme()">🎹 Main Theme</button>
+            <button class="tool-button" onclick="generateVictoryTheme()">🏆 Victory Theme</button>
+            <button class="tool-button" onclick="generateCardSounds()">🃏 Card Sounds</button>
+            <button class="tool-button" onclick="generateAllAudio()">🎵 Generate All</button>
+          </div>
+
+          <!-- Recent Generations Card -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">Recent Generations</h3>
+                <p class="metric-label">Latest audio created</p>
+              </div>
+              <div class="card-icon">📼</div>
+            </div>
+            <div id="recent-audio" class="health-grid">
+              <div class="health-item">
+                <div class="health-dot good"></div>
+                <span class="health-label">No audio generated yet</span>
+              </div>
+            </div>
+            <button class="tool-button" onclick="loadGenerationHistory()">📜 View History</button>
+          </div>
+        </div>
+
+        <!-- Audio Generation Panel -->
+        <div class="ai-chat-section">
+          <div class="chat-container">
+            <div class="chat-header">
+              <h3 style="margin: 0;">AI Audio Generator</h3>
+              <span class="status-badge online">Ready</span>
+            </div>
+            <div class="chat-messages" id="audio-chat-messages">
+              <div class="message ai">
+                🎵 I'm your AI audio generator! I can create theme music, sound effects, and ambient sounds for your poker game. What would you like me to generate?
+              </div>
+            </div>
+            <div class="chat-input-container">
+              <input type="text" class="chat-input" id="audio-chat-input" placeholder="Ask me to generate music or sounds...">
+              <button class="chat-send" id="audio-chat-send">Generate</button>
+            </div>
+          </div>
+
+          <div class="ai-tools-panel">
+            <div class="tool-section">
+              <h4 class="tool-title">Theme Music</h4>
+              <button class="tool-button" onclick="generateTheme('main_theme')">🎹 Main Theme</button>
+              <button class="tool-button" onclick="generateTheme('victory_theme')">🏆 Victory Theme</button>
+              <button class="tool-button" onclick="generateTheme('thinking_theme')">🤔 Thinking Theme</button>
+              <button class="tool-button" onclick="generateTheme('lobby_theme')">🛋️ Lobby Theme</button>
+            </div>
+
+            <div class="tool-section">
+              <h4 class="tool-title">Game Sounds</h4>
+              <button class="tool-button" onclick="generateEffect('card_deal')">🃏 Card Deal</button>
+              <button class="tool-button" onclick="generateEffect('chip_stack')">💰 Chip Stack</button>
+              <button class="tool-button" onclick="generateEffect('chip_bet')">🎲 Chip Bet</button>
+              <button class="tool-button" onclick="generateEffect('button_click')">👆 Button Click</button>
+              <button class="tool-button" onclick="generateEffect('win')">🎉 Win</button>
+              <button class="tool-button" onclick="generateEffect('lose')">😔 Lose</button>
+              <button class="tool-button" onclick="generateEffect('all_in')">🔥 All In</button>
+              <button class="tool-button" onclick="generateEffect('showdown')">⚡ Showdown</button>
+            </div>
+
+            <div class="tool-section">
+              <h4 class="tool-title">Ambient Sounds</h4>
+              <button class="tool-button" onclick="generateEffect('casino_ambient')">🎰 Casino Ambient</button>
+              <button class="tool-button" onclick="generateEffect('table_ambient')">🃏 Table Ambient</button>
+            </div>
+
+            <div class="tool-section">
+              <h4 class="tool-title">Bulk Generation</h4>
+              <button class="tool-button" onclick="generateAllMusic()">🎼 All Music</button>
+              <button class="tool-button" onclick="generateAllEffects()">🔊 All Effects</button>
+              <button class="tool-button" onclick="generateCompletePackage()">📦 Complete Package</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Dashboard JavaScript -->
+  <script src="/js/admin-dashboard.js"></script>
+  <script>
+    // Fallback initialization if the external script doesn't load
+    if (!window.dashboard) {
+      console.log('🚀 AI Admin Dashboard initialized (fallback)');
+      // Basic fallback functionality
+      document.addEventListener('DOMContentLoaded', function() {
+        const chatInput = document.getElementById('chat-input');
+        const chatSend = document.getElementById('chat-send');
+        
+        if (chatSend && chatInput) {
+          chatSend.addEventListener('click', function() {
+            const message = chatInput.value.trim();
+            if (message) {
+              const messagesContainer = document.getElementById('chat-messages');
+              const messageDiv = document.createElement('div');
+              messageDiv.className = 'message user';
+              messageDiv.textContent = message;
+              messagesContainer.appendChild(messageDiv);
+              chatInput.value = '';
+              
+              // Simulate AI response
+              setTimeout(() => {
+                const aiResponse = document.createElement('div');
+                aiResponse.className = 'message ai';
+                aiResponse.textContent = 'I received your message. The enhanced AI features are loading...';
+                messagesContainer.appendChild(aiResponse);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+              }, 1000);
+            }
+          });
+        }
+      });
+    }
+  </script>
+</body>
+</html>

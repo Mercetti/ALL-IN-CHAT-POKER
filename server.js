@@ -263,6 +263,40 @@ const aiUXMonitor = new AIUXMonitor({
 // Initialize AI self-healing middleware
 const aiSelfHealing = require('./server/ai-self-healing');
 
+// Initialize AI Audio Generator
+const AIAudioGenerator = require('./server/ai-audio-generator');
+
+const aiAudioGenerator = new AIAudioGenerator({
+  outputDir: path.join(__dirname, 'public/assets/audio'),
+  enableGeneration: true,
+  maxDuration: 30,
+  sampleRate: 44100
+});
+
+// Initialize Poker Audio System (Phased Implementation)
+const PokerAudioSystem = require('./server/poker-audio-system');
+
+const pokerAudio = new PokerAudioSystem({
+  outputDir: path.join(__dirname, 'public/assets/audio'),
+  enableGeneration: true,
+  dmcaSafe: true,
+  defaultMusicOff: true,
+  maxDuration: 90,
+  sampleRate: 44100
+});
+
+// Initialize Poker Audio Production System
+const PokerAudioProductionSystem = require('./server/poker-audio-production');
+
+const pokerAudioProduction = new PokerAudioProductionSystem({
+  outputDir: path.join(__dirname, 'public/assets/audio'),
+  primaryFormat: 'ogg',
+  fallbackFormat: 'mp3',
+  targetLoudness: -16,
+  enableNormalization: true,
+  dmcaSafe: true
+});
+
 // Database performance monitoring wrapper
 const monitoredDb = new Proxy(db.db, {
   get(target, prop) {
@@ -2977,6 +3011,11 @@ app.use(express.static('public'));
 // Serve a default card face if the directory path is requested directly
 app.get('/assets/cosmetics/cards/faces/classic/', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'assets', 'cosmetics', 'cards', 'faces', 'classic', 'ace_of_spades.png'));
+});
+
+// AI Admin Dashboard
+app.get('/admin-dashboard', auth.requireAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin-dashboard.html'));
 });
 
 // Supabase OAuth callback/consent helpers
@@ -12426,6 +12465,557 @@ app.get('/admin/ai/healing/status', auth.requireAdmin, (req, res) => {
     res.json(healingStatus);
   } catch (error) {
     logger.error('AI healing status check failed', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Get Audio Library (admin only)
+ */
+app.get('/admin/ai/audio/library', auth.requireAdmin, (req, res) => {
+  try {
+    const library = aiAudioGenerator.getAudioLibrary();
+    res.json(library);
+  } catch (error) {
+    logger.error('Failed to get audio library', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Generate Theme Music (admin only)
+ */
+app.post('/admin/ai/audio/generate/music', auth.requireAdmin, async (req, res) => {
+  try {
+    const { themeName, options } = req.body;
+    
+    if (!themeName) {
+      return res.status(400).json({ error: 'themeName is required' });
+    }
+    
+    const result = await aiAudioGenerator.generateThemeMusic(themeName, options);
+    
+    if (result.success) {
+      logger.info('Theme music generated', { themeName, filepath: result.filepath });
+    } else {
+      logger.warn('Theme music generation failed', { themeName, error: result.error });
+    }
+    
+    res.json(result);
+  } catch (error) {
+    logger.error('Theme music generation failed', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Generate Sound Effect (admin only)
+ */
+app.post('/admin/ai/audio/generate/effect', auth.requireAdmin, async (req, res) => {
+  try {
+    const { effectName, options } = req.body;
+    
+    if (!effectName) {
+      return res.status(400).json({ error: 'effectName is required' });
+    }
+    
+    const result = await aiAudioGenerator.generateSoundEffect(effectName, options);
+    
+    if (result.success) {
+      logger.info('Sound effect generated', { effectName, filepath: result.filepath });
+    } else {
+      logger.warn('Sound effect generation failed', { effectName, error: result.error });
+    }
+    
+    res.json(result);
+  } catch (error) {
+    logger.error('Sound effect generation failed', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Generate Complete Audio Package (admin only)
+ */
+app.post('/admin/ai/audio/generate/package', auth.requireAdmin, async (req, res) => {
+  try {
+    const options = req.body || {};
+    
+    logger.info('Starting complete audio package generation', options);
+    
+    const result = await aiAudioGenerator.generateAudioPackage(options);
+    
+    if (result.success) {
+      logger.info('Audio package generated successfully', {
+        musicCount: Object.keys(result.music).length,
+        effectsCount: Object.keys(result.effects).length,
+        ambientCount: Object.keys(result.ambient).length
+      });
+    } else {
+      logger.error('Audio package generation failed', { errors: result.errors });
+    }
+    
+    res.json(result);
+  } catch (error) {
+    logger.error('Audio package generation failed', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Get Audio Generation History (admin only)
+ */
+app.get('/admin/ai/audio/history', auth.requireAdmin, (req, res) => {
+  try {
+    const history = aiAudioGenerator.getGenerationHistory();
+    res.json(history);
+  } catch (error) {
+    logger.error('Failed to get audio generation history', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Get Poker Audio Library (public)
+ */
+app.get('/api/audio/library', (req, res) => {
+  try {
+    const userId = req.user?.id || 'anonymous';
+    const userTier = req.query.tier || 'affiliate';
+    const library = pokerAudio.getAvailableAudio(userId);
+    
+    res.json({
+      library,
+      userTier,
+      dmcaPolicy: pokerAudio.getDMCAPolicy(),
+      phases: Object.keys(library)
+    });
+  } catch (error) {
+    logger.error('Failed to get audio library', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Get User Audio Settings
+ */
+app.get('/api/audio/settings', auth.requireUser, (req, res) => {
+  try {
+    const userId = req.user.id;
+    const settings = pokerAudio.getUserSettings(userId);
+    
+    res.json(settings);
+  } catch (error) {
+    logger.error('Failed to get user audio settings', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Update User Audio Settings
+ */
+app.post('/api/audio/settings', auth.requireUser, (req, res) => {
+  try {
+    const userId = req.user.id;
+    const settings = req.body;
+    
+    const updatedSettings = pokerAudio.updateUserSettings(userId, settings);
+    
+    res.json({
+      success: true,
+      settings: updatedSettings
+    });
+  } catch (error) {
+    logger.error('Failed to update user audio settings', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Generate Phase Audio (admin only)
+ */
+app.post('/admin/audio/generate/phase', auth.requireAdmin, async (req, res) => {
+  try {
+    const { phase, tier } = req.body;
+    
+    if (!phase) {
+      return res.status(400).json({ error: 'phase is required' });
+    }
+    
+    const userTier = tier || 'affiliate';
+    const result = await pokerAudio.generatePhaseAudio(phase, userTier);
+    
+    logger.info('Phase audio generation completed', { 
+      phase, 
+      tier: userTier, 
+      totalGenerated: result.totalGenerated 
+    });
+    
+    res.json(result);
+  } catch (error) {
+    logger.error('Phase audio generation failed', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Generate Complete Tier Package (admin only)
+ */
+app.post('/admin/audio/generate/tier-package', auth.requireAdmin, async (req, res) => {
+  try {
+    const { tier } = req.body;
+    const userTier = tier || 'affiliate';
+    
+    logger.info('Starting tier package generation', { tier: userTier });
+    
+    const result = await pokerAudio.generateTierPackage(userTier);
+    
+    logger.info('Tier package generation completed', {
+      tier: userTier,
+      totalGenerated: result.totalGenerated,
+      phases: Object.keys(result.phases)
+    });
+    
+    res.json(result);
+  } catch (error) {
+    logger.error('Tier package generation failed', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Get DMCA Policy (public)
+ */
+app.get('/api/audio/dmca-policy', (req, res) => {
+  try {
+    const policy = pokerAudio.getDMCAPolicy();
+    
+    res.json({
+      policy,
+      dmcaSafe: true,
+      streamingSafe: true,
+      platforms: ['Twitch', 'YouTube', 'Kick', 'Facebook Gaming']
+    });
+  } catch (error) {
+    logger.error('Failed to get DMCA policy', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Trigger Viewer Sound Effect (with cooldown)
+ */
+app.post('/api/audio/trigger/viewer', auth.requireUser, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { soundName, viewerId } = req.body;
+    
+    if (!soundName) {
+      return res.status(400).json({ error: 'soundName is required' });
+    }
+    
+    // Check cooldown
+    const canTrigger = pokerAudio.checkCooldown(userId, soundName);
+    
+    if (!canTrigger) {
+      return res.json({
+        success: false,
+        reason: 'Cooldown period active',
+        message: 'Please wait before triggering this sound again'
+      });
+    }
+    
+    // Get user settings to check if viewer triggers are enabled
+    const settings = pokerAudio.getUserSettings(userId);
+    
+    if (!settings.eventSounds.viewerTriggers) {
+      return res.json({
+        success: false,
+        reason: 'Viewer triggers disabled',
+        message: 'Viewer sound effects are disabled in settings'
+      });
+    }
+    
+    // Get audio file path
+    const availableAudio = pokerAudio.getAvailableAudio(userId);
+    let audioFile = null;
+    
+    // Search for the sound in all phases
+    Object.values(availableAudio).forEach(phase => {
+      Object.values(phase).forEach(category => {
+        if (category[soundName]) {
+          audioFile = category[soundName];
+        }
+      });
+    });
+    
+    if (!audioFile) {
+      return res.status(404).json({ error: 'Sound not found or not available for your tier' });
+    }
+    
+    logger.info('Viewer sound triggered', { 
+      userId, 
+      soundName, 
+      viewerId, 
+      audioFile: audioFile.name 
+    });
+    
+    res.json({
+      success: true,
+      soundName,
+      audioFile: audioFile.filepath,
+      duration: audioFile.duration,
+      message: 'Viewer sound triggered successfully'
+    });
+    
+  } catch (error) {
+    logger.error('Failed to trigger viewer sound', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Get Audio Statistics (admin only)
+ */
+app.get('/admin/audio/stats', auth.requireAdmin, (req, res) => {
+  try {
+    const stats = {
+      totalGenerated: pokerAudio.generatedAudio.size,
+      userSettings: pokerAudio.userSettings.size,
+      activeCooldowns: pokerAudio.cooldowns.size,
+      phases: Object.keys(pokerAudio.audioLibrary).length,
+      dmcaSafe: pokerAudio.options.dmcaSafe,
+      defaultMusicOff: pokerAudio.options.defaultMusicOff
+    };
+    
+    res.json(stats);
+  } catch (error) {
+    logger.error('Failed to get audio statistics', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Generate Production Audio Pack (admin only)
+ */
+app.post('/admin/audio/generate/production-pack', auth.requireAdmin, async (req, res) => {
+  try {
+    const { packName, tier } = req.body;
+    
+    if (!packName) {
+      return res.status(400).json({ error: 'packName is required' });
+    }
+    
+    const userTier = tier || 'affiliate';
+    
+    logger.info('Starting production pack generation', { packName, tier: userTier });
+    
+    const pack = await pokerAudioProduction.generateProductionPack(packName, userTier);
+    
+    logger.info('Production pack generated successfully', {
+      packName,
+      tier: userTier,
+      fileCount: pokerAudioProduction.countPackFiles(pack),
+      compliant: pack.compliance.passed
+    });
+    
+    res.json({
+      success: true,
+      pack,
+      fileCount: pokerAudioProduction.countPackFiles(pack),
+      compliant: pack.compliance.passed
+    });
+    
+  } catch (error) {
+    logger.error('Production pack generation failed', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Get Production Packs (admin only)
+ */
+app.get('/admin/audio/production-packs', auth.requireAdmin, (req, res) => {
+  try {
+    const packs = pokerAudioProduction.getAllProductionPacks();
+    
+    res.json({
+      success: true,
+      packs,
+      totalPacks: packs.length
+    });
+  } catch (error) {
+    logger.error('Failed to get production packs', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Get Production Pack Details (admin only)
+ */
+app.get('/admin/audio/production-pack/:packName', auth.requireAdmin, (req, res) => {
+  try {
+    const { packName } = req.params;
+    const pack = pokerAudioProduction.getProductionPack(packName);
+    
+    if (!pack) {
+      return res.status(404).json({ error: 'Production pack not found' });
+    }
+    
+    res.json({
+      success: true,
+      pack
+    });
+  } catch (error) {
+    logger.error('Failed to get production pack details', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Update Cooldown Settings (admin only)
+ */
+app.post('/admin/audio/cooldown-settings', auth.requireAdmin, (req, res) => {
+  try {
+    const settings = req.body;
+    
+    pokerAudioProduction.updateCooldownSettings(settings);
+    
+    res.json({
+      success: true,
+      settings: pokerAudioProduction.cooldowns.settings
+    });
+  } catch (error) {
+    logger.error('Failed to update cooldown settings', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Toggle Emergency Mute (admin only)
+ */
+app.post('/admin/audio/emergency-mute', auth.requireAdmin, (req, res) => {
+  try {
+    const muted = pokerAudioProduction.toggleEmergencyMute();
+    
+    res.json({
+      success: true,
+      emergencyMute: muted,
+      message: muted ? 'Emergency mute activated' : 'Emergency mute deactivated'
+    });
+  } catch (error) {
+    logger.error('Failed to toggle emergency mute', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Get Partner Documentation (public)
+ */
+app.get('/api/audio/partner-docs', (req, res) => {
+  try {
+    const docs = pokerAudioProduction.getPartnerDocumentation();
+    
+    res.json({
+      success: true,
+      documentation: docs
+    });
+  } catch (error) {
+    logger.error('Failed to get partner documentation', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Get Marketing Copy (public)
+ */
+app.get('/api/audio/marketing-copy', (req, res) => {
+  try {
+    const copy = pokerAudioProduction.getMarketingCopy();
+    
+    res.json({
+      success: true,
+      marketing: copy
+    });
+  } catch (error) {
+    logger.error('Failed to get marketing copy', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Enhanced Viewer Sound Trigger (with production cooldowns)
+ */
+app.post('/api/audio/trigger/viewer', auth.requireUser, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { soundName, viewerId } = req.body;
+    
+    if (!soundName) {
+      return res.status(400).json({ error: 'soundName is required' });
+    }
+    
+    // Check production cooldown system
+    const cooldownCheck = pokerAudioProduction.canTriggerSFX(userId, soundName);
+    
+    if (!cooldownCheck.allowed) {
+      return res.json({
+        success: false,
+        reason: cooldownCheck.reason,
+        remainingTime: cooldownCheck.remainingTime,
+        message: `Please wait: ${cooldownCheck.reason}`
+      });
+    }
+    
+    // Get user settings to check if viewer triggers are enabled
+    const settings = pokerAudio.getUserSettings(userId);
+    
+    if (!settings.eventSounds.viewerTriggers) {
+      return res.json({
+        success: false,
+        reason: 'Viewer triggers disabled',
+        message: 'Viewer sound effects are disabled in settings'
+      });
+    }
+    
+    // Get audio file path from production system
+    const availableAudio = pokerAudio.getAvailableAudio(userId);
+    let audioFile = null;
+    
+    // Search for the sound in all phases
+    Object.values(availableAudio).forEach(phase => {
+      Object.values(phase).forEach(category => {
+        if (category[soundName]) {
+          audioFile = category[soundName];
+        }
+      });
+    });
+    
+    if (!audioFile) {
+      return res.status(404).json({ error: 'Sound not found or not available for your tier' });
+    }
+    
+    logger.info('Viewer sound triggered (production)', { 
+      userId, 
+      soundName, 
+      viewerId, 
+      audioFile: audioFile.name 
+    });
+    
+    res.json({
+      success: true,
+      soundName,
+      audioFile: audioFile.filepath,
+      duration: audioFile.duration,
+      cooldownInfo: {
+        globalCooldown: pokerAudioProduction.cooldowns.settings.globalCooldown,
+        userCooldown: pokerAudioProduction.cooldowns.settings.userCooldown
+      },
+      message: 'Viewer sound triggered successfully'
+    });
+    
+  } catch (error) {
+    logger.error('Failed to trigger viewer sound', { error: error.message });
     res.status(500).json({ error: error.message });
   }
 });
