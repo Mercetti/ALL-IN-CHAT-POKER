@@ -20,7 +20,7 @@ const CORS_ALLOWED_ORIGINS = (process.env.CORS_ALLOWED_ORIGINS || '').trim();
 
 module.exports = {
   // Server
-  PORT: parseInt(process.env.PORT || '3000', 10),
+  PORT: parseInt(process.env.PORT || '8080', 10),
   NODE_ENV: process.env.NODE_ENV || 'development',
   IS_PRODUCTION,
 

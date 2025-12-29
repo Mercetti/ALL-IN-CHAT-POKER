@@ -14307,6 +14307,42 @@ async function start() {
 
     });
 
+    // Add error handling for server startup
+    server.on('error', (error) => {
+      if (error.syscall !== 'listen') {
+        throw error;
+      }
+
+      const bind = typeof config.PORT === 'string'
+        ? 'Pipe ' + config.PORT
+        : 'Port ' + config.PORT;
+
+      switch (error.code) {
+        case 'EACCES':
+          logger.error(`${bind} requires elevated privileges`);
+          process.exit(1);
+          break;
+        case 'EADDRINUSE':
+          logger.error(`${bind} is already in use`);
+          process.exit(1);
+          break;
+        default:
+          throw error;
+      }
+    });
+
+    // Handle uncaught exceptions
+    process.on('uncaughtException', (error) => {
+      logger.error('Uncaught Exception:', error);
+      process.exit(1);
+    });
+
+    // Handle unhandled promise rejections
+    process.on('unhandledRejection', (reason, promise) => {
+      logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+      process.exit(1);
+    });
+
   } catch (err) {
 
     logger.error('Failed to start server', { error: err.message });

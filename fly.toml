@@ -12,7 +12,7 @@ primary_region = "iad"
 [env]
   DB_FILE = "/data/data.db"
   NODE_ENV = "production"
-  PORT = "3000"
+  PORT = "8080"
 
 [processes]
   app = "node server.js"
@@ -23,7 +23,7 @@ primary_region = "iad"
   destination = "/data"
 
 [http_service]
-  internal_port = 3000
+  internal_port = 8080
   force_https = true
   auto_stop_machines = "stop"
   auto_start_machines = true
@@ -31,7 +31,7 @@ primary_region = "iad"
   processes = ["app"]
 
 [[services]]
-  internal_port = 3000
+  internal_port = 8080
   processes = ["app"]
   protocol = "tcp"
 
