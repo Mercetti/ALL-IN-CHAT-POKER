@@ -2,6 +2,11 @@
  * Overlay client with Socket.IO integration
  */
 
+// Import loading manager
+const script = document.createElement('script');
+script.src = 'loading-manager.js';
+document.head.appendChild(script);
+
 const SOCKET_URL = typeof getBackendBase === 'function' ? getBackendBase() : '';
 const overlayChannel = typeof getChannelParam === 'function' ? getChannelParam() : '';
 const isMultiStream = overlayChannel && overlayChannel.toLowerCase().startsWith('lobby-');
@@ -9,6 +14,7 @@ const isEventForChannel = (payload) => {
   if (!payload || !payload.channel) return true;
   return payload.channel === overlayChannel;
 };
+
 const socket = io(SOCKET_URL || undefined, {
   reconnection: true,
   reconnectionDelay: 1000,
@@ -562,6 +568,12 @@ socket.on('roundStarted', (data) => {
 socket.on('bettingStarted', (data) => {
   if (!isEventForChannel(data)) return;
   console.log('Betting started');
+  
+  // Show loading state for betting phase
+  if (window.loadingManager) {
+    window.loadingManager.startLoading('betting', 'Betting phase active...');
+  }
+  
   currentPhase = 'betting';
   updatePhaseUI('Place Your Bets');
   renderPlayerHands(overlayPlayers);
@@ -571,6 +583,13 @@ socket.on('bettingStarted', (data) => {
 socket.on('roundResult', (data) => {
   if (!isEventForChannel(data)) return;
   console.log('Round result:', data);
+  
+  // Stop betting loading state, start result loading
+  if (window.loadingManager) {
+    window.loadingManager.stopLoading('betting');
+    window.loadingManager.startLoading('result', 'Processing results...');
+  }
+  
   currentPhase = 'result';
   currentDealerHand = data.dealerHand || [];
   overlayPlayers = data.players || [];
@@ -1512,15 +1531,32 @@ function updatePhaseUI(phaseName) {
   const badge = document.getElementById('phase-badge');
   if (badge) {
     badge.textContent = phaseName;
-    badge.className = 'badge badge-info';
-
-    if (phaseName.includes('Betting')) {
-      badge.className = 'badge badge-warning';
-    } else if (phaseName.includes('Result') || phaseName.includes('Complete')) {
-      badge.className = 'badge badge-success';
-    } else if (phaseName.includes('Dealing')) {
-      badge.className = 'badge badge-info';
+  }
+  
+  // Update loading indicator based on loading states
+  if (window.loadingManager) {
+    const loadingTypes = window.loadingManager.getLoadingTypes();
+    const loadingIndicator = document.getElementById('loading-indicator');
+    
+    if (loadingTypes.length > 0 && loadingIndicator) {
+      const primaryLoadingType = loadingTypes[0];
+      loadingIndicator.textContent = `${primaryLoadingType.charAt(0).toUpperCase() + primaryLoadingType.slice(1)} in progress...`;
+      loadingIndicator.style.display = 'block';
+      loadingIndicator.className = 'loading-indicator active';
+    } else if (loadingIndicator) {
+      loadingIndicator.style.display = 'none';
+      loadingIndicator.className = 'loading-indicator';
     }
+  }
+  
+  badge.className = 'badge badge-info';
+
+  if (phaseName.includes('Betting')) {
+    badge.className = 'badge badge-warning';
+  } else if (phaseName.includes('Result') || phaseName.includes('Complete')) {
+    badge.className = 'badge badge-success';
+  } else if (phaseName.includes('Dealing')) {
+    badge.className = 'badge badge-info';
   }
 }
 

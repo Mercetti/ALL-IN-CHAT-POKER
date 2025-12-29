@@ -1,22 +1,34 @@
 // Supabase OAuth helper for the static frontend
 (function() {
-  const SUPABASE_URL = 'https://ertwjobuopcnrmdojeps.supabase.co';
-  const SUPABASE_ANON_KEY = 'sb_publishable_b_GSUmpGQPhTBh_vow7O8g_S3IblsBa';
-  const EDGE_FN_URL = 'https://ertwjobuopcnrmdojeps.supabase.co/functions/v1/validate-token-upsert';
-
   if (!window.supabase) {
     console.warn('Supabase JS not loaded');
     return;
   }
 
-  const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: { persistSession: true },
-  });
+  let client = null;
+  let EDGE_FN_URL = '';
+
+  async function loadConfig() {
+    const res = await fetch('/public-config.json', { method: 'GET' });
+    const cfg = await res.json().catch(() => ({}));
+    const SUPABASE_URL = (cfg.supabaseUrl || '').trim();
+    const SUPABASE_ANON_KEY = (cfg.supabaseAnonKey || '').trim();
+    EDGE_FN_URL = (cfg.supabaseEdgeFnUrl || '').trim();
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !EDGE_FN_URL) {
+      throw new Error('Supabase config not available');
+    }
+
+    client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: true },
+    });
+    window.supabaseClient = client;
+  }
 
   const getRedirectUrl = () => `${window.location.origin}/callback.html`;
 
   async function startOAuth(provider) {
     try {
+      if (!client) await loadConfig();
       const { error } = await client.auth.signInWithOAuth({
         provider,
         options: {
@@ -31,6 +43,7 @@
   }
 
   async function handleCallbackAndUpsert() {
+    if (!client) await loadConfig();
     // If the provider redirected back with an error, surface it early
     const params = new URLSearchParams(window.location.search || '');
     const redirectError = params.get('error');
@@ -90,7 +103,6 @@
     return { session, user };
   }
 
-  window.supabaseClient = client;
   window.startSupabaseOAuth = startOAuth;
   window.handleSupabaseCallbackAndUpsert = handleCallbackAndUpsert;
 })();

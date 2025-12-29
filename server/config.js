@@ -3,18 +3,40 @@
  * All environment variables and constants in one place
  */
 
+const IS_PRODUCTION = (process.env.NODE_ENV || 'development') === 'production';
+const ALLOW_INSECURE_DEFAULTS = IS_PRODUCTION
+  ? (process.env.ALLOW_INSECURE_DEFAULTS || '').toLowerCase() === 'true'
+  : true;
+
+const ENABLE_OWNER_BOOTSTRAP = IS_PRODUCTION
+  ? (process.env.ENABLE_OWNER_BOOTSTRAP || '').toLowerCase() === 'true'
+  : true;
+
+const ENFORCE_ADMIN_CSRF = IS_PRODUCTION
+  ? (process.env.ENFORCE_ADMIN_CSRF || '').toLowerCase() === 'true'
+  : false;
+
+const CORS_ALLOWED_ORIGINS = (process.env.CORS_ALLOWED_ORIGINS || '').trim();
+
 module.exports = {
   // Server
   PORT: parseInt(process.env.PORT || '3000', 10),
   NODE_ENV: process.env.NODE_ENV || 'development',
-  IS_PRODUCTION: (process.env.NODE_ENV || 'development') === 'production',
+  IS_PRODUCTION,
+
+  ALLOW_INSECURE_DEFAULTS,
+  ENABLE_OWNER_BOOTSTRAP,
+  ENFORCE_ADMIN_CSRF,
+  CORS_ALLOWED_ORIGINS,
+  ALLOW_ADMIN_QUERY_TOKEN: (process.env.ALLOW_ADMIN_QUERY_TOKEN || '').toLowerCase() === 'true',
+  ALLOW_USER_JWT_ADMIN_FALLBACK: (process.env.ALLOW_USER_JWT_ADMIN_FALLBACK || '').toLowerCase() === 'true',
 
   // Database
   DB_FILE: process.env.DB_FILE || './data/data.db',
 
   // Authentication
-  JWT_SECRET: process.env.JWT_SECRET || 'your-secret-key-change-in-production',
-  ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || 'admin123',
+  JWT_SECRET: process.env.JWT_SECRET || (ALLOW_INSECURE_DEFAULTS ? 'your-secret-key-change-in-production' : ''),
+  ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || (ALLOW_INSECURE_DEFAULTS ? 'admin123' : ''),
   ADMIN_TOKEN: process.env.ADMIN_TOKEN || '',
   ADMIN_ALLOW_LOGINS: process.env.ADMIN_ALLOW_LOGINS || 'mercetti,allinchatpokerbot',
   OWNER_LOGIN: process.env.OWNER_LOGIN || 'mercetti',
@@ -22,8 +44,8 @@ module.exports = {
   CHECKOUT_SIGNING_SECRET: process.env.CHECKOUT_SIGNING_SECRET || process.env.JWT_SECRET || 'change-me-checkout',
   BANNED_LOGINS: (process.env.BANNED_LOGINS || '').toLowerCase(),
   BANNED_IPS: (process.env.BANNED_IPS || '').toLowerCase(),
-  SUPABASE_URL: process.env.SUPABASE_URL || 'https://ertwjobuopcnrmdojeps.supabase.co',
-  SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || 'sb_publishable_b_GSUmpGQPhTBh_vow7O8g_S3IblsBa',
+  SUPABASE_URL: process.env.SUPABASE_URL || (IS_PRODUCTION ? '' : 'https://ertwjobuopcnrmdojeps.supabase.co'),
+  SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || (IS_PRODUCTION ? '' : 'sb_publishable_b_GSUmpGQPhTBh_vow7O8g_S3IblsBa'),
   ADMIN_ALLOW_EMAILS: (process.env.ADMIN_ALLOW_EMAILS || '').toLowerCase(),
 
   // JWT

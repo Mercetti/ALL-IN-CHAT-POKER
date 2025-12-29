@@ -47,14 +47,44 @@ function checkStartup() {
 function checkEnvironment() {
   const issues = [];
 
+  const isProd = config.IS_PRODUCTION;
+
+  const missing = (name) => issues.push(`${name} not set`);
+  const insecure = (name, msg) => issues.push(`${name} insecure: ${msg}`);
+
   if (!process.env.JWT_SECRET) {
-    issues.push('JWT_SECRET not set; using default value (change in production)');
+    if (isProd) missing('JWT_SECRET');
+    else issues.push('JWT_SECRET not set; using default value (change in production)');
+  } else if (process.env.JWT_SECRET === 'your-secret-key-change-in-production') {
+    insecure('JWT_SECRET', 'using known default');
+  }
+
+  if (!process.env.ADMIN_PASSWORD) {
+    if (isProd) missing('ADMIN_PASSWORD');
+  } else if (process.env.ADMIN_PASSWORD === 'admin123') {
+    insecure('ADMIN_PASSWORD', 'using known default');
+  }
+
+  // CHECKOUT_SIGNING_SECRET may intentionally fall back to JWT_SECRET.
+  const checkoutSecret = config.CHECKOUT_SIGNING_SECRET;
+  if (isProd) {
+    if (!checkoutSecret) missing('CHECKOUT_SIGNING_SECRET');
+    else if (checkoutSecret === 'change-me-checkout') insecure('CHECKOUT_SIGNING_SECRET', 'using known default');
+  }
+
+  if (isProd && (process.env.OWNER_BOOT_PASSWORD || '').trim() === 'password') {
+    insecure('OWNER_BOOT_PASSWORD', 'using known default');
+  }
+
+  if (isProd) {
+    if (!process.env.SUPABASE_URL) missing('SUPABASE_URL');
+    if (!process.env.SUPABASE_ANON_KEY) missing('SUPABASE_ANON_KEY');
   }
 
   return {
     ok: issues.length === 0,
     error: issues.join('; '),
-    severity: issues.length > 0 ? 'warning' : undefined,
+    severity: issues.length > 0 ? (isProd ? 'critical' : 'warning') : undefined,
     details: {
       port: config.PORT,
       nodeEnv: config.NODE_ENV,

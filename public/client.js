@@ -318,6 +318,7 @@ async function apiCall(endpoint, options = {}) {
   const token = useUserToken ? getUserToken() : getToken();
   const adminBearer = useUserToken ? null : getAdminBearer();
   const channel = typeof getChannelParam === 'function' ? getChannelParam() : '';
+  const method = ((options.method || 'GET') + '').toUpperCase();
   const headers = {
     'Content-Type': 'application/json',
     ...options.headers,
@@ -330,6 +331,19 @@ async function apiCall(endpoint, options = {}) {
   }
   if (channel) {
     headers['x-channel'] = channel;
+  }
+
+  if (endpoint && typeof endpoint === 'string' && endpoint.startsWith('/admin/') && method !== 'GET') {
+    try {
+      const cookies = document.cookie || '';
+      const m = cookies.match(/(?:^|;\s*)csrf_token=([^;]+)/);
+      const csrfToken = m ? decodeURIComponent(m[1]) : '';
+      if (csrfToken && !headers['x-csrf-token'] && !headers['X-CSRF-Token']) {
+        headers['x-csrf-token'] = csrfToken;
+      }
+    } catch {
+      // ignore
+    }
   }
 
   try {

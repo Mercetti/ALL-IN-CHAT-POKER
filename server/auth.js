@@ -18,6 +18,18 @@ const adminAllowEmails = (config.ADMIN_ALLOW_EMAILS || '')
   .map(s => s.trim().toLowerCase())
   .filter(Boolean);
 
+function verifyJwtWithOptionalAudience(token, expectedAud) {
+  const payload = jwt.verify(token, config.JWT_SECRET);
+  if (payload && payload.aud && expectedAud) {
+    const aud = payload.aud;
+    const ok = Array.isArray(aud) ? aud.includes(expectedAud) : aud === expectedAud;
+    if (!ok) {
+    throw new Error('invalid_audience');
+    }
+  }
+  return payload;
+}
+
 /**
  * Read a header from either an Express request or a Socket.IO handshake
  * @param {Object} req
@@ -48,8 +60,10 @@ function extractAdminToken(req) {
   const headerToken = getHeader(req, 'x-admin-token');
   if (headerToken) return headerToken;
 
-  // 3. Query parameter (deprecated but supported)
-  if (req && req.query && req.query.token) return req.query.token;
+  // 3. Query parameter (deprecated)
+  // Disabled by default in production; can be re-enabled explicitly.
+  const allowQuery = !config.IS_PRODUCTION || config.ALLOW_ADMIN_QUERY_TOKEN;
+  if (allowQuery && req && req.query && req.query.token) return req.query.token;
 
   return null;
 }
@@ -67,7 +81,7 @@ function extractJWT(req) {
   if (!match) return null;
 
   try {
-    return jwt.verify(match[1], config.JWT_SECRET);
+    return verifyJwtWithOptionalAudience(match[1], 'admin');
   } catch (e) {
     logger.debug('JWT verification failed', { error: e.message });
     return null;
@@ -89,7 +103,11 @@ function isAdminRequest(req) {
     const token = extractAdminToken(req);
     if (config.ADMIN_TOKEN && token === config.ADMIN_TOKEN) return true;
 
-    // Allow streamer (by login) to act as admin when presenting a valid user JWT
+    // Allow streamer/roles to act as admin when presenting a valid user JWT
+    // Disabled by default in production; can be re-enabled explicitly.
+    const allowUserJwtFallback = !config.IS_PRODUCTION || config.ALLOW_USER_JWT_ADMIN_FALLBACK;
+    if (!allowUserJwtFallback) return false;
+
     const userToken =
       extractAdminToken(req) ||
       (req && req.handshake && req.handshake.auth && req.handshake.auth.token) ||
@@ -101,7 +119,7 @@ function isAdminRequest(req) {
         ? userToken.slice(7).trim()
         : userToken;
       try {
-        const payload = jwt.verify(bearer, config.JWT_SECRET);
+        const payload = verifyJwtWithOptionalAudience(bearer, 'user');
         const user = payload && payload.user ? payload.user.toLowerCase() : null;
         if (user && config.STREAMER_LOGIN && user === config.STREAMER_LOGIN.toLowerCase()) return true;
         if (user && config.BOT_ADMIN_LOGIN && user === config.BOT_ADMIN_LOGIN.toLowerCase()) return true;
@@ -131,7 +149,7 @@ function isAdminRequest(req) {
  * @returns {string} - Signed JWT
  */
 function signJWT(payload, expiresInSeconds = config.ADMIN_JWT_TTL_SECONDS) {
-  return jwt.sign(payload, config.JWT_SECRET, { expiresIn: expiresInSeconds });
+  return jwt.sign(payload, config.JWT_SECRET, { expiresIn: expiresInSeconds, audience: 'admin' });
 }
 
 /**
@@ -141,7 +159,7 @@ function signJWT(payload, expiresInSeconds = config.ADMIN_JWT_TTL_SECONDS) {
  * @returns {string}
  */
 function signUserJWT(login, expiresInSeconds = config.USER_JWT_TTL_SECONDS) {
-  return jwt.sign({ user: login }, config.JWT_SECRET, { expiresIn: expiresInSeconds });
+  return jwt.sign({ user: login }, config.JWT_SECRET, { expiresIn: expiresInSeconds, audience: 'user' });
 }
 
 /**
@@ -223,7 +241,7 @@ function extractUserLogin(req) {
   // Socket.IO auth payload: { token }
   if (req && req.auth && typeof req.auth.token === 'string') {
     try {
-      const decoded = jwt.verify(req.auth.token, config.JWT_SECRET);
+      const decoded = verifyJwtWithOptionalAudience(req.auth.token, 'user');
       if (decoded && decoded.user) {
         return decoded.user;
       }
@@ -237,7 +255,7 @@ function extractUserLogin(req) {
   if (authHeader.toLowerCase().startsWith('bearer ')) {
     const token = authHeader.slice(7).trim();
     try {
-      const decoded = jwt.verify(token, config.JWT_SECRET);
+      const decoded = verifyJwtWithOptionalAudience(token, 'user');
       if (decoded && decoded.user) {
         return decoded.user;
       }

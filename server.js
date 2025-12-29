@@ -201,6 +201,83 @@ const {
 
 const { applyPatchFile } = require('./server/patch');
 
+const utils = require('./server/utils');
+
+// Cleanup on server shutdown
+process.on('SIGTERM', () => {
+  logger.info('Server shutting down, cleaning up timers');
+  timerManager.clearAll();
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  logger.info('Server interrupted, cleaning up timers');
+  timerManager.clearAll();
+  process.exit(0);
+});
+
+// Timer manager for centralized timer management
+const { timerManager, performance: perfUtils } = utils;
+
+// Create state cache for expensive computations
+const playerStatesCache = new Map(); // channel -> { data, timestamp }
+
+function getCachedPlayerStates(channelName, state) {
+  const now = Date.now();
+  const cached = playerStatesCache.get(channelName);
+  
+  // Use cached data if less than 50ms old and state hasn't changed
+  if (cached && (now - cached.timestamp) < 50 && 
+      JSON.stringify(cached.stateSnapshot) === JSON.stringify({
+        playerStates: state.playerStates,
+        currentMode: state.currentMode,
+        currentHand: state.currentHand
+      })) {
+    return cached.data;
+  }
+  
+  // Compute and cache the expensive operation
+  const computedPlayers = Object.entries(state.playerStates || {}).map(([login, st]) => ({
+    login,
+    hand: st.hand,
+    hands: st.hands,
+    bet: st.bet,
+    chips: st.chips,
+    activeHand: st.activeHand,
+    split: st.split,
+    insurance: st.insurance,
+    insurancePlaced: st.insurancePlaced,
+    result: st.result,
+    folded: st.folded,
+    seat: st.seat,
+  }));
+  
+  playerStatesCache.set(channelName, {
+    data: computedPlayers,
+    timestamp: now,
+    stateSnapshot: {
+      playerStates: state.playerStates,
+      currentMode: state.currentMode,
+      currentHand: state.currentHand
+    }
+  });
+  
+  // Clean old cache entries periodically
+  if (playerStatesCache.size > 20) {
+    const cutoff = now - 1000; // Remove entries older than 1 second
+    for (const [key, value] of playerStatesCache.entries()) {
+      if (value.timestamp < cutoff) {
+        playerStatesCache.delete(key);
+      }
+    }
+  }
+  
+  return computedPlayers;
+}
+
+// Admin modules - conservative import (functions will be removed incrementally)
+const admin = require('./server/admin');
+
 const fetch = global.fetch;
 
 const DEFAULT_AVATAR = 'https://all-in-chat-poker.fly.dev/logo.png';
@@ -3584,20 +3661,14 @@ function buildOverlaySnapshot(channelRaw) {
 
   const sockets = room ? room.size : 0;
 
-  const players = Object.entries(state.playerStates || {}).map(([login, st]) => ({
-
-    login,
-
-    bet: (state.betAmounts && state.betAmounts[login]) || 0,
-
-    balance: db.getBalance(login),
-
-    handCount: Array.isArray(st.hand) ? st.hand.length : 0,
-
-    folded: !!st.folded,
-
-    stood: !!st.stood,
-
+  const cachedPlayers = getCachedPlayerStates(channelName, state);
+  const players = cachedPlayers.map(player => ({
+    login: player.login,
+    bet: (state.betAmounts && state.betAmounts[player.login]) || 0,
+    balance: db.getBalance(player.login),
+    handCount: Array.isArray(player.hand) ? player.hand.length : 0,
+    folded: !!player.folded,
+    stood: !!player.stood,
   }));
 
   return {
@@ -5324,7 +5395,7 @@ function placeBet(username, amount, channel = DEFAULT_CHANNEL) {
 
   const isNewPlayer = state.betAmounts[username] === undefined;
 
-  const activeCount = Object.keys(state.betAmounts).length + (isNewPlayer ? 1 : 0);
+  const activeCount = perfUtils.getObjectSize(state.betAmounts) + (isNewPlayer ? 1 : 0);
 
   if (isNewPlayer && activeCount > maxPlayers) {
 
@@ -5530,7 +5601,7 @@ function startPokerActionTimer(channel = DEFAULT_CHANNEL) {
 
   const emitter = io.to(channelName);
 
-  if (state.pokerActionTimer) clearTimeout(state.pokerActionTimer);
+  if (state.pokerActionTimer) timerManager.clearTimer(state.pokerActionTimer);
 
   state.pokerActionTimer = startPokerPhaseTimer(
 
@@ -5614,7 +5685,7 @@ function advancePokerPhase(channel = DEFAULT_CHANNEL) {
 
     state.pokerPhase = 'showdown';
 
-    if (state.pokerActionTimer) clearTimeout(state.pokerActionTimer);
+    if (state.pokerActionTimer) timerManager.clearTimer(state.pokerActionTimer);
 
     settleRound({ channel });
 
@@ -5754,11 +5825,11 @@ function cleanupAfterSettle(channel = DEFAULT_CHANNEL) {
 
   state.readyPlayers = new Set();
 
-  if (state.bettingTimer) clearTimeout(state.bettingTimer);
+  if (state.bettingTimer) timerManager.clearTimer(state.bettingTimer);
 
-  if (state.blackjackActionTimer) clearTimeout(state.blackjackActionTimer);
+  if (state.blackjackActionTimer) timerManager.clearTimer(state.blackjackActionTimer);
 
-  if (state.pokerActionTimer) clearTimeout(state.pokerActionTimer);
+  if (state.pokerActionTimer) timerManager.clearTimer(state.pokerActionTimer);
 
   if (state.turnManager && state.turnManager.stop) state.turnManager.stop();
 
@@ -5828,7 +5899,7 @@ function emitQueueUpdate(channel = DEFAULT_CHANNEL) {
 
   const state = getStateForChannel(channelName);
 
-  const bets = Object.keys(state.betAmounts).length;
+  const bets = perfUtils.getObjectSize(state.betAmounts);
 
   io.to(channelName).emit('queueUpdate', {
 
@@ -5902,14 +5973,11 @@ function openBettingWindow(channel = DEFAULT_CHANNEL) {
 
 
 
-  if (state.bettingTimer) clearTimeout(state.bettingTimer);
+  if (state.bettingTimer) timerManager.clearTimer(state.bettingTimer);
 
-  state.bettingTimer = setTimeout(() => {
-
+  state.bettingTimer = timerManager.setTimeout('betting', () => {
     state.bettingOpen = false;
-
     startRoundInternal(channelName);
-
   }, duration);
 
 
@@ -5932,7 +6000,7 @@ function startRoundInternal(channel = DEFAULT_CHANNEL, opts = {}) {
 
   try {
 
-    if (state.bettingTimer) clearTimeout(state.bettingTimer);
+    if (state.bettingTimer) timerManager.clearTimer(state.bettingTimer);
 
     state.bettingOpen = false;
 
@@ -5976,7 +6044,8 @@ function startRoundInternal(channel = DEFAULT_CHANNEL, opts = {}) {
 
 
 
-    let bettors = Object.keys(state.betAmounts);
+    let bettors = [];
+perfUtils.forEachKey(state.betAmounts, (login) => bettors.push(login));
 
     if (overlaySettingsByChannel[channelName]?.autoFillAi) {
 
@@ -5992,7 +6061,8 @@ function startRoundInternal(channel = DEFAULT_CHANNEL, opts = {}) {
 
         state.bettingOpen = prevOpen;
 
-        bettors = Object.keys(state.betAmounts);
+        bettors = [];
+perfUtils.forEachKey(state.betAmounts, (login) => bettors.push(login));
 
       }
 
@@ -6018,7 +6088,7 @@ function startRoundInternal(channel = DEFAULT_CHANNEL, opts = {}) {
 
 
 
-    const activeBettors = Object.keys(state.betAmounts);
+    const activeBettors = perfUtils.getObjectSize(state.betAmounts);
 
     if (activeBettors.length === 0) {
 
@@ -6128,31 +6198,22 @@ function startRoundInternal(channel = DEFAULT_CHANNEL, opts = {}) {
 
       dealerHand: state.currentMode === 'blackjack' ? state.currentHand : null,
 
-      players: Object.entries(state.playerStates).map(([login, pState]) => ({
-
-        login,
-
-        hand: pState.hand || pState.hole || [],
-
-        hands: pState.hands,
-
-        activeHand: pState.activeHand,
-
-        split: pState.isSplit,
-
-        insurance: pState.insurance,
-
-        insurancePlaced: pState.insurancePlaced,
-
-        bet: state.betAmounts[login] || 0,
-
-        streetBet: state.pokerStreetBets[login] || 0,
-
-        avatar: (db.getProfile(login)?.settings && JSON.parse(db.getProfile(login).settings || '{}').avatarUrl) || null,
-
-        cosmetics: getCosmeticsForLogin(login),
-
-      })),
+      players: (() => {
+        const cachedPlayers = getCachedPlayerStates(channelName, state);
+        return cachedPlayers.map(player => ({
+          login: player.login,
+          hand: player.hand || player.hole || [],
+          hands: player.hands,
+          activeHand: player.activeHand,
+          split: player.isSplit,
+          insurance: player.insurance,
+          insurancePlaced: player.insurancePlaced,
+          bet: state.betAmounts[player.login] || 0,
+          streetBet: state.pokerStreetBets[player.login] || 0,
+          avatar: (db.getProfile(player.login)?.settings && JSON.parse(db.getProfile(player.login).settings || '{}').avatarUrl) || null,
+          cosmetics: getCosmeticsForLogin(player.login),
+        }));
+      })(),
 
       waiting: state.waitingQueue,
 
@@ -6176,7 +6237,7 @@ function startRoundInternal(channel = DEFAULT_CHANNEL, opts = {}) {
 
     if (state.currentMode === 'blackjack') {
 
-      if (state.blackjackActionTimer) clearTimeout(state.blackjackActionTimer);
+      if (state.blackjackActionTimer) timerManager.clearTimer(state.blackjackActionTimer);
 
       state.blackjackActionTimer = state.blackjackHandlers?.actionTimer?.();
 
@@ -6236,7 +6297,8 @@ function addTestBots(channel = DEFAULT_CHANNEL, count = 3, maxSeats = MAX_BLACKJ
 
   const added = [];
 
-  const used = new Set(Object.keys(state.betAmounts || {}));
+  const used = new Set();
+perfUtils.forEachKey(state.betAmounts || {}, (login) => used.add(login));
 
   for (let i = 1; i <= safeCount; i += 1) {
 
@@ -6304,7 +6366,7 @@ function addTestBots(channel = DEFAULT_CHANNEL, count = 3, maxSeats = MAX_BLACKJ
 
       const freshState = getStateForChannel(channelName);
 
-      const activeBettors = Object.keys(freshState.betAmounts || {}).length;
+      const activeBettors = perfUtils.getObjectSize(freshState.betAmounts || {});
 
       if (!freshState.roundInProgress && activeBettors > 0) {
 
@@ -9949,7 +10011,7 @@ function scheduleTournamentBlinds(tournamentId) {
 
   if (tournamentTimers[tournamentId]) {
 
-    clearTimeout(tournamentTimers[tournamentId]);
+    timerManager.clearTimer(tournamentTimers[tournamentId]);
 
     delete tournamentTimers[tournamentId];
 
@@ -9983,8 +10045,7 @@ function scheduleTournamentBlinds(tournamentId) {
 
   db.upsertTournament({ ...t, next_level_at: new Date(nextLevelAt).toISOString() });
 
-  tournamentTimers[tournamentId] = setTimeout(() => {
-
+  tournamentTimers[tournamentId] = timerManager.setTimeout('tournament', () => {
     const latest = db.getTournament(tournamentId);
 
     const updated = db.upsertTournament({
@@ -10141,7 +10202,7 @@ function applyBlackjackAntes(channelName) {
 
   });
 
-  return Object.keys(state.betAmounts).length > 0;
+  return perfUtils.getObjectSize(state.betAmounts) > 0;
 
 }
 
@@ -10689,16 +10750,12 @@ app.get('/bot/state', (req, res) => {
 
   const maxSeats = state.currentMode === 'blackjack' ? MAX_BLACKJACK_PLAYERS : MAX_POKER_PLAYERS;
 
-  const players = Object.entries(state.playerStates || {}).map(([login, st]) => ({
-
-    login,
-
-    bet: (state.betAmounts && state.betAmounts[login]) || 0,
-
-    streetBet: (state.pokerStreetBets && state.pokerStreetBets[login]) || 0,
-
-    folded: !!st.folded,
-
+  const cachedPlayers = getCachedPlayerStates(channelName, state);
+  const players = cachedPlayers.map(player => ({
+    login: player.login,
+    bet: (state.betAmounts && state.betAmounts[player.login]) || 0,
+    streetBet: (state.pokerStreetBets && state.pokerStreetBets[player.login]) || 0,
+    folded: !!player.folded,
   }));
 
   const waiting = Array.isArray(state.waitingQueue) ? state.waitingQueue : [];
