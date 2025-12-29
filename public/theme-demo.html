@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme System Demo - All-In Chat Poker</title>
+    <meta name="description" content="Interactive demo of the All-In Chat Poker theme system">
+    <link rel="stylesheet" href="style-enhanced-common.css">
+    <link rel="stylesheet" href="style-theme-demo.css">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="animated-bg"></div>
+    <div class="floating-cards">
+        <div class="floating-card"></div>
+        <div class="floating-card"></div>
+        <div class="floating-card"></div>
+        <div class="floating-card"></div>
+        <div class="floating-card"></div>
+    </div>
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="gradient-orb orb-3"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo">
+                    <span class="logo-icon">🎨</span>
+                    <div class="logo-text">
+                        <h1>Theme System</h1>
+                        <span class="logo-subtitle">Interactive Demo</span>
+                    </div>
+                </div>
+            </div>
+            <nav class="header-nav">
+                <a href="index-enhanced.html" class="nav-link">Home</a>
+                <a href="component-demo.html" class="nav-link">Components</a>
+                <a href="theme-demo.html" class="nav-link active">Themes</a>
+                <a href="help-enhanced.html" class="nav-link">Help</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="status-dot"></span>
+                    Dynamic Theme System
+                </div>
+                <h1 class="hero-title">Beautiful Themes, Every Time</h1>
+                <p class="hero-subtitle">
+                    Experience multiple carefully crafted themes with smooth transitions, 
+                    auto-mode support, and persistent preferences across all enhanced pages.
+                </p>
+                <div class="hero-actions">
+                    <button class="btn btn-primary" onclick="window.themeManager.openThemeSelector()">
+                        Open Theme Selector
+                    </button>
+                    <button class="btn btn-secondary" onclick="toggleAutoMode()">
+                        Toggle Auto Mode
+                    </button>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="theme-showcase">
+                    <div class="theme-preview-card" data-theme="dark">
+                        <div class="preview-icon">🌙</div>
+                        <div class="preview-name">Dark</div>
+                    </div>
+                    <div class="theme-preview-card" data-theme="light">
+                        <div class="preview-icon">☀️</div>
+                        <div class="preview-name">Light</div>
+                    </div>
+                    <div class="theme-preview-card" data-theme="neon">
+                        <div class="preview-icon">💜</div>
+                        <div class="preview-name">Neon</div>
+                    </div>
+                    <div class="theme-preview-card" data-theme="retro">
+                        <div class="preview-icon">🕹️</div>
+                        <div class="preview-name">Retro</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Theme Features -->
+        <section class="theme-features">
+            <h2 class="section-title">Theme Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h3>Multiple Themes</h3>
+                    <p>Choose from Dark, Light, Neon, and Retro themes, each with unique visual characteristics.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3>Smooth Transitions</h3>
+                    <p>Enjoy seamless theme switching with smooth animations and transitions.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💾</div>
+                    <h3>Persistent Preferences</h3>
+                    <p>Your theme choice is automatically saved and restored across sessions.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3>Auto Mode</h3>
+                    <p>Automatically follow your system's light/dark preference.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⌨️</div>
+                    <h3>Keyboard Shortcuts</h3>
+                    <p>Quick theme switching with keyboard shortcuts (Ctrl+Shift+T).</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">♿</div>
+                    <h3>Accessibility</h3>
+                    <p>Full support for reduced motion, high contrast, and screen readers.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Theme Showcase -->
+        <section class="theme-showcase-section">
+            <h2 class="section-title">Theme Showcase</h2>
+            
+            <!-- Dark Theme -->
+            <div class="theme-showcase-item">
+                <div class="theme-info">
+                    <h3>🌙 Dark Theme</h3>
+                    <p>The classic dark theme optimized for low-light environments and extended viewing sessions.</p>
+                    <div class="theme-colors">
+                        <span class="color-swatch" style="background: #0a0f1c"></span>
+                        <span class="color-swatch" style="background: #00d4ff"></span>
+                        <span class="color-swatch" style="background: #ff00ff"></span>
+                        <span class="color-swatch" style="background: #00ff88"></span>
+                    </div>
+                </div>
+                <div class="theme-demo glass-panel">
+                    <h4>Sample Content</h4>
+                    <p>This is how content looks in the dark theme with glass-morphism effects.</p>
+                    <button class="btn btn-primary">Primary Button</button>
+                    <button class="btn btn-secondary">Secondary Button</button>
+                </div>
+            </div>
+
+            <!-- Light Theme -->
+            <div class="theme-showcase-item">
+                <div class="theme-info">
+                    <h3>☀️ Light Theme</h3>
+                    <p>A clean, bright theme perfect for daytime use and well-lit environments.</p>
+                    <div class="theme-colors">
+                        <span class="color-swatch" style="background: #ffffff"></span>
+                        <span class="color-swatch" style="background: #0066cc"></span>
+                        <span class="color-swatch" style="background: #6b46c1"></span>
+                        <span class="color-swatch" style="background: #00aa44"></span>
+                    </div>
+                </div>
+                <div class="theme-demo glass-panel">
+                    <h4>Sample Content</h4>
+                    <p>This is how content looks in the light theme with enhanced readability.</p>
+                    <button class="btn btn-primary">Primary Button</button>
+                    <button class="btn btn-secondary">Secondary Button</button>
+                </div>
+            </div>
+
+            <!-- Neon Theme -->
+            <div class="theme-showcase-item">
+                <div class="theme-info">
+                    <h3>💜 Neon Theme</h3>
+                    <p>A vibrant cyberpunk-inspired theme with glowing neon effects and bold colors.</p>
+                    <div class="theme-colors">
+                        <span class="color-swatch" style="background: #0a0014"></span>
+                        <span class="color-swatch" style="background: #ff00ff"></span>
+                        <span class="color-swatch" style="background: #00ffff"></span>
+                        <span class="color-swatch" style="background: #ffff00"></span>
+                    </div>
+                </div>
+                <div class="theme-demo glass-panel">
+                    <h4>Sample Content</h4>
+                    <p>Experience the future with this electrifying neon theme.</p>
+                    <button class="btn btn-primary neon-glow">Primary Button</button>
+                    <button class="btn btn-secondary neon-glow">Secondary Button</button>
+                </div>
+            </div>
+
+            <!-- Retro Theme -->
+            <div class="theme-showcase-item">
+                <div class="theme-info">
+                    <h3>🕹️ Retro Theme</h3>
+                    <p>A nostalgic retro computing theme with green phosphor colors and scanline effects.</p>
+                    <div class="theme-colors">
+                        <span class="color-swatch" style="background: #2d1b69"></span>
+                        <span class="color-swatch" style="background: #00ff41"></span>
+                        <span class="color-swatch" style="background: #ff00ff"></span>
+                        <span class="color-swatch" style="background: #00ffff"></span>
+                    </div>
+                </div>
+                <div class="theme-demo glass-panel">
+                    <h4>Sample Content</h4>
+                    <p>Go back to the golden age of computing with this retro theme.</p>
+                    <button class="btn btn-primary">Primary Button</button>
+                    <button class="btn btn-secondary">Secondary Button</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Keyboard Shortcuts -->
+        <section class="keyboard-shortcuts">
+            <h2 class="section-title">Keyboard Shortcuts</h2>
+            <div class="shortcuts-grid">
+                <div class="shortcut-item">
+                    <div class="shortcut-keys">
+                        <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>T</kbd>
+                    </div>
+                    <div class="shortcut-description">
+                        Toggle between themes
+                    </div>
+                </div>
+                <div class="shortcut-item">
+                    <div class="shortcut-keys">
+                        <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd>
+                    </div>
+                    <div class="shortcut-description">
+                        Open theme selector
+                    </div>
+                </div>
+                <div class="shortcut-item">
+                    <div class="shortcut-keys">
+                        <kbd>Right-click</kbd> theme toggle
+                    </div>
+                    <div class="shortcut-description">
+                        Open theme selector
+                    </div>
+                </div>
+                <div class="shortcut-item">
+                    <div class="shortcut-keys">
+                        <kbd>Long-press</kbd> theme toggle
+                    </div>
+                    <div class="shortcut-description">
+                        Open theme selector
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Theme Settings -->
+        <section class="theme-settings">
+            <h2 class="section-title">Theme Settings</h2>
+            <div class="settings-panel glass-panel">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Auto Mode</h4>
+                        <p>Automatically follow your system's light/dark preference</p>
+                    </div>
+                    <div class="setting-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="auto-mode-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Transition Duration</h4>
+                        <p>Adjust the speed of theme transitions</p>
+                    </div>
+                    <div class="setting-control">
+                        <input type="range" id="transition-duration" min="100" max="1000" value="300" step="100">
+                        <span class="duration-value">300ms</span>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Reduced Motion</h4>
+                        <p>Reduce animations for better performance and accessibility</p>
+                    </div>
+                    <div class="setting-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="reduced-motion">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Theme System</h4>
+                <p>Dynamic theming for All-In Chat Poker enhanced pages</p>
+            </div>
+            <div class="footer-section">
+                <h4>Demos</h4>
+                <ul>
+                    <li><a href="component-demo.html">Components</a></li>
+                    <li><a href="theme-demo.html">Themes</a></li>
+                    <li><a href="index-enhanced.html">Home</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 All-In Chat Poker. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="theme-manager.js"></script>
+    <script src="js-enhanced-common.js"></script>
+    <script src="theme-demo.js"></script>
+</body>
+</html>

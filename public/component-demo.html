@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Component Library Demo - All-In Chat Poker</title>
+    <meta name="description" content="Interactive demo of the All-In Chat Poker component library">
+    <link rel="stylesheet" href="style-enhanced-common.css">
+    <link rel="stylesheet" href="style-component-demo.css">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="animated-bg"></div>
+    <div class="floating-cards">
+        <div class="floating-card"></div>
+        <div class="floating-card"></div>
+        <div class="floating-card"></div>
+        <div class="floating-card"></div>
+        <div class="floating-card"></div>
+    </div>
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="gradient-orb orb-3"></div>
+
+    <!-- Navigation Header Component -->
+    <div data-component="navigation-header" 
+         data-title="Component Library" 
+         data-subtitle="Interactive Demo"
+         data-logo-icon="🧩">
+    </div>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Hero Section Component -->
+        <div data-component="hero-section" 
+             data-title="Reusable UI Components" 
+             data-subtitle="A comprehensive library of modern, accessible components for All-In Chat Poker enhanced pages"
+             data-badge="Component Library">
+        </div>
+
+        <!-- Component Categories -->
+        <section class="demo-section">
+            <h2 class="section-title">Component Showcase</h2>
+            
+            <!-- Buttons Demo -->
+            <div class="demo-group">
+                <h3>Enhanced Buttons</h3>
+                <div class="demo-grid">
+                    <div data-component="enhanced-button" 
+                         data-text="Primary Button" 
+                         data-variant="primary"
+                         data-icon="🚀"></div>
+                    <div data-component="enhanced-button" 
+                         data-text="Secondary Button" 
+                         data-variant="secondary"
+                         data-icon="⚡"></div>
+                    <div data-component="enhanced-button" 
+                         data-text="Success Button" 
+                         data-variant="success"
+                         data-icon="✅"></div>
+                    <div data-component="enhanced-button" 
+                         data-text="Warning Button" 
+                         data-variant="warning"
+                         data-icon="⚠️"></div>
+                    <div data-component="enhanced-button" 
+                         data-text="Error Button" 
+                         data-variant="error"
+                         data-icon="❌"></div>
+                    <div data-component="enhanced-button" 
+                         data-text="Loading..." 
+                         data-variant="primary"
+                         data-loading="true"></div>
+                </div>
+            </div>
+
+            <!-- Status Badges Demo -->
+            <div class="demo-group">
+                <h3>Status Badges</h3>
+                <div class="demo-grid">
+                    <div data-component="status-badge" 
+                         data-text="Active" 
+                         data-status="success"
+                         data-icon="✓"></div>
+                    <div data-component="status-badge" 
+                         data-text="Pending" 
+                         data-status="warning"
+                         data-icon="⏳"></div>
+                    <div data-component="status-badge" 
+                         data-text="Error" 
+                         data-status="error"
+                         data-icon="✕"></div>
+                    <div data-component="status-badge" 
+                         data-text="Info" 
+                         data-status="info"
+                         data-icon="ℹ"></div>
+                </div>
+            </div>
+
+            <!-- Glass Cards Demo -->
+            <div class="demo-group">
+                <h3>Glass Cards</h3>
+                <div class="demo-grid">
+                    <div data-component="glass-card" 
+                         data-header="Feature Card"
+                         data-content="This is a glass-morphism card with header and content sections."
+                         data-footer="<button class='btn btn-primary'>Learn More</button>"></div>
+                    <div data-component="glass-card" 
+                         data-content="Simple card with just content, no header or footer."></div>
+                </div>
+            </div>
+
+            <!-- Feature Cards Demo -->
+            <div class="demo-group">
+                <h3>Feature Cards</h3>
+                <div class="demo-grid">
+                    <div data-component="feature-card" 
+                         data-icon="🎮"
+                         data-title="Gaming Integration"
+                         data-description="Seamless integration with Twitch chat and streaming platforms"
+                         data-link="#gaming"></div>
+                    <div data-component="feature-card" 
+                         data-icon="🎨"
+                         data-title="Customizable Design"
+                         data-description="Modern glass-morphism design with customizable themes and animations"
+                         data-link="#design"></div>
+                    <div data-component="feature-card" 
+                         data-icon="⚡"
+                         data-title="High Performance"
+                         data-description="Optimized for speed and efficiency with smooth animations"
+                         data-link="#performance"></div>
+                </div>
+            </div>
+
+            <!-- Form Inputs Demo -->
+            <div class="demo-group">
+                <h3>Form Components</h3>
+                <div class="demo-form">
+                    <div data-component="form-input" 
+                         data-label="Username"
+                         data-input-id="username"
+                         data-type="text"
+                         data-placeholder="Enter your username"
+                         data-icon="👤"
+                         data-required="true"></div>
+                    <div data-component="form-input" 
+                         data-label="Email"
+                         data-input-id="email"
+                         data-type="email"
+                         data-placeholder="Enter your email"
+                         data-icon="📧"
+                         data-required="true"></div>
+                    <div data-component="form-input" 
+                         data-label="Message"
+                         data-input-id="message"
+                         data-type="textarea"
+                         data-placeholder="Type your message here"
+                         data-icon="💬"></div>
+                </div>
+            </div>
+
+            <!-- Icon Buttons Demo -->
+            <div class="demo-group">
+                <h3>Icon Buttons</h3>
+                <div class="demo-grid">
+                    <div data-component="icon-button" 
+                         data-icon="🔍"
+                         data-title="Search"
+                         data-variant="primary"></div>
+                    <div data-component="icon-button" 
+                         data-icon="⚙️"
+                         data-title="Settings"
+                         data-variant="secondary"></div>
+                    <div data-component="icon-button" 
+                         data-icon="🗑️"
+                         data-title="Delete"
+                         data-variant="error"></div>
+                    <div data-component="icon-button" 
+                         data-icon="💾"
+                         data-title="Save"
+                         data-variant="success"></div>
+                </div>
+            </div>
+
+            <!-- Loading Spinner Demo -->
+            <div class="demo-group">
+                <h3>Loading Spinners</h3>
+                <div class="demo-grid">
+                    <div data-component="loading-spinner" 
+                         data-size="sm"
+                         data-text="Loading..."></div>
+                    <div data-component="loading-spinner" 
+                         data-size="md"
+                         data-text="Processing..."></div>
+                    <div data-component="loading-spinner" 
+                         data-size="lg"
+                         data-text="Please wait..."></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Demo Section -->
+        <section class="demo-section">
+            <h2 class="section-title">Interactive Demo</h2>
+            
+            <!-- Toast Container -->
+            <div data-component="toast-container" id="toast-demo"></div>
+            
+            <div class="demo-controls">
+                <h3>Test Components</h3>
+                <div class="control-buttons">
+                    <button class="btn btn-primary" onclick="showToast('success', 'Success! Operation completed.')">Show Success Toast</button>
+                    <button class="btn btn-secondary" onclick="showToast('error', 'Error! Something went wrong.')">Show Error Toast</button>
+                    <button class="btn btn-secondary" onclick="showToast('warning', 'Warning! Please check your input.')">Show Warning Toast</button>
+                    <button class="btn btn-secondary" onclick="showToast('info', 'Info! Here is some information.')">Show Info Toast</button>
+                    <button class="btn btn-primary" onclick="showModal()">Show Modal</button>
+                    <button class="btn btn-secondary" onclick="createDynamicComponent()">Create Dynamic Component</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Modal Demo -->
+        <div data-component="modal" id="demo-modal" data-title="Demo Modal" style="display: none;">
+            <div class="modal-content">
+                <p>This is a demonstration of the modal component. It features:</p>
+                <ul>
+                    <li>Smooth animations</li>
+                    <li>Focus management</li>
+                    <li>Escape key support</li>
+                    <li>Click outside to close</li>
+                </ul>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="closeModal()">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Component Library</h4>
+                <p>Modern, reusable UI components for All-In Chat Poker</p>
+            </div>
+            <div class="footer-section">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="index-enhanced.html">Home</a></li>
+                    <li><a href="help-enhanced.html">Help Center</a></li>
+                    <li><a href="about-enhanced.html">About</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 All-In Chat Poker. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="components.js"></script>
+    <script src="component-demo.js"></script>
+</body>
+</html>

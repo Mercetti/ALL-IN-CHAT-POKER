@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - All-In Chat Poker</title>
+    <meta name="description" content="You are currently offline. Some features may not be available.">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0f1c 0%, #1a1f2c 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .offline-container {
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .offline-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(0.95); }
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #00d4ff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        p {
+            color: #a8b3c5;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            margin-bottom: 2rem;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: #ff4444;
+            border-radius: 50%;
+            animation: blink 1s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff, #ff00ff);
+            border: 1px solid transparent;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #00b8e6, #e600ff);
+        }
+
+        .features {
+            margin-top: 2rem;
+            text-align: left;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 1.5rem;
+            width: 40px;
+            text-align: center;
+        }
+
+        .feature-text {
+            flex: 1;
+        }
+
+        .feature-text h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: #ffffff;
+        }
+
+        .feature-text p {
+            font-size: 0.875rem;
+            color: #a8b3c5;
+            margin: 0;
+        }
+
+        .connection-status {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .retry-btn {
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 600px) {
+            .offline-container {
+                padding: 2rem;
+                margin: 1rem;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .actions {
+                width: 100%;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="offline-icon">📡</div>
+        <h1>You're Offline</h1>
+        <p>
+            It looks like you've lost your internet connection. Some features may not be available until you're back online.
+        </p>
+        
+        <div class="status-indicator">
+            <span class="status-dot"></span>
+            <span>Offline Mode</span>
+        </div>
+        
+        <div class="actions">
+            <button class="btn btn-primary" onclick="retryConnection()">
+                <span>🔄</span>
+                <span>Retry Connection</span>
+            </button>
+            <button class="btn" onclick="checkConnection()">
+                <span>🔍</span>
+                <span>Check Status</span>
+            </button>
+        </div>
+        
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">💾</div>
+                <div class="feature-text">
+                    <h3>Cached Content</h3>
+                    <p>Previously visited pages are available offline</p>
+                </div>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">🎮</div>
+                <div class="feature-text">
+                    <h3>Basic Features</h3>
+                    <p>Core functionality remains available</p>
+                </div>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">🔄</div>
+                <div class="feature-text">
+                    <h3>Auto-Sync</h3>
+                    <p>Changes will sync when you're back online</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="connection-status">
+            <p id="status-message">Checking connection status...</p>
+            <div id="status-details"></div>
+            <button class="btn retry-btn" onclick="retryConnection()">Retry Now</button>
+        </div>
+    </div>
+
+    <script>
+        // Connection status monitoring
+        let isOnline = navigator.onLine;
+        
+        function updateConnectionStatus() {
+            isOnline = navigator.onLine;
+            const statusDot = document.querySelector('.status-dot');
+            const statusText = document.querySelector('.status-indicator span:last-child');
+            const statusMessage = document.getElementById('status-message');
+            const statusDetails = document.getElementById('status-details');
+            
+            if (isOnline) {
+                statusDot.style.background = '#22c55e';
+                statusText.textContent = 'Online Mode';
+                statusMessage.textContent = 'Connection restored! You can now access all features.';
+                statusDetails.textContent = 'All services are available.';
+                
+                // Redirect to home after a short delay
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
+            } else {
+                statusDot.style.background = '#ff4444';
+                statusText.textContent = 'Offline Mode';
+                statusMessage.textContent = 'No internet connection detected.';
+                statusDetails.textContent = 'Some features may not be available.';
+            }
+        }
+        
+        function checkConnection() {
+            updateConnectionStatus();
+            
+            // Show detailed status
+            const details = document.getElementById('status-details');
+            details.innerHTML = `
+                <p><strong>Network Status:</strong> ${isOnline ? 'Connected' : 'Disconnected'}</p>
+                <p><strong>Connection Type:</strong> ${navigator.connection ? navigator.connection.effectiveType : 'Unknown'}</p>
+                <p><strong>Last Checked:</strong> ${new Date().toLocaleTimeString()}</p>
+            `;
+        }
+        
+        function retryConnection() {
+            const statusMessage = document.getElementById('status-message');
+            statusMessage.textContent = 'Attempting to reconnect...';
+            
+            // Simulate connection attempt
+            setTimeout(() => {
+                updateConnectionStatus();
+            }, 1500);
+        }
+        
+        // Listen for connection changes
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+        
+        // Check connection status periodically
+        setInterval(() => {
+            if (!isOnline) {
+                checkConnection();
+            }
+        }, 30000); // Every 30 seconds
+        
+        // Initialize status on load
+        updateConnectionStatus();
+        
+        // Add some interactivity
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'r' || e.key === 'R') {
+                retryConnection();
+            } else if (e.key === 'c' || e.key === 'C') {
+                checkConnection();
+            }
+        });
+        
+        // Monitor connection type changes
+        if (navigator.connection) {
+            navigator.connection.addEventListener('change', () => {
+                console.log('Connection type changed:', navigator.connection.effectiveType);
+                checkConnection();
+            });
+        }
+        
+        // Log offline/online events for debugging
+        window.addEventListener('online', () => {
+            console.log('User is online');
+        });
+        
+        window.addEventListener('offline', () => {
+            console.log('User is offline');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,435 @@
+/* Theme Demo Page Styles */
+@import url('./style-enhanced-common.css');
+
+/* Demo-specific styles */
+
+.theme-showcase {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    transform: perspective(1000px) rotateX(10deg);
+}
+
+.theme-preview-card {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+
+.theme-preview-card:hover {
+    transform: translateY(-10px) scale(1.05);
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow-glow);
+}
+
+.preview-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.preview-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Theme Features */
+.theme-features {
+    margin-bottom: 4rem;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+/* Theme Showcase Section */
+.theme-showcase-section {
+    margin-bottom: 4rem;
+}
+
+.theme-showcase-item {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 3rem;
+    align-items: center;
+}
+
+.theme-info h3 {
+    font-size: var(--font-size-2xl);
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.theme-info p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.theme-colors {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.color-swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--glass-border);
+    transition: transform var(--transition-normal);
+}
+
+.color-swatch:hover {
+    transform: scale(1.2);
+}
+
+.theme-demo {
+    padding: 2rem;
+    text-align: center;
+}
+
+.theme-demo h4 {
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.theme-demo p {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+}
+
+.theme-demo .btn {
+    margin: 0 0.5rem;
+}
+
+/* Neon theme specific effects */
+.neon-glow {
+    animation: neon-pulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes neon-pulse {
+    from {
+        box-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color), 0 0 30px var(--primary-color);
+    }
+    to {
+        box-shadow: 0 0 20px var(--primary-color), 0 0 30px var(--primary-color), 0 0 40px var(--primary-color);
+    }
+}
+
+/* Keyboard Shortcuts */
+.keyboard-shortcuts {
+    margin-bottom: 4rem;
+}
+
+.shortcuts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.shortcut-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    transition: all var(--transition-normal);
+}
+
+.shortcut-item:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary-color);
+}
+
+.shortcut-keys {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+kbd {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    padding: 0.25rem 0.5rem;
+    font-family: monospace;
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.shortcut-description {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+/* Theme Settings */
+.theme-settings {
+    margin-bottom: 4rem;
+}
+
+.settings-panel {
+    max-width: 600px;
+    margin: 2rem auto;
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.setting-item:last-child {
+    border-bottom: none;
+}
+
+.setting-info h4 {
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.setting-info p {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    margin: 0;
+}
+
+.setting-control {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 30px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--glass-border);
+    transition: var(--transition-normal);
+    border-radius: 30px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 4px;
+    bottom: 4px;
+    background: var(--text-muted);
+    transition: var(--transition-normal);
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background: var(--primary-color);
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(30px);
+    background: var(--text-inverse);
+}
+
+/* Range Slider */
+input[type="range"] {
+    width: 150px;
+    height: 6px;
+    background: var(--glass-border);
+    border-radius: 3px;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+.duration-value {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    min-width: 50px;
+}
+
+/* Hero Actions */
+.hero-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .theme-showcase {
+        grid-template-columns: repeat(2, 1fr);
+        transform: none;
+    }
+    
+    .theme-showcase-item {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .shortcuts-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .setting-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .hero-actions {
+        flex-direction: column;
+    }
+    
+    .hero-actions .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .theme-showcase {
+        grid-template-columns: 1fr;
+    }
+    
+    .theme-colors {
+        justify-content: center;
+    }
+    
+    .shortcut-keys {
+        flex-wrap: wrap;
+    }
+    
+    .setting-control {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
+
+/* Theme-specific adjustments for demo */
+.retro-scanlines {
+    position: relative;
+}
+
+.retro-scanlines::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 255, 65, 0.03) 2px,
+        rgba(0, 255, 65, 0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Animation utilities */
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.slide-in-left {
+    animation: slideInLeft 0.5s ease-out;
+}
+
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.slide-in-right {
+    animation: slideInRight 0.5s ease-out;
+}
+
+@keyframes slideInRight {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* Theme preview animations */
+.theme-preview-card {
+    animation: float 3s ease-in-out infinite;
+}
+
+.theme-preview-card:nth-child(2) {
+    animation-delay: 0.5s;
+}
+
+.theme-preview-card:nth-child(3) {
+    animation-delay: 1s;
+}
+
+.theme-preview-card:nth-child(4) {
+    animation-delay: 1.5s;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}

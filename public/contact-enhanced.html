@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact - All-In Chat Poker</title>
+    <meta name="description" content="Get in touch with the All-In Chat Poker team for support, feedback, or partnerships.">
+    <link rel="stylesheet" href="style-enhanced-common.css">
+    <link rel="stylesheet" href="style-contact-enhanced.css">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="animated-bg"></div>
+    <div class="floating-cards">
+        <div class="floating-card"></div>
+        <div class="floating-card"></div>
+        <div class="floating-card"></div>
+        <div class="floating-card"></div>
+        <div class="floating-card"></div>
+    </div>
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="gradient-orb orb-3"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo">
+                    <span class="logo-icon">📧</span>
+                    <div class="logo-text">
+                        <h1>Contact Us</h1>
+                        <span class="logo-subtitle">Get in Touch</span>
+                    </div>
+                </div>
+            </div>
+            <nav class="header-nav">
+                <a href="index-enhanced.html" class="nav-link">Home</a>
+                <a href="about-enhanced.html" class="nav-link">About</a>
+                <a href="help-enhanced.html" class="nav-link">Help</a>
+                <a href="contact-enhanced.html" class="nav-link active">Contact</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="status-dot"></span>
+                    We're here to help
+                </div>
+                <h1 class="hero-title">Get in Touch</h1>
+                <p class="hero-subtitle">
+                    Have questions, feedback, or need support? Our team is ready to assist you with all things All-In Chat Poker.
+                </p>
+            </div>
+            <div class="hero-visual">
+                <div class="contact-illustration">
+                    <div class="illustration-card">
+                        <div class="card-icon">💬</div>
+                        <div class="card-title">24/7 Support</div>
+                    </div>
+                    <div class="illustration-card">
+                        <div class="card-icon">⚡</div>
+                        <div class="card-title">Quick Response</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Options Grid -->
+        <section class="contact-options">
+            <h2 class="section-title">How Can We Help?</h2>
+            <div class="options-grid">
+                <div class="option-card" data-option="support">
+                    <div class="option-icon">🛠️</div>
+                    <h3>Technical Support</h3>
+                    <p>Having issues with setup, OBS, or game functionality? Our technical team is here to help.</p>
+                    <div class="option-features">
+                        <span class="feature-tag">Setup Issues</span>
+                        <span class="feature-tag">OBS Help</span>
+                        <span class="feature-tag">Bug Reports</span>
+                    </div>
+                    <button class="btn btn-primary option-btn" onclick="window.enhancedContact.selectContactType('support')">
+                        Get Support
+                    </button>
+                </div>
+
+                <div class="option-card" data-option="feedback">
+                    <div class="option-icon">💡</div>
+                    <h3>Feedback & Suggestions</h3>
+                    <p>Have ideas for new features or improvements? We'd love to hear your thoughts!</p>
+                    <div class="option-features">
+                        <span class="feature-tag">Feature Requests</span>
+                        <span class="feature-tag">User Experience</span>
+                        <span class="feature-tag">Game Ideas</span>
+                    </div>
+                    <button class="btn btn-secondary option-btn" onclick="window.enhancedContact.selectContactType('feedback')">
+                        Share Feedback
+                    </button>
+                </div>
+
+                <div class="option-card" data-option="partnership">
+                    <div class="option-icon">🤝</div>
+                    <h3>Partnerships</h3>
+                    <p>Interested in partnering with us? Let's explore how we can work together.</p>
+                    <div class="option-features">
+                        <span class="feature-tag">Sponsorships</span>
+                        <span class="feature-tag">Integrations</span>
+                        <span class="feature-tag">Media</span>
+                    </div>
+                    <button class="btn btn-secondary option-btn" onclick="window.enhancedContact.selectContactType('partnership')">
+                        Partner With Us
+                    </button>
+                </div>
+
+                <div class="option-card" data-option="general">
+                    <div class="option-icon">📝</div>
+                    <h3>General Inquiry</h3>
+                    <p>General questions about All-In Chat Poker that don't fit in other categories.</p>
+                    <div class="option-features">
+                        <span class="feature-tag">Information</span>
+                        <span class="feature-tag">Questions</span>
+                        <span class="feature-tag">Other</span>
+                    </div>
+                    <button class="btn btn-secondary option-btn" onclick="window.enhancedContact.selectContactType('general')">
+                        Send Message
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Form Section -->
+        <section class="contact-form-section glass-panel" id="contactFormSection" style="display: none;">
+            <div class="form-header">
+                <h2 class="form-title">Contact Form</h2>
+                <p class="form-subtitle">Fill out the form below and we'll get back to you within 24 hours.</p>
+                <div class="form-type-badge" id="formTypeBadge">
+                    <span class="badge-icon">🛠️</span>
+                    <span class="badge-text">Technical Support</span>
+                </div>
+            </div>
+
+            <form class="contact-form" id="contactForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name" class="form-label">Name *</label>
+                        <input type="text" id="name" name="name" class="form-input" required>
+                        <span class="form-error" id="nameError">Please enter your name</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="email" class="form-label">Email *</label>
+                        <input type="email" id="email" name="email" class="form-input" required>
+                        <span class="form-error" id="emailError">Please enter a valid email</span>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="twitchUsername" class="form-label">Twitch Username</label>
+                        <input type="text" id="twitchUsername" name="twitchUsername" class="form-input" placeholder="optional">
+                    </div>
+                    <div class="form-group">
+                        <label for="priority" class="form-label">Priority</label>
+                        <select id="priority" name="priority" class="form-select">
+                            <option value="low">Low - General inquiry</option>
+                            <option value="medium">Medium - Feature request</option>
+                            <option value="high">High - Technical issue</option>
+                            <option value="urgent">Urgent - Critical problem</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="subject" class="form-label">Subject *</label>
+                    <input type="text" id="subject" name="subject" class="form-input" required>
+                    <span class="form-error" id="subjectError">Please enter a subject</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="message" class="form-label">Message *</label>
+                    <textarea id="message" name="message" class="form-textarea" rows="6" required></textarea>
+                    <span class="form-error" id="messageError">Please enter your message</span>
+                    <div class="char-count">
+                        <span id="charCount">0</span> / 1000 characters
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="newsletter" name="newsletter" class="form-checkbox">
+                        <span class="checkbox-custom"></span>
+                        <span class="checkbox-text">Send me updates about All-In Chat Poker</span>
+                    </label>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="window.enhancedContact.resetForm()">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        Send Message
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Alternative Contact Methods -->
+        <section class="alternative-contact">
+            <h2 class="section-title">Other Ways to Reach Us</h2>
+            <div class="contact-methods">
+                <div class="contact-method">
+                    <div class="method-icon">💬</div>
+                    <div class="method-content">
+                        <h3>Discord Community</h3>
+                        <p>Join our active Discord community for instant help and to connect with other streamers.</p>
+                        <a href="#" class="method-link">Join Discord Server</a>
+                    </div>
+                </div>
+
+                <div class="contact-method">
+                    <div class="method-icon">🐦</div>
+                    <div class="method-content">
+                        <h3>Twitter/X</h3>
+                        <p>Follow us for updates, announcements, and quick support via direct messages.</p>
+                        <a href="#" class="method-link">@AllInChatPoker</a>
+                    </div>
+                </div>
+
+                <div class="contact-method">
+                    <div class="method-icon">📧</div>
+                    <div class="method-content">
+                        <h3>Email Support</h3>
+                        <p>For formal inquiries and detailed support requests, email us directly.</p>
+                        <a href="mailto:support@allinchatpoker.com" class="method-link">support@allinchatpoker.com</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section class="contact-faq">
+            <h2 class="section-title">Frequently Asked Questions</h2>
+            <div class="faq-list">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>What's your typical response time?</h3>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>We typically respond within 24 hours for most inquiries. Priority and urgent requests are handled faster, usually within 2-4 hours during business hours.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Do you offer phone support?</h3>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>We currently don't offer phone support, but our Discord community and email support provide fast and comprehensive assistance for all your needs.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Can I request new features?</h3>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Absolutely! We love hearing from our users. Use the feedback form or Discord to share your ideas. We review all suggestions and consider them for future updates.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>All-In Chat Poker</h4>
+                <p>The ultimate poker experience for Twitch streamers</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="index-enhanced.html">Home</a></li>
+                    <li><a href="setup-enhanced.html">Setup</a></li>
+                    <li><a href="help-enhanced.html">Help Center</a></li>
+                    <li><a href="about-enhanced.html">About</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Community</h4>
+                <ul>
+                    <li><a href="#">Discord</a></li>
+                    <li><a href="#">Twitter</a></li>
+                    <li><a href="#">GitHub</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 All-In Chat Poker. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="theme-manager.js"></script>
+    <script src="js-enhanced-common.js"></script>
+    <script src="contact-enhanced.js"></script>
+</body>
+</html>
