@@ -1,0 +1,44 @@
+<svg width="82" height="82" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="avatarRingGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ff6b35;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#f4511e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e64a19;stop-opacity:1" />
+    </radialGradient>
+    <filter id="ringGlow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <pattern id="ringPattern" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
+      <rect width="10" height="10" fill="#ff6b35"/>
+      <circle cx="5" cy="5" r="0.5" fill="#f4511e" opacity="0.5"/>
+    </pattern>
+  </defs>
+  
+  <!-- Outer ring -->
+  <circle cx="41" cy="41" r="38" fill="url(#avatarRingGrad)" stroke="#ff6b35" stroke-width="2" filter="url(#ringGlow)"/>
+  
+  <!-- Inner ring -->
+  <circle cx="41" cy="41" r="32" fill="none" stroke="#ff6b35" stroke-width="1" opacity="0.8"/>
+  
+  <!-- Pattern overlay -->
+  <circle cx="41" cy="41" r="36" fill="url(#ringPattern)" opacity="0.3"/>
+  
+  <!-- Decorative elements -->
+  <circle cx="41" cy="41" r="28" fill="none" stroke="#ff6b35" stroke-width="0.5" opacity="0.6"/>
+  
+  <!-- Corner accents -->
+  <circle cx="41" cy="8" r="2" fill="#ffab91" opacity="0.8"/>
+  <circle cx="41" cy="74" r="2" fill="#ffab91" opacity="0.8"/>
+  <circle cx="8" cy="41" r="2" fill="#ffab91" opacity="0.8"/>
+  <circle cx="74" cy="41" r="2" fill="#ffab91" opacity="0.8"/>
+  
+  <!-- Center area (where avatar would go) -->
+  <circle cx="41" cy="41" r="24" fill="#0a0a0a" opacity="0.5"/>
+  
+  <!-- Inner decorative ring -->
+  <circle cx="41" cy="41" r="20" fill="none" stroke="#ff6b35" stroke-width="0.5" opacity="0.4"/>
+</svg>

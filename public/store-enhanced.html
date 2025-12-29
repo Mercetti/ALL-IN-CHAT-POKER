@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Poker Store - Enhanced</title>
+  <link rel="stylesheet" href="style-theme.css">
+  <link rel="stylesheet" href="style-store-enhanced.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="enhanced-background">
+    <div class="floating-cards">
+      <div class="floating-card card-1">♠</div>
+      <div class="floating-card card-2">♥</div>
+      <div class="floating-card card-3">♦</div>
+      <div class="floating-card card-4">♣</div>
+      <div class="floating-card card-5">👑</div>
+    </div>
+    <div class="gradient-orbs">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <header class="enhanced-header">
+      <div class="header-content">
+        <div class="logo-section">
+          <div class="logo">
+            <div class="logo-icon">🎰</div>
+            <div class="logo-text">
+              <h1>ALL-IN POKER</h1>
+              <span class="logo-subtitle">Store</span>
+            </div>
+          </div>
+        </div>
+        <nav class="header-nav">
+          <button class="nav-btn" data-page="editor">
+            <span class="nav-icon">🎨</span>
+            <span>Editor</span>
+          </button>
+          <button class="nav-btn active" data-page="store">
+            <span class="nav-icon">🛒</span>
+            <span>Store</span>
+          </button>
+          <button class="nav-btn" data-page="profile">
+            <span class="nav-icon">👤</span>
+            <span>Profile</span>
+          </button>
+        </nav>
+        <div class="header-actions">
+          <div class="user-balance">
+            <span class="balance-icon">💰</span>
+            <span class="balance-amount" id="user-balance">0</span>
+          </div>
+          <button class="help-btn" title="Help & Documentation">
+            <span>❓</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="enhanced-main">
+      <!-- Hero Section -->
+      <section class="hero-section glass-panel">
+        <div class="hero-content">
+          <div class="hero-text">
+            <h2>Premium Cosmetics Store</h2>
+            <p>Customize your poker experience with exclusive card backs, table skins, avatar accessories, and more!</p>
+            <div class="hero-stats">
+              <div class="stat-item">
+                <span class="stat-number">500+</span>
+                <span class="stat-label">Items</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">50+</span>
+                <span class="stat-label">Themes</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">24/7</span>
+                <span class="stat-label">Support</span>
+              </div>
+            </div>
+          </div>
+          <div class="hero-visual">
+            <div class="showcase-items">
+              <div class="showcase-item card-back">
+                <div class="item-preview">
+                  <img src="/assets/cosmetics/cards/basic/card-back-purple.svg" alt="Card Back">
+                </div>
+                <span>Card Backs</span>
+              </div>
+              <div class="showcase-item table-skin">
+                <div class="item-preview">
+                  <img src="/assets/cosmetics/table/neon_green.svg" alt="Table Skin">
+                </div>
+                <span>Table Skins</span>
+              </div>
+              <div class="showcase-item avatar-ring">
+                <div class="item-preview">
+                  <img src="/assets/cosmetics/avatar/fire_ring.svg" alt="Avatar Ring">
+                </div>
+                <span>Avatar Rings</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Store Navigation -->
+      <section class="store-nav glass-panel">
+        <div class="nav-tabs">
+          <button class="tab-btn active" data-category="all">All Items</button>
+          <button class="tab-btn" data-category="featured">Featured</button>
+          <button class="tab-btn" data-category="new">New Arrivals</button>
+          <button class="tab-btn" data-category="sale">On Sale</button>
+          <button class="tab-btn" data-category="premium">Premium</button>
+        </div>
+        <div class="nav-filters">
+          <div class="filter-group">
+            <label class="filter-label">Category</label>
+            <select id="category-filter" class="filter-select">
+              <option value="">All Categories</option>
+              <option value="cardBack">Card Backs</option>
+              <option value="cardFace">Card Faces</option>
+              <option value="tableSkin">Table Skins</option>
+              <option value="avatarRing">Avatar Rings</option>
+              <option value="chipSkin">Chip Skins</option>
+              <option value="nameplate">Nameplates</option>
+              <option value="dealFx">Deal Effects</option>
+              <option value="winFx">Win Effects</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Rarity</label>
+            <select id="rarity-filter" class="filter-select">
+              <option value="">All Rarities</option>
+              <option value="common">Common</option>
+              <option value="rare">Rare</option>
+              <option value="epic">Epic</option>
+              <option value="legendary">Legendary</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Price Range</label>
+            <select id="price-filter" class="filter-select">
+              <option value="">Any Price</option>
+              <option value="free">Free</option>
+              <option value="0-5">$0 - $5</option>
+              <option value="5-15">$5 - $15</option>
+              <option value="15-30">$15 - $30</option>
+              <option value="30+">$30+</option>
+            </select>
+          </div>
+          <div class="search-group">
+            <input type="text" id="search-input" placeholder="Search items..." class="search-input">
+            <button class="search-btn">
+              <span>🔍</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Featured Collections -->
+      <section class="featured-collections glass-panel">
+        <h3>Featured Collections</h3>
+        <div class="collections-grid">
+          <div class="collection-card neon-collection">
+            <div class="collection-header">
+              <h4>Neon Nights</h4>
+              <span class="collection-badge">Limited</span>
+            </div>
+            <div class="collection-preview">
+              <img src="/assets/cosmetics/cards/basic/card-back-purple.svg" alt="Neon Collection">
+            </div>
+            <div class="collection-info">
+              <p>Glowing neon aesthetics for the modern player</p>
+              <button class="btn btn-outline btn-sm">View Collection</button>
+            </div>
+          </div>
+          <div class="collection-card vintage-collection">
+            <div class="collection-header">
+              <h4>Vintage Vegas</h4>
+              <span class="collection-badge">Classic</span>
+            </div>
+            <div class="collection-preview">
+              <img src="/assets/cosmetics/table/neon_green.svg" alt="Vintage Collection">
+            </div>
+            <div class="collection-info">
+              <p>Classic casino style from the golden era</p>
+              <button class="btn btn-outline btn-sm">View Collection</button>
+            </div>
+          </div>
+          <div class="collection-card cosmic-collection">
+            <div class="collection-header">
+              <h4>Cosmic Dreams</h4>
+              <span class="collection-badge">Premium</span>
+            </div>
+            <div class="collection-preview">
+              <img src="/assets/cosmetics/avatar/fire_ring.svg" alt="Cosmic Collection">
+            </div>
+            <div class="collection-info">
+              <p>Otherworldly designs for cosmic players</p>
+              <button class="btn btn-outline btn-sm">View Collection</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Store Items Grid -->
+      <section class="store-content">
+        <div class="content-header">
+          <h3 id="section-title">All Items</h3>
+          <div class="view-options">
+            <button class="view-btn active" data-view="grid">
+              <span>⊞</span>
+            </button>
+            <button class="view-btn" data-view="list">
+              <span>☰</span>
+            </button>
+          </div>
+        </div>
+        
+        <div class="catalog-status" id="catalog-status">Loading catalog...</div>
+        
+        <div class="items-grid-container glass-panel">
+          <div class="items-grid" id="items-grid">
+            <!-- Items will be populated here -->
+          </div>
+        </div>
+        
+        <div class="pagination-controls" id="pagination">
+          <!-- Pagination will be populated here -->
+        </div>
+      </section>
+
+      <!-- Special Offers -->
+      <section class="special-offers glass-panel">
+        <h3>Special Offers & Bundles</h3>
+        <div class="offers-grid">
+          <div class="offer-card starter-bundle">
+            <div class="offer-header">
+              <h4>Starter Bundle</h4>
+              <span class="offer-badge">Best Value</span>
+            </div>
+            <div class="offer-content">
+              <div class="offer-items">
+                <span>5 Card Backs</span>
+                <span>3 Table Skins</span>
+                <span>2 Avatar Rings</span>
+              </div>
+              <div class="offer-price">
+                <span class="original-price">$25.00</span>
+                <span class="current-price">$15.99</span>
+              </div>
+              <button class="btn btn-primary">Buy Now</button>
+            </div>
+          </div>
+          <div class="offer-card premium-pass">
+            <div class="offer-header">
+              <h4>Premium Pass</h4>
+              <span class="offer-badge">Popular</span>
+            </div>
+            <div class="offer-content">
+              <div class="offer-items">
+                <span>All Current Items</span>
+                <span>Future Releases</span>
+                <span>Exclusive Access</span>
+              </div>
+              <div class="offer-price">
+                <span class="current-price">$49.99</span>
+                <span class="price-period">/month</span>
+              </div>
+              <button class="btn btn-primary">Subscribe</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- AIC Packs Section -->
+      <section class="aic-packs glass-panel">
+        <div class="aic-header">
+          <h3>AI-Generated Cosmetics</h3>
+          <p>Unique, one-of-a-kind designs created by artificial intelligence</p>
+        </div>
+        <div class="aic-grid" id="aic-grid">
+          <!-- AIC packs will be populated here -->
+        </div>
+      </section>
+    </main>
+
+    <!-- Item Detail Modal -->
+    <div class="modal-overlay" id="item-modal">
+      <div class="modal-content glass-panel">
+        <div class="modal-header">
+          <h3 id="modal-title">Item Details</h3>
+          <button class="modal-close" id="modal-close">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="modal-preview" id="modal-preview">
+            <!-- Preview will be populated here -->
+          </div>
+          <div class="modal-info">
+            <div class="item-details">
+              <h4 id="modal-item-name">Item Name</h4>
+              <div class="item-meta">
+                <span class="rarity-badge" id="modal-rarity">Common</span>
+                <span class="item-category" id="modal-category">Category</span>
+              </div>
+              <p class="item-description" id="modal-description">Item description goes here.</p>
+              <div class="item-stats">
+                <div class="stat">
+                  <span class="stat-label">Owned:</span>
+                  <span class="stat-value" id="modal-owned">No</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-label">Equipped:</span>
+                  <span class="stat-value" id="modal-equipped">No</span>
+                </div>
+              </div>
+            </div>
+            <div class="purchase-info">
+              <div class="price-display">
+                <span class="price-label">Price:</span>
+                <span class="price-value" id="modal-price">$0.00</span>
+              </div>
+              <div class="modal-actions">
+                <button class="btn btn-primary" id="modal-buy-btn">Purchase</button>
+                <button class="btn btn-secondary" id="modal-equip-btn" disabled>Equip</button>
+                <button class="btn btn-outline" id="modal-preview-btn">Preview</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div class="notification-container" id="notification-container"></div>
+  </div>
+
+  <script>
+    // Enhanced notification system
+    class NotificationSystem {
+      constructor() {
+        this.container = document.getElementById('notification-container');
+      }
+
+      show(message, type = 'info', duration = 3000) {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+          <div class="notification-content">
+            <span class="notification-icon">${this.getIcon(type)}</span>
+            <span class="notification-message">${message}</span>
+          </div>
+          <button class="notification-close" onclick="this.parentElement.remove()">×</button>
+        `;
+        
+        this.container.appendChild(notification);
+        
+        // Auto remove
+        setTimeout(() => {
+          if (notification.parentElement) {
+            notification.remove();
+          }
+        }, duration);
+      }
+
+      getIcon(type) {
+        const icons = {
+          success: '✅',
+          error: '❌',
+          warning: '⚠️',
+          info: 'ℹ️'
+        };
+        return icons[type] || icons.info;
+      }
+    }
+
+    const notifications = new NotificationSystem();
+
+    // Store functionality
+    class StoreManager {
+      constructor() {
+        this.catalog = [];
+        this.filteredCatalog = [];
+        this.currentPage = 1;
+        this.itemsPerPage = 12;
+        this.currentCategory = 'all';
+        this.currentFilters = {
+          category: '',
+          rarity: '',
+          price: '',
+          search: ''
+        };
+        this.userBalance = 0;
+        this.ownedItems = new Set();
+        this.equippedItems = {};
+        
+        this.init();
+      }
+
+      async init() {
+        await this.loadUserBalance();
+        await this.loadCatalog();
+        this.setupEventListeners();
+        this.renderStore();
+      }
+
+      async loadUserBalance() {
+        try {
+          const response = await fetch('/api/user/balance');
+          const data = await response.json();
+          this.userBalance = data.balance || 0;
+          document.getElementById('user-balance').textContent = `$${this.userBalance.toFixed(2)}`;
+        } catch (error) {
+          console.error('Failed to load user balance:', error);
+          this.userBalance = 1000; // Default balance for demo
+          document.getElementById('user-balance').textContent = `$${this.userBalance.toFixed(2)}`;
+        }
+      }
+
+      async loadCatalog() {
+        const statusEl = document.getElementById('catalog-status');
+        statusEl.textContent = 'Loading catalog...';
+        
+        try {
+          const response = await fetch('/catalog');
+          const items = await response.json();
+          this.catalog = items || [];
+          this.filteredCatalog = [...this.catalog];
+          statusEl.textContent = '';
+          notifications.show('Catalog loaded successfully', 'success');
+        } catch (error) {
+          console.error('Failed to load catalog:', error);
+          statusEl.textContent = 'Failed to load catalog. Please refresh.';
+          notifications.show('Failed to load catalog', 'error');
+        }
+      }
+
+      setupEventListeners() {
+        // Navigation
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            const page = btn.dataset.page;
+            if (page === 'editor') {
+              window.location.href = 'overlay-editor-enhanced.html';
+            } else if (page === 'profile') {
+              notifications.show('Profile page coming soon!', 'info');
+            }
+          });
+        });
+
+        // Category tabs
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            this.currentCategory = btn.dataset.category;
+            this.applyFilters();
+          });
+        });
+
+        // Filters
+        document.getElementById('category-filter').addEventListener('change', (e) => {
+          this.currentFilters.category = e.target.value;
+          this.applyFilters();
+        });
+
+        document.getElementById('rarity-filter').addEventListener('change', (e) => {
+          this.currentFilters.rarity = e.target.value;
+          this.applyFilters();
+        });
+
+        document.getElementById('price-filter').addEventListener('change', (e) => {
+          this.currentFilters.price = e.target.value;
+          this.applyFilters();
+        });
+
+        document.getElementById('search-input').addEventListener('input', (e) => {
+          this.currentFilters.search = e.target.value.toLowerCase();
+          this.applyFilters();
+        });
+
+        // View options
+        document.querySelectorAll('.view-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const view = btn.dataset.view;
+            document.getElementById('items-grid').className = view === 'list' ? 'items-list' : 'items-grid';
+          });
+        });
+
+        // Modal
+        document.getElementById('modal-close').addEventListener('click', () => {
+          this.closeModal();
+        });
+
+        document.getElementById('item-modal').addEventListener('click', (e) => {
+          if (e.target === e.currentTarget) {
+            this.closeModal();
+          }
+        });
+
+        // Help button
+        document.querySelector('.help-btn').addEventListener('click', () => {
+          notifications.show('Store guide coming soon!', 'info');
+        });
+      }
+
+      applyFilters() {
+        this.filteredCatalog = this.catalog.filter(item => {
+          // Category filter
+          if (this.currentCategory !== 'all') {
+            if (this.currentCategory === 'featured' && !item.featured) return false;
+            if (this.currentCategory === 'new' && !item.new) return false;
+            if (this.currentCategory === 'sale' && !item.onSale) return false;
+            if (this.currentCategory === 'premium' && item.rarity !== 'legendary') return false;
+          }
+
+          // Specific filters
+          if (this.currentFilters.category && item.type !== this.currentFilters.category) return false;
+          if (this.currentFilters.rarity && item.rarity !== this.currentFilters.rarity) return false;
+          if (this.currentFilters.search && !item.name.toLowerCase().includes(this.currentFilters.search)) return false;
+
+          // Price filter
+          if (this.currentFilters.price) {
+            const price = item.price || 0;
+            switch (this.currentFilters.price) {
+              case 'free': if (price > 0) return false; break;
+              case '0-5': if (price < 0 || price > 5) return false; break;
+              case '5-15': if (price < 5 || price > 15) return false; break;
+              case '15-30': if (price < 15 || price > 30) return false; break;
+              case '30+': if (price < 30) return false; break;
+            }
+          }
+
+          return true;
+        });
+
+        this.currentPage = 1;
+        this.renderStore();
+      }
+
+      renderStore() {
+        this.renderItems();
+        this.renderPagination();
+        this.renderAICPacks();
+      }
+
+      renderItems() {
+        const grid = document.getElementById('items-grid');
+        const start = (this.currentPage - 1) * this.itemsPerPage;
+        const end = start + this.itemsPerPage;
+        const items = this.filteredCatalog.slice(start, end);
+
+        grid.innerHTML = '';
+        
+        if (items.length === 0) {
+          grid.innerHTML = '<div class="no-items">No items found matching your criteria.</div>';
+          return;
+        }
+
+        items.forEach(item => {
+          const card = this.createItemCard(item);
+          grid.appendChild(card);
+        });
+      }
+
+      createItemCard(item) {
+        const card = document.createElement('div');
+        card.className = 'store-item-card';
+        
+        const isOwned = this.ownedItems.has(item.id);
+        const isEquipped = this.equippedItems[item.type] === item.id;
+        
+        card.innerHTML = `
+          <div class="item-visual">
+            ${this.buildItemPreview(item)}
+            ${item.onSale ? '<div class="sale-badge">SALE</div>' : ''}
+            ${item.new ? '<div class="new-badge">NEW</div>' : ''}
+            ${isOwned ? '<div class="owned-badge">OWNED</div>' : ''}
+            ${isEquipped ? '<div class="equipped-badge">EQUIPPED</div>' : ''}
+          </div>
+          <div class="item-info">
+            <h4 class="item-name">${item.name}</h4>
+            <div class="item-meta">
+              <span class="rarity-badge ${item.rarity}">${item.rarity || 'common'}</span>
+              <span class="item-type">${this.getTypeLabel(item.type)}</span>
+            </div>
+            <div class="item-price">
+              ${item.onSale && item.originalPrice ? 
+                `<span class="original-price">$${item.originalPrice}</span>` : ''}
+              <span class="current-price">${item.price ? `$${item.price}` : 'FREE'}</span>
+            </div>
+          </div>
+          <div class="item-actions">
+            ${!isOwned ? 
+              `<button class="btn btn-primary btn-sm" onclick="storeManager.purchaseItem('${item.id}')">Buy</button>` :
+              `<button class="btn ${isEquipped ? 'btn-success' : 'btn-secondary'} btn-sm" 
+                      onclick="storeManager.equipItem('${item.id}')">${isEquipped ? 'Equipped' : 'Equip'}</button>`}
+            <button class="btn btn-outline btn-sm" onclick="storeManager.previewItem('${item.id}')">Preview</button>
+          </div>
+        `;
+
+        return card;
+      }
+
+      buildItemPreview(item) {
+        if (item.type.endsWith('Fx')) {
+          return `<canvas width="120" height="120" data-item-id="${item.id}" class="fx-preview"></canvas>`;
+        }
+        
+        const imgSrc = item.preview || item.icon || `/assets/cosmetics/${item.type}/${item.id}.png`;
+        return `<img src="${imgSrc}" alt="${item.name}" 
+                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="item-placeholder" style="display:none;">
+                  <span class="placeholder-icon">${this.getTypeIcon(item.type)}</span>
+                </div>`;
+      }
+
+      getTypeLabel(type) {
+        const labels = {
+          cardBack: 'Card Back',
+          cardFace: 'Card Face',
+          tableSkin: 'Table Skin',
+          avatarRing: 'Avatar Ring',
+          chipSkin: 'Chip Skin',
+          nameplate: 'Nameplate',
+          dealFx: 'Deal Effect',
+          winFx: 'Win Effect'
+        };
+        return labels[type] || 'Cosmetic';
+      }
+
+      getTypeIcon(type) {
+        const icons = {
+          cardBack: '🎴',
+          cardFace: '🃏',
+          tableSkin: '🎰',
+          avatarRing: '⭕',
+          chipSkin: '🪙',
+          nameplate: '🏷️',
+          dealFx: '✨',
+          winFx: '🎉'
+        };
+        return icons[type] || '🎨';
+      }
+
+      renderPagination() {
+        const pagination = document.getElementById('pagination');
+        const totalPages = Math.ceil(this.filteredCatalog.length / this.itemsPerPage);
+        
+        if (totalPages <= 1) {
+          pagination.innerHTML = '';
+          return;
+        }
+
+        let html = '<div class="pagination-controls-inner">';
+        
+        // Previous button
+        html += `<button class="pagination-btn" ${this.currentPage === 1 ? 'disabled' : ''} 
+                       onclick="storeManager.goToPage(${this.currentPage - 1})">←</button>`;
+        
+        // Page numbers
+        for (let i = 1; i <= totalPages; i++) {
+          if (i === 1 || i === totalPages || (i >= this.currentPage - 1 && i <= this.currentPage + 1)) {
+            html += `<button class="pagination-btn ${i === this.currentPage ? 'active' : ''}" 
+                           onclick="storeManager.goToPage(${i})">${i}</button>`;
+          } else if (i === this.currentPage - 2 || i === this.currentPage + 2) {
+            html += '<span class="pagination-ellipsis">...</span>';
+          }
+        }
+        
+        // Next button
+        html += `<button class="pagination-btn" ${this.currentPage === totalPages ? 'disabled' : ''} 
+                       onclick="storeManager.goToPage(${this.currentPage + 1})">→</button>`;
+        
+        html += '</div>';
+        pagination.innerHTML = html;
+      }
+
+      renderAICPacks() {
+        const aicGrid = document.getElementById('aic-grid');
+        const aicPacks = [
+          { id: 'aic-1', name: 'Neon Dreams', price: 9.99, preview: '/assets/cosmetics/cards/basic/card-back-purple.svg' },
+          { id: 'aic-2', name: 'Cosmic Fire', price: 12.99, preview: '/assets/cosmetics/avatar/fire_ring.svg' },
+          { id: 'aic-3', name: 'Electric Blue', price: 7.99, preview: '/assets/cosmetics/table/neon_green.svg' }
+        ];
+
+        aicGrid.innerHTML = '';
+        aicPacks.forEach(pack => {
+          const card = document.createElement('div');
+          card.className = 'aic-pack-card';
+          card.innerHTML = `
+            <div class="aic-preview">
+              <img src="${pack.preview}" alt="${pack.name}">
+              <div class="aic-badge">AI Generated</div>
+            </div>
+            <div class="aic-info">
+              <h4>${pack.name}</h4>
+              <p>Unique AI-generated cosmetic pack</p>
+              <div class="aic-price">$${pack.price}</div>
+              <button class="btn btn-primary btn-sm" onclick="storeManager.purchaseAICPack('${pack.id}')">Generate</button>
+            </div>
+          `;
+          aicGrid.appendChild(card);
+        });
+      }
+
+      goToPage(page) {
+        this.currentPage = page;
+        this.renderItems();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      async purchaseItem(itemId) {
+        const item = this.catalog.find(i => i.id === itemId);
+        if (!item) return;
+
+        const price = item.price || 0;
+        if (this.userBalance < price) {
+          notifications.show('Insufficient balance!', 'error');
+          return;
+        }
+
+        try {
+          // Simulate purchase
+          this.userBalance -= price;
+          this.ownedItems.add(itemId);
+          document.getElementById('user-balance').textContent = `$${this.userBalance.toFixed(2)}`;
+          
+          notifications.show(`Purchased ${item.name}!`, 'success');
+          this.renderStore();
+        } catch (error) {
+          console.error('Purchase failed:', error);
+          notifications.show('Purchase failed. Please try again.', 'error');
+        }
+      }
+
+      equipItem(itemId) {
+        const item = this.catalog.find(i => i.id === itemId);
+        if (!item) return;
+
+        this.equippedItems[item.type] = itemId;
+        notifications.show(`Equipped ${item.name}!`, 'success');
+        this.renderStore();
+      }
+
+      previewItem(itemId) {
+        const item = this.catalog.find(i => i.id === itemId);
+        if (!item) return;
+
+        this.showItemModal(item);
+      }
+
+      showItemModal(item) {
+        const modal = document.getElementById('item-modal');
+        const isOwned = this.ownedItems.has(item.id);
+        const isEquipped = this.equippedItems[item.type] === item.id;
+
+        document.getElementById('modal-title').textContent = item.name;
+        document.getElementById('modal-item-name').textContent = item.name;
+        document.getElementById('modal-rarity').textContent = item.rarity || 'common';
+        document.getElementById('modal-rarity').className = `rarity-badge ${item.rarity || 'common'}`;
+        document.getElementById('modal-category').textContent = this.getTypeLabel(item.type);
+        document.getElementById('modal-description').textContent = item.description || 'No description available.';
+        document.getElementById('modal-owned').textContent = isOwned ? 'Yes' : 'No';
+        document.getElementById('modal-equipped').textContent = isEquipped ? 'Yes' : 'No';
+        document.getElementById('modal-price').textContent = item.price ? `$${item.price}` : 'FREE';
+
+        const modalPreview = document.getElementById('modal-preview');
+        modalPreview.innerHTML = this.buildItemPreview(item);
+
+        const buyBtn = document.getElementById('modal-buy-btn');
+        const equipBtn = document.getElementById('modal-equip-btn');
+        
+        buyBtn.style.display = isOwned ? 'none' : 'block';
+        equipBtn.disabled = !isOwned;
+        equipBtn.textContent = isEquipped ? 'Equipped' : 'Equip';
+        equipBtn.className = isEquipped ? 'btn btn-success' : 'btn btn-secondary';
+
+        modal.style.display = 'flex';
+      }
+
+      closeModal() {
+        document.getElementById('item-modal').style.display = 'none';
+      }
+
+      purchaseAICPack(packId) {
+        notifications.show('AI pack generation coming soon!', 'info');
+      }
+    }
+
+    // Initialize store
+    const storeManager = new StoreManager();
+
+    // Enhanced animations
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-in');
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.glass-panel').forEach(panel => {
+      observer.observe(panel);
+    });
+
+    // Modal action handlers
+    document.getElementById('modal-buy-btn').addEventListener('click', () => {
+      const itemName = document.getElementById('modal-item-name').textContent;
+      const item = storeManager.catalog.find(i => i.name === itemName);
+      if (item) {
+        storeManager.purchaseItem(item.id);
+        storeManager.closeModal();
+      }
+    });
+
+    document.getElementById('modal-equip-btn').addEventListener('click', () => {
+      const itemName = document.getElementById('modal-item-name').textContent;
+      const item = storeManager.catalog.find(i => i.name === itemName);
+      if (item) {
+        storeManager.equipItem(item.id);
+        storeManager.closeModal();
+      }
+    });
+
+    document.getElementById('modal-preview-btn').addEventListener('click', () => {
+      notifications.show('Enhanced preview coming soon!', 'info');
+    });
+  </script>
+</body>
+</html>

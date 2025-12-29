@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Poker Overlay Editor - Enhanced</title>
+  <link rel="stylesheet" href="style-theme.css">
+  <link rel="stylesheet" href="style-overlay-editor-enhanced.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="enhanced-background">
+    <div class="floating-cards">
+      <div class="floating-card card-1">♠</div>
+      <div class="floating-card card-2">♥</div>
+      <div class="floating-card card-3">♦</div>
+      <div class="floating-card card-4">♣</div>
+      <div class="floating-card card-5">👑</div>
+    </div>
+    <div class="gradient-orbs">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <header class="enhanced-header">
+      <div class="header-content">
+        <div class="logo-section">
+          <div class="logo">
+            <div class="logo-icon">🎰</div>
+            <div class="logo-text">
+              <h1>ALL-IN POKER</h1>
+              <span class="logo-subtitle">Overlay Editor</span>
+            </div>
+          </div>
+        </div>
+        <nav class="header-nav">
+          <button class="nav-btn active" data-page="editor">
+            <span class="nav-icon">🎨</span>
+            <span>Editor</span>
+          </button>
+          <button class="nav-btn" data-page="store">
+            <span class="nav-icon">🛒</span>
+            <span>Store</span>
+          </button>
+          <button class="nav-btn" data-page="profile">
+            <span class="nav-icon">👤</span>
+            <span>Profile</span>
+          </button>
+        </nav>
+        <div class="header-actions">
+          <button class="sync-status-btn" id="sync-status">
+            <span class="status-indicator"></span>
+            <span class="status-text">Sync Off</span>
+          </button>
+          <button class="help-btn" title="Help & Documentation">
+            <span>❓</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="enhanced-main">
+      <div class="editor-layout">
+        <!-- Category Rail -->
+        <aside class="category-rail glass-panel" aria-label="Cosmetic categories">
+          <div class="rail-header">
+            <h2>Categories</h2>
+            <div class="category-filter">
+              <input type="text" id="category-search" placeholder="Search..." class="search-input">
+            </div>
+          </div>
+          <div class="category-list" id="category-rail">
+            <!-- Categories will be populated here -->
+          </div>
+        </aside>
+
+        <!-- Item Grid Section -->
+        <section class="item-section">
+          <div class="section-header glass-panel">
+            <div class="header-info">
+              <h2 id="section-title">Cosmetics</h2>
+              <p class="muted" id="section-subtitle">Select a category to see items.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-secondary btn-sm" id="refresh-btn">
+                <span class="btn-icon">🔄</span>
+                Reload
+              </button>
+            </div>
+          </div>
+          
+          <div class="controls-panel glass-panel" id="controls-panel">
+            <div class="control-group">
+              <label class="control-label">Rarity</label>
+              <select id="rarity-filter" class="control-select">
+                <option value="">All</option>
+                <option value="common">Common</option>
+                <option value="rare">Rare</option>
+                <option value="epic">Epic</option>
+                <option value="legendary">Legendary</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Sort By</label>
+              <select id="sort-select" class="control-select">
+                <option value="name">Name</option>
+                <option value="rarity">Rarity</option>
+                <option value="price">Price</option>
+                <option value="newest">Newest</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label class="sync-toggle">
+                <input type="checkbox" id="sync-checkbox">
+                <span class="toggle-slider"></span>
+                <span class="toggle-label">Sync to overlay</span>
+              </label>
+            </div>
+            <div class="control-actions">
+              <button class="btn btn-outline btn-sm" id="reset-category-btn">Reset Category</button>
+              <button class="btn btn-outline btn-sm" id="copy-loadout-btn">Copy Loadout</button>
+            </div>
+            <div class="status-info" id="section-status"></div>
+          </div>
+
+          <div class="catalog-status" id="catalog-status">Loading catalog...</div>
+          
+          <div class="item-grid-container glass-panel">
+            <div class="grid" id="item-grid">
+              <!-- Items will be populated here -->
+            </div>
+          </div>
+        </section>
+
+        <!-- Preview Panel -->
+        <aside class="preview-panel glass-panel">
+          <div class="preview-header">
+            <h3>Preview</h3>
+            <div class="preview-actions">
+              <button class="btn btn-primary btn-sm" id="equip-btn">Equip (local)</button>
+            </div>
+          </div>
+          
+          <div class="preview-content">
+            <div class="preview-visual-container">
+              <div class="preview-visual" id="preview-visual">
+                <div class="preview-placeholder">
+                  <div class="placeholder-icon">🎨</div>
+                  <p>Select an item to preview</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="preview-info">
+              <div class="info-row">
+                <h4 id="preview-name">No Item Selected</h4>
+                <span class="item-type" id="preview-type"></span>
+              </div>
+              
+              <div class="info-row">
+                <span class="rarity-badge" id="preview-rarity"></span>
+                <span class="item-price" id="preview-price"></span>
+              </div>
+              
+              <div class="item-description" id="preview-desc">
+                <p>Select a cosmetic item to see its details and preview.</p>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <!-- Premier Editor Section -->
+      <section class="premier-editor-section glass-panel" id="premier-editor" style="display: none;">
+        <div class="premier-header">
+          <h2>🌟 Premier Editor</h2>
+          <p>Create custom branding sets with AI-powered design</p>
+        </div>
+        
+        <div class="premier-content">
+          <div class="branding-generator">
+            <div class="generator-controls">
+              <div class="control-group">
+                <label>Theme Name</label>
+                <input type="text" id="theme-name" placeholder="Enter theme name..." class="theme-input">
+              </div>
+              <div class="control-group">
+                <label>Color Palette</label>
+                <div class="color-palette">
+                  <input type="color" id="primary-color" value="#6366f1">
+                  <input type="color" id="secondary-color" value="#ec4899">
+                  <input type="color" id="accent-color" value="#f59e0b">
+                </div>
+              </div>
+              <div class="control-group">
+                <label>Style</label>
+                <select id="style-select" class="control-select">
+                  <option value="modern">Modern</option>
+                  <option value="classic">Classic</option>
+                  <option value="neon">Neon</option>
+                  <option value="minimal">Minimal</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="generator-actions">
+              <button class="btn btn-primary" id="generate-branding">
+                <span class="btn-icon">✨</span>
+                Generate Branding
+              </button>
+              <button class="btn btn-secondary" id="preview-branding">Preview</button>
+            </div>
+          </div>
+          
+          <div class="branding-preview" id="branding-preview">
+            <div class="preview-grid">
+              <div class="preview-item">
+                <div class="preview-label">Card Back</div>
+                <div class="preview-box" id="card-back-preview"></div>
+              </div>
+              <div class="preview-item">
+                <div class="preview-label">Table Skin</div>
+                <div class="preview-box" id="table-skin-preview"></div>
+              </div>
+              <div class="preview-item">
+                <div class="preview-label">Chip Design</div>
+                <div class="preview-box" id="chip-design-preview"></div>
+              </div>
+              <div class="preview-item">
+                <div class="preview-label">Avatar Ring</div>
+                <div class="preview-box" id="avatar-ring-preview"></div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="branding-actions">
+            <button class="btn btn-success" id="apply-branding">Apply Branding Set</button>
+            <button class="btn btn-outline" id="save-branding">Save for Later</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Notification Container -->
+    <div class="notification-container" id="notification-container"></div>
+  </div>
+
+  <script>
+    // Enhanced notification system
+    class NotificationSystem {
+      constructor() {
+        this.container = document.getElementById('notification-container');
+      }
+
+      show(message, type = 'info', duration = 3000) {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+          <div class="notification-content">
+            <span class="notification-icon">${this.getIcon(type)}</span>
+            <span class="notification-message">${message}</span>
+          </div>
+          <button class="notification-close" onclick="this.parentElement.remove()">×</button>
+        `;
+        
+        this.container.appendChild(notification);
+        
+        // Auto remove
+        setTimeout(() => {
+          if (notification.parentElement) {
+            notification.remove();
+          }
+        }, duration);
+      }
+
+      getIcon(type) {
+        const icons = {
+          success: '✅',
+          error: '❌',
+          warning: '⚠️',
+          info: 'ℹ️'
+        };
+        return icons[type] || icons.info;
+      }
+    }
+
+    const notifications = new NotificationSystem();
+
+    // Enhanced UI interactions
+    document.addEventListener('DOMContentLoaded', () => {
+      // Navigation handling
+      const navButtons = document.querySelectorAll('.nav-btn');
+      navButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          navButtons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          
+          const page = btn.dataset.page;
+          if (page === 'store') {
+            window.location.href = 'cosmetics-enhanced.html';
+          } else if (page === 'profile') {
+            notifications.show('Profile page coming soon!', 'info');
+          }
+        });
+      });
+
+      // Sync status toggle
+      const syncCheckbox = document.getElementById('sync-checkbox');
+      const syncStatusBtn = document.getElementById('sync-status');
+      
+      syncCheckbox.addEventListener('change', () => {
+        const isSynced = syncCheckbox.checked;
+        syncStatusBtn.classList.toggle('active', isSynced);
+        syncStatusBtn.querySelector('.status-text').textContent = isSynced ? 'Sync On' : 'Sync Off';
+        syncStatusBtn.querySelector('.status-indicator').classList.toggle('active', isSynced);
+        
+        if (isSynced) {
+          notifications.show('Overlay sync enabled', 'success');
+        } else {
+          notifications.show('Overlay sync disabled', 'info');
+        }
+      });
+
+      // Help button
+      document.querySelector('.help-btn').addEventListener('click', () => {
+        notifications.show('Editor guide coming soon!', 'info');
+      });
+
+      // Category search
+      const categorySearch = document.getElementById('category-search');
+      categorySearch.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const categories = document.querySelectorAll('.category-item');
+        
+        categories.forEach(cat => {
+          const text = cat.textContent.toLowerCase();
+          cat.style.display = text.includes(searchTerm) ? 'block' : 'none';
+        });
+      });
+
+      // Enhanced animations
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('animate-in');
+          }
+        });
+      }, { threshold: 0.1 });
+
+      document.querySelectorAll('.glass-panel').forEach(panel => {
+        observer.observe(panel);
+      });
+    });
+
+    // Original editor functionality (preserved)
+    (async () => {
+      const typeLabels = {
+        cardBack: 'Card Backs',
+        cardFace: 'Card Faces',
+        tableSkin: 'Table Skins',
+        avatarRing: 'Avatar Rings',
+        chipSkin: 'Chip Skins',
+        nameplate: 'Nameplates',
+        dealFx: 'Deal Effects',
+        winFx: 'Win Effects'
+      };
+
+      let catalog = [];
+      let catalogMap = {};
+      let activeType = '';
+      let selectedItem = null;
+      let effectsMeta = {};
+      let syncEnabled = false;
+      let sortKey = 'name';
+      let rarityFilter = '';
+      let localDefaults = {};
+
+      const statusEl = document.getElementById('catalog-status');
+      const categoryRail = document.getElementById('category-rail');
+      const itemGrid = document.getElementById('item-grid');
+      const previewVisual = document.getElementById('preview-visual');
+      const previewName = document.getElementById('preview-name');
+      const previewType = document.getElementById('preview-type');
+      const previewRarity = document.getElementById('preview-rarity');
+      const previewPrice = document.getElementById('preview-price');
+      const previewDesc = document.getElementById('preview-desc');
+      const equipBtn = document.getElementById('equip-btn');
+      const refreshBtn = document.getElementById('refresh-btn');
+      const sectionTitle = document.getElementById('section-title');
+      const sectionSubtitle = document.getElementById('section-subtitle');
+
+      // Utility functions
+      function getUserToken() {
+        try {
+          const u = JSON.parse(localStorage.getItem('auth-user') || '{}');
+          return u?.accessToken || null;
+        } catch {
+          return null;
+        }
+      }
+
+      async function apiCall(path, options = {}) {
+        const token = getUserToken();
+        const resp = await fetch(path, {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && !options.useUserToken && { Authorization: `Bearer ${token}` }),
+            ...(options.useUserToken && { 'X-User-Token': token }),
+            ...options.headers,
+          },
+          ...options,
+        });
+        if (!resp.ok) throw new Error(`API error: ${resp.status}`);
+        return resp.json();
+      }
+
+      function loadStoredCosmetics() {
+        try {
+          return JSON.parse(localStorage.getItem('overlayCosmeticSelection') || '{}');
+        } catch {
+          return {};
+        }
+      }
+
+      function saveCosmeticSelection(selection) {
+        const current = loadStoredCosmetics();
+        const updated = { ...current, ...selection };
+        localStorage.setItem('overlayCosmeticSelection', JSON.stringify(updated));
+      }
+
+      function loadStoredFxChoice() {
+        try {
+          return JSON.parse(localStorage.getItem('overlayFxChoice') || '{}');
+        } catch {
+          return {};
+        }
+      }
+
+      function saveFxChoice(choice) {
+        localStorage.setItem('overlayFxChoice', JSON.stringify(choice));
+      }
+
+      // Category rendering
+      function renderCategories() {
+        categoryRail.innerHTML = '';
+        const types = [...new Set(catalog.map(i => i.type))].sort();
+        types.forEach(type => {
+          const count = catalog.filter(i => i.type === type).length;
+          const btn = document.createElement('button');
+          btn.className = 'category-item';
+          btn.innerHTML = `
+            <span class="category-icon">${getCategoryIcon(type)}</span>
+            <span class="category-name">${typeLabels[type]}</span>
+            <span class="category-count">${count}</span>
+          `;
+          btn.onclick = () => {
+            document.querySelectorAll('.category-item').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            activeType = type;
+            sectionTitle.textContent = typeLabels[type];
+            sectionSubtitle.textContent = `${count} items available`;
+            renderGrid();
+            renderControls();
+          };
+          categoryRail.appendChild(btn);
+        });
+      }
+
+      function getCategoryIcon(type) {
+        const icons = {
+          cardBack: '🎴',
+          cardFace: '🃏',
+          tableSkin: '🎰',
+          avatarRing: '⭕',
+          chipSkin: '🪙',
+          nameplate: '🏷️',
+          dealFx: '✨',
+          winFx: '🎉'
+        };
+        return icons[type] || '🎨';
+      }
+
+      // Item rendering
+      function renderGrid() {
+        if (!activeType) return;
+        let items = catalog.filter(i => i.type === activeType);
+        if (rarityFilter) items = items.filter(i => i.rarity === rarityFilter);
+        items.sort((a, b) => {
+          if (sortKey === 'name') return a.name.localeCompare(b.name);
+          if (sortKey === 'rarity') return (a.rarity || '').localeCompare(b.rarity || '');
+          if (sortKey === 'price') return (a.price || 0) - (b.price || 0);
+          return 0;
+        });
+        itemGrid.innerHTML = '';
+        items.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'item-card';
+          card.innerHTML = `
+            <div class="item-visual">${buildThumb(item)}</div>
+            <div class="item-info">
+              <div class="item-name">${item.name}</div>
+              <div class="item-meta">
+                <span class="rarity-badge ${item.rarity}">${item.rarity || 'common'}</span>
+                ${item.price ? `<span class="item-price">$${item.price}</span>` : ''}
+              </div>
+            </div>
+          `;
+          card.onclick = () => selectItem(item);
+          itemGrid.appendChild(card);
+        });
+      }
+
+      function buildThumb(item) {
+        if (item.type.endsWith('Fx')) {
+          return `<canvas width="80" height="80" data-item-id="${item.id}" class="fx-thumb"></canvas>`;
+        }
+        const img = item.preview || item.icon || `/assets/cosmetics/${item.type}/${item.id}.png`;
+        return `<img src="${img}" alt="${item.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="item-placeholder" style="display:none;">
+                  <span class="placeholder-icon">${getCategoryIcon(item.type)}</span>
+                </div>`;
+      }
+
+      function selectItem(item) {
+        selectedItem = item;
+        document.querySelectorAll('.item-card').forEach(c => c.classList.remove('selected'));
+        event.currentTarget.classList.add('selected');
+        
+        previewName.textContent = item.name;
+        previewType.textContent = typeLabels[item.type];
+        previewRarity.textContent = item.rarity || 'common';
+        previewRarity.className = `rarity-badge ${item.rarity || 'common'}`;
+        previewPrice.textContent = item.price ? `$${item.price}` : 'Free';
+        previewDesc.textContent = item.description || 'No description available.';
+        
+        if (item.type.endsWith('Fx')) {
+          previewFx(item);
+        } else {
+          const img = item.preview || item.icon || `/assets/cosmetics/${item.type}/${item.id}.png`;
+          previewVisual.innerHTML = `<img src="${img}" alt="${item.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="preview-placeholder" style="display:none;">
+                                      <span class="placeholder-icon">${getCategoryIcon(item.type)}</span>
+                                    </div>`;
+        }
+        
+        equipBtn.disabled = false;
+      }
+
+      function previewFx(item) {
+        const meta = effectsMeta[item.id];
+        if (!meta) {
+          previewVisual.innerHTML = '<div class="preview-placeholder"><span class="placeholder-icon">✨</span><p>Effect preview unavailable</p></div>';
+          return;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = 200;
+        canvas.height = 200;
+        previewVisual.innerHTML = '';
+        previewVisual.appendChild(canvas);
+        const img = new Image();
+        img.onload = () => playSprite(img, meta, canvas);
+        img.src = `/assets/cosmetics/effects/${meta.file}`;
+      }
+
+      function playSprite(img, meta, canvas) {
+        if (!img || !meta || !canvas) return;
+        if (!img.naturalWidth || !img.naturalHeight) {
+          console.warn('Sprite has no dimensions', meta);
+          return;
+        }
+        const ctx = canvas.getContext('2d');
+        const fw = meta.frameWidth || Math.floor(img.naturalWidth / (meta.columns || meta.frameCount || 1));
+        const fh = meta.frameHeight || Math.floor(img.naturalHeight / (meta.rows || 1));
+        canvas.width = fw;
+        canvas.height = fh;
+        let frame = 0;
+        const columns = meta.columns || Math.max(1, Math.floor(img.naturalWidth / fw));
+        const total = meta.frameCount || columns;
+        const fps = meta.fps || 24;
+
+        const draw = () => {
+          if (!canvas.isConnected) return;
+          const f = frame % total;
+          const col = f % columns;
+          const row = Math.floor(f / columns);
+          const sx = col * fw + (meta.spacing || 0) * col;
+          const sy = row * fh + (meta.spacingY || meta.spacing || 0) * row;
+          ctx.clearRect(0, 0, fw, fh);
+          ctx.drawImage(img, sx, sy, fw, fh, 0, 0, canvas.width, canvas.height);
+          frame += 1;
+          setTimeout(() => requestAnimationFrame(draw), Math.max(20, 1000 / fps));
+        };
+        draw();
+      }
+
+      async function loadEffectsMeta() {
+        try {
+          effectsMeta = await fetch('/assets/cosmetics/effects/meta.json').then(r => r.json());
+        } catch (err) {
+          console.warn('Failed to load effects metadata', err);
+        }
+      }
+
+      function renderControls() {
+        const controls = document.getElementById('controls-panel');
+        const raritySel = document.getElementById('rarity-filter');
+        const sortSel = document.getElementById('sort-select');
+        const syncCheckbox = document.getElementById('sync-checkbox');
+        const resetBtn = document.getElementById('reset-category-btn');
+        const copyBtn = document.getElementById('copy-loadout-btn');
+        const sectionStatusEl = document.getElementById('section-status');
+
+        raritySel.onchange = () => { rarityFilter = raritySel.value; renderGrid(); };
+        sortSel.onchange = () => { sortKey = sortSel.value; renderGrid(); };
+
+        syncCheckbox.checked = syncEnabled;
+        syncCheckbox.onchange = () => {
+          syncEnabled = syncCheckbox.checked;
+          localStorage.setItem('overlaySyncEnabled', syncEnabled ? '1' : '0');
+          if (syncEnabled) syncOverlay();
+        };
+
+        resetBtn.onclick = () => {
+          const defaults = loadStoredCosmetics();
+          if (localDefaults[activeType]) {
+            defaults[activeType] = localDefaults[activeType];
+            saveCosmeticSelection({ [activeType]: localDefaults[activeType] });
+            renderGrid();
+            notifications.show('Category reset to defaults', 'success');
+          }
+        };
+
+        copyBtn.onclick = async () => {
+          const payload = {
+            cosmetics: loadStoredCosmetics(),
+            effects: loadStoredFxChoice(),
+          };
+          try {
+            await navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+            copyBtn.textContent = 'Copied!';
+            notifications.show('Loadout copied to clipboard', 'success');
+            setTimeout(() => { copyBtn.textContent = 'Copy Loadout'; }, 1200);
+          } catch (e) {
+            copyBtn.textContent = 'Copy failed';
+            notifications.show('Failed to copy loadout', 'error');
+            setTimeout(() => { copyBtn.textContent = 'Copy Loadout'; }, 1200);
+          }
+        };
+      }
+
+      function syncOverlay(cosmeticsOverride = null, effectsOverride = null) {
+        const payload = {
+          cosmetics: cosmeticsOverride || loadStoredCosmetics(),
+          effects: effectsOverride || loadStoredFxChoice(),
+        };
+        const params = new URLSearchParams(window.location.search);
+        const channel = params.get('channel') || '';
+        const qs = channel ? `?channel=${encodeURIComponent(channel)}` : '';
+        apiCall(`/overlay/sync${qs}`, {
+          method: 'POST',
+          body: JSON.stringify(payload),
+          useUserToken: true,
+        }).catch(err => {
+          console.warn('Overlay sync failed', err);
+          notifications.show('Failed to sync with overlay', 'error');
+        });
+      }
+
+      async function loadCatalog() {
+        statusEl.textContent = 'Loading catalog...';
+        itemGrid.innerHTML = '';
+        try {
+          const res = await fetch('/catalog');
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const items = await res.json();
+          catalog = (items || []).filter(i => typeLabels[i.type]);
+          catalogMap = {};
+          catalog.forEach(it => { if (it?.id) catalogMap[it.id] = it; });
+          renderCategories();
+          statusEl.textContent = '';
+          notifications.show('Catalog loaded successfully', 'success');
+        } catch (err) {
+          console.error('[overlay-editor] catalog load failed', err);
+          statusEl.textContent = 'Failed to load catalog. Please refresh.';
+          itemGrid.innerHTML = '<div class="muted">Catalog unavailable.</div>';
+          notifications.show('Failed to load catalog', 'error');
+        }
+      }
+
+      // Premier Editor functionality
+      function initPremierEditor() {
+        const generateBtn = document.getElementById('generate-branding');
+        const previewBtn = document.getElementById('preview-branding');
+        const applyBtn = document.getElementById('apply-branding');
+        const saveBtn = document.getElementById('save-branding');
+
+        generateBtn.addEventListener('click', () => {
+          notifications.show('AI branding generation coming soon!', 'info');
+        });
+
+        previewBtn.addEventListener('click', () => {
+          const primaryColor = document.getElementById('primary-color').value;
+          const secondaryColor = document.getElementById('secondary-color').value;
+          const accentColor = document.getElementById('accent-color').value;
+          
+          // Update preview boxes with selected colors
+          document.getElementById('card-back-preview').style.background = `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`;
+          document.getElementById('table-skin-preview').style.background = `linear-gradient(45deg, ${secondaryColor}, ${accentColor})`;
+          document.getElementById('chip-design-preview').style.background = `radial-gradient(circle, ${accentColor}, ${primaryColor})`;
+          document.getElementById('avatar-ring-preview').style.background = `conic-gradient(from 0deg, ${primaryColor}, ${secondaryColor}, ${accentColor}, ${primaryColor})`;
+          
+          notifications.show('Branding preview updated', 'success');
+        });
+
+        applyBtn.addEventListener('click', () => {
+          notifications.show('Branding set applied!', 'success');
+        });
+
+        saveBtn.addEventListener('click', () => {
+          notifications.show('Branding set saved for later', 'success');
+        });
+      }
+
+      // Event listeners
+      equipBtn.addEventListener('click', () => {
+        if (!selectedItem) return;
+        saveCosmeticSelection({ [selectedItem.type]: selectedItem.id });
+        if (syncEnabled) syncOverlay();
+        equipBtn.textContent = syncEnabled ? 'Saved to overlay' : 'Equipped';
+        notifications.show(syncEnabled ? 'Item saved to overlay!' : 'Item equipped locally!', 'success');
+        setTimeout(() => { equipBtn.textContent = 'Equip'; }, 1400);
+      });
+
+      refreshBtn.addEventListener('click', () => {
+        loadCatalog();
+      });
+
+      // Initialize
+      syncEnabled = localStorage.getItem('overlaySyncEnabled') !== '0';
+      document.getElementById('sync-checkbox').checked = syncEnabled;
+      document.getElementById('sync-status').classList.toggle('active', syncEnabled);
+      document.getElementById('sync-status').querySelector('.status-text').textContent = syncEnabled ? 'Sync On' : 'Sync Off';
+      document.getElementById('sync-status').querySelector('.status-indicator').classList.toggle('active', syncEnabled);
+
+      await loadEffectsMeta();
+      initPremierEditor();
+      loadCatalog();
+    })();
+  </script>
+</body>
+</html>

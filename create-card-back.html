@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { margin: 0; background: #0a0a0a; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 200;
+        canvas.height = 280;
+        
+        // Create purple gradient card back
+        const gradient = ctx.createLinearGradient(0, 0, 200, 280);
+        gradient.addColorStop(0, '#4a148c');
+        gradient.addColorStop(0.5, '#7b1fa2');
+        gradient.addColorStop(1, '#4a148c');
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(10, 10, 180, 260);
+        
+        // Add border
+        ctx.strokeStyle = '#9c27b0';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(10, 10, 180, 260);
+        
+        // Add neon glow effect
+        ctx.shadowColor = '#00ffaa';
+        ctx.shadowBlur = 10;
+        ctx.strokeStyle = '#00ffaa';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(15, 15, 170, 250);
+        
+        // Add pattern
+        ctx.fillStyle = 'rgba(0, 255, 170, 0.1)';
+        for(let i = 0; i < 8; i++) {
+            for(let j = 0; j < 11; j++) {
+                if((i + j) % 2 === 0) {
+                    ctx.fillRect(20 + i * 20, 20 + j * 20, 20, 20);
+                }
+            }
+        }
+        
+        // Export as data URL
+        const dataURL = canvas.toDataURL('image/png');
+        console.log('Card back created:', dataURL);
+    </script>
+</body>
+</html>

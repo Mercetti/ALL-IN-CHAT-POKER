@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Store | All-In Chat Poker</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="style-theme.css">
+  <link rel="stylesheet" href="style-store-enhanced.css">
+  <script src="client.js"></script>
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="bg-animation">
+    <div class="floating-cards"></div>
+    <div class="poker-chips"></div>
+    <div class="store-glow"></div>
+  </div>
+
+  <div class="cosmetics-page">
+    <!-- Header -->
+    <div class="cosmetics-header">
+      <div class="brand-section">
+        <div class="brand-chip">
+          <img src="logo.png" alt="All-In Chat Poker" class="brand-logo">
+          <span>All-In Chat Poker</span>
+        </div>
+        <div>
+          <p class="muted">Premium Gaming Experience</p>
+          <h1>Store</h1>
+        </div>
+      </div>
+      
+      <div class="catalog-controls">
+        <label for="filter-type" class="sr-only">Filter by type</label>
+        <select id="filter-type" class="form-input">
+          <option value="">All types</option>
+          <option value="cardBack">Card backs</option>
+          <option value="cardFace">Card faces</option>
+          <option value="tableSkin">Table skins</option>
+          <option value="avatarRing">Avatar rings</option>
+          <option value="profileFrame">Profile frames</option>
+          <option value="chipSkin">Chips</option>
+          <option value="nameplate">Name plates</option>
+        </select>
+        <button id="btn-refresh-catalog" class="btn btn-secondary btn-sm">
+          <span class="btn-icon">🔄</span> Reload catalog
+        </button>
+        <a class="btn btn-secondary btn-sm" href="/admin2.html" target="_blank" rel="noopener">
+          <span class="btn-icon">⚙️</span> Open Admin
+        </a>
+      </div>
+    </div>
+
+    <!-- AIC Packs Section -->
+    <section class="aic-section">
+      <div class="section-header">
+        <h2>
+          <span class="section-icon">💎</span>
+          AIC Packs
+        </h2>
+        <p class="muted">Buy All-In Chips with cash; cosmetics are purchased with AIC only.</p>
+      </div>
+      <div class="cosmetics-grid" id="aic-pack-grid"></div>
+    </section>
+
+    <!-- Store Status -->
+    <p class="muted" id="catalog-status">Loading store...</p>
+
+    <!-- Main Store Layout -->
+    <div class="cosmetics-stage">
+      <!-- Collection Panel -->
+      <div class="collection-panel">
+        <div class="collection-title">
+          <span>
+            <span class="title-icon">🎨</span>
+            Skins
+          </span>
+          <span class="subtitle">Select to preview</span>
+        </div>
+        <div id="cosmetics-grid" class="collection-grid"></div>
+      </div>
+
+      <!-- Hero Preview Panel -->
+      <div class="hero-panel">
+        <div class="hero-stage"></div>
+        <div id="selection-preview" class="hero-preview" aria-label="Selected cosmetic preview">
+          <div class="placeholder">
+            <span class="placeholder-icon">🎮</span>
+            <span class="placeholder-text">Select a cosmetic</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detail Panel -->
+      <div class="detail-panel">
+        <h2 id="selection-name" class="detail-title">
+          <span class="title-icon">✨</span>
+          Cosmetic
+        </h2>
+        <div class="detail-meta">
+          <span class="badge" id="selection-rarity">common</span>
+          <span class="badge common" id="selection-type">type</span>
+          <span id="selection-price" class="price-tag"></span>
+        </div>
+        <div class="detail-desc" id="selection-desc">Choose an item to see details.</div>
+        <div class="detail-actions">
+          <div class="muted" id="selection-unlock"></div>
+          <button id="equip-btn" class="btn btn-primary" disabled>
+            <span class="btn-icon">⚡</span>
+            Equip
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="store-footer">
+      <div class="footer-content">
+        <p>🎰 Enhance your poker experience with premium cosmetics</p>
+        <div class="footer-links">
+          <a href="/welcome.html" class="footer-link">Home</a>
+          <span class="separator">•</span>
+          <a href="/profile.html" class="footer-link">Profile</a>
+          <span class="separator">•</span>
+          <a href="/partner-program.html" class="footer-link">Partners</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      // Store is public to browse; actions that need auth will fail gracefully
+      const typeLabels = {
+        cardBack: 'Card Backs',
+        cardFace: 'Card Faces',
+        tableSkin: 'Table Skins',
+        avatarRing: 'Avatar Rings',
+        profileFrame: 'Profile Frames',
+        chipSkin: 'Chips',
+        nameplate: 'Name Plates',
+        dealFx: 'Deal Effects',
+        winFx: 'Win Effects',
+      };
+      
+      const gridEl = document.getElementById('cosmetics-grid');
+      const statusEl = document.getElementById('catalog-status');
+      const filterEl = document.getElementById('filter-type');
+      const packGrid = document.getElementById('aic-pack-grid');
+      let userItems = { owned: [], equipped: {} };
+      let selectedId = null;
+      const pageState = {};
+      const itemsPerPage = 6;
+      
+      // Enhanced chip packs with better assets
+      const chipPacks = [
+        { id: 'coins-100', chips: 100, price: '$0.99', img: '/assets/all_in_chip_x1.png', tag: 'Starter', bonus: null },
+        { id: 'coins-500', chips: 500, price: '$4.99', bonus: '+50', img: '/assets/all_in_chip_x10.png', tag: 'Best Deal' },
+        { id: 'coins-2000', chips: 2000, price: '$19.99', bonus: '+300', img: '/assets/all_in_chip_x100.png', tag: 'Popular' },
+        { id: 'coins-5000', chips: 5000, price: '$49.99', bonus: '+1500', img: '/assets/all_in_chip_x1000.png', tag: 'Whale Pack' },
+      ];
+      
+      // Enhanced hero backgrounds by type
+      const heroBgByType = {
+        cardBack: 'linear-gradient(135deg, #0b1c2c, #0c1826 50%, #09131f)',
+        cardFace: 'radial-gradient(circle at 50% 40%, rgba(255, 214, 102, 0.1), #0b1220 75%)',
+        tableSkin: 'radial-gradient(circle at 50% 60%, rgba(112, 255, 205, 0.12), #071014 78%)',
+        avatarRing: 'radial-gradient(circle at 50% 40%, rgba(140, 196, 255, 0.12), #0a0f1a 78%)',
+        profileFrame: 'linear-gradient(135deg, #1f1a30, #0c1322 70%)',
+        nameplate: 'linear-gradient(135deg, #1d1b2a, #101725 70%)',
+        chipSkin: 'radial-gradient(circle at 50% 50%, rgba(255, 215, 164, 0.12), #0c121c 80%)',
+        dealFx: 'radial-gradient(circle at 50% 50%, rgba(124, 231, 255, 0.12), #0a0f1c 78%)',
+        winFx: 'radial-gradient(circle at 50% 50%, rgba(255, 180, 120, 0.12), #0a101c 78%)',
+      };
+
+      // Fallback assets for missing images
+      const fallbackAssets = {
+        cardBack: '/assets/cosmetics/cards/basic/card-back-purple.svg',
+        cardFace: '/assets/cosmetics/cards/faces/ace_of_spades.svg',
+        tableSkin: '/assets/cosmetics/table/neon_green.svg',
+        avatarRing: '/assets/cosmetics/avatar/fire_ring.svg',
+        profileFrame: '/assets/cosmetics/frame/neon_nameplate.svg',
+        chipSkin: '/assets/cosmetics/chips/chip-100-top.svg',
+        nameplate: '/assets/cosmetics/frame/neon_nameplate.svg',
+      };
+
+      function isPurchasable(item) {
+        if (item?.hidden) return false;
+        const price = Number.isFinite(item?.price_cents) ? item.price_cents : Number(item?.price || 0);
+        const unlock = (item?.unlock_type || '').toLowerCase();
+        const gated = unlock && unlock !== 'basic';
+        return price > 0 && !gated;
+      }
+
+      function hasUserToken() {
+        try {
+          return typeof getUserToken === 'function' && !!getUserToken();
+        } catch {
+          return false;
+        }
+      }
+
+      async function loadUserItems() {
+        if (!hasUserToken()) return;
+        try {
+          const inv = await apiCall('/user/items', { useUserToken: true, noToast: true });
+          userItems = inv || { owned: [], equipped: {} };
+        } catch {
+          userItems = { owned: [], equipped: {} };
+        }
+      }
+
+      async function loadCatalog() {
+        statusEl.textContent = 'Loading catalog...';
+        gridEl.innerHTML = '';
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 8000);
+        try {
+          await loadUserItems();
+          const res = await fetch('/catalog', { signal: controller.signal });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const items = await res.json();
+          const purchasable = (items || []).filter(isPurchasable);
+          renderSections(purchasable);
+          statusEl.textContent = '';
+        } catch (err) {
+          console.error('[cosmetics] catalog load failed', err);
+          statusEl.textContent = 'Failed to load catalog. Please refresh.';
+          gridEl.innerHTML = '<div class="muted" style="padding:12px;">Catalog unavailable.</div>';
+        } finally {
+          clearTimeout(timer);
+        }
+      }
+
+      function buildPreview(item) {
+        const tint = item.tint || item.color || '#0b1b1b';
+        const img = item.image_url || item.preview || fallbackAssets[item.type];
+        const hasImg = Boolean(img);
+        
+        if (item.type === 'tableSkin') {
+          const bgImg = hasImg ? `, url('${img}') center/cover no-repeat` : '';
+          return `<div style="width:100%;height:100%;background:linear-gradient(135deg,${tint}, #0c1c2c)${bgImg};display:grid;place-items:center;color:${item.color || '#8ef5d0'};font-weight:700;">TABLE</div>`;
+        }
+        
+        if (item.type === 'avatarRing') {
+          const bg = hasImg ? `url('${img}') center/cover no-repeat` : 'transparent';
+          return `<div style="width:82px;height:82px;border-radius:50%;border:3px solid ${item.color || '#00d4a6'};box-shadow:0 0 14px ${item.color || '#00d4a6'};background:${bg};"></div>`;
+        }
+        
+        if (item.type === 'cardBack') {
+          const bg = hasImg ? `url('${img}') center/cover no-repeat, ${tint}` : `linear-gradient(135deg, ${tint}, #0d1f2d)`;
+          return `<div style="width:96px;height:120px;border-radius:10px;border:1px solid var(--border-color);background:${bg};box-shadow:0 0 10px rgba(0,0,0,0.35);"></div>`;
+        }
+        
+        if (item.type === 'cardFace') {
+          const trimmed = img && img.endsWith('/') ? img.slice(0, -1) : img;
+          const sample = trimmed ? `${trimmed}/ace_of_spades.svg` : fallbackAssets.cardFace;
+          const bg = sample ? `url('${sample}') center/cover no-repeat` : tint;
+          return `<div style="width:96px;height:120px;border-radius:10px;border:1px solid var(--border-color);background:${bg};"></div>`;
+        }
+        
+        if (item.type === 'chipSkin') {
+          const bg = hasImg ? `url('${img}') center/cover no-repeat` : tint;
+          return `<div style="width:96px;height:96px;border-radius:50%;border:1px solid var(--border-color);background:${bg};"></div>`;
+        }
+        
+        if (item.type === 'nameplate') {
+          const bg = hasImg ? `url('${img}') center/cover no-repeat, linear-gradient(135deg, ${tint}, #101820)` : `linear-gradient(135deg, ${tint}, #101820)`;
+          return `<div style="width:100%;height:64px;border-radius:10px;border:1px solid var(--border-color);background:${bg};display:grid;place-items:center;color:${item.color || '#8ef5d0'};font-weight:700;">Name</div>`;
+        }
+        
+        // Default fallback
+        const bg = hasImg ? `url('${img}') center/cover no-repeat, ${tint}` : tint;
+        return `<div style="width:96px;height:120px;border-radius:10px;border:1px solid var(--border-color);background:${bg};display:grid;place-items:center;color:#8ef5d0;font-weight:700;">${item.type || 'Item'}</div>`;
+      }
+
+      function renderSections(items) {
+        const filter = filterEl.value;
+        const partnerFeatured = items.filter(i => (i.unlock_type || '').toLowerCase() === 'partner' || (i.tags || '').toLowerCase().includes('partner'));
+        const byType = {};
+        
+        items.forEach(i => {
+          if (filter && i.type !== filter) return;
+          const t = i.type || 'other';
+          if (!byType[t]) byType[t] = [];
+          byType[t].push(i);
+        });
+        
+        const typeOrder = ['cardBack', 'cardFace', 'tableSkin', 'avatarRing', 'profileFrame', 'chipSkin', 'nameplate', 'dealFx', 'winFx', 'other'];
+        const sections = [];
+        
+        if (partnerFeatured.length) {
+          sections.push({
+            title: '🌟 Featured Partner Sets',
+            items: partnerFeatured,
+          });
+        }
+        
+        typeOrder.forEach(t => {
+          if (byType[t] && byType[t].length) {
+            sections.push({
+              title: typeLabels[t] || t,
+              items: byType[t],
+            });
+          }
+        });
+
+        if (!sections.length) {
+          gridEl.innerHTML = '<div class="muted" style="padding:12px;">No purchasable items found.</div>';
+          return;
+        }
+
+        gridEl.innerHTML = sections.map(section => {
+          const key = section.title;
+          const totalPages = Math.max(1, Math.ceil(section.items.length / itemsPerPage));
+          const currentPage = Math.min(pageState[key] || 0, totalPages - 1);
+          pageState[key] = currentPage;
+          const visible = section.items.slice(currentPage * itemsPerPage, currentPage * itemsPerPage + itemsPerPage);
+          
+          const cards = visible.map(item => {
+            const price = Number.isFinite(item.price_cents) ? `${item.price_cents} AIC` : (item.price ? `${item.price} AIC` : 'Free');
+            const ownedSet = new Set(userItems.owned || []);
+            const owned = ownedSet.has(item.id) || price === 'Free';
+            const eq = Object.values(userItems.equipped || {}).includes(item.id);
+            
+            return `
+              <div class="cosmetic-card ${eq ? 'active' : ''} ${owned ? 'owned' : 'locked'}" data-card-id="${item.id}">
+                ${eq ? '<div class="equipped-tag">✓ Equipped</div>' : ''}
+                ${!owned ? '<div class="lock-icon" title="Locked">🔒</div>' : ''}
+                <div class="cosmetic-type">${typeLabels[item.type] || item.type || ''}</div>
+                <div class="cosmetic-preview">${buildPreview(item)}</div>
+                <div class="cosmetic-meta">
+                  <span class="badge ${String(item.rarity || '').toLowerCase()}">${item.rarity || 'common'}</span>
+                  <span class="price">${price}</span>
+                </div>
+                <h3>${item.name || item.id}</h3>
+                <p class="muted">${item.description || item.unlock_note || 'No description available'}</p>
+                <div class="cosmetic-meta">
+                  <span class="status">${owned ? (eq ? 'Equipped' : 'Owned') : 'Locked'}</span>
+                  <button class="btn btn-secondary btn-sm equip-btn" data-equip="${item.id}" ${owned && hasUserToken() ? '' : 'disabled'}>
+                    ${eq ? 'Equipped' : 'Equip'}
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('');
+          
+          return `
+            <div class="collection-title" style="margin-top:10px;">
+              <span>${section.title}</span>
+              ${totalPages > 1 ? `<div class="carousel-controls"><button data-page="${key}" data-dir="-1" class="btn btn-ghost btn-sm" ${currentPage === 0 ? 'disabled' : ''}>←</button><span class="muted">${currentPage + 1} / ${totalPages}</span><button data-page="${key}" data-dir="1" class="btn btn-ghost btn-sm" ${currentPage === totalPages - 1 ? 'disabled' : ''}>→</button></div>` : ''}
+            </div>
+            <div class="collection-grid">${cards}</div>
+          `;
+        }).join('');
+
+        // Add event listeners
+        const selectCard = (id) => {
+          const found = items.find(i => i.id === id);
+          if (found) showSelection(found);
+          gridEl.querySelectorAll('.cosmetic-card').forEach(c => c.classList.toggle('active', c.dataset.cardId === id));
+          selectedId = id;
+        };
+
+        gridEl.querySelectorAll('.cosmetic-card').forEach(card => {
+          card.addEventListener('click', () => selectCard(card.dataset.cardId));
+        });
+
+        gridEl.querySelectorAll('button[data-page]').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const key = btn.dataset.page;
+            const dir = Number(btn.dataset.dir) || 0;
+            const totalPages = Math.max(1, Math.ceil((sections.find(s => s.title === key)?.items.length || 0) / itemsPerPage));
+            const next = Math.max(0, Math.min(totalPages - 1, (pageState[key] || 0) + dir));
+            pageState[key] = next;
+            renderSections(items);
+          });
+        });
+
+        gridEl.querySelectorAll('button[data-equip]').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const id = btn.dataset.equip;
+            try {
+              if (!hasUserToken()) {
+                showNotification('Sign in to equip items.', 'warning');
+                return;
+              }
+              btn.disabled = true;
+              btn.innerHTML = '<span class="btn-icon">⏳</span> Equipping...';
+              await apiCall('/user/equip', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itemId: id }),
+                useUserToken: true,
+              });
+              showNotification('Item equipped successfully!', 'success');
+              await loadUserItems();
+              renderSections(items);
+            } catch (err) {
+              showNotification('Equip failed: ' + (err.message || err), 'error');
+            } finally {
+              btn.disabled = false;
+              btn.innerHTML = eq ? '✓ Equipped' : '⚡ Equip';
+            }
+          });
+        });
+
+        const first = sections.find(s => s.items && s.items[0]);
+        if (!selectedId && first?.items?.[0]) selectCard(first.items[0].id);
+        if (selectedId) selectCard(selectedId);
+      }
+
+      function showSelection(item) {
+        const nameEl = document.getElementById('selection-name');
+        const typeEl = document.getElementById('selection-type');
+        const rarityEl = document.getElementById('selection-rarity');
+        const priceEl = document.getElementById('selection-price');
+        const unlockEl = document.getElementById('selection-unlock');
+        const descEl = document.getElementById('selection-desc');
+        const previewEl = document.getElementById('selection-preview');
+        const equipBtn = document.getElementById('equip-btn');
+        
+        if (!previewEl) return;
+
+        nameEl.innerHTML = `<span class="title-icon">✨</span>${item.name || item.id}`;
+        typeEl.textContent = typeLabels[item.type] || item.type || '';
+        typeEl.className = 'badge common';
+        rarityEl.textContent = item.rarity || 'common';
+        rarityEl.className = `badge ${String(item.rarity || '').toLowerCase()}`;
+        priceEl.textContent = Number.isFinite(item.price_cents) ? `${item.price_cents} AIC` : (item.price ? `${item.price} AIC` : 'Free');
+        unlockEl.textContent = item.unlock_note || '';
+        descEl.textContent = item.description || 'No description available';
+        
+        const heroImg = item.image_url || item.preview || fallbackAssets[item.type];
+        const heroStage = document.querySelector('.hero-stage');
+        const rarityClass = `rarity-${String(item.rarity || '').toLowerCase()}`;
+        previewEl.className = `hero-preview ${rarityClass}`;
+        previewEl.style.backgroundImage = heroImg ? `url('${heroImg}')` : 'none';
+        previewEl.style.backgroundColor = 'transparent';
+        previewEl.style.backgroundBlendMode = 'screen';
+        previewEl.style.backgroundSize = 'contain';
+        previewEl.style.backgroundRepeat = 'no-repeat';
+        previewEl.style.backgroundPosition = 'center';
+        
+        if (heroStage) {
+          heroStage.style.background = heroBgByType[item.type] || heroBgByType.cardBack;
+        }
+        
+        if (!heroImg) {
+          previewEl.innerHTML = `
+            <div class="placeholder">
+              <span class="placeholder-icon">🎮</span>
+              <span class="placeholder-text">No preview available</span>
+            </div>
+          `;
+        } else {
+          previewEl.innerHTML = '';
+        }
+        
+        // Update equip button
+        const ownedSet = new Set(userItems.owned || []);
+        const owned = ownedSet.has(item.id) || Number.isFinite(item.price_cents) === 0;
+        const eq = Object.values(userItems.equipped || {}).includes(item.id);
+        
+        equipBtn.disabled = !owned || !hasUserToken() || eq;
+        equipBtn.innerHTML = eq ? '✓ Equipped' : '⚡ Equip';
+      }
+
+      // Notification system
+      function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.classList.add('show');
+        }, 100);
+        
+        setTimeout(() => {
+          notification.classList.remove('show');
+          setTimeout(() => {
+            document.body.removeChild(notification);
+          }, 300);
+        }, 3000);
+      }
+
+      document.getElementById('btn-refresh-catalog')?.addEventListener('click', loadCatalog);
+      filterEl?.addEventListener('change', loadCatalog);
+      
+      // Render packs
+      (function renderPacks() {
+        if (!packGrid) return;
+        packGrid.innerHTML = chipPacks.map(p => `
+          <div class="cosmetic-card pack-card">
+            <div class="cosmetic-type">${p.tag || 'Standard'}</div>
+            <h3>${p.chips.toLocaleString()} AIC</h3>
+            <div class="cosmetic-preview">
+              <img class="pack-img" src="${p.img}" alt="${p.chips} All-In Chips" onerror="this.src='/assets/all_in_chip_x1.png'">
+            </div>
+            <div class="cosmetic-meta">
+              <span class="badge">${p.bonus ? p.bonus + ' bonus' : 'Base'}</span>
+              <span class="price">${p.price}</span>
+            </div>
+            <p class="muted">All-In Chips are the only currency used to buy cosmetics.</p>
+            <button class="pack-btn" data-pack="${p.id}" aria-label="Buy ${p.chips} All-In Chips">
+              <span class="btn-text">BUY</span>
+            </button>
+          </div>
+        `).join('');
+        
+        packGrid.querySelectorAll('button[data-pack]').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const packId = btn.dataset.pack;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="btn-icon">⏳</span> Creating order...';
+            try {
+              const res = await fetch('/coins/paypal/order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ packId }),
+              });
+              if (!res.ok) throw new Error(`HTTP ${res.status}`);
+              const data = await res.json();
+              if (!data?.id) throw new Error('Missing PayPal order id');
+              if (!data?.nonce || !data?.signature) throw new Error('Missing order nonce/signature');
+
+              // Persist nonce client-side to prevent replay
+              sessionStorage.setItem(`paypal_nonce_${data.id}`, data.nonce);
+              sessionStorage.setItem(`paypal_sig_${data.id}`, data.signature);
+
+              // Redirect to PayPal and then return here for capture
+              const paypalUrl = `https://www.paypal.com/checkoutnow?token=${data.id}&redirect_uri=${encodeURIComponent(window.location.origin + '/cosmetics.html?paypalOrderId=' + data.id + '&packId=' + packId)}`;
+              window.location.href = paypalUrl;
+            } catch (err) {
+              console.error('Pack purchase failed', err);
+              showNotification('Could not start PayPal checkout. Please try again. ' + (err?.message || ''), 'error');
+              btn.disabled = false;
+              btn.innerHTML = '<span class="btn-text">BUY</span>';
+            }
+          });
+        });
+      })();
+
+      // Handle PayPal return capture if query has paypalOrderId and packId
+      (async function handlePayPalReturn() {
+        const params = new URLSearchParams(window.location.search);
+        const orderId = params.get('paypalOrderId');
+        const packId = params.get('packId');
+        if (!orderId || !packId) return;
+        try {
+          const storedNonce = sessionStorage.getItem(`paypal_nonce_${orderId}`) || '';
+          const storedSig = sessionStorage.getItem(`paypal_sig_${orderId}`) || '';
+          const res = await fetch('/coins/paypal/capture', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId, packId, nonce: storedNonce, signature: storedSig }),
+          });
+          const data = await res.json();
+          if (res.ok && data?.success) {
+            showNotification('Purchase complete! Coins added: ' + (data.coins || ''), 'success');
+          } else {
+            const msg = data?.error === 'invalid_nonce'
+              ? 'Checkout session expired. Please start again.'
+              : data?.error === 'nonce_used'
+                ? 'This checkout was already processed. If coins are missing, contact support.'
+                : data?.error === 'invalid_signature'
+                  ? 'Order signature mismatch. Please restart checkout.'
+                  : data?.error === 'duplicate_txn'
+                    ? 'This payment was already captured. If coins are missing, contact support.'
+                  : 'PayPal capture failed. Please try again.';
+            showNotification(msg, 'warning');
+          }
+        } catch (e) {
+          console.error('PayPal capture failed', e);
+          showNotification('PayPal capture failed. Please contact support.', 'error');
+        } finally {
+          // clean query params and nonce
+          const url = new URL(window.location.href);
+          url.search = '';
+          window.history.replaceState({}, document.title, url.toString());
+          sessionStorage.removeItem(`paypal_nonce_${orderId}`);
+          sessionStorage.removeItem(`paypal_sig_${orderId}`);
+        }
+      })();
+      
+      // Initialize animations
+      initializeAnimations();
+      
+      function initializeAnimations() {
+        // Animate cards on load
+        const cards = document.querySelectorAll('.cosmetic-card');
+        cards.forEach((card, index) => {
+          card.style.opacity = '0';
+          card.style.transform = 'translateY(20px)';
+          
+          setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+          }, index * 100);
+        });
+        
+        // Add hover effects
+        cards.forEach(card => {
+          card.addEventListener('mouseenter', () => {
+            if (!card.classList.contains('locked')) {
+              card.style.transform = 'translateY(-4px)';
+            }
+          });
+          
+          card.addEventListener('mouseleave', () => {
+            if (!card.classList.contains('active')) {
+              card.style.transform = 'translateY(0)';
+            }
+          });
+        });
+      }
+      
+      loadCatalog();
+    })();
+  </script>
+</body>
+</html>

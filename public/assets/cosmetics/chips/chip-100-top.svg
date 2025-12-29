@@ -1,0 +1,39 @@
+<svg width="200" height="160" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="chipGrad">
+      <stop offset="0%" style="stop-color:#ffd700;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#ffed4e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffa500;stop-opacity:1" />
+    </radialGradient>
+    <filter id="shadow">
+      <feDropShadow dx="2" dy="2" stdDeviation="2" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- Chip stack - 5 chips -->
+  <g filter="url(#shadow)">
+    <!-- Bottom chip -->
+    <ellipse cx="100" cy="130" rx="45" ry="15" fill="url(#chipGrad)" stroke="#d4af37" stroke-width="2"/>
+    <ellipse cx="100" cy="128" rx="45" ry="15" fill="url(#chipGrad)" stroke="#d4af37" stroke-width="2"/>
+    <ellipse cx="100" cy="126" rx="45" ry="15" fill="url(#chipGrad)" stroke="#d4af37" stroke-width="2"/>
+    <ellipse cx="100" cy="124" rx="45" ry="15" fill="url(#chipGrad)" stroke="#d4af37" stroke-width="2"/>
+    <!-- Top chip -->
+    <ellipse cx="100" cy="122" rx="45" ry="15" fill="url(#chipGrad)" stroke="#d4af37" stroke-width="2"/>
+    
+    <!-- Chip details on top chip -->
+    <ellipse cx="100" cy="122" rx="35" ry="10" fill="none" stroke="#d4af37" stroke-width="1"/>
+    <ellipse cx="100" cy="122" rx="25" ry="7" fill="none" stroke="#d4af37" stroke-width="1"/>
+    
+    <!-- Diamond pattern -->
+    <g transform="translate(100, 122)">
+      <rect x="-8" y="-3" width="16" height="6" fill="#d4af37" transform="rotate(45)"/>
+      <rect x="-8" y="-3" width="16" height="6" fill="#d4af37" transform="rotate(-45)"/>
+    </g>
+    
+    <!-- "100" text -->
+    <text x="100" y="127" text-anchor="middle" fill="#8b4513" font-family="Arial Black" font-size="14" font-weight="bold">100</text>
+  </g>
+  
+  <!-- Glow effect -->
+  <ellipse cx="100" cy="122" rx="50" ry="18" fill="none" stroke="#ffd700" stroke-width="1" opacity="0.3"/>
+</svg>

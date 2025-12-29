@@ -1,0 +1,50 @@
+<svg width="400" height="200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="tableGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#0a4d3c;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#06352c;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#042a20;stop-opacity:1" />
+    </radialGradient>
+    <filter id="tableGlow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <pattern id="tablePattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <rect width="40" height="40" fill="#0a4d3c"/>
+      <circle cx="20" cy="20" r="1" fill="#0d5f4a" opacity="0.5"/>
+    </pattern>
+  </defs>
+  
+  <!-- Table surface -->
+  <rect x="0" y="0" width="400" height="200" rx="20" fill="url(#tableGrad)"/>
+  
+  <!-- Table pattern overlay -->
+  <rect x="0" y="0" width="400" height="200" rx="20" fill="url(#tablePattern)" opacity="0.3"/>
+  
+  <!-- Neon border -->
+  <rect x="2" y="2" width="396" height="196" rx="18" fill="none" stroke="#00ff88" stroke-width="2" filter="url(#tableGlow)" opacity="0.8"/>
+  
+  <!-- Inner decorative border -->
+  <rect x="10" y="10" width="380" height="180" rx="14" fill="none" stroke="#00ff88" stroke-width="1" opacity="0.4"/>
+  
+  <!-- Center decoration -->
+  <circle cx="200" cy="100" r="30" fill="none" stroke="#00ff88" stroke-width="1" opacity="0.6" filter="url(#tableGlow)"/>
+  <text x="200" y="105" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#00ff88">AIC</text>
+  
+  <!-- Corner accents -->
+  <circle cx="30" cy="30" r="3" fill="#00ff88" opacity="0.6"/>
+  <circle cx="370" cy="30" r="3" fill="#00ff88" opacity="0.6"/>
+  <circle cx="30" cy="170" r="3" fill="#00ff88" opacity="0.6"/>
+  <circle cx="370" cy="170" r="3" fill="#00ff88" opacity="0.6"/>
+  
+  <!-- Subtle texture lines -->
+  <line x1="100" y1="0" x2="100" y2="200" stroke="#00ff88" stroke-width="0.5" opacity="0.2"/>
+  <line x1="200" y1="0" x2="200" y2="200" stroke="#00ff88" stroke-width="0.5" opacity="0.2"/>
+  <line x1="300" y1="0" x2="300" y2="200" stroke="#00ff88" stroke-width="0.5" opacity="0.2"/>
+  <line x1="0" y1="50" x2="400" y2="50" stroke="#00ff88" stroke-width="0.5" opacity="0.2"/>
+  <line x1="0" y1="100" x2="400" y2="100" stroke="#00ff88" stroke-width="0.5" opacity="0.2"/>
+  <line x1="0" y1="150" x2="400" y2="150" stroke="#00ff88" stroke-width="0.5" opacity="0.2"/>
+</svg>
