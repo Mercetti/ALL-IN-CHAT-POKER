@@ -164,6 +164,7 @@ const blackjack = require('./server/blackjack');
 const stateAdapter = require('./server/state-adapter');
 
 const ai = require('./server/ai');
+const UnifiedAISystem = require('./server/unified-ai');
 
 const {
 
@@ -218,6 +219,49 @@ process.on('SIGINT', () => {
 
 // Timer manager for centralized timer management
 const { timerManager, performance: perfUtils, dbOptimizer, memoryMonitor, performanceMonitor } = utils;
+
+// Initialize unified AI system
+const unifiedAI = new UnifiedAISystem({
+  enableChatBot: true,
+  enableCosmeticAI: true,
+  chatBotOptions: {
+    personality: 'friendly',
+    gameKnowledge: true,
+    learning: true
+  },
+  cosmeticAIOptions: {
+    enablePublicGeneration: false, // Admin only for now
+    maxConcurrentGenerations: 3,
+    generationCooldown: 30000
+  }
+});
+
+// Initialize AI monitoring systems
+const AIErrorManager = require('./server/ai-error-manager');
+const AIPerformanceOptimizer = require('./server/ai-performance-optimizer');
+const AIUXMonitor = require('./server/ai-ux-monitor');
+
+const aiErrorManager = new AIErrorManager({
+  enableAutoFix: true,
+  enableLearning: true,
+  maxFixAttempts: 3,
+  confidenceThreshold: 0.7
+});
+
+const aiPerformanceOptimizer = new AIPerformanceOptimizer({
+  enableAutoOptimize: true,
+  monitoringInterval: 30000,
+  alertThreshold: 0.8
+});
+
+const aiUXMonitor = new AIUXMonitor({
+  enableAutoImprovements: true,
+  trackingWindow: 300000,
+  minUserSessions: 10
+});
+
+// Initialize AI self-healing middleware
+const aiSelfHealing = require('./server/ai-self-healing');
 
 // Database performance monitoring wrapper
 const monitoredDb = new Proxy(db.db, {
@@ -2922,6 +2966,9 @@ app.get('/auth/twitch/subs/callback', async (req, res) => {
 app.disable('x-powered-by');
 
 app.use(securityHeadersMiddleware);
+
+// AI Self-Healing Middleware
+app.use(aiSelfHealing.middleware());
 
 app.use('/uploads', express.static(uploadsDir));
 
@@ -12137,13 +12184,336 @@ app.post('/admin/cosmetics/import', auth.requireAdminOrRole(['premier']), (req, 
     return res.status(500).json({ error: 'internal_error' });
 
   }
-
 });
 
 /**
+ * Enhanced AI Cosmetic Generation (admin only)
+ * Body: { login, preset, theme, cosmeticTypes, style, useCache, palette }
+ */
+app.post('/admin/ai/cosmetics/generate', auth.requireAdminOrRole(['premier']), async (req, res) => {
+  try {
+    if (!config.OPENAI_API_KEY) {
+      return res.status(400).json({ error: 'ai_not_configured' });
+    }
 
+    const options = {
+      userId: auth.extractUserLogin(req) || 'admin',
+      login: req.body?.login,
+      preset: req.body?.preset || 'neon',
+      theme: req.body?.theme || '',
+      cosmeticTypes: req.body?.cosmeticTypes || ['cardBack'],
+      style: req.body?.style || 'detailed',
+      useCache: req.body?.useCache !== false,
+      palette: req.body?.palette
+    };
+
+    const results = await unifiedAI.generateCosmetic(options);
+    
+    logger.info('AI cosmetic generation completed', { 
+      userId: options.userId, 
+      login: options.login,
+      types: options.cosmeticTypes 
+    });
+
+    res.json({ success: true, results });
+  } catch (error) {
+    logger.error('AI cosmetic generation failed', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Generate AI Cosmetic Variants (admin only)
+ * Body: { baseDesign }
+ */
+app.post('/admin/ai/cosmetics/variants', auth.requireAdminOrRole(['premier']), async (req, res) => {
+  try {
+    if (!config.OPENAI_API_KEY) {
+      return res.status(400).json({ error: 'ai_not_configured' });
+    }
+
+    const { baseDesign } = req.body;
+    const userId = auth.extractUserLogin(req) || 'admin';
+
+    if (!baseDesign) {
+      return res.status(400).json({ error: 'base_design_required' });
+    }
+
+    const variants = await unifiedAI.generateCosmeticVariants(baseDesign, userId);
+    
+    logger.info('AI cosmetic variants generated', { 
+      userId, 
+      baseDesign: baseDesign.name 
+    });
+
+    res.json({ success: true, variants });
+  } catch (error) {
+    logger.error('AI cosmetic variants failed', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Generate Themed Cosmetic Set (admin only)
+ * Body: { theme, login, logoPath }
+ */
+app.post('/admin/ai/cosmetics/themed', auth.requireAdminOrRole(['premier']), async (req, res) => {
+  try {
+    if (!config.OPENAI_API_KEY) {
+      return res.status(400).json({ error: 'ai_not_configured' });
+    }
+
+    const { theme, login, logoPath } = req.body;
+
+    if (!theme || !login) {
+      return res.status(400).json({ error: 'theme_and_login_required' });
+    }
+
+    const themedSet = await unifiedAI.generateThemedSet(theme, login, logoPath);
+    
+    logger.info('AI themed cosmetic set generated', { 
+      theme, 
+      login 
+    });
+
+    res.json({ success: true, themedSet });
+  } catch (error) {
+    logger.error('AI themed set generation failed', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * AI Chat Message Processing (public endpoint)
+ * Body: { message, user, channel, gameState }
+ */
+app.post('/api/ai/chat', async (req, res) => {
+  try {
+    if (!config.OPENAI_API_KEY) {
+      return res.status(400).json({ error: 'ai_not_configured' });
+    }
+
+    const { message, user, channel, gameState } = req.body;
+
+    if (!message || !user) {
+      return res.status(400).json({ error: 'message_and_user_required' });
+    }
+
+    const response = await unifiedAI.processChatMessage(message, user, channel, gameState);
+    
+    if (!response) {
+      return res.json({ response: null, message: 'No response generated' });
+    }
+
+    res.json({ response });
+  } catch (error) {
+    logger.error('AI chat processing failed', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Get AI System Status (admin only)
+ */
+app.get('/admin/ai/status', auth.requireAdmin, async (req, res) => {
+  try {
+    const status = unifiedAI.getStatus();
+    const features = unifiedAI.getAvailableFeatures();
+    const statistics = unifiedAI.getStatistics();
+    const health = await unifiedAI.healthCheck();
+
+    res.json({
+      status,
+      features,
+      statistics,
+      health,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error('AI status check failed', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Get AI Error Manager Status (admin only)
+ */
+app.get('/admin/ai/errors/status', auth.requireAdmin, (req, res) => {
+  try {
+    const healthReport = aiErrorManager.getHealthReport();
+    res.json(healthReport);
+  } catch (error) {
+    logger.error('AI error status check failed', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Get AI Performance Report (admin only)
+ */
+app.get('/admin/ai/performance/report', auth.requireAdmin, (req, res) => {
+  try {
+    const performanceReport = aiPerformanceOptimizer.getPerformanceReport();
+    res.json(performanceReport);
+  } catch (error) {
+    logger.error('AI performance report failed', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Get AI UX Report (admin only)
+ */
+app.get('/admin/ai/ux/report', auth.requireAdmin, (req, res) => {
+  try {
+    const uxReport = aiUXMonitor.getUXReport();
+    res.json(uxReport);
+  } catch (error) {
+    logger.error('AI UX report failed', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Manual Error Detection (admin only)
+ */
+app.post('/admin/ai/errors/detect', auth.requireAdmin, async (req, res) => {
+  try {
+    const { error, context } = req.body;
+    
+    if (!error) {
+      return res.status(400).json({ error: 'error object required' });
+    }
+    
+    const errorInfo = await aiErrorManager.detectError(error, context);
+    res.json(errorInfo);
+  } catch (error) {
+    logger.error('Manual error detection failed', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Manual Error Fix Attempt (admin only)
+ */
+app.post('/admin/ai/errors/fix', auth.requireAdmin, async (req, res) => {
+  try {
+    const { errorId } = req.body;
+    
+    if (!errorId) {
+      return res.status(400).json({ error: 'errorId required' });
+    }
+    
+    const errorInfo = aiErrorManager.errorHistory.get(errorId);
+    if (!errorInfo) {
+      return res.status(404).json({ error: 'error not found' });
+    }
+    
+    const result = await aiErrorManager.attemptAutoFix(errorInfo);
+    res.json(result);
+  } catch (error) {
+    logger.error('Manual error fix failed', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Get AI Self-Healing Status (admin only)
+ */
+app.get('/admin/ai/healing/status', auth.requireAdmin, (req, res) => {
+  try {
+    const healingStatus = aiSelfHealing.getHealingStatus();
+    res.json(healingStatus);
+  } catch (error) {
+    logger.error('AI healing status check failed', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Get AI System Health (admin only)
+ */
+app.get('/admin/ai/health', auth.requireAdmin, async (req, res) => {
+  try {
+    const unifiedHealth = await unifiedAI.healthCheck();
+    const errorHealth = aiErrorManager.getHealthReport();
+    const performanceHealth = aiPerformanceOptimizer.getPerformanceReport();
+    const uxHealth = aiUXMonitor.getUXReport();
+    
+    res.json({
+      unified: unifiedHealth,
+      errorManager: errorHealth,
+      performance: performanceHealth,
+      ux: uxHealth,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error('AI health check failed', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Get Free AI Status (public endpoint)
+ */
+app.get('/api/ai/free-status', (req, res) => {
+  try {
+    const status = unifiedAI.getStatus();
+    const freeStatus = {
+      currentProvider: status.chatBot?.status?.enabled ? status.chatBot.status : 'disabled',
+      availableProviders: ['ollama', 'rules'], // Always available
+      ollamaAvailable: status.chatBot?.status?.enabled || false,
+      rulesAvailable: true, // Always available
+      openaiConfigured: !!config.OPENAI_API_KEY,
+      recommendation: config.OPENAI_API_KEY ? 'OpenAI available' : 'Use Ollama for free AI',
+      setupGuide: 'See FREE_AI_SETUP.md for instructions'
+    };
+
+    res.json(freeStatus);
+  } catch (error) {
+    logger.error('Free AI status check failed', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Get AI Available Options (public endpoint)
+ */
+app.get('/api/ai/options', (req, res) => {
+  try {
+    const features = unifiedAI.getAvailableFeatures();
+    
+    res.json({
+      available: features,
+      aiConfigured: !!config.OPENAI_API_KEY,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error('AI options check failed', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Clear AI Caches (admin only)
+ */
+app.post('/admin/ai/clear-cache', auth.requireAdmin, (req, res) => {
+  try {
+    unifiedAI.clearCaches();
+    
+    logger.info('AI caches cleared', { 
+      user: auth.extractUserLogin(req) 
+    });
+
+    res.json({ message: 'AI caches cleared successfully' });
+  } catch (error) {
+    logger.error('AI cache clear failed', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
  * Get audit log (admin only)
-
  */
 
 app.get('/admin/audit', auth.requireAdmin, (req, res) => {
