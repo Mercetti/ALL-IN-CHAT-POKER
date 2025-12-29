@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setup Guide | All-In Chat Poker</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="style-theme.css">
+  <link rel="stylesheet" href="style-setup-enhanced.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="enhanced-background">
+    <div class="floating-cards">
+      <div class="floating-card card-1">♠</div>
+      <div class="floating-card card-2">♥</div>
+      <div class="floating-card card-3">♦</div>
+      <div class="floating-card card-4">♣</div>
+      <div class="floating-card card-5">👑</div>
+    </div>
+    <div class="gradient-orbs">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <!-- Enhanced Header -->
+    <header class="enhanced-header">
+      <div class="header-content">
+        <div class="logo-section">
+          <div class="logo">
+            <div class="logo-icon">🎰</div>
+            <div class="logo-text">
+              <h1>ALL-IN POKER</h1>
+              <span class="logo-subtitle">Setup Guide</span>
+            </div>
+          </div>
+        </div>
+        <nav class="header-nav">
+          <a class="nav-link" href="/index-enhanced.html">Home</a>
+          <a class="nav-link" href="/welcome-enhanced.html">Welcome</a>
+          <a class="nav-link active" href="/setup-enhanced.html">Setup</a>
+          <a class="nav-link" href="/help.html">Help</a>
+        </nav>
+        <div class="header-actions">
+          <a class="btn btn-secondary" href="/admin-enhanced.html">Admin Panel</a>
+          <a class="btn btn-primary" href="/obs-overlay.html" target="_blank">Open Overlay</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="badge-icon">🚀</span>
+          Quick Start Guide
+        </div>
+        <h1 class="hero-title">Get Your Stream Running in Minutes</h1>
+        <p class="hero-description">
+          Drop the overlay into OBS, configure the bot, and let your viewers join the action with simple chat commands. 
+          We'll guide you through every step of the setup process.
+        </p>
+        <div class="hero-actions">
+          <button class="btn btn-primary btn-lg" id="start-setup-btn">
+            <span>🎯</span> Start Interactive Setup
+          </button>
+          <button class="btn btn-secondary btn-lg" id="quick-setup-btn">
+            <span>⚡</span> Quick Overview
+          </button>
+        </div>
+        <div class="setup-progress">
+          <div class="progress-bar">
+            <div class="progress-fill" id="setup-progress-fill" style="width: 0%"></div>
+          </div>
+          <div class="progress-text">
+            <span id="progress-step">Step 0 of 6</span> • 
+            <span id="progress-time">~5 minutes remaining</span>
+          </div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="setup-animation">
+          <div class="setup-step active" data-step="1">
+            <div class="step-icon">📺</div>
+            <div class="step-label">OBS Setup</div>
+          </div>
+          <div class="setup-step" data-step="2">
+            <div class="step-icon">🤖</div>
+            <div class="step-label">Bot Config</div>
+          </div>
+          <div class="setup-step" data-step="3">
+            <div class="step-icon">💬</div>
+            <div class="step-label">Chat Commands</div>
+          </div>
+          <div class="setup-step" data-step="4">
+            <div class="step-icon">🔐</div>
+            <div class="step-label">OAuth Setup</div>
+          </div>
+          <div class="setup-step" data-step="5">
+            <div class="step-icon">⚙️</div>
+            <div class="step-label">Admin Tips</div>
+          </div>
+          <div class="setup-step" data-step="6">
+            <div class="step-icon">🎉</div>
+            <div class="step-label">Ready to Stream!</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Setup Section -->
+    <section class="interactive-setup" id="interactive-setup">
+      <div class="setup-container">
+        <!-- Step 1: OBS Setup -->
+        <div class="setup-step-content active" data-step="1">
+          <div class="step-header">
+            <div class="step-number">1</div>
+            <div class="step-info">
+              <h2>OBS Browser Source Setup</h2>
+              <p>Add the poker overlay to your streaming software</p>
+            </div>
+            <div class="step-status">
+              <span class="status-indicator incomplete"></span>
+              <span class="status-text">Not Started</span>
+            </div>
+          </div>
+          
+          <div class="step-content">
+            <div class="instruction-card">
+              <h3>🎯 Quick Setup</h3>
+              <div class="url-display">
+                <label>Your Overlay URL:</label>
+                <div class="url-container">
+                  <input type="text" id="overlay-url-input" readonly value="Loading...">
+                  <button class="btn btn-secondary" id="copy-url-btn">Copy</button>
+                </div>
+                <small class="url-help">This URL is personalized for your channel</small>
+              </div>
+              
+              <div class="obs-settings">
+                <h4>OBS Browser Source Settings:</h4>
+                <div class="settings-grid">
+                  <div class="setting-item">
+                    <label>URL:</label>
+                    <code>Use your personalized URL above</code>
+                  </div>
+                  <div class="setting-item">
+                    <label>Width:</label>
+                    <code>1920</code>
+                  </div>
+                  <div class="setting-item">
+                    <label>Height:</label>
+                    <code>1080</code>
+                  </div>
+                  <div class="setting-item">
+                    <label>FPS:</label>
+                    <code>60</code>
+                  </div>
+                  <div class="setting-item">
+                    <label>Hardware Acceleration:</label>
+                    <code>Enabled</code>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="action-buttons">
+                <button class="btn btn-primary" id="test-overlay-btn">
+                  <span>🧪</span> Test Overlay
+                </button>
+                <button class="btn btn-secondary" id="open-overlay-btn">
+                  <span>🔗</span> Open in New Tab
+                </button>
+              </div>
+            </div>
+            
+            <div class="tips-card">
+              <h3>💡 Pro Tips</h3>
+              <ul>
+                <li>Place the overlay above your background layer but below your webcam</li>
+                <li>If you're not logged in on the streaming PC, add <code>?channel=your_username</code> to the URL</li>
+                <li>Use chroma key if you want to make the background transparent</li>
+                <li>Test the overlay before going live to ensure everything works</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Bot Configuration -->
+        <div class="setup-step-content" data-step="2">
+          <div class="step-header">
+            <div class="step-number">2</div>
+            <div class="step-info">
+              <h2>Bot Environment Setup</h2>
+              <p>Configure the Twitch bot for chat integration</p>
+            </div>
+            <div class="step-status">
+              <span class="status-indicator incomplete"></span>
+              <span class="status-text">Not Started</span>
+            </div>
+          </div>
+          
+          <div class="step-content">
+            <div class="instruction-card">
+              <h3>🔧 Required Environment Variables</h3>
+              <div class="env-config">
+                <div class="env-item required">
+                  <div class="env-header">
+                    <code>BOT_USERNAME</code>
+                    <span class="required-badge">Required</span>
+                  </div>
+                  <input type="text" class="env-input" placeholder="your_bot_username">
+                  <small>Your Twitch bot username</small>
+                </div>
+                
+                <div class="env-item required">
+                  <div class="env-header">
+                    <code>BOT_OAUTH_TOKEN</code>
+                    <span class="required-badge">Required</span>
+                  </div>
+                  <input type="password" class="env-input" placeholder="oauth:xxxxxxxx">
+                  <small>Twitch IRC OAuth token (generate from Twitch chat)</small>
+                </div>
+                
+                <div class="env-item">
+                  <div class="env-header">
+                    <code>TARGET_CHANNELS</code>
+                    <span class="optional-badge">Optional</span>
+                  </div>
+                  <input type="text" class="env-input" placeholder="channel1,channel2">
+                  <small>Comma-separated list (no #), or leave empty for backend-driven</small>
+                </div>
+                
+                <div class="env-item required">
+                  <div class="env-header">
+                    <code>ADMIN_TOKEN</code>
+                    <span class="required-badge">Required</span>
+                  </div>
+                  <input type="password" class="env-input" placeholder="backend_admin_token">
+                  <small>Backend admin bearer token</small>
+                </div>
+                
+                <div class="env-item required">
+                  <div class="env-header">
+                    <code>BOT_JOIN_SECRET</code>
+                    <span class="required-badge">Required</span>
+                  </div>
+                  <input type="password" class="env-input" placeholder="secret_key">
+                  <small>Must match server secret for security</small>
+                </div>
+                
+                <div class="env-item required">
+                  <div class="env-header">
+                    <code>BACKEND_URL</code>
+                    <span class="required-badge">Required</span>
+                  </div>
+                  <input type="text" class="env-input" placeholder="https://your-domain.com">
+                  <small>Your backend server URL</small>
+                </div>
+              </div>
+              
+              <div class="action-buttons">
+                <button class="btn btn-primary" id="generate-env-btn">
+                  <span>📋</span> Generate .env File
+                </button>
+                <button class="btn btn-secondary" id="test-bot-btn">
+                  <span>🧪</span> Test Connection
+                </button>
+              </div>
+            </div>
+            
+            <div class="tips-card">
+              <h3>🚀 Getting Started</h3>
+              <div class="code-block">
+                <h4>Start the bot locally:</h4>
+                <pre><code>cd bot
+npm install
+node bot.js</code></pre>
+              </div>
+              <ul>
+                <li>Make sure your bot account follows your channel</li>
+                <li>Test with <code>!join</code> and <code>!bet 100</code> commands</li>
+                <li>Check the console for any connection errors</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Chat Commands -->
+        <div class="setup-step-content" data-step="3">
+          <div class="step-header">
+            <div class="step-number">3</div>
+            <div class="step-info">
+              <h2>Chat Commands Overview</h2>
+              <p>Essential commands for your viewers</p>
+            </div>
+            <div class="step-status">
+              <span class="status-indicator incomplete"></span>
+              <span class="status-text">Not Started</span>
+            </div>
+          </div>
+          
+          <div class="step-content">
+            <div class="instruction-card">
+              <h3>💬 Viewer Commands</h3>
+              <div class="commands-grid">
+                <div class="command-card">
+                  <div class="command-syntax">
+                    <code>!join</code>
+                    <span class="command-badge">Basic</span>
+                  </div>
+                  <p>Join the current game with minimum bet</p>
+                  <div class="command-example">
+                    <strong>Example:</strong> <code>!join</code>
+                  </div>
+                </div>
+                
+                <div class="command-card">
+                  <div class="command-syntax">
+                    <code>!bet &lt;amount&gt;</code>
+                    <span class="command-badge">Basic</span>
+                  </div>
+                  <p>Place a bet for the current round</p>
+                  <div class="command-example">
+                    <strong>Example:</strong> <code>!bet 500</code>
+                  </div>
+                </div>
+                
+                <div class="command-card">
+                  <div class="command-syntax">
+                    <code>!leave</code>
+                    <span class="command-badge">Basic</span>
+                  </div>
+                  <p>Leave the current game</p>
+                  <div class="command-example">
+                    <strong>Example:</strong> <code>!leave</code>
+                  </div>
+                </div>
+                
+                <div class="command-card">
+                  <div class="command-syntax">
+                    <code>!balance</code>
+                    <span class="command-badge">Info</span>
+                  </div>
+                  <p>Check your current balance</p>
+                  <div class="command-example">
+                    <strong>Example:</strong> <code>!balance</code>
+                  </div>
+                </div>
+              </div>
+              
+              <h4>🛡️ Admin Commands</h4>
+              <div class="admin-commands">
+                <div class="command-card admin">
+                  <div class="command-syntax">
+                    <code>!start</code>
+                    <span class="command-badge admin">Admin</span>
+                  </div>
+                  <p>Start a new round (30-second countdown)</p>
+                </div>
+                
+                <div class="command-card admin">
+                  <div class="command-syntax">
+                    <code>!startnow</code>
+                    <span class="command-badge admin">Admin</span>
+                  </div>
+                  <p>Start a round immediately</p>
+                </div>
+                
+                <div class="command-card admin">
+                  <div class="command-syntax">
+                    <code>!reset</code>
+                    <span class="command-badge admin">Admin</span>
+                  </div>
+                  <p>Reset the current game</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="tips-card">
+              <h3>📚 Utility Commands</h3>
+              <ul>
+                <li><code>!leaderboard</code> - Show current leaderboard</li>
+                <li><code>!rules</code> - Display game rules</li>
+                <li><code>!status</code> - Show current game status</li>
+                <li><code>!help</code> - Show all available commands</li>
+              </ul>
+              <div class="warning-box">
+                <strong>⚠️ Important:</strong> Ensure <code>BOT_JOIN_SECRET</code> matches the server secret so chat bets are accepted.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4: OAuth Setup -->
+        <div class="setup-step-content" data-step="4">
+          <div class="step-header">
+            <div class="step-number">4</div>
+            <div class="step-info">
+              <h2>Twitch OAuth Configuration</h2>
+              <p>Set up proper authentication for your stream</p>
+            </div>
+            <div class="step-status">
+              <span class="status-indicator incomplete"></span>
+              <span class="status-text">Not Started</span>
+            </div>
+          </div>
+          
+          <div class="step-content">
+            <div class="instruction-card">
+              <h3>🔐 OAuth Redirect Setup</h3>
+              <div class="oauth-config">
+                <div class="redirect-url">
+                  <label>Your OAuth Redirect URL:</label>
+                  <div class="url-container">
+                    <input type="text" id="oauth-url-input" readonly value="https://all-in-chat-poker.fly.dev/login.html">
+                    <button class="btn btn-secondary" id="copy-oauth-btn">Copy</button>
+                  </div>
+                </div>
+                
+                <div class="setup-steps">
+                  <h4>📝 Setup Steps:</h4>
+                  <ol>
+                    <li>Go to your Twitch Developer Console</li>
+                    <li>Select your application or create a new one</li>
+                    <li>Set the OAuth Redirect URL to exactly match the URL above</li>
+                    <li>Add your custom domain if you're using one</li>
+                    <li>Save your changes</li>
+                  </ol>
+                </div>
+                
+                <div class="oauth-visual">
+                  <div class="twitch-app-preview">
+                    <div class="app-header">
+                      <h4>Twitch Application Settings</h4>
+                    </div>
+                    <div class="app-field">
+                      <label>OAuth Redirect URLs:</label>
+                      <input type="text" value="https://all-in-chat-poker.fly.dev/login.html" readonly>
+                    </div>
+                    <div class="app-note">
+                      <span>ℹ️</span> Make sure this exactly matches your deployed URL
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="action-buttons">
+                <button class="btn btn-primary" id="test-oauth-btn">
+                  <span>🧪</span> Test OAuth Flow
+                </button>
+                <button class="btn btn-secondary" id="open-twitch-dev-btn">
+                  <span>🔗</span> Open Twitch Dev Console
+                </button>
+              </div>
+            </div>
+            
+            <div class="tips-card">
+              <h3>💡 OAuth Tips</h3>
+              <ul>
+                <li>Both overlay and admin panel require a valid user token</li>
+                <li>The redirect URL must match exactly - no trailing slashes</li>
+                <li>Test the OAuth flow before going live</li>
+                <li>Keep your client secret secure and never expose it in client-side code</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 5: Admin Tips -->
+        <div class="setup-step-content" data-step="5">
+          <div class="step-header">
+            <div class="step-number">5</div>
+            <div class="step-info">
+              <h2>Admin Panel & Best Practices</h2>
+              <p>Master the admin interface and streaming tips</p>
+            </div>
+            <div class="step-status">
+              <span class="status-indicator incomplete"></span>
+              <span class="status-text">Not Started</span>
+            </div>
+          </div>
+          
+          <div class="step-content">
+            <div class="instruction-card">
+              <h3>⚙️ Admin Panel Features</h3>
+              <div class="admin-features">
+                <div class="feature-item">
+                  <div class="feature-icon">🎮</div>
+                  <div class="feature-content">
+                    <h4>Game Control</h4>
+                    <p>Start rounds, reset games, and manage game state</p>
+                  </div>
+                </div>
+                
+                <div class="feature-item">
+                  <div class="feature-icon">👥</div>
+                  <div class="feature-content">
+                    <h4>Player Management</h4>
+                    <p>View players, adjust balances, and manage participants</p>
+                  </div>
+                </div>
+                
+                <div class="feature-item">
+                  <div class="feature-icon">📊</div>
+                  <div class="feature-content">
+                    <h4>Real-time Stats</h4>
+                    <p>Monitor game activity and player engagement</p>
+                  </div>
+                </div>
+                
+                <div class="feature-item">
+                  <div class="feature-icon">🔗</div>
+                  <div class="feature-content">
+                    <h4>Quick Links</h4>
+                    <p>Access overlay and tools directly from the admin header</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="action-buttons">
+                <button class="btn btn-primary" id="open-admin-btn">
+                  <span>⚙️</span> Open Admin Panel
+                </button>
+                <button class="btn btn-secondary" id="admin-tour-btn">
+                  <span>🎯</span> Take Admin Tour
+                </button>
+              </div>
+            </div>
+            
+            <div class="tips-card">
+              <h3>🎬 Streaming Best Practices</h3>
+              <div class="best-practices">
+                <div class="practice-item">
+                  <h4>🧪 Test Before Going Live</h4>
+                  <p>Always test the overlay and bot with a few friends before your stream</p>
+                </div>
+                
+                <div class="practice-item">
+                  <h4>👥 Use !join for Quick Testing</h4>
+                  <p>The <code>!join</code> command is the fastest way to populate the overlay for testing</p>
+                </div>
+                
+                <div class="practice-item">
+                  <h4>🎯 Explain Commands to Viewers</h4>
+                  <p>Take a moment to explain how to join and bet, especially for new viewers</p>
+                </div>
+                
+                <div class="practice-item">
+                  <h4>📈 Monitor Chat Engagement</h4>
+                  <p>Keep an eye on chat and encourage participation throughout the stream</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 6: Ready to Stream -->
+        <div class="setup-step-content" data-step="6">
+          <div class="step-header">
+            <div class="step-number">6</div>
+            <div class="step-info">
+              <h2>🎉 You're Ready to Stream!</h2>
+              <p>Everything is set up and ready to go</p>
+            </div>
+            <div class="step-status">
+              <span class="status-indicator complete"></span>
+              <span class="status-text">Complete</span>
+            </div>
+          </div>
+          
+          <div class="step-content">
+            <div class="completion-card">
+              <div class="completion-header">
+                <div class="completion-icon">🎉</div>
+                <h3>Setup Complete!</h3>
+                <p>Your All-In Chat Poker stream is ready to go</p>
+              </div>
+              
+              <div class="completion-checklist">
+                <h4>✅ Final Checklist:</h4>
+                <div class="checklist-items">
+                  <label class="checklist-item">
+                    <input type="checkbox" id="check-obs">
+                    <span>OBS overlay added and positioned correctly</span>
+                  </label>
+                  <label class="checklist-item">
+                    <input type="checkbox" id="check-bot">
+                    <span>Bot is running and connected to chat</span>
+                  </label>
+                  <label class="checklist-item">
+                    <input type="checkbox" id="check-oauth">
+                    <span>OAuth redirect URL configured</span>
+                  </label>
+                  <label class="checklist-item">
+                    <input type="checkbox" id="check-test">
+                    <span>Tested with !join and !bet commands</span>
+                  </label>
+                  <label class="checklist-item">
+                    <input type="checkbox" id="check-admin">
+                    <span>Admin panel accessible and working</span>
+                  </label>
+                </div>
+              </div>
+              
+              <div class="completion-actions">
+                <button class="btn btn-primary btn-lg" id="start-streaming-btn">
+                  <span>🚀</span> Start Streaming
+                </button>
+                <button class="btn btn-secondary btn-lg" id="final-test-btn">
+                  <span>🧪</span> Run Final Test
+                </button>
+              </div>
+              
+              <div class="completion-resources">
+                <h4>📚 Helpful Resources:</h4>
+                <div class="resource-links">
+                  <a href="/help.html" class="resource-link">
+                    <span>📖</span> Help Center
+                  </a>
+                  <a href="/poker-rules.html" class="resource-link">
+                    <span>♠️</span> Poker Rules
+                  </a>
+                  <a href="/blackjack-rules.html" class="resource-link">
+                    <span>♣️</span> Blackjack Rules
+                  </a>
+                  <a href="/contact.html" class="resource-link">
+                    <span>💬</span> Get Support
+                  </a>
+                </div>
+              </div>
+            </div>
+            
+            <div class="tips-card">
+              <h3>🎯 Next Steps</h3>
+              <ul>
+                <li>Consider customizing your overlay with cosmetics from the store</li>
+                <li>Set up regular poker nights to build community</li>
+                <li>Create custom commands and responses for your channel</li>
+                <li>Join our Discord community to share tips with other streamers</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Controls -->
+      <div class="setup-navigation">
+        <button class="nav-btn nav-prev" id="prev-step-btn" disabled>
+          <span>←</span> Previous
+        </button>
+        <div class="step-indicators">
+          <div class="indicator active" data-step="1">1</div>
+          <div class="indicator" data-step="2">2</div>
+          <div class="indicator" data-step="3">3</div>
+          <div class="indicator" data-step="4">4</div>
+          <div class="indicator" data-step="5">5</div>
+          <div class="indicator" data-step="6">6</div>
+        </div>
+        <button class="nav-btn nav-next" id="next-step-btn">
+          Next <span>→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Quick Overview Section -->
+    <section class="quick-overview" id="quick-overview" style="display: none;">
+      <div class="overview-container">
+        <div class="overview-header">
+          <h2>Quick Setup Overview</h2>
+          <p>All the essential information at a glance</p>
+        </div>
+        
+        <div class="overview-grid">
+          <div class="overview-card glass-panel">
+            <h3>🎯 1. OBS Setup</h3>
+            <ul>
+              <li>Add Browser Source with your overlay URL</li>
+              <li>Set dimensions: 1920x1080, 60 FPS</li>
+              <li>Enable hardware acceleration</li>
+              <li>Position above background, below webcam</li>
+            </ul>
+          </div>
+          
+          <div class="overview-card glass-panel">
+            <h3>🤖 2. Bot Config</h3>
+            <ul>
+              <li>Set required environment variables</li>
+              <li>Configure Twitch OAuth token</li>
+              <li>Match BOT_JOIN_SECRET with server</li>
+              <li>Run: <code>node bot/bot.js</code></li>
+            </ul>
+          </div>
+          
+          <div class="overview-card glass-panel">
+            <h3>💬 3. Chat Commands</h3>
+            <ul>
+              <li><code>!join</code> - Join the game</li>
+              <li><code>!bet &lt;amount&gt;</code> - Place bet</li>
+              <li><code>!start</code> - Admin: Start round</li>
+              <li><code>!leaderboard</code> - Show rankings</li>
+            </ul>
+          </div>
+          
+          <div class="overview-card glass-panel">
+            <h3>🔐 4. OAuth Setup</h3>
+            <ul>
+              <li>Set redirect URL in Twitch Dev Console</li>
+              <li>Match: <code>https://all-in-chat-poker.fly.dev/login.html</code></li>
+              <li>Add custom domain if needed</li>
+              <li>Test authentication flow</li>
+            </ul>
+          </div>
+          
+          <div class="overview-card glass-panel">
+            <h3>⚙️ 5. Admin Tips</h3>
+            <ul>
+              <li>Use admin panel for game control</li>
+              <li>Test with !join before going live</li>
+              <li>Monitor player engagement</li>
+              <li>Explain commands to viewers</li>
+            </ul>
+          </div>
+          
+          <div class="overview-card glass-panel">
+            <h3>🎉 6. Go Live!</h3>
+            <ul>
+              <li>Run final test of all systems</li>
+              <li>Start your stream</li>
+              <li>Have fun and engage your community</li>
+              <li>Join our Discord for support</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="overview-actions">
+          <button class="btn btn-primary" id="switch-to-interactive-btn">
+            <span>🎯</span> Switch to Interactive Setup
+          </button>
+          <button class="btn btn-secondary" id="back-to-hero-btn">
+            <span>🔝</span> Back to Top
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Troubleshooting Section -->
+    <section class="troubleshooting-section">
+      <div class="section-header">
+        <h2>🔧 Troubleshooting Common Issues</h2>
+        <p>Solutions to frequently encountered problems</p>
+      </div>
+      
+      <div class="troubleshooting-grid">
+        <div class="trouble-card glass-panel">
+          <div class="trouble-header">
+            <span class="trouble-icon">🎯</span>
+            <h3>Overlay Issues</h3>
+          </div>
+          <div class="trouble-content">
+            <div class="issue-item">
+              <h4>Overlay appears empty</h4>
+              <p>Check browser console for socket connection errors. Ensure backend URL is reachable and channel is set correctly.</p>
+            </div>
+            <div class="issue-item">
+              <h4>OBS lag or performance issues</h4>
+              <p>Try lowering browser source FPS to 30 or disabling hardware acceleration. Check your system resources.</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="trouble-card glass-panel">
+          <div class="trouble-header">
+            <span class="trouble-icon">🤖</span>
+            <h3>Bot Problems</h3>
+          </div>
+          <div class="trouble-content">
+            <div class="issue-item">
+              <h4>Bot not joining channel</h4>
+              <p>Verify BOT_JOIN_SECRET matches server secret. Check if bot account follows your channel. Ensure betting is open.</p>
+            </div>
+            <div class="issue-item">
+              <h4>Commands not working</h4>
+              <p>Check bot console for errors. Verify OAuth token is valid and not expired. Ensure target channels are configured.</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="trouble-card glass-panel">
+          <div class="trouble-header">
+            <span class="trouble-icon">🔐</span>
+            <h3>Authentication Issues</h3>
+          </div>
+          <div class="trouble-content">
+            <div class="issue-item">
+              <h4>OAuth redirect mismatch</h4>
+              <p>Update Twitch app redirect URL to exactly match your deployed login URL, including protocol.</p>
+            </div>
+            <div class="issue-item">
+              <h4>Login not working</h4>
+              <p>Clear browser cache and cookies. Check if JWT token is stored properly in localStorage.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="support-cta">
+        <div class="support-content glass-panel">
+          <h3>Still Need Help?</h3>
+          <p>Our community and support team are here to assist you</p>
+          <div class="support-actions">
+            <a href="/contact.html" class="btn btn-primary">
+              <span>💬</span> Contact Support
+            </a>
+            <a href="https://discord.gg/allinchat" class="btn btn-secondary" target="_blank">
+              <span>💎</span> Join Discord
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Scripts -->
+  <script src="setup-enhanced.js"></script>
+</body>
+</html>

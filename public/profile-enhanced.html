@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile | All-In Chat Poker</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="style-theme.css">
+  <link rel="stylesheet" href="style-profile-enhanced.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="enhanced-background">
+    <div class="floating-cards">
+      <div class="floating-card card-1">♠</div>
+      <div class="floating-card card-2">♥</div>
+      <div class="floating-card card-3">♦</div>
+      <div class="floating-card card-4">♣</div>
+      <div class="floating-card card-5">👑</div>
+    </div>
+    <div class="gradient-orbs">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <header class="enhanced-header">
+      <div class="header-content">
+        <div class="logo-section">
+          <div class="logo">
+            <div class="logo-icon">🎰</div>
+            <div class="logo-text">
+              <h1>ALL-IN POKER</h1>
+              <span class="logo-subtitle">Profile</span>
+            </div>
+          </div>
+        </div>
+        <nav class="header-nav">
+          <button class="nav-btn" data-page="store">
+            <span class="nav-icon">🛒</span>
+            <span>Store</span>
+          </button>
+          <button class="nav-btn" data-page="editor">
+            <span class="nav-icon">🎨</span>
+            <span>Editor</span>
+          </button>
+          <button class="nav-btn active" data-page="profile">
+            <span class="nav-icon">👤</span>
+            <span>Profile</span>
+          </button>
+          <button class="nav-btn" data-page="admin">
+            <span class="nav-icon">⚙️</span>
+            <span>Admin</span>
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <main class="profile-main">
+      <div class="profile-layout">
+        <!-- Profile Sidebar -->
+        <aside class="profile-sidebar">
+          <div class="profile-card glass-panel">
+            <div class="profile-avatar-section">
+              <div class="avatar-container">
+                <img id="profile-avatar" src="" alt="Profile avatar" class="profile-avatar">
+                <div class="avatar-overlay">
+                  <button class="avatar-edit-btn">
+                    <span>📷</span>
+                  </button>
+                </div>
+              </div>
+              <div class="profile-info">
+                <h2 id="profile-display-name">Player</h2>
+                <p id="profile-username">@username</p>
+                <div class="profile-badges">
+                  <span class="badge premium" id="partner-badge" style="display:none;">Partner</span>
+                  <span class="badge veteran" id="veteran-badge" style="display:none;">Veteran</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="profile-stats-grid">
+              <div class="stat-item">
+                <div class="stat-value" id="stat-rounds">0</div>
+                <div class="stat-label">Rounds</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value" id="stat-wins">0</div>
+                <div class="stat-label">Wins</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value" id="stat-winrate">0%</div>
+                <div class="stat-label">Win Rate</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value" id="stat-playtime">0h</div>
+                <div class="stat-label">Playtime</div>
+              </div>
+            </div>
+
+            <div class="profile-actions">
+              <button class="btn btn-primary btn-sm" id="edit-profile-btn">
+                <span>✏️</span> Edit Profile
+              </button>
+              <button class="btn btn-secondary btn-sm" id="share-profile-btn">
+                <span>🔗</span> Share
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="profile-content">
+          <!-- Tab Navigation -->
+          <div class="tab-navigation glass-panel">
+            <div class="tab-pills">
+              <button class="tab-pill active" data-tab="settings">
+                <span class="tab-icon">⚙️</span>
+                <span>Settings</span>
+              </button>
+              <button class="tab-pill" data-tab="customize">
+                <span class="tab-icon">🎨</span>
+                <span>Customize</span>
+              </button>
+              <button class="tab-pill" data-tab="progress">
+                <span class="tab-icon">📊</span>
+                <span>Progress</span>
+              </button>
+              <button class="tab-pill" data-tab="links">
+                <span class="tab-icon">🔗</span>
+                <span>Links</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Tab Content -->
+          <div class="tab-content-area">
+            <!-- Settings Tab -->
+            <div class="tab-content active" id="settings-content">
+              <div class="content-grid">
+                <div class="glass-panel">
+                  <div class="panel-header">
+                    <h3>Profile Settings</h3>
+                    <p class="panel-subtitle">Manage your account preferences</p>
+                  </div>
+                  <form id="profile-form" class="enhanced-form">
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label for="profile-username">Username</label>
+                        <input type="text" id="profile-username" readonly class="form-input" disabled>
+                        <small class="form-help">Username cannot be changed</small>
+                      </div>
+                      <div class="form-group">
+                        <label for="profile-display-name-input">Display Name</label>
+                        <input type="text" id="profile-display-name-input" class="form-input" placeholder="Your display name">
+                      </div>
+                    </div>
+
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label for="profile-theme">Theme</label>
+                        <select id="profile-theme" class="form-input">
+                          <option value="dark">Dark</option>
+                          <option value="light">Light</option>
+                          <option value="auto">Auto</option>
+                        </select>
+                      </div>
+                      <div class="form-group">
+                        <label for="profile-starting-chips">Starting Chips</label>
+                        <input type="number" id="profile-starting-chips" class="form-input" min="100" max="10000" value="1000">
+                      </div>
+                    </div>
+
+                    <div class="form-group">
+                      <label for="profile-avatar-url">Avatar URL (Twitch image)</label>
+                      <input type="url" id="profile-avatar-url" class="form-input" placeholder="https://static-cdn.jtvnw.net/...">
+                    </div>
+
+                    <div class="form-actions">
+                      <button type="submit" class="btn btn-primary">
+                        <span>💾</span> Save Changes
+                      </button>
+                      <button type="button" class="btn btn-secondary" id="reset-settings-btn">
+                        <span>🔄</span> Reset
+                      </button>
+                    </div>
+                  </form>
+                </div>
+
+                <div class="glass-panel">
+                  <div class="panel-header">
+                    <h3>Privacy Settings</h3>
+                    <p class="panel-subtitle">Control your privacy and visibility</p>
+                  </div>
+                  <div class="settings-list">
+                    <div class="setting-item">
+                      <div class="setting-info">
+                        <h4>Public Profile</h4>
+                        <p>Allow others to view your profile and stats</p>
+                      </div>
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="public-profile" checked>
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </div>
+                    <div class="setting-item">
+                      <div class="setting-info">
+                        <h4>Show in Leaderboards</h4>
+                        <p>Display your name in public leaderboards</p>
+                      </div>
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="show-leaderboard" checked>
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </div>
+                    <div class="setting-item">
+                      <div class="setting-info">
+                        <h4>Stream Integration</h4>
+                        <p>Enable Twitch integration for streaming features</p>
+                      </div>
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="stream-integration" checked>
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Customize Tab -->
+            <div class="tab-content" id="customize-content">
+              <div class="content-grid">
+                <div class="glass-panel">
+                  <div class="panel-header">
+                    <h3>Premier Branding</h3>
+                    <span class="badge premium">Partners Only</span>
+                  </div>
+                  <div class="branding-tools">
+                    <div class="upload-area">
+                      <div class="upload-zone">
+                        <div class="upload-icon">📤</div>
+                        <p>Drop your logo here or click to upload</p>
+                        <small>PNG, SVG, JPG (Max 2MB)</small>
+                        <input type="file" id="premier-logo" accept=".png,.svg,.jpg,.jpeg" style="display:none;">
+                      </div>
+                    </div>
+                    <div class="branding-options">
+                      <div class="form-group">
+                        <label for="premier-preset">Style Preset</label>
+                        <select id="premier-preset" class="form-input">
+                          <option value="neon">Neon Glow</option>
+                          <option value="metallic">Metallic</option>
+                          <option value="minimal">Minimal</option>
+                          <option value="cyber">Cyberpunk</option>
+                        </select>
+                      </div>
+                      <div class="form-group">
+                        <label for="premier-notes">Style Notes</label>
+                        <textarea id="premier-notes" class="form-input" rows="3" placeholder="Describe your preferred colors and style..."></textarea>
+                      </div>
+                      <button class="btn btn-primary" id="generate-branding-btn">
+                        <span>🎨</span> Generate AI Set
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="glass-panel">
+                  <div class="panel-header">
+                    <h3>Effects & Animations</h3>
+                    <p class="panel-subtitle">Customize your in-game effects</p>
+                  </div>
+                  <div class="effects-grid">
+                    <div class="effect-selector">
+                      <label for="deal-fx-select">Deal Animation</label>
+                      <select id="deal-fx-select" class="form-input"></select>
+                      <canvas id="deal-fx-preview" width="200" height="120" class="effect-preview"></canvas>
+                      <button class="btn btn-secondary btn-sm preview-btn" data-effect="deal">Preview</button>
+                    </div>
+                    <div class="effect-selector">
+                      <label for="win-fx-select">Win Animation</label>
+                      <select id="win-fx-select" class="form-input"></select>
+                      <canvas id="win-fx-preview" width="200" height="120" class="effect-preview"></canvas>
+                      <button class="btn btn-secondary btn-sm preview-btn" data-effect="win">Preview</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="glass-panel">
+                  <div class="panel-header">
+                    <h3>Cosmetics Collection</h3>
+                    <p class="panel-subtitle">Your equipped and available cosmetics</p>
+                  </div>
+                  <div class="cosmetics-grid" id="cosmetics-grid">
+                    <div class="cosmetic-loading">Loading cosmetics...</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Progress Tab -->
+            <div class="tab-content" id="progress-content">
+              <div class="content-grid">
+                <div class="glass-panel">
+                  <div class="panel-header">
+                    <h3>Partner Progress</h3>
+                    <p class="panel-subtitle">Track your journey to partnership</p>
+                  </div>
+                  <div class="progress-tracking">
+                    <div class="progress-item">
+                      <div class="progress-header">
+                        <span class="progress-label">Streams (≥4/month)</span>
+                        <span class="progress-value" id="streams-progress">0/4</span>
+                      </div>
+                      <div class="progress-bar">
+                        <div class="progress-fill" id="streams-fill" style="width: 0%"></div>
+                      </div>
+                    </div>
+                    <div class="progress-item">
+                      <div class="progress-header">
+                        <span class="progress-label">Avg Players (≥10/session)</span>
+                        <span class="progress-value" id="players-progress">0/10</span>
+                      </div>
+                      <div class="progress-bar">
+                        <div class="progress-fill" id="players-fill" style="width: 0%"></div>
+                      </div>
+                    </div>
+                    <div class="progress-item">
+                      <div class="progress-header">
+                        <span class="progress-label">Unique Players (≥5/month)</span>
+                        <span class="progress-value" id="unique-progress">0/5</span>
+                      </div>
+                      <div class="progress-bar">
+                        <div class="progress-fill" id="unique-fill" style="width: 0%"></div>
+                      </div>
+                    </div>
+                    <div class="progress-item">
+                      <div class="progress-header">
+                        <span class="progress-label">Rounds Played (≥20/month)</span>
+                        <span class="progress-value" id="rounds-progress">0/20</span>
+                      </div>
+                      <div class="progress-bar">
+                        <div class="progress-fill" id="rounds-fill" style="width: 0%"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="partner-status">
+                    <span class="status-badge" id="partner-status">Loading...</span>
+                  </div>
+                </div>
+
+                <div class="glass-panel">
+                  <div class="panel-header">
+                    <h3>Achievement Stats</h3>
+                    <p class="panel-subtitle">Your gaming achievements and milestones</p>
+                  </div>
+                  <div class="achievements-grid">
+                    <div class="achievement-card">
+                      <div class="achievement-icon">🏆</div>
+                      <div class="achievement-info">
+                        <h4>First Win</h4>
+                        <p>Win your first round</p>
+                      </div>
+                      <div class="achievement-status locked" id="first-win">🔒</div>
+                    </div>
+                    <div class="achievement-card">
+                      <div class="achievement-icon">💰</div>
+                      <div class="achievement-info">
+                        <h4>Big Winner</h4>
+                        <p>Win 1000+ chips in one round</p>
+                      </div>
+                      <div class="achievement-status locked" id="big-winner">🔒</div>
+                    </div>
+                    <div class="achievement-card">
+                      <div class="achievement-icon">⏰</div>
+                      <div class="achievement-info">
+                        <h4>Marathon Player</h4>
+                        <p>Play for 10+ hours</p>
+                      </div>
+                      <div class="achievement-status locked" id="marathon">🔒</div>
+                    </div>
+                    <div class="achievement-card">
+                      <div class="achievement-icon">👥</div>
+                      <div class="achievement-info">
+                        <h4>Social Player</h4>
+                        <p>Play with 50+ unique players</p>
+                      </div>
+                      <div class="achievement-status locked" id="social">🔒</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Links Tab -->
+            <div class="tab-content" id="links-content">
+              <div class="content-grid">
+                <div class="glass-panel">
+                  <div class="panel-header">
+                    <h3>Streaming Links</h3>
+                    <p class="panel-subtitle">Your personalized overlay and admin links</p>
+                  </div>
+                  <div class="links-list">
+                    <div class="link-item">
+                      <div class="link-info">
+                        <div class="link-header">
+                          <span class="link-icon">🎮</span>
+                          <span class="link-title">OBS Overlay</span>
+                        </div>
+                        <div class="link-url" id="overlay-url">loading...</div>
+                      </div>
+                      <button class="btn btn-secondary btn-sm copy-btn" data-copy="overlay-url">
+                        <span>📋</span> Copy
+                      </button>
+                    </div>
+                    <div class="link-item">
+                      <div class="link-info">
+                        <div class="link-header">
+                          <span class="link-icon">⚙️</span>
+                          <span class="link-title">Admin Dashboard</span>
+                        </div>
+                        <div class="link-url" id="admin-url">loading...</div>
+                      </div>
+                      <button class="btn btn-secondary btn-sm copy-btn" data-copy="admin-url">
+                        <span>📋</span> Copy
+                      </button>
+                    </div>
+                    <div class="link-item">
+                      <div class="link-info">
+                        <div class="link-header">
+                          <span class="link-icon">🏆</span>
+                          <span class="link-title">Leaderboard Overlay</span>
+                        </div>
+                        <div class="link-url" id="leaderboard-url">loading...</div>
+                      </div>
+                      <button class="btn btn-secondary btn-sm copy-btn" data-copy="leaderboard-url">
+                        <span>📋</span> Copy
+                      </button>
+                    </div>
+                  </div>
+                  <div class="link-help">
+                    <p>These links use your profile login for multi-stream support. Share them with your streaming software.</p>
+                  </div>
+                </div>
+
+                <div class="glass-panel">
+                  <div class="panel-header">
+                    <h3>Quick Actions</h3>
+                    <p class="panel-subtitle">Common tasks and utilities</p>
+                  </div>
+                  <div class="quick-actions">
+                    <button class="action-btn" id="export-profile-btn">
+                      <span class="action-icon">📤</span>
+                      <span class="action-text">Export Profile Data</span>
+                    </button>
+                    <button class="action-btn" id="reset-session-btn">
+                      <span class="action-icon">🔄</span>
+                      <span class="action-text">Reset Session</span>
+                    </button>
+                    <button class="action-btn" id="clear-cache-btn">
+                      <span class="action-icon">🗑️</span>
+                      <span class="action-text">Clear Cache</span>
+                    </button>
+                    <button class="action-btn" id="contact-support-btn">
+                      <span class="action-icon">💬</span>
+                      <span class="action-text">Contact Support</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="client.js"></script>
+  <script src="profile-enhanced.js"></script>
+</body>
+</html>
