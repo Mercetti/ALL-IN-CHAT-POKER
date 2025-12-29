@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Partner Program Onboarding - All-In Chat Poker</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="style-theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #44ffd2;
+      --secondary-color: #9333ea;
+      --accent: #7ce7ff;
+      --background: #0a0f1c;
+      --surface: rgba(255, 255, 255, 0.05);
+      --text: #e6f3ff;
+      --text-secondary: #9fc1e6;
+      --border-color: rgba(255, 255, 255, 0.1);
+      --error: #ff6b6b;
+      --success: #4ade80;
+      --warning: #fbbf24;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #0a0f1c 0%, #1a1f2e 50%, #0f1419 100%);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .onboarding-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .progress-bar {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 40px;
+      position: relative;
+    }
+
+    .progress-bar::before {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: rgba(255, 255, 255, 0.1);
+      z-index: 1;
+    }
+
+    .progress-line {
+      position: absolute;
+      top: 20px;
+      left: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--primary-color), var(--accent));
+      transition: width 0.3s ease;
+      z-index: 2;
+    }
+
+    .progress-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+      z-index: 3;
+    }
+
+    .step-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .step-circle.active {
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+      color: var(--background);
+      box-shadow: 0 0 20px rgba(68, 255, 210, 0.4);
+    }
+
+    .step-circle.completed {
+      background: var(--success);
+      border-color: var(--success);
+      color: white;
+    }
+
+    .step-label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      text-align: center;
+      max-width: 100px;
+    }
+
+    .form-section {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 24px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-subtitle {
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+      font-size: 0.95rem;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 20px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-weight: 500;
+      color: var(--text);
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .required {
+      color: var(--error);
+    }
+
+    input, select, textarea {
+      padding: 12px 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(68, 255, 210, 0.1);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .platform-selector {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .platform-option {
+      padding: 16px;
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .platform-option:hover {
+      border-color: var(--primary-color);
+      background: rgba(68, 255, 210, 0.05);
+    }
+
+    .platform-option.selected {
+      border-color: var(--primary-color);
+      background: rgba(68, 255, 210, 0.1);
+      box-shadow: 0 0 20px rgba(68, 255, 210, 0.2);
+    }
+
+    .platform-icon {
+      font-size: 2rem;
+    }
+
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.02);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .checkbox-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .checkbox-item input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--primary-color);
+    }
+
+    .checkbox-content {
+      flex: 1;
+    }
+
+    .checkbox-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .checkbox-desc {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .agreement-box {
+      max-height: 300px;
+      overflow-y: auto;
+      padding: 20px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.2);
+      margin: 16px 0;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 16px;
+      justify-content: space-between;
+      margin-top: 32px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.95rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-color), var(--accent));
+      color: var(--background);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(68, 255, 210, 0.3);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .error-message {
+      color: var(--error);
+      font-size: 0.85rem;
+      margin-top: 4px;
+    }
+
+    .success-message {
+      background: rgba(74, 222, 128, 0.1);
+      border: 1px solid rgba(74, 222, 128, 0.3);
+      color: var(--success);
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .onboarding-container {
+        padding: 20px 16px;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+
+      .progress-step {
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .step-label {
+        max-width: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="onboarding-container">
+    <!-- Progress Bar -->
+    <div class="progress-bar">
+      <div class="progress-line" id="progress-line" style="width: 0%"></div>
+      <div class="progress-step">
+        <div class="step-circle active" data-step="1">1</div>
+        <div class="step-label">Account Info</div>
+      </div>
+      <div class="progress-step">
+        <div class="step-circle" data-step="2">2</div>
+        <div class="step-label">Platform Details</div>
+      </div>
+      <div class="progress-step">
+        <div class="step-circle" data-step="3">3</div>
+        <div class="step-label">Content Info</div>
+      </div>
+      <div class="progress-step">
+        <div class="step-circle" data-step="4">4</div>
+        <div class="step-label">Agreements</div>
+      </div>
+      <div class="progress-step">
+        <div class="step-circle" data-step="5">5</div>
+        <div class="step-label">Tax & Payment</div>
+      </div>
+    </div>
+
+    <form id="partner-onboarding-form">
+      <!-- Step 1: Account Information -->
+      <div class="form-section" data-section="1">
+        <h2 class="section-title">
+          <span>👤</span>
+          Account Information
+        </h2>
+        <p class="section-subtitle">Create your partner account credentials</p>
+        
+        <div class="form-grid">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="username">Username <span class="required">*</span></label>
+              <input type="text" id="username" name="username" required placeholder="Choose a unique username">
+              <div class="error-message" id="username-error"></div>
+            </div>
+            <div class="form-group">
+              <label for="display-name">Display Name <span class="required">*</span></label>
+              <input type="text" id="display-name" name="display-name" required placeholder="Your streaming name">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="email">Email Address <span class="required">*</span></label>
+              <input type="email" id="email" name="email" required placeholder="your@email.com">
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input type="tel" id="phone" name="phone" placeholder="+1 (555) 123-4567">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="password">Password <span class="required">*</span></label>
+              <input type="password" id="password" name="password" required placeholder="Create a strong password">
+              <div class="error-message" id="password-error"></div>
+            </div>
+            <div class="form-group">
+              <label for="confirm-password">Confirm Password <span class="required">*</span></label>
+              <input type="password" id="confirm-password" name="confirm-password" required placeholder="Re-enter your password">
+              <div class="error-message" id="confirm-password-error"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Platform Details -->
+      <div class="form-section hidden" data-section="2">
+        <h2 class="section-title">
+          <span>🎮</span>
+          Streaming Platform Details
+        </h2>
+        <p class="section-subtitle">Tell us about your streaming platforms</p>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Primary Streaming Platform <span class="required">*</span></label>
+            <div class="platform-selector">
+              <div class="platform-option" data-platform="twitch">
+                <div class="platform-icon">🟣</div>
+                <div>Twitch</div>
+              </div>
+              <div class="platform-option" data-platform="youtube">
+                <div class="platform-icon">🔴</div>
+                <div>YouTube</div>
+              </div>
+              <div class="platform-option" data-platform="kick">
+                <div class="platform-icon">🟢</div>
+                <div>Kick</div>
+              </div>
+              <div class="platform-option" data-platform="other">
+                <div class="platform-icon">⚪</div>
+                <div>Other</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="platform-username">Platform Username <span class="required">*</span></label>
+              <input type="text" id="platform-username" name="platform-username" required placeholder="Your platform username">
+            </div>
+            <div class="form-group">
+              <label for="platform-url">Channel URL <span class="required">*</span></label>
+              <input type="url" id="platform-url" name="platform-url" required placeholder="https://twitch.tv/yourchannel">
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="additional-platforms">Additional Platforms (optional)</label>
+            <textarea id="additional-platforms" name="additional-platforms" placeholder="List any other streaming platforms you use..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Content Information -->
+      <div class="form-section hidden" data-section="3">
+        <h2 class="section-title">
+          <span>📺</span>
+          Content Information
+        </h2>
+        <p class="section-subtitle">Help us understand your content and audience</p>
+        
+        <div class="form-grid">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="content-category">Primary Content Category <span class="required">*</span></label>
+              <select id="content-category" name="content-category" required>
+                <option value="">Select a category</option>
+                <option value="gaming">Gaming</option>
+                <option value="poker">Poker & Card Games</option>
+                <option value="variety">Variety Streaming</option>
+                <option value="irl">IRL / Just Chatting</option>
+                <option value="music">Music & Performance</option>
+                <option value="art">Art & Creative</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="audience-size">Average Audience Size <span class="required">*</span></label>
+              <select id="audience-size" name="audience-size" required>
+                <option value="">Select range</option>
+                <option value="0-50">0-50 viewers</option>
+                <option value="51-100">51-100 viewers</option>
+                <option value="101-500">101-500 viewers</option>
+                <option value="501-1000">501-1000 viewers</option>
+                <option value="1001-5000">1001-5000 viewers</option>
+                <option value="5000+">5000+ viewers</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="streaming-schedule">Streaming Schedule <span class="required">*</span></label>
+              <select id="streaming-schedule" name="streaming-schedule" required>
+                <option value="">Select schedule</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Several times per week</option>
+                <option value="weekends">Weekends only</option>
+                <option value="occasional">Occasional/Irregular</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="poker-experience">Poker Experience Level <span class="required">*</span></label>
+              <select id="poker-experience" name="poker-experience" required>
+                <option value="">Select experience</option>
+                <option value="beginner">Beginner (Just learning)</option>
+                <option value="casual">Casual Player</option>
+                <option value="experienced">Experienced Player</option>
+                <option value="expert">Expert/Professional</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="content-description">Content Description <span class="required">*</span></label>
+            <textarea id="content-description" name="content-description" required placeholder="Describe your content style and what makes your community special..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Agreements -->
+      <div class="form-section hidden" data-section="4">
+        <h2 class="section-title">
+          <span>📋</span>
+          Partner Program Agreements
+        </h2>
+        <p class="section-subtitle">Review and accept the partner program terms</p>
+        
+        <div class="checkbox-group">
+          <div class="checkbox-item">
+            <input type="checkbox" id="terms-accept" name="terms-accept" required>
+            <div class="checkbox-content">
+              <div class="checkbox-title">Partner Program Terms & Conditions</div>
+              <div class="checkbox-desc">I agree to the All-In Chat Poker Partner Program Terms & Conditions</div>
+            </div>
+          </div>
+
+          <div class="checkbox-item">
+            <input type="checkbox" id="privacy-accept" name="privacy-accept" required>
+            <div class="checkbox-content">
+              <div class="checkbox-title">Privacy Policy</div>
+              <div class="checkbox-desc">I have read and agree to the Privacy Policy and data handling practices</div>
+            </div>
+          </div>
+
+          <div class="checkbox-item">
+            <input type="checkbox" id="compensation-accept" name="compensation-accept" required>
+            <div class="checkbox-content">
+              <div class="checkbox-title">Compensation Agreement</div>
+              <div class="checkbox-desc">I understand and agree to the compensation structure and payout terms</div>
+            </div>
+          </div>
+
+          <div class="checkbox-item">
+            <input type="checkbox" id="disclosure-accept" name="disclosure-accept" required>
+            <div class="checkbox-content">
+              <div class="checkbox-title">FTC Disclosure Requirements</div>
+              <div class="checkbox-desc">I agree to properly disclose my partnership status as required by FTC guidelines</div>
+            </div>
+          </div>
+
+          <div class="checkbox-item">
+            <input type="checkbox" id="age-verify" name="age-verify" required>
+            <div class="checkbox-content">
+              <div class="checkbox-title">Age Verification</div>
+              <div class="checkbox-desc">I certify that I am 18 years of age or older</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="agreement-box">
+          <h4>Partner Program Summary</h4>
+          <p><strong>Program Participation:</strong> Independent participant with access to Partner-only cosmetics and features.</p>
+          <p><strong>No Cash Value:</strong> All rewards are cosmetic-only with no gameplay advantages or real-world value.</p>
+          <p><strong>Content Standards:</strong> Follow platform rules, honest promotion, no abusive content, proper disclosure.</p>
+          <p><strong>Rewards:</strong> Engagement-based, rate-limited, subject to change, abuse prevention enforced.</p>
+          <p><strong>Termination:</strong> Either party may end participation; violations may result in suspension.</p>
+        </div>
+      </div>
+
+      <!-- Step 5: Tax & Payment Information -->
+      <div class="form-section hidden" data-section="5">
+        <h2 class="section-title">
+          <span>💰</span>
+          Tax & Payment Information
+        </h2>
+        <p class="section-subtitle">Set up your payment and tax details</p>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="country">Country <span class="required">*</span></label>
+            <select id="country" name="country" required>
+              <option value="">Select your country</option>
+              <option value="US">United States</option>
+              <option value="CA">Canada</option>
+              <option value="UK">United Kingdom</option>
+              <option value="AU">Australia</option>
+              <option value="DE">Germany</option>
+              <option value="FR">France</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="tax-form">Tax Form Type <span class="required">*</span></label>
+            <select id="tax-form" name="tax-form" required>
+              <option value="">Select tax form</option>
+              <option value="W9">W-9 (US Citizens/Residents)</option>
+              <option value="W8BEN">W-8BEN (Non-US Individuals)</option>
+              <option value="W8BENE">W-8BEN-E (Non-US Entities)</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="legal-name">Legal Name <span class="required">*</span></label>
+              <input type="text" id="legal-name" name="legal-name" required placeholder="Full legal name">
+            </div>
+            <div class="form-group">
+              <label for="tax-id">Tax ID / SSN / EIN <span class="required">*</span></label>
+              <input type="text" id="tax-id" name="tax-id" required placeholder="Tax identification number">
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="address">Full Address <span class="required">*</span></label>
+            <input type="text" id="address" name="address" required placeholder="Street address">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="city">City <span class="required">*</span></label>
+              <input type="text" id="city" name="city" required placeholder="City">
+            </div>
+            <div class="form-group">
+              <label for="state">State/Province <span class="required">*</span></label>
+              <input type="text" id="state" name="state" required placeholder="State or Province">
+            </div>
+            <div class="form-group">
+              <label for="zip">Postal Code <span class="required">*</span></label>
+              <input type="text" id="zip" name="zip" required placeholder="ZIP/Postal code">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="payment-method">Preferred Payment Method <span class="required">*</span></label>
+            <select id="payment-method" name="payment-method" required>
+              <option value="">Select payment method</option>
+              <option value="paypal">PayPal</option>
+              <option value="bank">Bank Transfer</option>
+              <option value="wise">Wise (formerly TransferWise)</option>
+            </select>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="payment-details">Payment Details <span class="required">*</span></label>
+            <textarea id="payment-details" name="payment-details" required placeholder="Enter your PayPal email, bank account details, or Wise account information..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Buttons -->
+      <div class="button-group">
+        <button type="button" class="btn btn-secondary" id="prev-btn" onclick="changeStep(-1)">
+          <span>←</span>
+          Previous
+        </button>
+        <button type="button" class="btn btn-primary" id="next-btn" onclick="changeStep(1)">
+          Next
+          <span>→</span>
+        </button>
+        <button type="submit" class="btn btn-primary hidden" id="submit-btn">
+          <span>✓</span>
+          Submit Application
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    let currentStep = 1;
+    const totalSteps = 5;
+    const formData = {};
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      updateProgressBar();
+      setupEventListeners();
+    });
+
+    function setupEventListeners() {
+      // Platform selection
+      document.querySelectorAll('.platform-option').forEach(option => {
+        option.addEventListener('click', function() {
+          document.querySelectorAll('.platform-option').forEach(opt => opt.classList.remove('selected'));
+          this.classList.add('selected');
+          formData.primaryPlatform = this.dataset.platform;
+        });
+      });
+
+      // Form validation on input
+      const inputs = document.querySelectorAll('input[required], select[required], textarea[required]');
+      inputs.forEach(input => {
+        input.addEventListener('blur', () => validateField(input));
+        input.addEventListener('input', () => clearError(input));
+      });
+
+      // Password confirmation
+      const password = document.getElementById('password');
+      const confirmPassword = document.getElementById('confirm-password');
+      if (password && confirmPassword) {
+        confirmPassword.addEventListener('blur', () => {
+          if (password.value !== confirmPassword.value) {
+            showError('confirm-password', 'Passwords do not match');
+          }
+        });
+      }
+    }
+
+    function changeStep(direction) {
+      if (direction === 1 && !validateCurrentStep()) {
+        return;
+      }
+
+      // Hide current section
+      document.querySelector(`[data-section="${currentStep}"]`).classList.add('hidden');
+
+      // Update step
+      currentStep += direction;
+
+      // Show new section
+      document.querySelector(`[data-section="${currentStep}"]`).classList.remove('hidden');
+
+      // Update UI
+      updateProgressBar();
+      updateButtons();
+    }
+
+    function updateProgressBar() {
+      const progressLine = document.getElementById('progress-line');
+      const progressPercentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
+      progressLine.style.width = `${progressPercentage}%`;
+
+      // Update step circles
+      document.querySelectorAll('.step-circle').forEach((circle, index) => {
+        const stepNum = index + 1;
+        circle.classList.remove('active', 'completed');
+        
+        if (stepNum === currentStep) {
+          circle.classList.add('active');
+        } else if (stepNum < currentStep) {
+          circle.classList.add('completed');
+        }
+      });
+    }
+
+    function updateButtons() {
+      const prevBtn = document.getElementById('prev-btn');
+      const nextBtn = document.getElementById('next-btn');
+      const submitBtn = document.getElementById('submit-btn');
+
+      // Hide/show previous button
+      prevBtn.style.display = currentStep === 1 ? 'none' : 'flex';
+
+      // Hide/show next vs submit button
+      if (currentStep === totalSteps) {
+        nextBtn.classList.add('hidden');
+        submitBtn.classList.remove('hidden');
+      } else {
+        nextBtn.classList.remove('hidden');
+        submitBtn.classList.add('hidden');
+      }
+    }
+
+    function validateCurrentStep() {
+      const currentSection = document.querySelector(`[data-section="${currentStep}"]`);
+      const requiredFields = currentSection.querySelectorAll('input[required], select[required], textarea[required]');
+      let isValid = true;
+
+      requiredFields.forEach(field => {
+        if (!validateField(field)) {
+          isValid = false;
+        }
+      });
+
+      // Special validation for step 2 (platform selection)
+      if (currentStep === 2) {
+        const selectedPlatform = document.querySelector('.platform-option.selected');
+        if (!selectedPlatform) {
+          alert('Please select your primary streaming platform');
+          isValid = false;
+        }
+      }
+
+      // Special validation for step 4 (agreements)
+      if (currentStep === 4) {
+        const checkboxes = currentSection.querySelectorAll('input[type="checkbox"][required]');
+        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+        if (!allChecked) {
+          alert('Please accept all required agreements to continue');
+          isValid = false;
+        }
+      }
+
+      return isValid;
+    }
+
+    function validateField(field) {
+      const value = field.value.trim();
+      const fieldName = field.name;
+      
+      if (!value) {
+        showError(field.id || fieldName, 'This field is required');
+        return false;
+      }
+
+      // Email validation
+      if (field.type === 'email') {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value)) {
+          showError(field.id, 'Please enter a valid email address');
+          return false;
+        }
+      }
+
+      // URL validation
+      if (field.type === 'url') {
+        try {
+          new URL(value);
+        } catch {
+          showError(field.id, 'Please enter a valid URL');
+          return false;
+        }
+      }
+
+      // Password validation
+      if (field.id === 'password') {
+        if (value.length < 8) {
+          showError(field.id, 'Password must be at least 8 characters long');
+          return false;
+        }
+      }
+
+      clearError(field);
+      return true;
+    }
+
+    function showError(fieldId, message) {
+      const field = document.getElementById(fieldId);
+      const errorElement = document.getElementById(`${fieldId}-error`);
+      
+      if (errorElement) {
+        errorElement.textContent = message;
+      } else if (field) {
+        field.style.borderColor = 'var(--error)';
+      }
+    }
+
+    function clearError(field) {
+      const errorElement = document.getElementById(`${field.id}-error`);
+      if (errorElement) {
+        errorElement.textContent = '';
+      }
+      field.style.borderColor = '';
+    }
+
+    // Form submission
+    document.getElementById('partner-onboarding-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      if (!validateCurrentStep()) {
+        return;
+      }
+
+      // Collect all form data
+      const formData = new FormData(this);
+      const data = Object.fromEntries(formData.entries());
+      
+      // Add platform selection
+      const selectedPlatform = document.querySelector('.platform-option.selected');
+      if (selectedPlatform) {
+        data.primaryPlatform = selectedPlatform.dataset.platform;
+      }
+
+      try {
+        // Show loading state
+        const submitBtn = document.getElementById('submit-btn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span>⏳</span> Processing...';
+
+        // Submit application (replace with actual API call)
+        console.log('Submitting partner application:', data);
+        
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Show success message
+        showSuccessMessage();
+        
+      } catch (error) {
+        console.error('Submission error:', error);
+        alert('There was an error submitting your application. Please try again.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>✓</span> Submit Application';
+      }
+    });
+
+    function showSuccessMessage() {
+      const successHtml = `
+        <div class="success-message">
+          <span style="font-size: 1.5rem;">🎉</span>
+          <div>
+            <strong>Application Submitted Successfully!</strong>
+            <p>Thank you for applying to the All-In Chat Poker Partner Program. We'll review your application and contact you within 3-5 business days.</p>
+          </div>
+        </div>
+      `;
+      
+      document.querySelector('.onboarding-container').innerHTML = successHtml;
+    }
+  </script>
+</body>
+</html>

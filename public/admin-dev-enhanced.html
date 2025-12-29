@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dev Admin - Enhanced | All-In Chat Poker</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="style-theme.css">
+  <link rel="stylesheet" href="style-admin-enhanced.css">
+  <link rel="stylesheet" href="style-admin-dev-enhanced.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="enhanced-background">
+    <div class="floating-cards">
+      <div class="floating-card card-1">⚙️</div>
+      <div class="floating-card card-2">🔧</div>
+      <div class="floating-card card-3">🛠️</div>
+      <div class="floating-card card-4">🔬</div>
+      <div class="floating-card card-5">🚀</div>
+    </div>
+    <div class="gradient-orbs">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <!-- Enhanced Header -->
+    <header class="enhanced-header dev-header">
+      <div class="header-content">
+        <div class="logo-section">
+          <div class="logo">
+            <div class="logo-icon">🔧</div>
+            <div class="logo-text">
+              <h1>DEV ADMIN</h1>
+              <span class="logo-subtitle">Advanced Tools & Diagnostics</span>
+            </div>
+          </div>
+        </div>
+        
+        <nav class="header-nav">
+          <div class="nav-pills">
+            <button class="nav-pill active" data-tab="diagnostics">
+              <span class="nav-icon">🔬</span>
+              <span>Diagnostics</span>
+            </button>
+            <button class="nav-pill" data-tab="monitoring">
+              <span class="nav-icon">📊</span>
+              <span>Monitoring</span>
+            </button>
+            <button class="nav-pill" data-tab="tools">
+              <span class="nav-icon">🛠️</span>
+              <span>Tools</span>
+            </button>
+            <button class="nav-pill" data-tab="config">
+              <span class="nav-icon">⚙️</span>
+              <span>Config</span>
+            </button>
+            <button class="nav-pill" data-tab="safety">
+              <span class="nav-icon">🛡️</span>
+              <span>Safety</span>
+            </button>
+          </div>
+        </nav>
+
+        <div class="header-actions">
+          <div class="status-indicators">
+            <div class="status-pill">
+              <span class="status-dot online"></span>
+              <span id="system-status">System Online</span>
+            </div>
+            <div class="status-pill">
+              <span id="cpu-usage">CPU: 0%</span>
+            </div>
+            <div class="status-pill">
+              <span id="memory-usage">RAM: 0%</span>
+            </div>
+          </div>
+          
+          <div class="action-buttons">
+            <button class="btn btn-secondary btn-sm" id="theme-toggle">
+              <span class="btn-icon">🌙</span>
+            </button>
+            <button class="btn btn-secondary btn-sm" id="back-to-main">
+              <span class="btn-icon">🔙</span>
+              <span>Main Admin</span>
+            </button>
+            <button class="btn btn-danger btn-sm" id="logout-btn">
+              <span class="btn-icon">🚪</span>
+              <span>Logout</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Diagnostics Tab -->
+      <div class="tab-content active" id="diagnostics-tab">
+        <!-- System Health Overview -->
+        <section class="health-overview">
+          <div class="panel-header">
+            <h2>System Health</h2>
+            <p class="panel-subtitle">Real-time system diagnostics and performance metrics</p>
+          </div>
+          
+          <div class="health-grid">
+            <div class="health-card">
+              <div class="health-icon">🖥️</div>
+              <div class="health-content">
+                <div class="health-title">Server Status</div>
+                <div class="health-value" id="server-health">Healthy</div>
+                <div class="health-indicator good" id="server-indicator"></div>
+              </div>
+            </div>
+            
+            <div class="health-card">
+              <div class="health-icon">🗄️</div>
+              <div class="health-content">
+                <div class="health-title">Database</div>
+                <div class="health-value" id="db-health">Connected</div>
+                <div class="health-indicator good" id="db-indicator"></div>
+              </div>
+            </div>
+            
+            <div class="health-card">
+              <div class="health-icon">🔌</div>
+              <div class="health-content">
+                <div class="health-title">Sockets</div>
+                <div class="health-value" id="socket-health">Active</div>
+                <div class="health-indicator good" id="socket-indicator"></div>
+              </div>
+            </div>
+            
+            <div class="health-card">
+              <div class="health-icon">🤖</div>
+              <div class="health-content">
+                <div class="health-title">AI Services</div>
+                <div class="health-value" id="ai-health">Running</div>
+                <div class="health-indicator good" id="ai-indicator"></div>
+              </div>
+            </div>
+            
+            <div class="health-card">
+              <div class="health-icon">📡</div>
+              <div class="health-content">
+                <div class="health-title">API Gateway</div>
+                <div class="health-value" id="api-health">Operational</div>
+                <div class="health-indicator good" id="api-indicator"></div>
+              </div>
+            </div>
+            
+            <div class="health-card">
+              <div class="health-icon">💾</div>
+              <div class="health-content">
+                <div class="health-title">Cache</div>
+                <div class="health-value" id="cache-health">Optimal</div>
+                <div class="health-indicator good" id="cache-indicator"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Performance Metrics -->
+        <section class="performance-panel">
+          <div class="panel-header">
+            <h2>Performance Metrics</h2>
+            <div class="panel-controls">
+              <button class="btn btn-secondary btn-sm" id="refresh-metrics">Refresh</button>
+              <button class="btn btn-primary btn-sm" id="run-benchmark">Run Benchmark</button>
+            </div>
+          </div>
+          
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-title">CPU Usage</span>
+                <span class="metric-value" id="cpu-percent">0%</span>
+              </div>
+              <div class="metric-bar">
+                <div class="metric-fill" id="cpu-bar" style="width: 0%"></div>
+              </div>
+            </div>
+            
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-title">Memory Usage</span>
+                <span class="metric-value" id="memory-percent">0%</span>
+              </div>
+              <div class="metric-bar">
+                <div class="metric-fill" id="memory-bar" style="width: 0%"></div>
+              </div>
+            </div>
+            
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-title">Disk I/O</span>
+                <span class="metric-value" id="disk-percent">0%</span>
+              </div>
+              <div class="metric-bar">
+                <div class="metric-fill" id="disk-bar" style="width: 0%"></div>
+              </div>
+            </div>
+            
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-title">Network I/O</span>
+                <span class="metric-value" id="network-percent">0%</span>
+              </div>
+              <div class="metric-bar">
+                <div class="metric-fill" id="network-bar" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Diagnostic Tools -->
+        <section class="diagnostic-tools">
+          <div class="panel-header">
+            <h2>Diagnostic Tools</h2>
+            <p class="panel-subtitle">Advanced system diagnostics and troubleshooting</p>
+          </div>
+          
+          <div class="tools-grid">
+            <button class="tool-card" id="run-health-check">
+              <div class="tool-icon">🏥</div>
+              <div class="tool-content">
+                <div class="tool-title">Full Health Check</div>
+                <div class="tool-desc">Comprehensive system health analysis</div>
+              </div>
+            </button>
+            
+            <button class="tool-card" id="run-connectivity-test">
+              <div class="tool-icon">🔗</div>
+              <div class="tool-content">
+                <div class="tool-title">Connectivity Test</div>
+                <div class="tool-desc">Test all external service connections</div>
+              </div>
+            </button>
+            
+            <button class="tool-card" id="run-database-check">
+              <div class="tool-icon">🗄️</div>
+              <div class="tool-content">
+                <div class="tool-title">Database Check</div>
+                <div class="tool-desc">Verify database integrity and performance</div>
+              </div>
+            </button>
+            
+            <button class="tool-card" id="run-socket-test">
+              <div class="tool-icon">🔌</div>
+              <div class="tool-content">
+                <div class="tool-title">Socket Test</div>
+                <div class="tool-desc">Test WebSocket connections</div>
+              </div>
+            </button>
+            
+            <button class="tool-card" id="run-ai-diagnostics">
+              <div class="tool-icon">🤖</div>
+              <div class="tool-content">
+                <div class="tool-title">AI Diagnostics</div>
+                <div class="tool-desc">Test AI services and responses</div>
+              </div>
+            </button>
+            
+            <button class="tool-card" id="run-security-scan">
+              <div class="tool-icon">🔒</div>
+              <div class="tool-content">
+                <div class="tool-title">Security Scan</div>
+                <div class="tool-desc">Check for security vulnerabilities</div>
+              </div>
+            </button>
+          </div>
+        </section>
+
+        <!-- Diagnostic Results -->
+        <section class="results-panel">
+          <div class="panel-header">
+            <h2>Diagnostic Results</h2>
+            <div class="panel-controls">
+              <select class="filter-select" id="result-filter">
+                <option value="all">All Results</option>
+                <option value="recent">Recent</option>
+                <option value="errors">Errors Only</option>
+                <option value="warnings">Warnings Only</option>
+              </select>
+              <button class="btn btn-secondary btn-sm" id="clear-results">Clear</button>
+            </div>
+          </div>
+          
+          <div class="results-container" id="diagnostic-results">
+            <div class="no-data">No diagnostic results yet. Run a diagnostic tool to see results.</div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Monitoring Tab -->
+      <div class="tab-content" id="monitoring-tab">
+        <!-- Real-time Monitoring -->
+        <section class="realtime-monitoring">
+          <div class="panel-header">
+            <h2>Real-time Monitoring</h2>
+            <div class="panel-controls">
+              <button class="btn btn-success btn-sm" id="start-monitoring">Start Monitoring</button>
+              <button class="btn btn-warning btn-sm" id="stop-monitoring">Stop Monitoring</button>
+              <button class="btn btn-secondary btn-sm" id="export-logs">Export Logs</button>
+            </div>
+          </div>
+          
+          <div class="monitoring-grid">
+            <div class="monitor-card">
+              <div class="monitor-header">
+                <h3>Active Connections</h3>
+                <div class="monitor-value" id="active-connections">0</div>
+              </div>
+              <div class="monitor-chart" id="connections-chart">
+                <canvas id="connections-canvas"></canvas>
+              </div>
+            </div>
+            
+            <div class="monitor-card">
+              <div class="monitor-header">
+                <h3>Request Rate</h3>
+                <div class="monitor-value" id="request-rate">0 req/s</div>
+              </div>
+              <div class="monitor-chart" id="requests-chart">
+                <canvas id="requests-canvas"></canvas>
+              </div>
+            </div>
+            
+            <div class="monitor-card">
+              <div class="monitor-header">
+                <h3>Error Rate</h3>
+                <div class="monitor-value" id="error-rate">0%</div>
+              </div>
+              <div class="monitor-chart" id="errors-chart">
+                <canvas id="errors-canvas"></canvas>
+              </div>
+            </div>
+            
+            <div class="monitor-card">
+              <div class="monitor-header">
+                <h3>Response Time</h3>
+                <div class="monitor-value" id="response-time">0ms</div>
+              </div>
+              <div class="monitor-chart" id="response-chart">
+                <canvas id="response-canvas"></canvas>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Log Viewer -->
+        <section class="log-viewer">
+          <div class="panel-header">
+            <h2>System Logs</h2>
+            <div class="panel-controls">
+              <select class="filter-select" id="log-level">
+                <option value="all">All Levels</option>
+                <option value="error">Error</option>
+                <option value="warn">Warning</option>
+                <option value="info">Info</option>
+                <option value="debug">Debug</option>
+              </select>
+              <input type="text" class="search-input" id="log-search" placeholder="Search logs...">
+              <button class="btn btn-secondary btn-sm" id="refresh-logs">Refresh</button>
+              <button class="btn btn-secondary btn-sm" id="follow-logs">Follow</button>
+            </div>
+          </div>
+          
+          <div class="log-container" id="log-viewer">
+            <div class="log-entry">
+              <span class="log-timestamp">2024-01-01 12:00:00</span>
+              <span class="log-level info">INFO</span>
+              <span class="log-message">System initialized successfully</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Alert System -->
+        <section class="alert-system">
+          <div class="panel-header">
+            <h2>System Alerts</h2>
+            <div class="panel-controls">
+              <button class="btn btn-secondary btn-sm" id="clear-alerts">Clear Alerts</button>
+              <button class="btn btn-primary btn-sm" id="test-alert">Test Alert</button>
+            </div>
+          </div>
+          
+          <div class="alert-container" id="system-alerts">
+            <div class="alert-item info">
+              <div class="alert-icon">ℹ️</div>
+              <div class="alert-content">
+                <div class="alert-title">System Started</div>
+                <div class="alert-message">All services initialized successfully</div>
+                <div class="alert-time">2 minutes ago</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Tools Tab -->
+      <div class="tab-content" id="tools-tab">
+        <!-- Import/Export Tools -->
+        <section class="import-export-tools">
+          <div class="panel-header">
+            <h2>Import/Export Tools</h2>
+            <p class="panel-subtitle">Data migration and backup utilities</p>
+          </div>
+          
+          <div class="tools-section">
+            <div class="tool-group">
+              <h3>Cosmetic Import</h3>
+              <div class="import-form">
+                <textarea id="cosmetic-import-json" class="form-input" rows="6" placeholder='[{"id":"card-back-new","type":"cardBack","name":"New Back","price_cents":500}]'></textarea>
+                <div class="button-row">
+                  <button class="btn btn-primary" id="import-cosmetics">Import Cosmetics</button>
+                  <button class="btn btn-secondary" id="validate-json">Validate JSON</button>
+                </div>
+                <div class="import-status" id="cosmetic-import-status"></div>
+              </div>
+            </div>
+            
+            <div class="tool-group">
+              <h3>Data Export</h3>
+              <div class="export-options">
+                <button class="btn btn-secondary" id="export-users">Export Users</button>
+                <button class="btn btn-secondary" id="export-partners">Export Partners</button>
+                <button class="btn btn-secondary" id="export-cosmetics">Export Cosmetics</button>
+                <button class="btn btn-secondary" id="export-games">Export Game Data</button>
+                <button class="btn btn-primary" id="export-all">Export All Data</button>
+              </div>
+            </div>
+            
+            <div class="tool-group">
+              <h3>Database Tools</h3>
+              <div class="db-tools">
+                <button class="btn btn-warning" id="backup-db">Backup Database</button>
+                <button class="btn btn-warning" id="vacuum-db">VACUUM Database</button>
+                <button class="btn btn-danger" id="reset-db">Reset Database</button>
+              </div>
+              <div class="db-status" id="db-status"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Debug Tools -->
+        <section class="debug-tools">
+          <div class="panel-header">
+            <h2>Debug Tools</h2>
+            <p class="panel-subtitle">Advanced debugging and testing utilities</p>
+          </div>
+          
+          <div class="debug-grid">
+            <div class="debug-card">
+              <h3>Game State Inspector</h3>
+              <div class="debug-controls">
+                <button class="btn btn-secondary btn-sm" id="inspect-game-state">Inspect State</button>
+                <button class="btn btn-secondary btn-sm" id="dump-game-state">Dump State</button>
+              </div>
+              <div class="debug-output" id="game-state-output"></div>
+            </div>
+            
+            <div class="debug-card">
+              <h3>Socket Debugger</h3>
+              <div class="debug-controls">
+                <button class="btn btn-secondary btn-sm" id="test-socket">Test Socket</button>
+                <button class="btn btn-secondary btn-sm" id="ping-clients">Ping Clients</button>
+                <button class="btn btn-secondary btn-sm" id="list-connections">List Connections</button>
+              </div>
+              <div class="debug-output" id="socket-debug-output"></div>
+            </div>
+            
+            <div class="debug-card">
+              <h3>Cache Inspector</h3>
+              <div class="debug-controls">
+                <button class="btn btn-secondary btn-sm" id="inspect-cache">Inspect Cache</button>
+                <button class="btn btn-secondary btn-sm" id="clear-cache">Clear Cache</button>
+                <button class="btn btn-secondary btn-sm" id="cache-stats">Cache Stats</button>
+              </div>
+              <div class="debug-output" id="cache-debug-output"></div>
+            </div>
+            
+            <div class="debug-card">
+              <h3>Session Inspector</h3>
+              <div class="debug-controls">
+                <button class="btn btn-secondary btn-sm" id="list-sessions">List Sessions</button>
+                <button class="btn btn-secondary btn-sm" id="inspect-session">Inspect Session</button>
+                <button class="btn btn-secondary btn-sm" id="kill-session">Kill Session</button>
+              </div>
+              <div class="debug-output" id="session-debug-output"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Test Tools -->
+        <section class="test-tools">
+          <div class="panel-header">
+            <h2>Test Tools</h2>
+            <p class="panel-subtitle">Automated testing and validation utilities</p>
+          </div>
+          
+          <div class="test-suite">
+            <div class="test-group">
+              <h3>API Tests</h3>
+              <div class="test-controls">
+                <button class="btn btn-secondary btn-sm" id="test-auth-endpoints">Test Auth</button>
+                <button class="btn btn-secondary btn-sm" id="test-game-endpoints">Test Game API</button>
+                <button class="btn btn-secondary btn-sm" id="test-user-endpoints">Test User API</button>
+                <button class="btn btn-primary btn-sm" id="run-all-api-tests">Run All API Tests</button>
+              </div>
+              <div class="test-results" id="api-test-results"></div>
+            </div>
+            
+            <div class="test-group">
+              <h3>AI Tests</h3>
+              <div class="test-controls">
+                <button class="btn btn-secondary btn-sm" id="test-ai-responses">Test AI Responses</button>
+                <button class="btn btn-secondary btn-sm" id="test-ai-performance">Test AI Performance</button>
+                <button class="btn btn-primary btn-sm" id="run-ai-test-suite">Run AI Test Suite</button>
+              </div>
+              <div class="test-results" id="ai-test-results"></div>
+            </div>
+            
+            <div class="test-group">
+              <h3>Load Tests</h3>
+              <div class="test-controls">
+                <button class="btn btn-secondary btn-sm" id="test-concurrent-users">Test Concurrent Users</button>
+                <button class="btn btn-secondary btn-sm" id="test-api-load">Test API Load</button>
+                <button class="btn btn-warning btn-sm" id="run-load-test">Run Load Test</button>
+              </div>
+              <div class="test-results" id="load-test-results"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Config Tab -->
+      <div class="tab-content" id="config-tab">
+        <!-- Feature Flags -->
+        <section class="feature-flags">
+          <div class="panel-header">
+            <h2>Feature Flags</h2>
+            <p class="panel-subtitle">Toggle features and experimental functionality</p>
+          </div>
+          
+          <div class="flags-grid">
+            <div class="flag-item">
+              <label class="flag-toggle">
+                <input type="checkbox" id="flag-drops" checked>
+                <span class="flag-slider"></span>
+                <span class="flag-label">Enable Drops</span>
+              </label>
+              <p class="flag-description">Allow cosmetic drops during streams</p>
+            </div>
+            
+            <div class="flag-item">
+              <label class="flag-toggle">
+                <input type="checkbox" id="flag-avatar-refresh" checked>
+                <span class="flag-slider"></span>
+                <span class="flag-label">Avatar Auto-Refresh</span>
+              </label>
+              <p class="flag-description">Automatically refresh avatar images</p>
+            </div>
+            
+            <div class="flag-item">
+              <label class="flag-toggle">
+                <input type="checkbox" id="flag-debug-mode">
+                <span class="flag-slider"></span>
+                <span class="flag-label">Debug Mode</span>
+              </label>
+              <p class="flag-description">Enable additional debug information</p>
+            </div>
+            
+            <div class="flag-item">
+              <label class="flag-toggle">
+                <input type="checkbox" id="flag-maintenance">
+                <span class="flag-slider"></span>
+                <span class="flag-label">Maintenance Mode</span>
+              </label>
+              <p class="flag-description">Put system in maintenance mode</p>
+            </div>
+            
+            <div class="flag-item">
+              <label class="flag-toggle">
+                <input type="checkbox" id="flag-beta-features">
+                <span class="flag-slider"></span>
+                <span class="flag-label">Beta Features</span>
+              </label>
+              <p class="flag-description">Enable experimental beta features</p>
+            </div>
+            
+            <div class="flag-item">
+              <label class="flag-toggle">
+                <input type="checkbox" id="flag-verbose-logging">
+                <span class="flag-slider"></span>
+                <span class="flag-label">Verbose Logging</span>
+              </label>
+              <p class="flag-description">Enable detailed logging output</p>
+            </div>
+          </div>
+          
+          <div class="flag-actions">
+            <button class="btn btn-primary" id="save-flags">Save Configuration</button>
+            <button class="btn btn-secondary" id="reset-flags">Reset to Defaults</button>
+            <button class="btn btn-secondary" id="export-flags">Export Config</button>
+          </div>
+        </section>
+
+        <!-- System Configuration -->
+        <section class="system-config">
+          <div class="panel-header">
+            <h2>System Configuration</h2>
+            <p class="panel-subtitle">Core system settings and parameters</p>
+          </div>
+          
+          <div class="config-sections">
+            <div class="config-group">
+              <h3>Game Settings</h3>
+              <div class="config-form">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="deal-speed">Deal Speed</label>
+                    <select id="deal-speed" class="form-input">
+                      <option value="slow">Slow</option>
+                      <option value="normal" selected>Normal</option>
+                      <option value="fast">Fast</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="max-players">Max Players</label>
+                    <input type="number" id="max-players" class="form-input" value="8" min="2" max="20">
+                  </div>
+                  <div class="form-group">
+                    <label for="starting-chips">Starting Chips</label>
+                    <input type="number" id="starting-chips" class="form-input" value="1000" min="100" max="10000">
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="config-group">
+              <h3>Performance Settings</h3>
+              <div class="config-form">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="cache-ttl">Cache TTL (seconds)</label>
+                    <input type="number" id="cache-ttl" class="form-input" value="300" min="60" max="3600">
+                  </div>
+                  <div class="form-group">
+                    <label for="rate-limit">Rate Limit (req/min)</label>
+                    <input type="number" id="rate-limit" class="form-input" value="60" min="10" max="1000">
+                  </div>
+                  <div class="form-group">
+                    <label for="session-timeout">Session Timeout (min)</label>
+                    <input type="number" id="session-timeout" class="form-input" value="30" min="5" max="240">
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="config-group">
+              <h3>AI Settings</h3>
+              <div class="config-form">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="ai-model">AI Model</label>
+                    <select id="ai-model" class="form-input">
+                      <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                      <option value="gpt-4" selected>GPT-4</option>
+                      <option value="claude">Claude</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="ai-temperature">Temperature</label>
+                    <input type="number" id="ai-temperature" class="form-input" value="0.7" min="0" max="2" step="0.1">
+                  </div>
+                  <div class="form-group">
+                    <label for="ai-max-tokens">Max Tokens</label>
+                    <input type="number" id="ai-max-tokens" class="form-input" value="150" min="50" max="500">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="config-actions">
+            <button class="btn btn-primary" id="save-config">Save Configuration</button>
+            <button class="btn btn-secondary" id="reload-config">Reload from Server</button>
+            <button class="btn btn-warning" id="restart-services">Restart Services</button>
+          </div>
+        </section>
+      </div>
+
+      <!-- Safety Tab -->
+      <div class="tab-content" id="safety-tab">
+        <!-- Safety Overview -->
+        <section class="safety-overview">
+          <div class="panel-header">
+            <h2>Safety & Recovery</h2>
+            <p class="panel-subtitle">System safety tools and recovery utilities</p>
+          </div>
+          
+          <div class="safety-grid">
+            <div class="safety-card">
+              <div class="safety-icon">🔄</div>
+              <div class="safety-content">
+                <h3>Reset Overlay Settings</h3>
+                <p>Reset all overlay configurations to defaults</p>
+                <button class="btn btn-warning" id="reset-overlay">Reset Overlay</button>
+              </div>
+            </div>
+            
+            <div class="safety-card">
+              <div class="safety-icon">🗑️</div>
+              <div class="safety-content">
+                <h3>Clear Local Caches</h3>
+                <p>Clear all client-side cache and temporary data</p>
+                <button class="btn btn-warning" id="clear-cache">Clear Cache</button>
+              </div>
+            </div>
+            
+            <div class="safety-card">
+              <div class="safety-icon">🧹</div>
+              <div class="safety-content">
+                <h3>Clear Health Counters</h3>
+                <p>Reset system health and performance counters</p>
+                <button class="btn btn-warning" id="clear-health">Clear Health</button>
+              </div>
+            </div>
+            
+            <div class="safety-card">
+              <div class="safety-icon">🔧</div>
+              <div class="safety-content">
+                <h3>Repair Database</h3>
+                <p>Attempt to repair database inconsistencies</p>
+                <button class="btn btn-warning" id="repair-db">Repair Database</button>
+              </div>
+            </div>
+            
+            <div class="safety-card">
+              <div class="safety-icon">📦</div>
+              <div class="safety-content">
+                <h3>Restore Backup</h3>
+                <p>Restore system from a previous backup</p>
+                <button class="btn btn-warning" id="restore-backup">Restore Backup</button>
+              </div>
+            </div>
+            
+            <div class="safety-card">
+              <div class="safety-icon">🚨</div>
+              <div class="safety-content">
+                <h3>Emergency Reset</h3>
+                <p>Complete system reset - use with caution</p>
+                <button class="btn btn-danger" id="emergency-reset">Emergency Reset</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Security Tools -->
+        <section class="security-tools">
+          <div class="panel-header">
+            <h2>Security Tools</h2>
+            <p class="panel-subtitle">Security monitoring and protection utilities</p>
+          </div>
+          
+          <div class="security-section">
+            <div class="security-group">
+              <h3>Access Control</h3>
+              <div class="security-controls">
+                <button class="btn btn-secondary btn-sm" id="list-sessions">List Active Sessions</button>
+                <button class="btn btn-secondary btn-sm" id="audit-access">Audit Access Logs</button>
+                <button class="btn btn-warning btn-sm" id="kill-all-sessions">Kill All Sessions</button>
+              </div>
+            </div>
+            
+            <div class="security-group">
+              <h3>Rate Limiting</h3>
+              <div class="security-controls">
+                <button class="btn btn-secondary btn-sm" id="check-rate-limits">Check Rate Limits</button>
+                <button class="btn btn-secondary btn-sm" id="reset-rate-limits">Reset Rate Limits</button>
+                <button class="btn btn-warning btn-sm" id="block-ip">Block IP Address</button>
+              </div>
+            </div>
+            
+            <div class="security-group">
+              <h3>Security Audit</h3>
+              <div class="security-controls">
+                <button class="btn btn-secondary btn-sm" id="run-security-audit">Run Security Audit</button>
+                <button class="btn btn-secondary btn-sm" id="check-vulnerabilities">Check Vulnerabilities</button>
+                <button class="btn btn-primary btn-sm" id="ai-security-review">AI Security Review</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="client.js"></script>
+  <script src="admin-dev-enhanced.js"></script>
+  <script>
+    // Authentication check
+    enforceAuthenticatedPage({ page: 'admin' });
+  </script>
+</body>
+</html>
