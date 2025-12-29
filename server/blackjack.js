@@ -2,6 +2,14 @@
  * Blackjack helpers with shared shoe and dealer play
  */
 
+const { cardLookup } = require('./utils');
+
+// Use optimized lookup functions
+const { 
+  getBlackjackHandValueOptimized,
+  evaluateBlackjackHandCached 
+} = cardLookup;
+
 const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 const suits = ['♠', '♥', '♦', '♣'];
 
@@ -26,33 +34,11 @@ function dealInitialHand(deck) {
 }
 
 function handValue(hand) {
-  let total = 0;
-  let aces = 0;
-  hand.forEach(card => {
-    if (card.rank === 'A') {
-      aces += 1;
-      total += 11;
-    } else if (['K', 'Q', 'J'].includes(card.rank)) {
-      total += 10;
-    } else {
-      total += parseInt(card.rank, 10);
-    }
-  });
-
-  while (total > 21 && aces > 0) {
-    total -= 10;
-    aces -= 1;
-  }
-  return total;
+  return getBlackjackHandValueOptimized(hand);
 }
 
 function evaluateHand(hand, dealerValue = 17) {
-  const value = handValue(hand);
-  if (value > 21) return { name: 'Bust', payout: 0, value };
-  if (value === 21 && hand.length === 2) return { name: 'Blackjack', payout: 1.5, value };
-  if (value > dealerValue || dealerValue > 21) return { name: 'Win', payout: 1, value };
-  if (value === dealerValue) return { name: 'Push', payout: 0, value };
-  return { name: 'Lose', payout: 0, value };
+  return evaluateBlackjackHandCached(hand, dealerValue);
 }
 
 module.exports = {

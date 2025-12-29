@@ -9,6 +9,8 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="stylesheet" href="style-theme.css">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="accessibility.css">
+  <link rel="stylesheet" href="style-enhanced.css">
   <style>
     /* Lightweight gallery preview styles (kept local to this page) */
     .promo-assets {
@@ -306,11 +308,15 @@
 
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <script src="client.js"></script>
+  <script src="accessibility.js"></script>
+  <script>
+    enforceAuthenticatedPage({ page: 'main' });
+  </script>
+  <script src="overlay.js"></script>
   <script>
     // Expose the stored user token for Socket.IO auth
     window.__USER_TOKEN__ = getUserToken && getUserToken();
   </script>
-  <script src="overlay.js"></script>
   <script>
     // Gate protected links (admin/dev/profile/overlay) to login
     (function gateProtectedLinks() {

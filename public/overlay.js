@@ -7,6 +7,28 @@ const script = document.createElement('script');
 script.src = 'loading-manager.js';
 document.head.appendChild(script);
 
+// Import animation manager
+const animScript = document.createElement('script');
+animScript.src = 'animation-manager.js';
+document.head.appendChild(animScript);
+
+// Initialize accessibility manager
+let accessibilityManager = null;
+if (typeof window !== 'undefined' && window.accessibilityManager) {
+  accessibilityManager = window.accessibilityManager;
+}
+
+// Helper function to format time remaining
+function formatTimeRemaining(endsAt) {
+  if (!endsAt) return null;
+  const now = Date.now();
+  const remaining = Math.max(0, endsAt - now);
+  const seconds = Math.ceil(remaining / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return minutes > 0 ? `${minutes}m ${secs}s` : `${secs}s`;
+}
+
 const SOCKET_URL = typeof getBackendBase === 'function' ? getBackendBase() : '';
 const overlayChannel = typeof getChannelParam === 'function' ? getChannelParam() : '';
 const isMultiStream = overlayChannel && overlayChannel.toLowerCase().startsWith('lobby-');
@@ -32,6 +54,8 @@ let selectedHeld = new Set();
 let userLogin = null;
 let countdownTimer = null;
 let countdownEndsAt = null;
+let playerActionTimer = null;
+const playerTimers = {};
 let overlayPlayers = [];
 let currentDealerHand = [];
 let overlayMode = 'blackjack';
@@ -379,6 +403,15 @@ async function loadBalances() {
     if (!res.ok) return;
     const data = await res.json();
     if (data && typeof data === 'object') {
+      // Check for balance changes and announce
+      if (accessibilityManager && playerBalances && userLogin) {
+        const oldBalance = playerBalances[userLogin] || 0;
+        const newBalance = data[userLogin] || 0;
+        if (oldBalance !== newBalance) {
+          const change = newBalance - oldBalance;
+          accessibilityManager.announceBalanceChange(newBalance, change);
+        }
+      }
       playerBalances = data;
     }
   } catch (e) {
@@ -607,6 +640,13 @@ socket.on('roundResult', (data) => {
   const insuranceBanner = document.getElementById('insurance-banner');
   if (insuranceBanner) insuranceBanner.style.display = 'none';
   updateActionButtons();
+  
+  // Accessibility announcements for results
+  if (accessibilityManager && data.evaluation) {
+    const handName = data.evaluation.name || 'No Winner';
+    const payout = data.evaluation.payout || 0;
+    accessibilityManager.announceHandResult(handName, payout);
+  }
 });
 
 socket.on('payouts', (data) => {
@@ -1048,78 +1088,41 @@ function renderCommunityCards(cards) {
   kickoffDealCanvases();
 }
 
-const flipAnimations = new Map();
-let flipLoopRunning = false;
-const dealAnimations = new Map();
-let dealLoopRunning = false;
-function queueFlipForCard(cardEl, opts = {}) {
-  if (!cardEl || !flipSprite || !flipMeta) return;
-  const canvas = cardEl.querySelector('.flip-canvas');
-  if (!canvas || flipAnimations.has(canvas)) return;
+// Animation system using consolidated manager
+function flipCard(cardEl, faceSrc, backSrc, opts = {}) {
+  const canvas = cardEl.querySelector('canvas');
+  if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  if (!ctx) return;
-  const faceSrc = cardEl.dataset.faceImg || opts.face;
-  const backSrc = cardEl.dataset.backImg || opts.back || overlayTuning.cardBackImage || DEFAULT_CARD_BACK;
-  const w = Math.max(1, Math.floor(cardEl.clientWidth || canvas.width || 120));
-  const h = Math.max(1, Math.floor(cardEl.clientHeight || canvas.height || 180));
-  canvas.width = w;
-  canvas.height = h;
+  const w = canvas.width = cardEl.offsetWidth;
+  const h = canvas.height = cardEl.offsetHeight;
   Promise.all([loadImageCached(faceSrc), loadImageCached(backSrc)]).then(([faceImg, backImg]) => {
     if (!faceImg && !backImg) return;
     cardEl.classList.add('flipping');
     canvas.classList.add('active');
-    flipAnimations.set(canvas, {
-      canvas,
-      ctx,
-      faceImg: faceImg || null,
-      backImg: backImg || null,
-      frame: 0,
-      nextFrameAt: performance.now() + (opts.delayMs || 0),
-    });
-    if (!flipLoopRunning) {
-      flipLoopRunning = true;
-      requestAnimationFrame(stepFlipAnimations);
-    }
-  });
-}
-
-function stepFlipAnimations(ts) {
-  flipAnimations.forEach((anim, canvas) => {
-    if (!canvas.isConnected) {
-      flipAnimations.delete(canvas);
-      return;
-    }
-    if (!flipMeta || !flipSprite) {
-      flipAnimations.delete(canvas);
-      return;
-    }
-    if (ts < anim.nextFrameAt) return;
-    const frame = flipMeta.frames[anim.frame];
-    if (!frame) {
-      flipAnimations.delete(canvas);
-      canvas.classList.remove('active');
-      canvas.parentElement?.classList.remove('flipping');
-      return;
-    }
-    renderFlippingCard(anim.ctx, flipSprite, flipMeta, anim.frame, anim.backImg, anim.faceImg, anim.canvas.width, anim.canvas.height);
-    const duration = frame.duration || flipMeta.frameDuration || 40;
-    anim.nextFrameAt = ts + duration;
-    anim.frame += 1;
-    if (anim.frame >= flipMeta.frameCount) {
-      if (flipMeta.loop) {
-        anim.frame = 0;
-      } else {
-        flipAnimations.delete(canvas);
+    
+    const animId = `flip-${Date.now()}-${Math.random()}`;
+    
+    animationManager.addFlipAnimation(animId, {
+      duration: opts.durationMs || 600,
+      delay: opts.delayMs || 0,
+      onUpdate: (progress) => {
+        if (!flipMeta || !flipSprite || !canvas.isConnected) {
+          animationManager.removeAnimation(animId);
+          return;
+        }
+        
+        const frameIndex = Math.floor(progress * flipMeta.frameCount);
+        const frameData = flipMeta.frames[frameIndex];
+        if (!frameData) return;
+        
+        renderFlippingCard(ctx, flipSprite, flipMeta, frameIndex, backImg, faceImg, w, h);
+      },
+      onComplete: () => {
         canvas.classList.remove('active');
         canvas.parentElement?.classList.remove('flipping');
       }
-    }
+    });
   });
-  if (flipAnimations.size) {
-    requestAnimationFrame(stepFlipAnimations);
-  } else {
-    flipLoopRunning = false;
-  }
 }
 
 function kickoffFlipCanvases(force) {
@@ -1130,14 +1133,18 @@ function kickoffFlipCanvases(force) {
   const cards = document.querySelectorAll('.card-item[data-should-flip="1"]:not([data-flip-bound="1"])');
   cards.forEach(card => {
     card.dataset.flipBound = '1';
-    queueFlipForCard(card);
+    const faceSrc = card.dataset.faceImg;
+    const backSrc = card.dataset.backImg;
+    if (faceSrc && backSrc) {
+      flipCard(card, faceSrc, backSrc);
+    }
   });
 }
 
 function queueDealForCard(cardEl, opts = {}) {
   if (!cardEl || !dealSprite || !dealMeta) return;
   const canvas = cardEl.querySelector('.deal-canvas');
-  if (!canvas || dealAnimations.has(canvas)) return;
+  if (!canvas) return;
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   const w = Math.max(1, Math.floor(cardEl.clientWidth || canvas.width || 120));
@@ -1145,46 +1152,31 @@ function queueDealForCard(cardEl, opts = {}) {
   canvas.width = w;
   canvas.height = h;
   canvas.style.opacity = '1';
-  dealAnimations.set(canvas, {
-    canvas,
-    ctx,
-    frame: 0,
-    nextFrameAt: performance.now() + (opts.delayMs || 0),
-  });
-  if (!dealLoopRunning) {
-    dealLoopRunning = true;
-    requestAnimationFrame(stepDealAnimations);
-  }
-}
-
-function stepDealAnimations(ts) {
-  dealAnimations.forEach((anim, canvas) => {
-    if (!canvas.isConnected || !dealMeta || !dealSprite) {
-      dealAnimations.delete(canvas);
-      return;
-    }
-    if (ts < anim.nextFrameAt) return;
-    const total = dealMeta.frameCount || 1;
-    const spacing = Number.isFinite(dealMeta.spacing) ? dealMeta.spacing : 0;
-    const fIdx = anim.frame % total;
-    const sx = fIdx * (dealMeta.frameWidth + spacing);
-    const fw = dealMeta.frameWidth;
-    const fh = dealMeta.frameHeight;
-    anim.ctx.clearRect(0, 0, anim.canvas.width, anim.canvas.height);
-    anim.ctx.drawImage(dealSprite, sx, 0, fw, fh, 0, 0, anim.canvas.width, anim.canvas.height);
-    anim.frame += 1;
-    const delay = dealMeta.frames?.[fIdx]?.duration || (1000 / (dealMeta.fps || 24));
-    anim.nextFrameAt = ts + delay;
-    if (anim.frame >= total) {
-      dealAnimations.delete(canvas);
+  
+  const animId = `deal-${Date.now()}-${Math.random()}`;
+  
+  animationManager.addDealAnimation(animId, {
+    duration: opts.durationMs || 400,
+    delay: opts.delayMs || 0,
+    onUpdate: (progress) => {
+      if (!dealMeta || !dealSprite || !canvas.isConnected) {
+        animationManager.removeAnimation(animId);
+        return;
+      }
+      
+      const frameIndex = Math.floor(progress * (dealMeta.frameCount || 1));
+      const spacing = Number.isFinite(dealMeta.spacing) ? dealMeta.spacing : 0;
+      const sx = frameIndex * (dealMeta.frameWidth + spacing);
+      const fw = dealMeta.frameWidth;
+      const fh = dealMeta.frameHeight;
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(dealSprite, sx, 0, fw, fh, 0, 0, canvas.width, canvas.height);
+    },
+    onComplete: () => {
       setTimeout(() => { if (canvas && canvas.isConnected) canvas.style.opacity = '0'; }, 120);
     }
   });
-  if (dealAnimations.size) {
-    requestAnimationFrame(stepDealAnimations);
-  } else {
-    dealLoopRunning = false;
-  }
 }
 
 function kickoffDealCanvases(force) {
@@ -1212,7 +1204,6 @@ function playWinEffect() {
     pot.appendChild(canvas);
   }
   const ctx = canvas.getContext('2d');
-  let frame = 0;
   const total = winMeta.frameCount || 1;
   const frameWidth = winMeta.frameWidth || winSprite.width;
   const frameHeight = winMeta.frameHeight || winSprite.height;
@@ -1220,23 +1211,25 @@ function playWinEffect() {
   const spacingY = typeof winMeta.spacingY === 'number' ? winMeta.spacingY : spacingX;
   const columns = winMeta.columns
     || (frameWidth ? Math.max(1, Math.floor((winSprite.width + spacingX) / (frameWidth + spacingX))) : 1);
-  const draw = () => {
-    if (!canvas.isConnected) return;
-    const f = frame % total;
-    const col = columns ? (f % columns) : f;
-    const row = columns ? Math.floor(f / columns) : 0;
-    const sx = (frameWidth + spacingX) * col;
-    const sy = (frameHeight + spacingY) * row;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(winSprite, sx, sy, frameWidth, frameHeight, 0, 0, canvas.width, canvas.height);
-    frame += 1;
-    if (frame < total) {
-      setTimeout(() => requestAnimationFrame(draw), Math.max(20, 1000 / (winMeta.fps || 18)));
-    } else if (canvas) {
+  
+  const animId = `win-${Date.now()}-${Math.random()}`;
+  
+  animationManager.addWinAnimation(animId, {
+    fps: winMeta.fps || 18,
+    totalFrames: total,
+    onFrame: (frameIndex) => {
+      if (!canvas.isConnected) return;
+      const col = columns ? (frameIndex % columns) : frameIndex;
+      const row = columns ? Math.floor(frameIndex / columns) : 0;
+      const sx = (frameWidth + spacingX) * col;
+      const sy = (frameHeight + spacingY) * row;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(winSprite, sx, sy, frameWidth, frameHeight, 0, 0, canvas.width, canvas.height);
+    },
+    onComplete: () => {
       setTimeout(() => { if (canvas && canvas.isConnected) canvas.remove(); }, 400);
     }
-  };
-  requestAnimationFrame(draw);
+  });
 }
 
 // Queue rendering
@@ -1280,6 +1273,12 @@ socket.on('pokerPhase', (data) => {
     startPerPlayerTimers(data.players, data.actionEndsAt);
   }
   if (data.mode) setModeBadge(data.mode);
+  
+  // Accessibility announcements
+  if (accessibilityManager) {
+    const timeRemaining = data.actionEndsAt ? formatTimeRemaining(data.actionEndsAt) : null;
+    accessibilityManager.announceGameState(data.phase, data.mode, timeRemaining);
+  }
 });
 
 function triggerFoldEffect(login) {
@@ -1405,26 +1404,36 @@ function resolveCardBackTint(opts = {}) {
 }
 
 function startCountdown(endsAt) {
-  countdownEndsAt = endsAt ? new Date(endsAt).getTime() : null;
-  const badge = document.getElementById('phase-countdown');
-  if (!countdownEndsAt) {
-    if (badge) badge.textContent = '00:00';
-    if (countdownTimer) clearInterval(countdownTimer);
+  const badge = document.getElementById('timer-badge');
+  if (!badge) return;
+  if (!endsAt) {
+    badge.textContent = '00:00';
+    if (countdownTimer) {
+      timerManager.clearInterval(countdownTimer);
+      countdownTimer = null;
+    }
     return;
   }
 
-  if (countdownTimer) clearInterval(countdownTimer);
+  if (countdownTimer) {
+    timerManager.clearInterval(countdownTimer);
+    countdownTimer = null;
+  }
+  
   const tick = () => {
     const now = Date.now();
-    const diff = Math.max(0, countdownEndsAt - now);
+    const diff = Math.max(0, endsAt - now);
     const secs = Math.floor(diff / 1000);
     const mm = String(Math.floor(secs / 60)).padStart(2, '0');
     const ss = String(secs % 60).padStart(2, '0');
     if (badge) badge.textContent = `${mm}:${ss}`;
-    if (diff <= 0) clearInterval(countdownTimer);
+    if (diff <= 0 && countdownTimer) {
+      timerManager.clearInterval(countdownTimer);
+      countdownTimer = null;
+    }
   };
   tick();
-  countdownTimer = setInterval(tick, 1000);
+  countdownTimer = timerManager.setInterval(tick, 1000);
 }
 
 function setPhaseLabel(label) {
@@ -1454,11 +1463,13 @@ function setModeBadge(mode) {
 }
 
 // Player action timer mirrors phase/action timers for players
-let playerActionTimer = null;
 function startPlayerActionTimer(endsAt) {
   const el = document.getElementById('player-action-timer');
   if (!el) return;
-  if (playerActionTimer) clearInterval(playerActionTimer);
+  if (playerActionTimer) {
+    timerManager.clearInterval(playerActionTimer);
+    playerActionTimer = null;
+  }
   if (!endsAt) {
     el.textContent = '00:00';
     return;
@@ -1471,18 +1482,20 @@ function startPlayerActionTimer(endsAt) {
     const mm = String(Math.floor(secs / 60)).padStart(2, '0');
     const ss = String(secs % 60).padStart(2, '0');
     el.textContent = `${mm}:${ss}`;
-    if (diff <= 0) clearInterval(playerActionTimer);
+    if (diff <= 0 && playerActionTimer) {
+      timerManager.clearInterval(playerActionTimer);
+      playerActionTimer = null;
+    }
   };
   tick();
-  playerActionTimer = setInterval(tick, 1000);
+  playerActionTimer = timerManager.setInterval(tick, 1000);
 }
 
 // Optional per-player timers (uses same deadline for now)
-const playerTimers = {};
 function startPerPlayerTimers(players, endsAt) {
   const target = endsAt ? new Date(endsAt).getTime() : null;
   Object.keys(playerTimers).forEach(login => {
-    clearInterval(playerTimers[login]);
+    timerManager.clearInterval(playerTimers[login]);
     delete playerTimers[login];
   });
 
@@ -1497,10 +1510,13 @@ function startPerPlayerTimers(players, endsAt) {
       const diff = Math.max(0, target - Date.now());
       const secs = Math.floor(diff / 1000);
       el.textContent = `Action: ${secs}s`;
-      if (diff <= 0) clearInterval(playerTimers[p.login]);
+      if (diff <= 0 && playerTimers[p.login]) {
+        timerManager.clearInterval(playerTimers[p.login]);
+        delete playerTimers[p.login];
+      }
     };
     tick();
-    playerTimers[p.login] = setInterval(tick, 1000);
+    playerTimers[p.login] = timerManager.setInterval(tick, 1000);
   });
 }
 
@@ -1863,7 +1879,7 @@ async function loadLeaderboard() {
 loadLeaderboard();
 
 // Reload leaderboard every 30 seconds
-setInterval(loadLeaderboard, 30000);
+timerManager.setInterval(loadLeaderboard, 30000);
 
 // User authentication helper: read user JWT from localStorage and decode username (simple parse)
 function initUserFromToken() {

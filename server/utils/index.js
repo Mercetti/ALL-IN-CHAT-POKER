@@ -8,6 +8,10 @@ const image = require('./image');
 const fileOps = require('./file-ops');
 const timerManager = require('./timer-manager');
 const performance = require('./performance');
+const dbOptimizer = require('./db-optimizer');
+const cardLookup = require('./card-lookup');
+const memoryMonitor = require('./memory-monitor');
+const performanceMonitor = require('./performance-monitor');
 
 module.exports = {
   crypto,
@@ -16,12 +20,19 @@ module.exports = {
   fileOps,
   timerManager,
   performance,
+  dbOptimizer,
+  cardLookup,
+  memoryMonitor,
+  performanceMonitor,
   
   // Re-export commonly used functions for convenience
   ...crypto,
   ...color,
   ...image,
   ...fileOps,
-  ...timerManager,
   ...performance,
+  ...dbOptimizer,
+  ...cardLookup,
+  ...memoryMonitor,
+  ...performanceMonitor,
 };

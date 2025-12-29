@@ -217,7 +217,53 @@ process.on('SIGINT', () => {
 });
 
 // Timer manager for centralized timer management
-const { timerManager, performance: perfUtils } = utils;
+const { timerManager, performance: perfUtils, dbOptimizer, memoryMonitor, performanceMonitor } = utils;
+
+// Database performance monitoring wrapper
+const monitoredDb = new Proxy(db.db, {
+  get(target, prop) {
+    const value = target[prop];
+    
+    if (typeof value === 'function') {
+      return function(...args) {
+        const endTimer = performanceMonitor.startTimer(`db.${prop}`, {
+          operation: prop,
+          argsCount: args.length
+        });
+        
+        const startTime = Date.now();
+        try {
+          const result = value.apply(target, args);
+          
+          // Handle both sync and async operations
+          if (result && typeof result.then === 'function') {
+            return result
+              .then(res => {
+                endTimer({ success: true, async: true });
+                performanceMonitor.recordDatabaseMetric(prop, Date.now() - startTime, { async: true });
+                return res;
+              })
+              .catch(err => {
+                endTimer({ success: false, async: true, error: err.message });
+                performanceMonitor.recordDatabaseMetric(prop, Date.now() - startTime, { async: true, error: true });
+                throw err;
+              });
+          } else {
+            endTimer({ success: true, async: false });
+            performanceMonitor.recordDatabaseMetric(prop, Date.now() - startTime, { async: false });
+            return result;
+          }
+        } catch (err) {
+          endTimer({ success: false, async: false, error: err.message });
+          performanceMonitor.recordDatabaseMetric(prop, Date.now() - startTime, { async: false, error: true });
+          throw err;
+        }
+      };
+    }
+    
+    return value;
+  }
+});
 
 // Create state cache for expensive computations
 const playerStatesCache = new Map(); // channel -> { data, timestamp }
@@ -387,7 +433,7 @@ const canPremierActForAny = (req) => {
   if (auth.isAdminRequest(req)) return true;
   const actor = (auth.extractUserLogin(req) || '').toLowerCase();
   if (!actor) return false;
-  const role = (db.getProfile(actor)?.role || '').toLowerCase();
+  const role = (dbOpt.getProfile(actor)?.role || '').toLowerCase();
   return role === 'admin' || role === 'premier';
 };
 
@@ -2057,9 +2103,9 @@ async function maybeAutoUnlockCosmetics(login = '', channel = DEFAULT_CHANNEL) {
 
   const owned = new Set(inv.owned);
 
-  const stats = db.getStats(login);
+  const stats = dbOpt.getStats(login);
 
-  const profile = db.getProfile(login) || {};
+  const profile = dbOpt.getProfile(login) || {};
 
   const unlocked = [];
 
@@ -3665,7 +3711,7 @@ function buildOverlaySnapshot(channelRaw) {
   const players = cachedPlayers.map(player => ({
     login: player.login,
     bet: (state.betAmounts && state.betAmounts[player.login]) || 0,
-    balance: db.getBalance(player.login),
+    balance: dbOpt.getBalance(player.login),
     handCount: Array.isArray(player.hand) ? player.hand.length : 0,
     folded: !!player.folded,
     stood: !!player.stood,
@@ -5817,6 +5863,15 @@ function cleanupAfterSettle(channel = DEFAULT_CHANNEL) {
 
   state.pokerActed = new Set();
 
+  // Record game metrics for round end
+  if (state.roundInProgress) {
+    performanceMonitor.recordGameMetric('round_end', {
+      type: state.currentMode,
+      channel: channelName,
+      duration: Date.now() - (state.roundStartTime || Date.now())
+    });
+  }
+
   state.roundInProgress = false;
 
   state.bettingOpen = false;
@@ -6190,9 +6245,19 @@ perfUtils.forEachKey(state.betAmounts, (login) => bettors.push(login));
 
     state.playerTurnIndex = 0;
 
+    // Track round start time for duration metrics
+    state.roundStartTime = Date.now();
+
 
 
     logger.info('New round started', { channel: channelName });
+
+    // Record game metrics
+    performanceMonitor.recordGameMetric('round_start', {
+      type: state.currentMode,
+      channel: channelName,
+      players: state.players.length
+    });
 
     io.to(channelName).emit('roundStarted', {
 
@@ -9354,107 +9419,99 @@ app.post('/admin/tournaments', auth.requireAdmin, (req, res) => {
       advance_config: Array.isArray(advance_config) ? advance_config : TOURNAMENT_DEFAULTS.advance_config,
 
       decks,
-
-      blind_config: Array.isArray(blinds) ? blinds : TOURNAMENT_DEFAULTS.blinds,
-
     });
-
-    return res.json(tourney);
-
-  } catch (err) {
-
-    logger.error('Create tournament failed', { error: err.message });
-
-    return res.status(500).json({ error: 'internal_error' });
-
+  } catch (error) {
+    logger.error('Failed to get memory trend', { error: error.message });
+    res.status(500).json({ error: 'Failed to get memory trend' });
   }
-
 });
 
-
-
-app.post('/admin/tournaments/:id/players', auth.requireAdmin, (req, res) => {
-
+app.post('/admin/memory/gc', auth.requireAdmin, (req, res) => {
   try {
-
-    const tid = req.params.id;
-
-    const { login, seat } = req.body || {};
-
-    if (!validation.validateUsername(login || '')) return res.status(400).json({ error: 'invalid login' });
-
-    if (seat !== undefined && !Number.isInteger(seat)) return res.status(400).json({ error: 'invalid seat' });
-
-    const player = db.addTournamentPlayer(tid, login, seat);
-
-    return res.json(player);
-
-  } catch (err) {
-
-    logger.error('Add tournament player failed', { error: err.message });
-
-    return res.status(500).json({ error: 'internal_error' });
-
+    const success = memoryMonitor.forceGC();
+    res.json({ 
+      success,
+      message: success ? 'Garbage collection triggered' : 'Garbage collection not available (run with --expose-gc)'
+    });
+  } catch (error) {
+    logger.error('Failed to trigger garbage collection', { error: error.message });
+    res.status(500).json({ error: 'Failed to trigger garbage collection' });
   }
-
 });
 
-
-
-app.post('/admin/tournaments/:id/advance', auth.requireAdmin, (req, res) => {
-
+app.post('/admin/memory/reset', auth.requireAdmin, (req, res) => {
   try {
-
-    const tid = req.params.id;
-
-    const t = db.getTournament(tid);
-
-    if (!t) return res.status(404).json({ error: 'not_found' });
-
-    if (t.state !== 'active') return res.status(400).json({ error: 'not_active' });
-
-    const level = (t.current_level || 1) + 1;
-
-    const next = new Date(Date.now() + (t.level_seconds || TOURNAMENT_DEFAULTS.level_seconds) * 1000).toISOString();
-
-    const updated = db.upsertTournament({ ...t, current_level: level, next_level_at: next });
-
-    return res.json(updated);
-
-  } catch (err) {
-
-    logger.error('Advance tournament failed', { error: err.message });
-
-    return res.status(500).json({ error: 'internal_error' });
-
+    memoryMonitor.reset();
+    logger.info('Memory monitor statistics reset');
+    res.json({ message: 'Memory monitor statistics reset' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to reset memory monitor' });
   }
-
 });
 
+// Performance monitoring endpoints
+app.get('/admin/performance', auth.requireAdmin, (req, res) => {
+  try {
+    const report = performanceMonitor.getReport();
+    res.json(report);
+  } catch (error) {
+    logger.error('Failed to get performance report', { error: error.message });
+    res.status(500).json({ error: 'Failed to get performance report' });
+  }
+});
 
+app.get('/admin/performance/trend', auth.requireAdmin, (req, res) => {
+  try {
+    const minutes = parseInt(req.query.minutes) || 60;
+    const trend = performanceMonitor.getMetricsForTimeRange(minutes);
+    res.json(trend);
+  } catch (error) {
+    logger.error('Failed to get performance trend', { error: error.message });
+    res.status(500).json({ error: 'Failed to get performance trend' });
+  }
+});
+
+app.get('/admin/performance/export', auth.requireAdmin, (req, res) => {
+  try {
+    const format = req.query.format || 'json';
+    const metrics = performanceMonitor.exportMetrics(format);
+    
+    const filename = `performance-metrics-${new Date().toISOString().split('T')[0]}.${format}`;
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Type', format === 'csv' ? 'text/csv' : 'application/json');
+    res.send(metrics);
+  } catch (error) {
+    logger.error('Failed to export performance metrics', { error: error.message });
+    res.status(500).json({ error: 'Failed to export performance metrics' });
+  }
+});
+
+app.post('/admin/performance/reset', auth.requireAdmin, (req, res) => {
+  try {
+    performanceMonitor.reset();
+    logger.info('Performance monitor statistics reset');
+    res.json({ message: 'Performance monitor statistics reset' });
+  } catch (error) {
+    logger.error('Failed to reset performance monitor', { error: error.message });
+    res.status(500).json({ error: 'Failed to reset performance monitor' });
+  }
+});
 
 app.post('/admin/tournaments/:id/start', auth.requireAdmin, (req, res) => {
-
   try {
-
     const tid = req.params.id;
-
     const t = db.getTournament(tid);
 
     if (!t) return res.status(404).json({ error: 'not_found' });
 
     if (t.state === 'active' || t.state === 'complete') {
-
       return res.status(400).json({ error: 'already_started' });
-
     }
 
     const now = Date.now();
 
     const nextLevelMs = (t.blind_config && JSON.parse(t.blind_config || '[]')[0]?.seconds)
-
       ? JSON.parse(t.blind_config)[0].seconds * 1000
-
       : (t.level_seconds || TOURNAMENT_DEFAULTS.level_seconds) * 1000;
 
     const next_level_at = new Date(now + nextLevelMs).toISOString();
@@ -11463,26 +11520,15 @@ app.post('/admin/partners', auth.requireAdmin, (req, res) => {
 
 });
 
-
-
 // Admin: list partners with stats
-
-app.get('/admin/partners', auth.requireAdmin, (_req, res) => {
-
+app.get('/admin/partners', auth.requireAdmin, (req, res) => {
   try {
-
     const partners = db.listPartnerStats();
-
     return res.json({ partners });
-
   } catch (err) {
-
     logger.error('List partners failed', { error: err.message });
-
     return res.status(500).json({ error: 'internal_error' });
-
   }
-
 });
 
 
@@ -13148,23 +13194,48 @@ async function start() {
 
     }
 
-
-
     // Initialize database
-
     db.init();
+    
+    // Initialize database optimizer
+    const dbOpt = new dbOptimizer.DatabaseOptimizer(db.db);
+
+    // Initialize memory monitor
+    memoryMonitor.start();
+    logger.info('Memory monitoring started', { 
+      sampleInterval: memoryMonitor.sampleInterval,
+      alertThreshold: memoryMonitor.alertThresholdMB
+    });
+
+    // Initialize performance monitor
+    performanceMonitor.start();
+    logger.info('Performance monitoring started', { 
+      sampleInterval: performanceMonitor.sampleInterval,
+      responseTimeThreshold: performanceMonitor.alertThresholds.responseTime
+    });
+
+    // Add performance monitoring middleware
+    app.use((req, res, next) => {
+      const startTime = Date.now();
+      const endTimer = performanceMonitor.startTimer(req.path, {
+        method: req.method,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+      
+      res.on('finish', () => {
+        const responseTime = Date.now() - startTime;
+        endTimer({
+          success: res.statusCode < 400,
+          statusCode: res.statusCode,
+          responseTime
+        });
+      });
+      
+      next();
+    });
 
     db.seedCosmetics(COSMETIC_CATALOG);
-
-    // Ensure streamer profile exists
-    if (validation.validateUsername(config.STREAMER_LOGIN)) {
-      streamerProfile = db.upsertProfile({
-        login: config.STREAMER_LOGIN,
-        display_name: config.STREAMER_LOGIN,
-        settings: { startingChips: config.GAME_STARTING_CHIPS, theme: 'dark' },
-        role: 'streamer',
-      });
-    }
 
     // Ensure owner/admin account exists with forced password reset
     if (validation.validateUsername(config.OWNER_LOGIN)) {

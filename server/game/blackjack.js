@@ -2,56 +2,36 @@
  * Blackjack-specific game logic and utilities
  */
 
+const { cardLookup } = require('../utils');
+
+// Use optimized lookup functions
+const { 
+  getBlackjackCardValue, 
+  getBlackjackHandValueOptimized, 
+  isBlackjackOptimized,
+  evaluateBlackjackHandCached 
+} = cardLookup;
+
 const config = require('../config');
 
 const MAX_BLACKJACK_PLAYERS = 7;
 
 /**
- * Get card value for blackjack
- */
-function getBlackjackCardValue(card) {
-  if (!card || !card.rank) return 0;
-  
-  const rank = card.rank.toUpperCase();
-  if (rank === 'A') return 11;
-  if (['K', 'Q', 'J'].includes(rank)) return 10;
-  
-  const value = parseInt(rank, 10);
-  return isNaN(value) ? 0 : value;
-}
-
-/**
- * Calculate hand value for blackjack (handles aces)
+ * Calculate hand value for blackjack (using optimized version)
+ * @param {Array} hand - Card hand
+ * @returns {number} - Hand value
  */
 function getBlackjackHandValue(hand) {
-  if (!Array.isArray(hand) || hand.length === 0) return 0;
-  
-  let value = 0;
-  let aces = 0;
-  
-  for (const card of hand) {
-    const cardValue = getBlackjackCardValue(card);
-    if (cardValue === 11) aces++;
-    value += cardValue;
-  }
-  
-  // Adjust for aces
-  while (value > 21 && aces > 0) {
-    value -= 10;
-    aces--;
-  }
-  
-  return value;
+  return getBlackjackHandValueOptimized(hand);
 }
 
 /**
- * Check if hand is a blackjack
+ * Check if hand is a blackjack (using optimized version)
+ * @param {Array} hand - Card hand
+ * @returns {boolean} - True if blackjack
  */
 function isBlackjack(hand) {
-  if (!Array.isArray(hand) || hand.length !== 2) return false;
-  
-  const values = hand.map(getBlackjackCardValue);
-  return values.includes(11) && values.includes(10);
+  return isBlackjackOptimized(hand);
 }
 
 /**

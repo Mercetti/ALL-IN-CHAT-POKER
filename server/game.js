@@ -1,6 +1,11 @@
 /**
- * Video Poker game logic
+ * Core game logic and utilities
  */
+
+const { cardLookup } = require('./utils');
+
+// Use optimized lookup functions
+const { getRankValue, evaluateHand: evaluateHandOptimized, isStraightOptimized } = cardLookup;
 
 const config = require('./config');
 
@@ -46,20 +51,6 @@ function getReplacementCards(deck, heldIndices) {
 }
 
 /**
- * Get rank value for comparison
- * @param {string} rank - Rank string
- * @returns {number}
- */
-function getRankValue(rank) {
-  const values = {
-    '2': 2, '3': 3, '4': 4, '5': 5, '6': 6,
-    '7': 7, '8': 8, '9': 9, '10': 10,
-    'J': 11, 'Q': 12, 'K': 13, 'A': 14,
-  };
-  return values[rank] || 0;
-}
-
-/**
  * Check if hand is a flush
  * @param {Array} hand - 5 cards
  * @returns {boolean}
@@ -69,92 +60,22 @@ function isFlush(hand) {
 }
 
 /**
- * Check if hand is a straight
+ * Check if hand is a straight (using optimized version)
  * @param {Array} hand - 5 cards
  * @returns {boolean}
  */
 function isStraight(hand) {
   const values = hand.map(c => getRankValue(c.rank)).sort((a, b) => a - b);
-  // Check normal straight
-  if (values[4] - values[0] === 4 && new Set(values).size === 5) {
-    return true;
-  }
-  // Check A-2-3-4-5 (wheel)
-  if (values[0] === 2 && values[4] === 14 && values[3] === 5) {
-    return true;
-  }
-  return false;
+  return isStraightOptimized(values);
 }
 
 /**
- * Evaluate poker hand
+ * Evaluate poker hand (using optimized cached version)
  * @param {Array} hand - 5 cards
  * @returns {Object} - { name, rank, payout }
  */
 function evaluateHand(hand) {
-  if (hand.length !== 5) {
-    return { name: 'invalid', rank: 0, payout: 0 };
-  }
-
-  const ranks = hand.map(c => getRankValue(c.rank));
-  const rankCounts = {};
-  ranks.forEach(r => {
-    rankCounts[r] = (rankCounts[r] || 0) + 1;
-  });
-
-  const counts = Object.values(rankCounts).sort((a, b) => b - a);
-  const isF = isFlush(hand);
-  const isS = isStraight(hand);
-
-  // Royal flush (10-J-Q-K-A of same suit)
-  if (isF && isS && ranks.includes(14) && ranks.includes(13) && ranks.includes(12) && ranks.includes(11) && ranks.includes(10)) {
-    return { name: 'Royal Flush', rank: 10, payout: 250 };
-  }
-
-  // Straight flush
-  if (isF && isS) {
-    return { name: 'Straight Flush', rank: 9, payout: 50 };
-  }
-
-  // Four of a kind
-  if (counts[0] === 4) {
-    return { name: 'Four of a Kind', rank: 8, payout: 25 };
-  }
-
-  // Full house
-  if (counts[0] === 3 && counts[1] === 2) {
-    return { name: 'Full House', rank: 7, payout: 9 };
-  }
-
-  // Flush
-  if (isF) {
-    return { name: 'Flush', rank: 6, payout: 6 };
-  }
-
-  // Straight
-  if (isS) {
-    return { name: 'Straight', rank: 5, payout: 4 };
-  }
-
-  // Three of a kind
-  if (counts[0] === 3) {
-    return { name: 'Three of a Kind', rank: 4, payout: 3 };
-  }
-
-  // Two pair
-  if (counts[0] === 2 && counts[1] === 2) {
-    return { name: 'Two Pair', rank: 3, payout: 2 };
-  }
-
-  // Pair of Jacks or better
-  if (counts[0] === 2) {
-    const pairRank = Object.keys(rankCounts).find(r => rankCounts[r] === 2);
-    if (parseInt(pairRank) >= 11) { // J, Q, K, A
-      return { name: 'Pair (J or Better)', rank: 2, payout: 1 };
-    }
-  }
-
-  return { name: 'No Winner', rank: 0, payout: 0 };
+  return evaluateHandOptimized(hand);
 }
 
 /**
