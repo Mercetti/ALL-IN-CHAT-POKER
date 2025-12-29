@@ -3,8 +3,8 @@
  * Integrates chat bot and cosmetic AI into a single cohesive system
  */
 
-const AIEnhancedChatBot = require('./bot/ai-chatbot');
-const EnhancedCosmeticAI = require('./server/enhanced-cosmetic-ai');
+const AIEnhancedChatBot = require('../bot/ai-chatbot');
+const EnhancedCosmeticAI = require('./enhanced-cosmetic-ai');
 const config = require('./config');
 const { logger } = require('./logger');
 
