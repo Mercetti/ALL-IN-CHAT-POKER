@@ -147,8 +147,6 @@ const { spawn } = require('child_process');
 
 const config = require('./server/config');
 
-const Logger = require('./server/logger');
-
 const validation = require('./server/validation');
 
 const auth = require('./server/auth');
@@ -204,6 +202,10 @@ const { applyPatchFile } = require('./server/patch');
 
 const utils = require('./server/utils');
 
+// Initialize logger
+const Logger = require('./server/logger');
+const logger = new Logger('server');
+
 // Cleanup on server shutdown
 process.on('SIGTERM', () => {
   logger.info('Server shutting down, cleaning up timers');
@@ -220,21 +222,21 @@ process.on('SIGINT', () => {
 // Timer manager for centralized timer management
 const { timerManager, performance: perfUtils, dbOptimizer, memoryMonitor, performanceMonitor } = utils;
 
-// Initialize unified AI system
-const unifiedAI = new UnifiedAISystem({
-  enableChatBot: true,
-  enableCosmeticAI: true,
-  chatBotOptions: {
-    personality: 'friendly',
-    gameKnowledge: true,
-    learning: true
-  },
-  cosmeticAIOptions: {
-    enablePublicGeneration: false, // Admin only for now
-    maxConcurrentGenerations: 3,
-    generationCooldown: 30000
-  }
-});
+// Initialize unified AI system (temporarily disabled for debugging)
+// const unifiedAI = new UnifiedAISystem({
+//   enableChatBot: true,
+//   enableCosmeticAI: true,
+//   chatBotOptions: {
+//     personality: 'friendly',
+//     gameKnowledge: true,
+//     learning: true
+//   },
+//   cosmeticAIOptions: {
+//     enablePublicGeneration: false, // Admin only for now
+//     maxConcurrentGenerations: 3,
+//     generationCooldown: 30000
+//   }
+// });
 
 // Initialize AI monitoring systems
 const AIErrorManager = require('./server/ai-error-manager');
@@ -536,8 +538,6 @@ const validateBody = (body, shape = {}) => {
   });
 
 };
-
-const logger = new Logger('server');
 
 let currentMode = 'blackjack';
 
