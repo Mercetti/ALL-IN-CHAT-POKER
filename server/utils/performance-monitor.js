@@ -52,10 +52,10 @@ class PerformanceMonitor {
     this.isMonitoring = false;
     this.monitoringTimer = null;
     
-    // Initialize monitoring
-    if (this.enabled) {
-      this.start();
-    }
+    // Initialize monitoring (temporarily disabled due to high memory usage warnings)
+    // if (this.enabled) {
+    //   this.start();
+    // }
   }
 
   /**

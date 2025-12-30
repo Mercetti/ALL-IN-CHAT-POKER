@@ -20,6 +20,7 @@ class AIAudioGenerator {
     };
     
     this.audioLibrary = new Map();
+    this.soundLibrary = new Map();
     this.generationHistory = new Map();
     this.soundEffects = new Map();
     

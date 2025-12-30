@@ -338,7 +338,7 @@ async function reconcileBatch(batchId) {
             [partner_id, amount_cents, batch.currency || 'USD', batchId]
           );
           await client.query(
-            `UPDATE partner_balances SET pending_cents = GREATEST(pending_cents - $2,0), updated_at = now() WHERE partner_id = $1`,
+            `UPDATE partner_balances SET pending_cents = CASE WHEN pending_cents - $2 > 0 THEN pending_cents - $2 ELSE 0 END, updated_at = now() WHERE partner_id = $1`,
             [partner_id, amount_cents]
           );
         }
@@ -354,7 +354,7 @@ async function reconcileBatch(batchId) {
           );
           await client.query(
             `UPDATE partner_balances
-             SET pending_cents = GREATEST(pending_cents - $2,0), available_cents = available_cents + $2, updated_at = now()
+             SET pending_cents = CASE WHEN pending_cents - $2 > 0 THEN pending_cents - $2 ELSE 0 END, available_cents = available_cents + $2, updated_at = now()
              WHERE partner_id = $1`,
             [partner_id, amount_cents]
           );

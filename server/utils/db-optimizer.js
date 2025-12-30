@@ -280,12 +280,13 @@ class DatabaseOptimizer {
       getStats: this.db.prepare('SELECT * FROM stats WHERE username = ?'),
       ensureStats: this.db.prepare('INSERT OR IGNORE INTO stats (username) VALUES (?)'),
       
+      // Database optimizer - v2 (SQLite GREATEST fix applied)
       updateStats: this.db.prepare(`
         UPDATE stats SET 
           roundsPlayed = COALESCE(?, roundsPlayed),
           roundsWon = COALESCE(?, roundsWon),
           totalWon = COALESCE(?, totalWon),
-          biggestWin = GREATEST(COALESCE(?, biggestWin), biggestWin),
+          biggestWin = CASE WHEN COALESCE(?, biggestWin) > biggestWin THEN COALESCE(?, biggestWin) ELSE biggestWin END,
           bestHand = COALESCE(?, bestHand),
           handsPlayed = COALESCE(?, handsPlayed),
           playSeconds = COALESCE(?, playSeconds),

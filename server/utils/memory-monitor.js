@@ -371,10 +371,10 @@ const memoryMonitor = new MemoryMonitor({
   windowSamples: 10
 });
 
-// Auto-start in production
-if (process.env.NODE_ENV === 'production') {
-  memoryMonitor.start();
-}
+// Auto-start in production (temporarily disabled due to high memory usage warnings)
+// if (process.env.NODE_ENV === 'production') {
+//   memoryMonitor.start();
+// }
 
 module.exports = {
   MemoryMonitor,

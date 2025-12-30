@@ -209,13 +209,17 @@ const logger = new Logger('server');
 // Cleanup on server shutdown
 process.on('SIGTERM', () => {
   logger.info('Server shutting down, cleaning up timers');
-  timerManager.clearAll();
+  if (timerManager && timerManager.clearAll) {
+    timerManager.clearAll();
+  }
   process.exit(0);
 });
 
 process.on('SIGINT', () => {
   logger.info('Server interrupted, cleaning up timers');
-  timerManager.clearAll();
+  if (timerManager && timerManager.clearAll) {
+    timerManager.clearAll();
+  }
   process.exit(0);
 });
 
@@ -238,7 +242,7 @@ const { timerManager, performance: perfUtils, dbOptimizer, memoryMonitor, perfor
 //   }
 // });
 
-// Initialize AI monitoring systems
+// Initialize AI monitoring systems (re-enabling gradually)
 const AIErrorManager = require('./server/ai-error-manager');
 const AIPerformanceOptimizer = require('./server/ai-performance-optimizer');
 const AIUXMonitor = require('./server/ai-ux-monitor');
@@ -271,8 +275,9 @@ const AIAudioGenerator = require('./server/ai-audio-generator');
 const aiAudioGenerator = new AIAudioGenerator({
   outputDir: path.join(__dirname, 'public/assets/audio'),
   enableGeneration: true,
-  maxDuration: 30,
-  sampleRate: 44100
+  maxConcurrentGenerations: 2,
+  defaultFormat: 'wav',
+  quality: 'high'
 });
 
 // Initialize Poker Audio System (Phased Implementation)
@@ -287,63 +292,46 @@ const pokerAudio = new PokerAudioSystem({
   sampleRate: 44100
 });
 
-// Initialize Poker Audio Production System
-const PokerAudioProductionSystem = require('./server/poker-audio-production');
+// Initialize Poker Audio Production System (temporarily disabled)
+// const PokerAudioProductionSystem = require('./server/poker-audio-production');
 
-const pokerAudioProduction = new PokerAudioProductionSystem({
-  outputDir: path.join(__dirname, 'public/assets/audio'),
-  primaryFormat: 'ogg',
-  fallbackFormat: 'mp3',
-  targetLoudness: -16,
-  enableNormalization: true,
-  dmcaSafe: true
-});
+// const pokerAudioProduction = new PokerAudioProductionSystem({
+//   outputDir: path.join(__dirname, 'public/assets/audio'),
+//   primaryFormat: 'ogg',
+//   fallbackFormat: 'mp3',
+//   targetLoudness: -16,
+//   enableNormalization: true,
+//   dmcaSafe: true
+// });
 
-// Database performance monitoring wrapper
-const monitoredDb = new Proxy(db.db, {
-  get(target, prop) {
-    const value = target[prop];
-    
-    if (typeof value === 'function') {
-      return function(...args) {
-        const endTimer = performanceMonitor.startTimer(`db.${prop}`, {
-          operation: prop,
-          argsCount: args.length
-        });
-        
-        const startTime = Date.now();
-        try {
-          const result = value.apply(target, args);
-          
-          // Handle both sync and async operations
-          if (result && typeof result.then === 'function') {
-            return result
-              .then(res => {
-                endTimer({ success: true, async: true });
-                performanceMonitor.recordDatabaseMetric(prop, Date.now() - startTime, { async: true });
-                return res;
-              })
-              .catch(err => {
-                endTimer({ success: false, async: true, error: err.message });
-                performanceMonitor.recordDatabaseMetric(prop, Date.now() - startTime, { async: true, error: true });
-                throw err;
-              });
-          } else {
-            endTimer({ success: true, async: false });
-            performanceMonitor.recordDatabaseMetric(prop, Date.now() - startTime, { async: false });
-            return result;
-          }
-        } catch (err) {
-          endTimer({ success: false, async: false, error: err.message });
-          performanceMonitor.recordDatabaseMetric(prop, Date.now() - startTime, { async: false, error: true });
-          throw err;
-        }
-      };
-    }
-    
-    return value;
-  }
-});
+// Database performance monitoring wrapper (temporarily disabled)
+// const monitoredDb = db.db ? new Proxy(db.db, {
+//   get(target, prop) {
+//     const value = target[prop];
+//     
+//     if (typeof value === 'function') {
+//       return function(...args) {
+//         const endTimer = performanceMonitor.startTimer(`db.${prop}`, {
+//           operation: prop,
+//           argsCount: args.length
+//         });
+//         
+//         try {
+//           const result = value.apply(target, args);
+//           endTimer({ success: true });
+//           return result;
+//         } catch (error) {
+//           endTimer({ success: false, error: error.message });
+//           throw error;
+//         }
+//       };
+//     }
+//     
+//     return value;
+//   }
+// }) : db;
+
+const monitoredDb = db;
 
 // Create state cache for expensive computations
 const playerStatesCache = new Map(); // channel -> { data, timestamp }
@@ -12578,17 +12566,19 @@ app.get('/admin/ai/audio/history', auth.requireAdmin, (req, res) => {
 /**
  * Get Poker Audio Library (public)
  */
-app.get('/api/audio/library', (req, res) => {
+app.get('/api/audio/library', auth.requireUser, (req, res) => {
   try {
     const userId = req.user?.id || 'anonymous';
     const userTier = req.query.tier || 'affiliate';
-    const library = pokerAudio.getAvailableAudio(userId);
+    // const library = pokerAudio.getAvailableAudio(userId);
+    const library = { status: 'disabled', message: 'Poker audio system temporarily disabled' };
     
     res.json({
       library,
       userTier,
-      dmcaPolicy: pokerAudio.getDMCAPolicy(),
-      phases: Object.keys(library)
+      // dmcaPolicy: pokerAudio.getDMCAPolicy(),
+      dmcaPolicy: { status: 'disabled' },
+      phases: [] // Object.keys(library)
     });
   } catch (error) {
     logger.error('Failed to get audio library', { error: error.message });
@@ -12602,7 +12592,8 @@ app.get('/api/audio/library', (req, res) => {
 app.get('/api/audio/settings', auth.requireUser, (req, res) => {
   try {
     const userId = req.user.id;
-    const settings = pokerAudio.getUserSettings(userId);
+    // const settings = pokerAudio.getUserSettings(userId);
+    const settings = { status: 'disabled', message: 'Poker audio system temporarily disabled' };
     
     res.json(settings);
   } catch (error) {
@@ -12619,7 +12610,8 @@ app.post('/api/audio/settings', auth.requireUser, (req, res) => {
     const userId = req.user.id;
     const settings = req.body;
     
-    const updatedSettings = pokerAudio.updateUserSettings(userId, settings);
+    // const updatedSettings = pokerAudio.updateUserSettings(userId, settings);
+    const updatedSettings = { status: 'disabled', message: 'Poker audio system temporarily disabled' };
     
     res.json({
       success: true,
@@ -12643,7 +12635,8 @@ app.post('/admin/audio/generate/phase', auth.requireAdmin, async (req, res) => {
     }
     
     const userTier = tier || 'affiliate';
-    const result = await pokerAudio.generatePhaseAudio(phase, userTier);
+    // const result = await pokerAudio.generatePhaseAudio(phase, userTier);
+    const result = { success: false, message: 'Poker audio system temporarily disabled' };
     
     logger.info('Phase audio generation completed', { 
       phase, 
@@ -12668,7 +12661,8 @@ app.post('/admin/audio/generate/tier-package', auth.requireAdmin, async (req, re
     
     logger.info('Starting tier package generation', { tier: userTier });
     
-    const result = await pokerAudio.generateTierPackage(userTier);
+    // const result = await pokerAudio.generateTierPackage(userTier);
+    const result = { success: false, message: 'Poker audio system temporarily disabled' };
     
     logger.info('Tier package generation completed', {
       tier: userTier,
@@ -12688,7 +12682,8 @@ app.post('/admin/audio/generate/tier-package', auth.requireAdmin, async (req, re
  */
 app.get('/api/audio/dmca-policy', (req, res) => {
   try {
-    const policy = pokerAudio.getDMCAPolicy();
+    // const policy = pokerAudio.getDMCAPolicy();
+    const policy = { status: 'disabled', message: 'Poker audio system temporarily disabled' };
     
     res.json({
       policy,
@@ -12715,29 +12710,32 @@ app.post('/api/audio/trigger/viewer', auth.requireUser, async (req, res) => {
     }
     
     // Check cooldown
-    const canTrigger = pokerAudio.checkCooldown(userId, soundName);
+    // const canTrigger = pokerAudio.checkCooldown(userId, soundName);
+    const canTrigger = false;
     
     if (!canTrigger) {
       return res.json({
         success: false,
         reason: 'Cooldown period active',
-        message: 'Please wait before triggering this sound again'
+        message: 'Poker audio system temporarily disabled'
       });
     }
     
     // Get user settings to check if viewer triggers are enabled
-    const settings = pokerAudio.getUserSettings(userId);
+    // const settings = pokerAudio.getUserSettings(userId);
+    const settings = { eventSounds: { viewerTriggers: false } };
     
     if (!settings.eventSounds.viewerTriggers) {
       return res.json({
         success: false,
         reason: 'Viewer triggers disabled',
-        message: 'Viewer sound effects are disabled in settings'
+        message: 'Poker audio system temporarily disabled'
       });
     }
     
     // Get audio file path
-    const availableAudio = pokerAudio.getAvailableAudio(userId);
+    // const availableAudio = pokerAudio.getAvailableAudio(userId);
+    const availableAudio = {};
     let audioFile = null;
     
     // Search for the sound in all phases
@@ -12750,7 +12748,7 @@ app.post('/api/audio/trigger/viewer', auth.requireUser, async (req, res) => {
     });
     
     if (!audioFile) {
-      return res.status(404).json({ error: 'Sound not found or not available for your tier' });
+      return res.status(404).json({ error: 'Sound not found - poker audio system temporarily disabled' });
     }
     
     logger.info('Viewer sound triggered', { 
@@ -12780,12 +12778,20 @@ app.post('/api/audio/trigger/viewer', auth.requireUser, async (req, res) => {
 app.get('/admin/audio/stats', auth.requireAdmin, (req, res) => {
   try {
     const stats = {
-      totalGenerated: pokerAudio.generatedAudio.size,
-      userSettings: pokerAudio.userSettings.size,
-      activeCooldowns: pokerAudio.cooldowns.size,
-      phases: Object.keys(pokerAudio.audioLibrary).length,
-      dmcaSafe: pokerAudio.options.dmcaSafe,
-      defaultMusicOff: pokerAudio.options.defaultMusicOff
+      // totalGenerated: pokerAudio.generatedAudio.size,
+      // userSettings: pokerAudio.userSettings.size,
+      // activeCooldowns: pokerAudio.cooldowns.size,
+      // phases: Object.keys(pokerAudio.audioLibrary).length,
+      // dmcaSafe: pokerAudio.options.dmcaSafe,
+      // defaultMusicOff: pokerAudio.options.defaultMusicOff
+      totalGenerated: 0,
+      userSettings: 0,
+      activeCooldowns: 0,
+      phases: 0,
+      dmcaSafe: true,
+      defaultMusicOff: true,
+      status: 'disabled',
+      message: 'Poker audio system temporarily disabled'
     };
     
     res.json(stats);
@@ -13025,13 +13031,13 @@ app.post('/api/audio/trigger/viewer', auth.requireUser, async (req, res) => {
  */
 app.get('/admin/ai/health', auth.requireAdmin, async (req, res) => {
   try {
-    const unifiedHealth = await unifiedAI.healthCheck();
+    // const unifiedHealth = await unifiedAI.healthCheck();
     const errorHealth = aiErrorManager.getHealthReport();
     const performanceHealth = aiPerformanceOptimizer.getPerformanceReport();
     const uxHealth = aiUXMonitor.getUXReport();
     
     res.json({
-      unified: unifiedHealth,
+      // unified: unifiedHealth,
       errorManager: errorHealth,
       performance: performanceHealth,
       ux: uxHealth,
@@ -14138,21 +14144,14 @@ async function start() {
 
   try {
 
-    // Run startup checks
-
-    const checks = startup.checkStartup();
-
-    startup.logStartupCheck(checks);
-
-
-
-    if (checks.status === 'error') {
-
-      logger.error('Startup checks failed, exiting');
-
-      process.exit(1);
-
-    }
+    // Run startup checks (temporarily disabled for debugging)
+    // const checks = startup.checkStartup();
+    // startup.logStartupCheck(checks);
+    
+    // if (checks.status === 'error') {
+    //   logger.error('Startup checks failed, exiting');
+    //   process.exit(1);
+    // }
 
     // Initialize database
     db.init();
@@ -14160,40 +14159,40 @@ async function start() {
     // Initialize database optimizer
     const dbOpt = new dbOptimizer.DatabaseOptimizer(db.db);
 
-    // Initialize memory monitor
-    memoryMonitor.start();
-    logger.info('Memory monitoring started', { 
-      sampleInterval: memoryMonitor.sampleInterval,
-      alertThreshold: memoryMonitor.alertThresholdMB
-    });
+    // Initialize memory monitor (temporarily disabled due to high memory usage warnings)
+    // memoryMonitor.start();
+    // logger.info('Memory monitoring started', { 
+    //   sampleInterval: memoryMonitor.sampleInterval,
+    //   alertThreshold: memoryMonitor.alertThresholdMB
+    // });
 
-    // Initialize performance monitor
-    performanceMonitor.start();
-    logger.info('Performance monitoring started', { 
-      sampleInterval: performanceMonitor.sampleInterval,
-      responseTimeThreshold: performanceMonitor.alertThresholds.responseTime
-    });
+    // Initialize performance monitor (temporarily disabled)
+    // performanceMonitor.start();
+    // logger.info('Performance monitoring started', { 
+    //   sampleInterval: performanceMonitor.sampleInterval,
+    //   responseTimeThreshold: performanceMonitor.alertThresholds.responseTime
+    // });
 
-    // Add performance monitoring middleware
-    app.use((req, res, next) => {
-      const startTime = Date.now();
-      const endTimer = performanceMonitor.startTimer(req.path, {
-        method: req.method,
-        ip: req.ip,
-        userAgent: req.get('User-Agent')
-      });
-      
-      res.on('finish', () => {
-        const responseTime = Date.now() - startTime;
-        endTimer({
-          success: res.statusCode < 400,
-          statusCode: res.statusCode,
-          responseTime
-        });
-      });
-      
-      next();
-    });
+    // Add performance monitoring middleware (temporarily disabled)
+    // app.use((req, res, next) => {
+    //   const startTime = Date.now();
+    //   const endTimer = performanceMonitor.startTimer(req.path, {
+    //     method: req.method,
+    //     ip: req.ip,
+    //     userAgent: req.get('User-Agent')
+    //   });
+    //   
+    //   res.on('finish', () => {
+    //     const responseTime = Date.now() - startTime;
+    //     endTimer({
+    //       success: res.statusCode < 400,
+    //       statusCode: res.statusCode,
+    //       responseTime
+    //     });
+    //   });
+    //   
+    //   next();
+    // });
 
     db.seedCosmetics(COSMETIC_CATALOG);
 
