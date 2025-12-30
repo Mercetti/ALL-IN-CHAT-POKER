@@ -14293,6 +14293,15 @@ async function start() {
 
 
 
+    // Add health check endpoint
+    app.get('/health', (req, res) => {
+      res.status(200).json({ 
+        status: 'healthy', 
+        timestamp: new Date().toISOString(),
+        memory: process.memoryUsage()
+      });
+    });
+
     // Start listening
 
     server.listen(config.PORT, '0.0.0.0', () => {
