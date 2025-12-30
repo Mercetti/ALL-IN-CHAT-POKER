@@ -50,6 +50,6 @@ primary_region = "iad"
     restart_limit = 0
 
 [[vm]]
-  memory = "1gb"
+  memory = "2gb"
   cpu_kind = "shared"
   cpus = 1
