@@ -516,9 +516,13 @@
             btn.disabled = true;
             btn.innerHTML = '<span class="btn-icon">⏳</span> Creating order...';
             try {
+              const token = localStorage.getItem('user_jwt');
               const res = await fetch('/coins/paypal/order', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                  'Content-Type': 'application/json',
+                  ...(token && { 'Authorization': `Bearer ${token}` })
+                },
                 body: JSON.stringify({ packId }),
               });
               if (!res.ok) throw new Error(`HTTP ${res.status}`);

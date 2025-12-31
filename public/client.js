@@ -374,8 +374,12 @@ async function apiCall(endpoint, options = {}) {
   }
 }
 
-// Initialize Toast
-Toast.init();
+// Initialize Toast when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', Toast.init);
+} else {
+  Toast.init();
+}
 
 // Export for use
 window.Toast = Toast;

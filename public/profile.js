@@ -67,6 +67,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupEventListeners();
   const premierBtn = document.getElementById('premier-submit');
   if (premierBtn) premierBtn.addEventListener('click', submitPremierRequest);
+  
+  // Check for dev tools access
+  await checkDevToolsAccess();
 });
 
 function isPremierRole(role) {
@@ -900,4 +903,34 @@ async function importPremierCosmetics() {
     body: JSON.stringify({ items: parsed }),
     useUserToken: true,
   });
+}
+
+// Dev tools functionality
+async function checkDevToolsAccess() {
+  try {
+    const token = getUserToken && getUserToken();
+    if (!token) return;
+
+    const response = await fetch('/api/user/profile', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.ok) {
+      const userData = await response.json();
+      if (userData.isOwner || userData.isDev || userData.isAdmin) {
+        const devToolsBtn = document.getElementById('btn-dev-tools');
+        if (devToolsBtn) {
+          devToolsBtn.style.display = 'inline-block';
+          devToolsBtn.addEventListener('click', () => {
+            window.open('/admin-enhanced.html', '_blank');
+          });
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Failed to check dev tools access:', error);
+  }
 }

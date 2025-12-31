@@ -2310,7 +2310,7 @@ app.get('/', (_req, res) => {
 
   res.set('Cache-Control', 'no-store');
 
-  res.sendFile(path.join(__dirname, 'public', 'welcome.html'));
+  res.sendFile(path.join(__dirname, 'public', 'welcome-enhanced.html'));
 
 });
 
@@ -2994,6 +2994,32 @@ app.use(securityHeadersMiddleware);
 
 // AI Self-Healing Middleware (gradually re-enabling on fresh machine)
 app.use(aiSelfHealing.middleware());
+
+// Authentication middleware for protected pages
+app.use((req, res, next) => {
+  const protectedPaths = [
+    '/store-enhanced.html',
+    '/overlay-editor-enhanced.html', 
+    '/admin-enhanced.html',
+    '/setup-enhanced.html'
+  ];
+  
+  const isProtected = protectedPaths.some(path => req.path.startsWith(path));
+  
+  if (isProtected) {
+    const login = auth.extractUserLogin(req);
+    if (!login) {
+      // Redirect to welcome page with return URL (but avoid redirect loops)
+      const returnUrl = encodeURIComponent(req.originalUrl);
+      // Don't redirect if we're already coming from welcome page
+      if (!req.headers.referer || !req.headers.referer.includes('welcome-enhanced.html')) {
+        return res.redirect(`/welcome-enhanced.html?return=${returnUrl}`);
+      }
+    }
+  }
+  
+  next();
+});
 
 app.use('/uploads', express.static(uploadsDir));
 
@@ -10433,63 +10459,84 @@ app.get('/leaderboard.json', (req, res) => {
     return res.json(leaderboard);
 
   } catch (err) {
-
     logger.error('Failed to fetch leaderboard', { error: err.message });
-
     return res.status(500).json({ error: 'internal_error' });
-
   }
-
 });
 
-
-
 /**
-
- * Get all balances (admin only)
-
+ * Validate user token endpoint
  */
-
-app.get('/balances.json', auth.requireAdmin, (req, res) => {
-
+app.get('/api/auth/validate', (req, res) => {
   try {
-
-    const balances = {};
-
-    const profiles = db.getAllProfiles(1000);
-
-
-
-    profiles.forEach(profile => {
-
-      balances[profile.login] = db.getBalance(profile.login);
-
-    });
-
-
-
-    return res.json(balances);
-
+    const login = auth.extractUserLogin(req);
+    if (!validation.validateUsername(login || '')) {
+      return res.json({ valid: false, login: null });
+    }
+    
+    return res.json({ valid: true, login });
   } catch (err) {
-
-    logger.error('Failed to fetch balances', { error: err.message });
-
-    return res.status(500).json({ error: 'internal_error' });
-
+    logger.error('Failed to validate token', { error: err.message });
+    return res.json({ valid: false, login: null });
   }
-
 });
 
+/**
+ * Get user balance API endpoint
+ */
+app.get('/api/user/balance', auth.requireUser, (req, res) => {
+  try {
+    const login = auth.extractUserLogin(req);
+    if (!login) {
+      return res.status(401).json({ error: 'unauthorized' });
+    }
 
+    const balance = db.getBalance(login);
+    const stats = db.getUserStats(login);
+    
+    return res.json({
+      balance,
+      handsPlayed: stats?.handsPlayed || 0,
+      biggestPot: stats?.biggestPot || 0,
+      totalWinnings: stats?.totalWinnings || 0
+    });
+  } catch (err) {
+    logger.error('Failed to fetch user balance', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
 
 /**
-
- * Get all stats (admin only)
-
+ * Get user profile data with role information
  */
+app.get('/api/user/profile', auth.requireUser, (req, res) => {
+  try {
+    const login = auth.extractUserLogin(req);
+    if (!login) {
+      return res.status(401).json({ error: 'unauthorized' });
+    }
 
+    const profile = db.getProfile(login.toLowerCase());
+    const isAdmin = auth.isAdminRequest(req);
+    
+    return res.json({
+      login,
+      displayName: profile?.displayName || login,
+      role: profile?.role || null,
+      isAdmin: !!isAdmin,
+      isOwner: login.toLowerCase() === (config.OWNER_LOGIN || '').toLowerCase(),
+      isDev: ['dev', 'developer'].includes((profile?.role || '').toLowerCase())
+    });
+  } catch (err) {
+    logger.error('Failed to fetch user profile', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+/**
+ * Get all stats (admin only)
+ */
 app.get('/stats.json', auth.requireAdmin, (req, res) => {
-
   try {
 
     const stats = {};
@@ -11394,13 +11441,17 @@ app.post('/overlay/sync', (req, res) => {
 
   const login = auth.extractUserLogin(req);
 
-  if (!validation.validateUsername(login || '')) {
+  // Allow admin token bypass for overlay sync
+  const token = req.body?.token || req.query?.token || req.headers?.x_admin_token;
+  const isAdminToken = token && token === config.ADMIN_TOKEN;
+  
+  if (!isAdminToken && !validation.validateUsername(login || '')) {
 
     return res.status(401).json({ error: 'unauthorized' });
 
   }
 
-  const channel = normalizeChannelName(req.query?.channel || login) || login;
+  const channel = normalizeChannelName(req.query?.channel || (isAdminToken ? 'admin' : login)) || (isAdminToken ? 'admin' : login);
 
   const payload = {
 
@@ -12160,6 +12211,115 @@ app.post('/admin/player-color', auth.requireAdmin, (req, res) => {
  * Body: { items: [...] }
 
  */
+
+// Temporary endpoint to add avatar rings (admin only)
+app.post('/admin/avatar-rings/add', auth.requireAdmin, (req, res) => {
+  try {
+    const avatarRings = [
+      {
+        id: 'avatar-basic-1',
+        type: 'avatarRing',
+        name: 'Basic Avatar Ring',
+        price_cents: 0,
+        rarity: 'common',
+        preview: '/assets/cosmetics/avatar/basic-extra1.png',
+        image_url: '/assets/cosmetics/avatar/basic-extra1.png',
+        unlock_type: 'basic'
+      },
+      {
+        id: 'avatar-basic-2',
+        type: 'avatarRing',
+        name: 'Basic Avatar Ring 2',
+        price_cents: 0,
+        rarity: 'common',
+        preview: '/assets/cosmetics/avatar/basic-extra2.png',
+        image_url: '/assets/cosmetics/avatar/basic-extra2.png',
+        unlock_type: 'basic'
+      },
+      {
+        id: 'avatar-pink-neon',
+        type: 'avatarRing',
+        name: 'Pink Neon Ring',
+        price_cents: 250,
+        rarity: 'rare',
+        preview: '/assets/cosmetics/avatar/drop-pink-neon.png',
+        image_url: '/assets/cosmetics/avatar/drop-pink-neon.png',
+        unlock_type: 'twitch_drop'
+      },
+      {
+        id: 'avatar-fire-ring',
+        type: 'avatarRing',
+        name: 'Fire Ring',
+        price_cents: 150,
+        rarity: 'uncommon',
+        preview: '/assets/cosmetics/avatar/fire_ring.svg',
+        image_url: '/assets/cosmetics/avatar/fire_ring.svg',
+        unlock_type: null
+      },
+      {
+        id: 'avatar-cosmic',
+        type: 'avatarRing',
+        name: 'Cosmic Ring',
+        price_cents: 0,
+        rarity: 'epic',
+        preview: '/assets/cosmetics/avatar/streamer-cosmic.png',
+        image_url: '/assets/cosmetics/avatar/streamer-cosmic.png',
+        unlock_type: 'streamer_goal',
+        unlock_value: 50
+      },
+      {
+        id: 'avatar-glitch',
+        type: 'avatarRing',
+        name: 'Glitch Ring',
+        price_cents: 0,
+        rarity: 'epic',
+        preview: '/assets/cosmetics/avatar/streamer-glitch.png',
+        image_url: '/assets/cosmetics/avatar/streamer-glitch.png',
+        unlock_type: 'twitch_drop'
+      },
+      {
+        id: 'avatar-gold',
+        type: 'avatarRing',
+        name: 'Gold Ring',
+        price_cents: 0,
+        rarity: 'legendary',
+        preview: '/assets/cosmetics/avatar/streamer-gold.png',
+        image_url: '/assets/cosmetics/avatar/streamer-gold.png',
+        unlock_type: 'streamer_goal',
+        unlock_value: 75
+      },
+      {
+        id: 'avatar-neon',
+        type: 'avatarRing',
+        name: 'Neon Ring',
+        price_cents: 300,
+        rarity: 'rare',
+        preview: '/assets/cosmetics/avatar/streamer-neon.png',
+        image_url: '/assets/cosmetics/avatar/streamer-neon.png',
+        unlock_type: null
+      }
+    ];
+
+    let added = 0;
+    avatarRings.forEach(ring => {
+      try {
+        db.upsertCosmetics([ring]);
+        added++;
+      } catch (err) {
+        logger.warn('Failed to add avatar ring', { id: ring.id, error: err.message });
+      }
+    });
+
+    res.json({ 
+      message: `Added ${added} avatar rings to catalog`,
+      added: added,
+      total: avatarRings.length
+    });
+  } catch (error) {
+    logger.error('Failed to add avatar rings', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
 
 app.post('/admin/cosmetics/import', auth.requireAdminOrRole(['premier']), (req, res) => {
 

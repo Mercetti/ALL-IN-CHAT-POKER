@@ -44,8 +44,8 @@ module.exports = {
   CHECKOUT_SIGNING_SECRET: process.env.CHECKOUT_SIGNING_SECRET || process.env.JWT_SECRET || 'change-me-checkout',
   BANNED_LOGINS: (process.env.BANNED_LOGINS || '').toLowerCase(),
   BANNED_IPS: (process.env.BANNED_IPS || '').toLowerCase(),
-  SUPABASE_URL: process.env.SUPABASE_URL || (IS_PRODUCTION ? '' : 'https://ertwjobuopcnrmdojeps.supabase.co'),
-  SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || (IS_PRODUCTION ? '' : 'sb_publishable_b_GSUmpGQPhTBh_vow7O8g_S3IblsBa'),
+  SUPABASE_URL: process.env.SUPABASE_URL || '',
+  SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || '',
   ADMIN_ALLOW_EMAILS: (process.env.ADMIN_ALLOW_EMAILS || '').toLowerCase(),
 
   // JWT
@@ -141,13 +141,13 @@ module.exports = {
   ].join(','),
 
   // AI assistance
-  AI_PROVIDER: process.env.AI_PROVIDER || 'openai',
+  AI_PROVIDER: process.env.AI_PROVIDER || 'ollama',  // Use Ollama since it's installed and working
   OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
   AI_MODEL: process.env.AI_MODEL || 'gpt-4o-mini',
   AI_TIMEOUT_MS: parseInt(process.env.AI_TIMEOUT_MS || '15000', 10),
   AI_MAX_TOKENS: parseInt(process.env.AI_MAX_TOKENS || '1200', 10),
   OLLAMA_HOST: process.env.OLLAMA_HOST || 'http://127.0.0.1:11434',
-  OLLAMA_MODEL: process.env.OLLAMA_MODEL || '',
+  OLLAMA_MODEL: process.env.OLLAMA_MODEL || 'tinyllama',  // Use tinyllama as default model
 
   // Monitoring / alerts
   MONITOR_WEBHOOK_URL: process.env.MONITOR_WEBHOOK_URL || '',

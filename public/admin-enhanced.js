@@ -550,7 +550,7 @@ class EnhancedAdminDashboard {
   async runAITest() {
     this.showToast('Running AI diagnostics...', 'info');
     try {
-      const results = await this.fetchAPI('/api/admin/ai/test', { method: 'POST' });
+      const results = await this.fetchAPI('/admin/ai-tests', { method: 'POST' });
       this.showToast('AI tests completed successfully', 'success');
       console.log('AI Test Results:', results);
     } catch (error) {

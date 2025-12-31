@@ -510,12 +510,108 @@ li {
 .gallery-img {
   width: 100%;
   height: 160px;
-  object-fit: cover;
+  object-fit: contain; /* Changed from cover to contain */
   transition: transform 0.3s ease;
+  padding: 10px; /* Add padding to ensure full card is visible */
+  box-sizing: border-box;
 }
 
 .gallery-item:hover .gallery-img {
   transform: scale(1.05);
+}
+
+/* ===== STACKED CHIPS ===== */
+.stacked-chips {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 160px;
+  position: relative;
+}
+
+.chip-main-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.chip-side-chips {
+  display: flex;
+  gap: 5px;
+  margin-left: 15px;
+  align-items: center;
+}
+
+.chip-stack-item {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+/* Main stack - slightly larger */
+.chip-main-stack .chip-stack-item {
+  width: 65px;
+  height: 65px;
+}
+
+/* Main stack positioning */
+.chip-main-stack .chip-stack-item:nth-child(1) { /* 500 chip - bottom */
+  z-index: 1;
+  transform: scale(1.0);
+}
+
+.chip-main-stack .chip-stack-item:nth-child(2) { /* 100 chip */
+  position: absolute;
+  top: -8px;
+  z-index: 2;
+  transform: scale(0.98);
+}
+
+.chip-main-stack .chip-stack-item:nth-child(3) { /* 25 chip */
+  position: absolute;
+  top: -16px;
+  z-index: 3;
+  transform: scale(0.96);
+}
+
+.chip-main-stack .chip-stack-item:nth-child(4) { /* 5 chip */
+  position: absolute;
+  top: -24px;
+  z-index: 4;
+  transform: scale(0.94);
+}
+
+.chip-main-stack .chip-stack-item:nth-child(5) { /* 1 chip - top */
+  position: absolute;
+  top: -32px;
+  z-index: 5;
+  transform: scale(0.92);
+}
+
+/* Side chips - show faces */
+.chip-side-chips .chip-stack-item:nth-child(1) {
+  transform: rotate(-15deg);
+}
+
+.chip-side-chips .chip-stack-item:nth-child(2) {
+  transform: rotate(10deg);
+}
+
+/* Hover effects */
+.gallery-item:hover .chip-main-stack .chip-stack-item {
+  transform: translateY(-2px) scale(1.02);
+}
+
+.gallery-item:hover .chip-side-chips .chip-stack-item:nth-child(1) {
+  transform: rotate(-15deg) translateY(-2px);
+}
+
+.gallery-item:hover .chip-side-chips .chip-stack-item:nth-child(2) {
+  transform: rotate(10deg) translateY(-2px);
 }
 
 .gallery-label {
@@ -556,10 +652,14 @@ li {
   background-repeat: no-repeat;
   background-position: 0 0;
   background-size: calc(var(--frames, 6) * 100%) 100%;
-  animation: allin-preview 1s steps(var(--frames, 6)) infinite;
+  animation: sprite-play calc(var(--frames, 6) * 0.1s) steps(var(--frames, 6)) infinite;
 }
 
-@keyframes allin-preview {
+.sprite-preview.loaded .fallback-animation {
+  display: none;
+}
+
+@keyframes sprite-play {
   0% { background-position: 0 0; }
   100% { background-position: 100% 0; }
 }

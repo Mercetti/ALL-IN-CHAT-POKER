@@ -596,8 +596,10 @@ body {
 /* Item Grid */
 .item-grid-container {
   flex: 1;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: 1.5rem;
+  max-height: 500px;
 }
 
 .item-grid {

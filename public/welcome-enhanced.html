@@ -7,7 +7,6 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="stylesheet" href="style-theme.css">
   <link rel="stylesheet" href="style-welcome-enhanced.css">
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6226206359050540" crossorigin="anonymous"></script>
 </head>
 <body>
   <!-- Animated Background -->
@@ -118,14 +117,26 @@
       <div class="gallery">
         <!-- Card Back -->
         <div class="gallery-item">
-          <img src="/assets/cosmetics/cards/basic/card-back-purple.svg" alt="Purple neon card back" class="gallery-img">
-          <div class="gallery-label">Card Back</div>
+          <img src="/assets/cosmetics/cards/streamer/card-back-streamer.png" alt="Epic streamer card back" class="gallery-img">
+          <div class="gallery-label">Epic Card Back</div>
         </div>
         
         <!-- Chip Stack -->
         <div class="gallery-item">
-          <img src="/assets/cosmetics/chips/chip-100-top.svg" alt="Chip stack top view" class="gallery-img">
-          <div class="gallery-label">Chip Stack</div>
+          <div class="stacked-chips">
+            <div class="chip-main-stack">
+              <img src="/assets/cosmetics/effects/chips/chip-500-top.png" alt="500 chip" class="chip-stack-item">
+              <img src="/assets/cosmetics/effects/chips/chip-100-top.png" alt="100 chip" class="chip-stack-item">
+              <img src="/assets/cosmetics/effects/chips/chip-25-top.png" alt="25 chip" class="chip-stack-item">
+              <img src="/assets/cosmetics/effects/chips/chip-5-top.png" alt="5 chip" class="chip-stack-item">
+              <img src="/assets/cosmetics/effects/chips/chip-1-top.png" alt="1 chip" class="chip-stack-item">
+            </div>
+            <div class="chip-side-chips">
+              <img src="/assets/cosmetics/effects/chips/chip-100-top.png" alt="100 chip side" class="chip-stack-item">
+              <img src="/assets/cosmetics/effects/chips/chip-25-top.png" alt="25 chip side" class="chip-stack-item">
+            </div>
+          </div>
+          <div class="gallery-label">Multi-Denomination Chip Stack</div>
         </div>
         
         <!-- Deal Animation -->
@@ -292,11 +303,8 @@
     })();
 
     // Enhanced overlay link handling
-    (function () {
-      const overlayLink = document.querySelector('a.nav-link[href="/obs-overlay.html"]');
-      if (!overlayLink) return;
+    document.addEventListener('DOMContentLoaded', () => {
       const decodeLogin = (tok) => {
-        if (!tok || typeof tok !== 'string') return '';
         try {
           const payload = tok.split('.')[1];
           const pad = payload.length % 4 === 2 ? '==' : payload.length % 4 === 3 ? '=' : '';
@@ -306,70 +314,151 @@
           return '';
         }
       };
-      const tok = (localStorage.getItem && localStorage.getItem('user_jwt')) || '';
-      const login = decodeLogin(tok);
-      if (login) {
-        overlayLink.href = `/obs-overlay.html?channel=${encodeURIComponent(login)}`;
-      }
-    })();
-
-    // Notification system
-    function showNotification(message, type = 'info') {
-      const notification = document.createElement('div');
-      notification.className = `notification ${type}`;
-      notification.textContent = message;
-      document.body.appendChild(notification);
       
-      setTimeout(() => {
-        notification.classList.add('show');
-      }, 100);
-      
-      setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => {
-          document.body.removeChild(notification);
-        }, 300);
-      }, 3000);
-    }
-
-    // Initialize animations
-    initializeAnimations();
-    
-    function initializeAnimations() {
-      // Animate hero content on load
-      const heroContent = document.querySelector('.hero-content');
-      if (heroContent) {
-        heroContent.style.opacity = '0';
-        heroContent.style.transform = 'translateY(30px)';
+      // Initialize authentication state
+      (async () => {
+        // Validate token server-side before proceeding
+        const validateToken = async (token) => {
+          try {
+            const response = await fetch('/api/auth/validate', {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              }
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              return data.valid ? data.login : null;
+            }
+            return null;
+          } catch (err) {
+            console.error('Token validation failed:', err);
+            return null;
+          }
+        };
         
-        setTimeout(() => {
-          heroContent.style.transition = 'all 1s ease';
-          heroContent.style.opacity = '1';
-          heroContent.style.transform = 'translateY(0)';
-        }, 100);
-      }
+        const tok = (localStorage.getItem && localStorage.getItem('user_jwt')) || '';
+        const login = await validateToken(tok);
       
-      // Animate cards on scroll
-      const cards = document.querySelectorAll('.card');
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.style.opacity = '0';
-            entry.target.style.transform = 'translateY(20px)';
-            
-            setTimeout(() => {
-              entry.target.style.transition = 'all 0.6s ease';
-              entry.target.style.opacity = '1';
-              entry.target.style.transform = 'translateY(0)';
-            }, 100);
-            
-            observer.unobserve(entry.target);
+      // Handle return URL from redirect
+      const urlParams = new URLSearchParams(window.location.search);
+      const returnUrl = urlParams.get('return');
+      
+      // Update navigation based on auth status
+      const navLinks = document.querySelectorAll('.nav-link');
+      const overlayLink = document.querySelector('a[href*="obs-overlay"]');
+      
+      if (login) {
+        // User is logged in - show authenticated state
+        if (overlayLink) {
+          overlayLink.href = `/obs-overlay.html?channel=${encodeURIComponent(login)}`;
+        }
+        
+        // Update navigation links to include auth
+        navLinks.forEach(link => {
+          const href = link.getAttribute('href');
+          if (href && !href.includes('obs-overlay') && !href.includes('paypal.com')) {
+            link.setAttribute('href', href);
+            link.removeAttribute('target');
+            link.removeAttribute('rel');
           }
         });
-      });
+        
+        // Show logged-in notification if returning from redirect (but avoid infinite loops)
+        if (returnUrl && !window.location.pathname.includes('welcome-enhanced.html')) {
+          showNotification(`Welcome back, ${login}! Redirecting...`, 'success');
+          setTimeout(() => {
+            window.location.href = decodeURIComponent(returnUrl);
+          }, 1500);
+        }
+      } else {
+        // User is not logged in - show login prompt for protected pages
+        navLinks.forEach(link => {
+          const href = link.getAttribute('href');
+          if (href && (href.includes('store') || href.includes('admin') || href.includes('overlay-editor') || href.includes('profile'))) {
+            link.addEventListener('click', (e) => {
+              e.preventDefault();
+              showNotification('Please log in to access this feature', 'warning');
+              // Redirect to login page with return URL
+              const returnUrl = encodeURIComponent(href);
+              window.location.href = `/login.html?return=${returnUrl}`;
+            });
+          }
+        });
+        
+        if (returnUrl && !window.location.pathname.includes('welcome-enhanced.html')) {
+          showNotification('Please log in to continue', 'warning');
+          setTimeout(() => {
+            window.location.href = `/login.html?return=${returnUrl}`;
+          }, 1500);
+        }
+      }
       
-      cards.forEach(card => observer.observe(card));
-    }
-  </script>
+      // Clear invalid token
+      if (tok && !login) {
+        localStorage.removeItem('user_jwt');
+      }
+      
+      // Notification system
+      function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.classList.add('show');
+        }, 100);
+        
+        setTimeout(() => {
+          notification.classList.remove('show');
+          setTimeout(() => {
+            document.body.removeChild(notification);
+          }, 300);
+        }, 3000);
+      }
+      
+      // Initialize animations
+      initializeAnimations();
+      
+      function initializeAnimations() {
+        // Animate hero content on load
+        const heroContent = document.querySelector('.hero-content');
+        if (heroContent) {
+          heroContent.style.opacity = '0';
+          heroContent.style.transform = 'translateY(30px)';
+          
+          setTimeout(() => {
+            heroContent.style.transition = 'all 1s ease';
+            heroContent.style.opacity = '1';
+            heroContent.style.transform = 'translateY(0)';
+          }, 100);
+        }
+        
+        // Animate cards on scroll
+        const cards = document.querySelectorAll('.card');
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.style.opacity = '0';
+              entry.target.style.transform = 'translateY(20px)';
+              
+              setTimeout(() => {
+                entry.target.style.transition = 'all 0.6s ease';
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+              }, 100);
+              
+              observer.unobserve(entry.target);
+            }
+          });
+        });
+        
+        cards.forEach(card => observer.observe(card));
+      })();
+    });
+    </script>
 </body>
 </html>

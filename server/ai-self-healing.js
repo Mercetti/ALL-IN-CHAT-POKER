@@ -221,8 +221,25 @@ class AISelfHealingMiddleware {
    * Check system health
    */
   async checkSystemHealth() {
-    const performanceReport = aiPerformanceOptimizer.getPerformanceReport();
-    const errorHealth = aiErrorManager.getHealthReport();
+    let performanceReport = { metrics: { health: 1.0, issues: [] } };
+    
+    try {
+      if (aiPerformanceOptimizer && typeof aiPerformanceOptimizer.getPerformanceReport === 'function') {
+        performanceReport = aiPerformanceOptimizer.getPerformanceReport();
+      }
+    } catch (error) {
+      logger.warn('Performance optimizer not available', { error: error.message });
+    }
+    
+    let errorHealth = { metrics: { activeErrors: 0 } };
+    
+    try {
+      if (aiErrorManager && typeof aiErrorManager.getHealthReport === 'function') {
+        errorHealth = aiErrorManager.getHealthReport();
+      }
+    } catch (error) {
+      logger.warn('Error manager not available', { error: error.message });
+    }
     
     // Check if system is unhealthy
     if (performanceReport.metrics.health < 0.7) {
