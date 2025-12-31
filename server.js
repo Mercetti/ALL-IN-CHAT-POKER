@@ -242,7 +242,7 @@ const { timerManager, performance: perfUtils, dbOptimizer, memoryMonitor, perfor
 //   }
 // });
 
-// Initialize AI monitoring systems (gradual re-enablement)
+// Initialize AI monitoring systems (gradually re-enabling on fresh machine)
 const AIErrorManager = require('./server/ai-error-manager');
 const AIPerformanceOptimizer = require('./server/ai-performance-optimizer');
 const AIUXMonitor = require('./server/ai-ux-monitor');
@@ -266,31 +266,34 @@ const aiUXMonitor = new AIUXMonitor({
   minUserSessions: 10
 });
 
-// Initialize AI self-healing middleware (re-enabling with fixed dependencies)
+// Initialize AI self-healing middleware (gradually re-enabling on fresh machine)
 const aiSelfHealing = require('./server/ai-self-healing');
 
-// Initialize AI Audio Generator (re-enabling with increased resources)
-const AIAudioGenerator = require('./server/ai-audio-generator');
+// Audio AI systems moved to dedicated machine: audio process group
+const AUDIO_SERVICE_URL = process.env.AUDIO_SERVICE_URL || 'http://1781950aee6038.vm.internal:8080';
 
-const aiAudioGenerator = new AIAudioGenerator({
-  outputDir: path.join(__dirname, 'public/assets/audio'),
-  enableGeneration: true,
-  maxConcurrentGenerations: 2,
-  defaultFormat: 'wav',
-  quality: 'high'
-});
+// Initialize AI Audio Generator (temporarily disabled for startup troubleshooting)
+// const AIAudioGenerator = require('./server/ai-audio-generator');
 
-// Initialize Poker Audio System (final AI system - re-enabling with robust resources)
-const PokerAudioSystem = require('./server/poker-audio-system');
+// const aiAudioGenerator = new AIAudioGenerator({
+//   outputDir: path.join(__dirname, 'public/assets/audio'),
+//   enableGeneration: true,
+//   maxConcurrentGenerations: 2,
+//   defaultFormat: 'wav',
+//   quality: 'high'
+// });
 
-const pokerAudio = new PokerAudioSystem({
-  outputDir: path.join(__dirname, 'public/assets/audio'),
-  enableGeneration: true,
-  dmcaSafe: true,
-  defaultMusicOff: true,
-  maxDuration: 90,
-  sampleRate: 44100
-});
+// Initialize Poker Audio System (temporarily disabled for startup troubleshooting)
+// const PokerAudioSystem = require('./server/poker-audio-system');
+
+// const pokerAudio = new PokerAudioSystem({
+//   outputDir: path.join(__dirname, 'public/assets/audio'),
+//   enableGeneration: true,
+//   dmcaSafe: true,
+//   defaultMusicOff: true,
+//   maxDuration: 90,
+//   sampleRate: 44100
+// });
 
 // Initialize Poker Audio Production System (temporarily disabled)
 // const PokerAudioProductionSystem = require('./server/poker-audio-production');
@@ -2989,7 +2992,7 @@ app.disable('x-powered-by');
 
 app.use(securityHeadersMiddleware);
 
-// AI Self-Healing Middleware (re-enabling with fixed dependencies)
+// AI Self-Healing Middleware (gradually re-enabling on fresh machine)
 app.use(aiSelfHealing.middleware());
 
 app.use('/uploads', express.static(uploadsDir));
@@ -12380,6 +12383,13 @@ app.get('/admin/ai/errors/status', auth.requireAdmin, (req, res) => {
  */
 app.get('/admin/ai/performance/report', auth.requireAdmin, (req, res) => {
   try {
+    if (!aiPerformanceOptimizer.getPerformanceReport) {
+      return res.json({ 
+        error: 'AI Performance Optimizer not fully initialized',
+        status: 'initializing'
+      });
+    }
+    
     const performanceReport = aiPerformanceOptimizer.getPerformanceReport();
     res.json(performanceReport);
   } catch (error) {
@@ -12474,12 +12484,13 @@ app.get('/admin/ai/healing/status', auth.requireAdmin, (req, res) => {
  * Get AI Error Manager Status (admin only)
  * Get Audio Library (admin only)
  */
-app.get('/admin/ai/audio/library', auth.requireAdmin, (req, res) => {
+app.get('/admin/ai/audio/library', auth.requireAdmin, async (req, res) => {
   try {
-    const library = aiAudioGenerator.getAudioLibrary();
+    const response = await fetch(`${AUDIO_SERVICE_URL}/admin/ai/audio/library`);
+    const library = await response.json();
     res.json(library);
   } catch (error) {
-    logger.error('Failed to get audio library', { error: error.message });
+    logger.error('Failed to get audio library from audio service', { error: error.message });
     res.status(500).json({ error: error.message });
   }
 });
@@ -12489,23 +12500,22 @@ app.get('/admin/ai/audio/library', auth.requireAdmin, (req, res) => {
  */
 app.post('/admin/ai/audio/generate/music', auth.requireAdmin, async (req, res) => {
   try {
-    const { themeName, options } = req.body;
-    
-    if (!themeName) {
-      return res.status(400).json({ error: 'themeName is required' });
-    }
-    
-    const result = await aiAudioGenerator.generateThemeMusic(themeName, options);
+    const response = await fetch(`${AUDIO_SERVICE_URL}/admin/ai/audio/generate/music`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+    const result = await response.json();
     
     if (result.success) {
-      logger.info('Theme music generated', { themeName, filepath: result.filepath });
+      logger.info('Theme music generated via audio service', { themeName: req.body.themeName });
     } else {
-      logger.warn('Theme music generation failed', { themeName, error: result.error });
+      logger.warn('Theme music generation failed via audio service', { themeName: req.body.themeName, error: result.error });
     }
     
     res.json(result);
   } catch (error) {
-    logger.error('Theme music generation failed', { error: error.message });
+    logger.error('Theme music generation failed via audio service', { error: error.message });
     res.status(500).json({ error: error.message });
   }
 });
@@ -12515,23 +12525,22 @@ app.post('/admin/ai/audio/generate/music', auth.requireAdmin, async (req, res) =
  */
 app.post('/admin/ai/audio/generate/effect', auth.requireAdmin, async (req, res) => {
   try {
-    const { effectName, options } = req.body;
-    
-    if (!effectName) {
-      return res.status(400).json({ error: 'effectName is required' });
-    }
-    
-    const result = await aiAudioGenerator.generateSoundEffect(effectName, options);
+    const response = await fetch(`${AUDIO_SERVICE_URL}/admin/ai/audio/generate/effect`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+    const result = await response.json();
     
     if (result.success) {
-      logger.info('Sound effect generated', { effectName, filepath: result.filepath });
+      logger.info('Sound effect generated via audio service', { effectName: req.body.effectName });
     } else {
-      logger.warn('Sound effect generation failed', { effectName, error: result.error });
+      logger.warn('Sound effect generation failed via audio service', { effectName: req.body.effectName, error: result.error });
     }
     
     res.json(result);
   } catch (error) {
-    logger.error('Sound effect generation failed', { error: error.message });
+    logger.error('Sound effect generation failed via audio service', { error: error.message });
     res.status(500).json({ error: error.message });
   }
 });
@@ -12541,25 +12550,26 @@ app.post('/admin/ai/audio/generate/effect', auth.requireAdmin, async (req, res) 
  */
 app.post('/admin/ai/audio/generate/package', auth.requireAdmin, async (req, res) => {
   try {
-    const options = req.body || {};
-    
-    logger.info('Starting complete audio package generation', options);
-    
-    const result = await aiAudioGenerator.generateAudioPackage(options);
+    const response = await fetch(`${AUDIO_SERVICE_URL}/admin/ai/audio/generate/package`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+    const result = await response.json();
     
     if (result.success) {
-      logger.info('Audio package generated successfully', {
+      logger.info('Audio package generated via audio service', {
         musicCount: Object.keys(result.music).length,
         effectsCount: Object.keys(result.effects).length,
         ambientCount: Object.keys(result.ambient).length
       });
     } else {
-      logger.error('Audio package generation failed', { errors: result.errors });
+      logger.error('Audio package generation failed via audio service', { errors: result.errors });
     }
     
     res.json(result);
   } catch (error) {
-    logger.error('Audio package generation failed', { error: error.message });
+    logger.error('Audio package generation failed via audio service', { error: error.message });
     res.status(500).json({ error: error.message });
   }
 });
@@ -12567,12 +12577,13 @@ app.post('/admin/ai/audio/generate/package', auth.requireAdmin, async (req, res)
 /**
  * Get Audio Generation History (admin only)
  */
-app.get('/admin/ai/audio/history', auth.requireAdmin, (req, res) => {
+app.get('/admin/ai/audio/history', auth.requireAdmin, async (req, res) => {
   try {
-    const history = aiAudioGenerator.getGenerationHistory();
+    const response = await fetch(`${AUDIO_SERVICE_URL}/admin/ai/audio/history`);
+    const history = await response.json();
     res.json(history);
   } catch (error) {
-    logger.error('Failed to get audio generation history', { error: error.message });
+    logger.error('Failed to get audio generation history from audio service', { error: error.message });
     res.status(500).json({ error: error.message });
   }
 });
@@ -12580,20 +12591,17 @@ app.get('/admin/ai/audio/history', auth.requireAdmin, (req, res) => {
 /**
  * Get Poker Audio Library (public)
  */
-app.get('/api/audio/library', auth.requireUser, (req, res) => {
+app.get('/api/audio/library', auth.requireUser, async (req, res) => {
   try {
     const userId = req.user?.id || 'anonymous';
     const userTier = req.query.tier || 'affiliate';
-    const library = pokerAudio.getAvailableAudio(userId);
     
-    res.json({
-      library,
-      userTier,
-      dmcaPolicy: pokerAudio.getDMCAPolicy(),
-      phases: Object.keys(library)
-    });
+    const response = await fetch(`${AUDIO_SERVICE_URL}/api/audio/library?userId=${userId}&tier=${userTier}`);
+    const result = await response.json();
+    
+    res.json(result);
   } catch (error) {
-    logger.error('Failed to get audio library', { error: error.message });
+    logger.error('Failed to get audio library from audio service', { error: error.message });
     res.status(500).json({ error: error.message });
   }
 });
@@ -12601,14 +12609,16 @@ app.get('/api/audio/library', auth.requireUser, (req, res) => {
 /**
  * Get User Audio Settings
  */
-app.get('/api/audio/settings', auth.requireUser, (req, res) => {
+app.get('/api/audio/settings', auth.requireUser, async (req, res) => {
   try {
     const userId = req.user.id;
-    const settings = pokerAudio.getUserSettings(userId);
+    
+    const response = await fetch(`${AUDIO_SERVICE_URL}/api/audio/settings?userId=${userId}`);
+    const settings = await response.json();
     
     res.json(settings);
   } catch (error) {
-    logger.error('Failed to get user audio settings', { error: error.message });
+    logger.error('Failed to get user audio settings from audio service', { error: error.message });
     res.status(500).json({ error: error.message });
   }
 });
@@ -12616,19 +12626,21 @@ app.get('/api/audio/settings', auth.requireUser, (req, res) => {
 /**
  * Update User Audio Settings
  */
-app.post('/api/audio/settings', auth.requireUser, (req, res) => {
+app.post('/api/audio/settings', auth.requireUser, async (req, res) => {
   try {
     const userId = req.user.id;
-    const settings = req.body;
+    const settings = { ...req.body, userId };
     
-    const updatedSettings = pokerAudio.updateUserSettings(userId, settings);
-    
-    res.json({
-      success: true,
-      settings: updatedSettings
+    const response = await fetch(`${AUDIO_SERVICE_URL}/api/audio/settings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(settings)
     });
+    const result = await response.json();
+    
+    res.json(result);
   } catch (error) {
-    logger.error('Failed to update user audio settings', { error: error.message });
+    logger.error('Failed to update user audio settings via audio service', { error: error.message });
     res.status(500).json({ error: error.message });
   }
 });
@@ -12638,24 +12650,22 @@ app.post('/api/audio/settings', auth.requireUser, (req, res) => {
  */
 app.post('/admin/audio/generate/phase', auth.requireAdmin, async (req, res) => {
   try {
-    const { phase, tier } = req.body;
+    const response = await fetch(`${AUDIO_SERVICE_URL}/admin/audio/generate/phase`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+    const result = await response.json();
     
-    if (!phase) {
-      return res.status(400).json({ error: 'phase is required' });
-    }
-    
-    const userTier = tier || 'affiliate';
-    const result = await pokerAudio.generatePhaseAudio(phase, userTier);
-    
-    logger.info('Phase audio generation completed', { 
-      phase, 
-      tier: userTier, 
+    logger.info('Phase audio generation completed via audio service', { 
+      phase: req.body.phase, 
+      tier: req.body.tier, 
       totalGenerated: result.totalGenerated 
     });
     
     res.json(result);
   } catch (error) {
-    logger.error('Phase audio generation failed', { error: error.message });
+    logger.error('Phase audio generation failed via audio service', { error: error.message });
     res.status(500).json({ error: error.message });
   }
 });
@@ -12665,22 +12675,22 @@ app.post('/admin/audio/generate/phase', auth.requireAdmin, async (req, res) => {
  */
 app.post('/admin/audio/generate/tier-package', auth.requireAdmin, async (req, res) => {
   try {
-    const { tier } = req.body;
-    const userTier = tier || 'affiliate';
+    const response = await fetch(`${AUDIO_SERVICE_URL}/admin/audio/generate/tier-package`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+    const result = await response.json();
     
-    logger.info('Starting tier package generation', { tier: userTier });
-    
-    const result = await pokerAudio.generateTierPackage(userTier);
-    
-    logger.info('Tier package generation completed', {
-      tier: userTier,
+    logger.info('Tier package generation completed via audio service', {
+      tier: req.body.tier,
       totalGenerated: result.totalGenerated,
       phases: Object.keys(result.phases)
     });
     
     res.json(result);
   } catch (error) {
-    logger.error('Tier package generation failed', { error: error.message });
+    logger.error('Tier package generation failed via audio service', { error: error.message });
     res.status(500).json({ error: error.message });
   }
 });
@@ -13041,7 +13051,12 @@ app.get('/admin/ai/health', auth.requireAdmin, async (req, res) => {
   try {
     // const unifiedHealth = await unifiedAI.healthCheck();
     const errorHealth = aiErrorManager.getHealthReport();
-    const performanceHealth = aiPerformanceOptimizer.getPerformanceReport();
+    
+    let performanceHealth = { status: 'initializing' };
+    if (aiPerformanceOptimizer.getPerformanceReport) {
+      performanceHealth = aiPerformanceOptimizer.getPerformanceReport();
+    }
+    
     const uxHealth = aiUXMonitor.getUXReport();
     
     res.json({
