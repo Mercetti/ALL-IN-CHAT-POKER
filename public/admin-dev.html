@@ -353,6 +353,58 @@
           <button id="btn-clear-health" class="btn btn-secondary btn-sm">Clear health counters</button>
         </div>
       </section>
+
+      <section class="control-panel compact-card" id="user-role-panel">
+        <div class="section-header">
+          <h2>User Role Management</h2>
+          <p class="muted small">Grant dev/owner roles to users for collaboration.</p>
+        </div>
+        <div class="form-grid compact-grid">
+          <input id="role-user-login" class="form-input" placeholder="User login (lowercase)">
+          <select id="role-user-role" class="form-input">
+            <option value="">Select role...</option>
+            <option value="player">Player</option>
+            <option value="streamer">Streamer</option>
+            <option value="admin">Admin</option>
+            <option value="dev">Dev</option>
+            <option value="owner">Owner</option>
+            <option value="premier">Premier</option>
+            <option value="ai">AI</option>
+          </select>
+          <button id="btn-update-user-role" class="btn btn-primary btn-sm">Update Role</button>
+          <button id="btn-refresh-user-roles" class="btn btn-secondary btn-sm">Refresh Users</button>
+        </div>
+        <div id="role-update-status" class="muted small" style="margin-top: 8px;"></div>
+        <div class="table-responsive" style="margin-top: 16px;">
+          <table class="table slim-table" id="user-roles-table">
+            <thead>
+              <tr>
+                <th>Login</th>
+                <th>Display Name</th>
+                <th>Current Role</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="4" class="muted">Loading users...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="control-panel compact-card" id="user-password-panel">
+        <div class="section-header">
+          <h2>User Password Management</h2>
+          <p class="muted small">Set passwords for username/password login access.</p>
+        </div>
+        <div class="form-grid compact-grid">
+          <input id="password-user-login" class="form-input" placeholder="User login (lowercase)">
+          <input id="password-user-password" class="form-input" type="password" placeholder="New password (min 8 chars)">
+          <button id="btn-set-user-password" class="btn btn-primary btn-sm">Set Password</button>
+          <div></div>
+        </div>
+        <div id="password-update-status" class="muted small" style="margin-top: 8px;"></div>
+      </section>
     </main>
   </div>
 

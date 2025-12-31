@@ -7098,7 +7098,7 @@ app.post('/admin/token', rateLimit('admin-token', 60 * 1000, 5), auth.requireAdm
 
  */
 
-app.get('/admin/security-snapshot', auth.requireAdmin, (_req, res) => {
+app.get('/admin/security-snapshot', auth.requireAdminOrRole(['admin', 'dev', 'owner']), (_req, res) => {
 
   const botChannels = (tmiClient && typeof tmiClient.getChannels === 'function') ? tmiClient.getChannels() : [];
 
@@ -7142,7 +7142,7 @@ app.get('/admin/security-snapshot', auth.requireAdmin, (_req, res) => {
 
 
 
-app.post('/admin/security-diagnose', auth.requireAdmin, async (_req, res) => {
+app.post('/admin/security-diagnose', auth.requireAdminOrRole(['admin', 'dev', 'owner']), async (_req, res) => {
 
   if (!config.OPENAI_API_KEY) return res.status(400).json({ error: 'ai_not_configured' });
 
@@ -7222,7 +7222,7 @@ List top security risks and actionable fixes in <=5 bullets (rate limits, auth a
 
  */
 
-app.get('/admin/overlay-snapshot', auth.requireAdmin, (req, res) => {
+app.get('/admin/overlay-snapshot', auth.requireAdminOrRole(['admin', 'dev', 'owner']), (req, res) => {
 
   try {
 
@@ -7250,7 +7250,7 @@ app.get('/admin/overlay-snapshot', auth.requireAdmin, (req, res) => {
 
  */
 
-app.post('/admin/overlay-diagnose', auth.requireAdmin, async (req, res) => {
+app.post('/admin/overlay-diagnose', auth.requireAdminOrRole(['admin', 'dev', 'owner']), async (req, res) => {
 
   if (!config.OPENAI_API_KEY) return res.status(400).json({ error: 'ai_not_configured' });
 
@@ -7280,7 +7280,7 @@ app.post('/admin/overlay-diagnose', auth.requireAdmin, async (req, res) => {
 
  */
 
-app.post('/admin/ai-tests', auth.requireAdmin, async (_req, res) => {
+app.post('/admin/ai-tests', auth.requireAdminOrRole(['admin', 'dev', 'owner']), async (_req, res) => {
 
   try {
 
@@ -7306,7 +7306,7 @@ app.post('/admin/ai-tests', auth.requireAdmin, async (_req, res) => {
 
  */
 
-app.get('/admin/ai-tests/report', auth.requireAdmin, (_req, res) => {
+app.get('/admin/ai-tests/report', auth.requireAdminOrRole(['admin', 'dev', 'owner']), (_req, res) => {
 
   res.json({ report: lastAiTestReport });
 
@@ -7953,7 +7953,7 @@ app.post('/admin/premier/revert', auth.requireAdmin, (req, res) => {
 
  */
 
-app.get('/admin/ops-summary', auth.requireAdmin, (_req, res) => {
+app.get('/admin/ops-summary', auth.requireAdminOrRole(['admin', 'dev', 'owner']), (_req, res) => {
 
   const botChannels = (tmiClient && typeof tmiClient.getChannels === 'function') ? tmiClient.getChannels() : [];
 
@@ -8001,7 +8001,7 @@ app.get('/admin/ops-summary', auth.requireAdmin, (_req, res) => {
 
 
 
-app.post('/admin/ops/run-synthetic', auth.requireAdmin, async (_req, res) => {
+app.post('/admin/ops/run-synthetic', auth.requireAdminOrRole(['admin', 'dev', 'owner']), async (_req, res) => {
 
   try {
 
@@ -8019,7 +8019,7 @@ app.post('/admin/ops/run-synthetic', auth.requireAdmin, async (_req, res) => {
 
 
 
-app.post('/admin/ops/asset-check', auth.requireAdmin, async (_req, res) => {
+app.post('/admin/ops/asset-check', auth.requireAdminOrRole(['admin', 'dev', 'owner']), async (req, res) => {
 
   try {
 
@@ -8987,7 +8987,9 @@ app.post('/admin/start-round', auth.requireAdmin, (req, res) => {
 
     const login = twitchProfile.login;
 
-    if (isBanned(login, req.ip)) return res.status(403).json({ error: 'banned' });
+    if (isBanned(login, req.ip)) {
+      return res.status(403).json({ error: 'banned' });
+    }
 
   const existingProfile = db.getProfile(login);
 
@@ -9087,11 +9089,87 @@ app.post('/admin/start-round', auth.requireAdmin, (req, res) => {
 
 
 
+
 /**
-
- * Set user role (streamer/player) on first login
-
+ * Admin: update user role (admin only)
  */
+app.post('/admin/user/role', auth.requireAdminOrRole(['admin', 'dev', 'owner']), (req, res) => {
+  try {
+    const { login, role } = req.body || {};
+    
+    if (!login || !role) {
+      return res.status(400).json({ error: 'login and role required' });
+    }
+    
+    const validRoles = ['player', 'streamer', 'admin', 'dev', 'owner', 'premier', 'ai'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ error: 'invalid role' });
+    }
+    
+    const profile = db.getProfile(login.toLowerCase());
+    if (!profile) {
+      return res.status(404).json({ error: 'user not found' });
+    }
+    
+    const updated = db.upsertProfile({
+      ...profile,
+      role: role,
+    });
+    
+    logger.info('User role updated by admin', { 
+      login, 
+      oldRole: profile.role, 
+      newRole: role, 
+      admin: auth.extractUserLogin(req) 
+    });
+    
+    return res.json({ login, role: updated.role });
+    
+  } catch (err) {
+    logger.error('Failed to update user role', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+/**
+ * Admin: set password for user (for initial setup)
+ */
+app.post('/admin/user/password', auth.requireAdminOrRole(['admin', 'dev', 'owner']), (req, res) => {
+  try {
+    const { login, password } = req.body || {};
+    
+    if (!login || !password) {
+      return res.status(400).json({ error: 'login and password required' });
+    }
+    
+    if (password.length < 8) {
+      return res.status(400).json({ error: 'password must be at least 8 characters' });
+    }
+    
+    const profile = db.getProfile(login.toLowerCase());
+    if (!profile) {
+      return res.status(404).json({ error: 'user not found' });
+    }
+    
+    const passwordHash = auth.hashPassword(password);
+    
+    const updated = db.upsertProfile({
+      ...profile,
+      password_hash: passwordHash,
+    });
+    
+    logger.info('User password set by admin', { 
+      login, 
+      admin: auth.extractUserLogin(req) 
+    });
+    
+    return res.json({ login, success: true });
+    
+  } catch (err) {
+    logger.error('Failed to set user password', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
 
 app.post('/user/role', (req, res) => {
 
@@ -10482,6 +10560,28 @@ app.get('/api/auth/validate', (req, res) => {
 });
 
 /**
+ * Get admin stats dashboard data
+ */
+app.get('/api/admin/stats', auth.requireAdminOrRole(['admin', 'dev', 'owner']), (req, res) => {
+  try {
+    const stats = {
+      users: db.getAllProfiles(1000).length,
+      onlineUsers: Object.keys(activeChannels || {}).length,
+      totalHands: Object.values(db.getAllStats(1000)).reduce((sum, stat) => sum + (stat.handsPlayed || 0), 0),
+      totalBalance: Object.values(db.getAllProfiles(1000)).reduce((sum, profile) => sum + (db.getBalance(profile.login) || 0), 0),
+      activeGames: Object.keys(gameStates || {}).length,
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+    };
+    
+    return res.json(stats);
+  } catch (err) {
+    logger.error('Failed to fetch admin stats', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+/**
  * Get user balance API endpoint
  */
 app.get('/api/user/balance', auth.requireUser, (req, res) => {
@@ -11007,7 +11107,7 @@ app.get('/bot/state', (req, res) => {
 
  */
 
-app.get('/admin/profiles', auth.requireAdmin, (req, res) => {
+app.get('/admin/profiles', auth.requireAdminOrRole(['admin', 'dev', 'owner']), (req, res) => {
 
   try {
 
@@ -11365,7 +11465,7 @@ app.get('/partner/progress', (req, res) => {
 
  */
 
-app.get('/admin/partner/progress', auth.requireAdmin, (_req, res) => {
+app.get('/admin/partner/progress', auth.requireAdminOrRole(['admin', 'dev', 'owner']), (_req, res) => {
 
   try {
 
@@ -11703,7 +11803,7 @@ app.post('/admin/partners/tax-forms', auth.requireAdmin, async (req, res) => {
 });
 
 // Admin: list partner tax forms (no tax_id returned)
-app.get('/admin/partners/tax-forms', auth.requireAdmin, (_req, res) => {
+app.get('/admin/partners/tax-forms', auth.requireAdminOrRole(['admin', 'dev', 'owner']), (_req, res) => {
   try {
     const forms = db.listPartnerTaxForms();
     return res.json({ forms });
@@ -11714,7 +11814,7 @@ app.get('/admin/partners/tax-forms', auth.requireAdmin, (_req, res) => {
 });
 
 // Admin: download partner tax form file
-app.get('/admin/partners/tax-forms/:id/download', auth.requireAdmin, (req, res) => {
+app.get('/admin/partners/tax-forms/:id/download', auth.requireAdminOrRole(['admin', 'dev', 'owner']), (req, res) => {
   try {
     const id = Number(req.params.id);
     const row = db.getPartnerTaxForm(id);
@@ -15055,7 +15155,7 @@ const VALID_TEXTURES = [
 
       }
 
-      const token = auth.signUserJWT(login);
+      const token = auth.signUserJWT(login, config.USER_JWT_TTL_SECONDS);
 
       return res.json({ token, expiresIn: config.USER_JWT_TTL_SECONDS });
 

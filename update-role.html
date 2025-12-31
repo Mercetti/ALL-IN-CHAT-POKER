@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Mercetti Role</title>
+</head>
+<body>
+    <h1>Update Mercetti Role to Owner</h1>
+    <button onclick="updateRole()">Update Role</button>
+    <div id="status"></div>
+    
+    <script src="https://all-in-chat-poker.fly.dev/client.js"></script>
+    <script>
+        async function updateRole() {
+            const status = document.getElementById('status');
+            status.textContent = 'Updating...';
+            
+            try {
+                // First login as mercetti to get a token
+                const loginResult = await fetch('https://all-in-chat-poker.fly.dev/user/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        twitchToken: 'test_token_for_mercetti'
+                    })
+                });
+                
+                // This will fail but we need to try a different approach
+                status.textContent = 'Please go to the dev panel to update roles manually';
+                
+            } catch (error) {
+                status.textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -870,4 +870,129 @@ document.addEventListener('DOMContentLoaded', async () => {
       Toast.error('AI security review failed');
     }
   });
+
+  // User Role Management
+  const roleUserLogin = el('role-user-login');
+  const roleUserRole = el('role-user-role');
+  const btnUpdateUserRole = el('btn-update-user-role');
+  const btnRefreshUserRoles = el('btn-refresh-user-roles');
+  const roleUpdateStatus = el('role-update-status');
+  const userRolesTable = el('user-roles-table');
+
+  const loadUserRoles = async () => {
+    try {
+      const profiles = await apiCall('/admin/profiles');
+      if (!userRolesTable) return;
+      
+      const tbody = userRolesTable.querySelector('tbody');
+      if (!tbody) return;
+
+      tbody.innerHTML = profiles
+        .sort((a, b) => a.login.localeCompare(b.login))
+        .map(profile => `
+          <tr>
+            <td>${profile.login}</td>
+            <td>${profile.display_name || profile.login}</td>
+            <td><span class="badge ${profile.role}">${profile.role || 'player'}</span></td>
+            <td>
+              <button class="btn btn-xs btn-secondary" onclick="setUserRoleForm('${profile.login}', '${profile.role || 'player'}')">Edit</button>
+            </td>
+          </tr>
+        `).join('');
+    } catch (err) {
+      console.error('Failed to load user roles:', err);
+      if (userRolesTable) {
+        const tbody = userRolesTable.querySelector('tbody');
+        if (tbody) tbody.innerHTML = '<tr><td colspan="4" class="muted">Failed to load users</td></tr>';
+      }
+    }
+  };
+
+  const setUserRoleForm = (login, currentRole) => {
+    if (roleUserLogin) roleUserLogin.value = login;
+    if (roleUserRole) roleUserRole.value = currentRole;
+  };
+
+  const updateUserRole = async () => {
+    const login = roleUserLogin?.value?.trim().toLowerCase();
+    const role = roleUserRole?.value;
+
+    if (!login || !role) {
+      if (roleUpdateStatus) roleUpdateStatus.textContent = 'Please enter both login and role';
+      return;
+    }
+
+    if (roleUpdateStatus) roleUpdateStatus.textContent = 'Updating role...';
+
+    try {
+      const result = await apiCall('/admin/user/role', {
+        method: 'POST',
+        body: JSON.stringify({ login, role })
+      });
+
+      if (roleUpdateStatus) roleUpdateStatus.textContent = `Updated ${login} to ${role} role`;
+      if (roleUserLogin) roleUserLogin.value = '';
+      if (roleUserRole) roleUserRole.value = '';
+      
+      Toast.success(`Updated ${login} to ${role} role`);
+      loadUserRoles();
+    } catch (err) {
+      console.error('Failed to update user role:', err);
+      if (roleUpdateStatus) roleUpdateStatus.textContent = `Failed: ${err.message}`;
+      Toast.error('Failed to update user role');
+    }
+  };
+
+  // Make setUserRoleForm global for onclick handlers
+  if (typeof window !== 'undefined') {
+    window.setUserRoleForm = setUserRoleForm;
+  }
+
+  btnUpdateUserRole?.addEventListener('click', updateUserRole);
+  btnRefreshUserRoles?.addEventListener('click', loadUserRoles);
+
+  // Password Management
+  const passwordUserLogin = el('password-user-login');
+  const passwordUserPassword = el('password-user-password');
+  const btnSetUserPassword = el('btn-set-user-password');
+  const passwordUpdateStatus = el('password-update-status');
+
+  const setUserPassword = async () => {
+    const login = passwordUserLogin?.value?.trim().toLowerCase();
+    const password = passwordUserPassword?.value;
+
+    if (!login || !password) {
+      if (passwordUpdateStatus) passwordUpdateStatus.textContent = 'Please enter both login and password';
+      return;
+    }
+
+    if (password.length < 8) {
+      if (passwordUpdateStatus) passwordUpdateStatus.textContent = 'Password must be at least 8 characters';
+      return;
+    }
+
+    if (passwordUpdateStatus) passwordUpdateStatus.textContent = 'Setting password...';
+
+    try {
+      const result = await apiCall('/admin/user/password', {
+        method: 'POST',
+        body: JSON.stringify({ login, password })
+      });
+
+      if (passwordUpdateStatus) passwordUpdateStatus.textContent = `Password set for ${login}`;
+      if (passwordUserLogin) passwordUserLogin.value = '';
+      if (passwordUserPassword) passwordUserPassword.value = '';
+      
+      Toast.success(`Password set for ${login}`);
+    } catch (err) {
+      console.error('Failed to set user password:', err);
+      if (passwordUpdateStatus) passwordUpdateStatus.textContent = `Failed: ${err.message}`;
+      Toast.error('Failed to set user password');
+    }
+  };
+
+  btnSetUserPassword?.addEventListener('click', setUserPassword);
+
+  // Load user roles on page load
+  loadUserRoles();
 });

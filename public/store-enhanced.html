@@ -414,7 +414,13 @@
 
       async loadUserBalance() {
         try {
-          const response = await fetch('/api/user/balance');
+          const token = localStorage.getItem('user_jwt');
+          const response = await fetch('/api/user/balance', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
           const data = await response.json();
           this.userBalance = data.balance || 0;
           document.getElementById('user-balance').textContent = `$${this.userBalance.toFixed(2)}`;

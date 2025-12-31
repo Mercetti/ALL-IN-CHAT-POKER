@@ -210,9 +210,32 @@ function getUserRole(req) {
   if (!login) return null;
   try {
     const profile = db.getProfile((login || '').toLowerCase());
-    return (profile?.role || '').toLowerCase() || null;
+    const primaryRole = (profile?.role || '').toLowerCase() || null;
+    
+    // Check for additional roles
+    const additionalRoles = Array.isArray(profile?.roles) ? profile.roles : [];
+    const allRoles = [primaryRole, ...additionalRoles].filter(Boolean);
+    
+    // Return the primary role for compatibility, but could return array if needed
+    return primaryRole;
   } catch {
     return null;
+  }
+}
+
+// New function to check if user has any of the allowed roles
+function hasAnyRole(req, allowedRoles) {
+  const login = extractUserLogin(req);
+  if (!login) return false;
+  try {
+    const profile = db.getProfile((login || '').toLowerCase());
+    const primaryRole = (profile?.role || '').toLowerCase() || null;
+    const additionalRoles = Array.isArray(profile?.roles) ? profile.roles : [];
+    const allRoles = [primaryRole, ...additionalRoles].filter(Boolean).map(r => r.toLowerCase());
+    
+    return allowedRoles.some(role => allRoles.includes(role));
+  } catch {
+    return false;
   }
 }
 
@@ -222,12 +245,11 @@ function requireAdminOrRole(roles = []) {
     .filter(Boolean);
   return (req, res, next) => {
     if (isAdminRequest(req)) return next();
-    const role = getUserRole(req);
-    if (role && allowed.includes(role)) {
+    if (hasAnyRole(req, allowed)) {
       req.userLogin = req.userLogin || extractUserLogin(req);
       return next();
     }
-    logger.warn('Unauthorized admin/role access attempt', { ip: req.ip, role });
+    logger.warn('Unauthorized admin/role access attempt', { ip: req.ip, role: getUserRole(req) });
     return res.status(403).json({ error: 'not authorized' });
   };
 }

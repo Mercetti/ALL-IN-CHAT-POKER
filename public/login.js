@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const twitchLoginBtn = document.getElementById('twitch-login-btn');
   const twitchRedirectUri = `${window.location.origin}/login.html`;
   let twitchConfig = null;
-  let desiredRole = (localStorage.getItem('loginRole') || 'player').toLowerCase();
+  let desiredRole = 'player'; // Default to player since we're not using OAuth
   const computePostLoginRedirect = () => {
     const role = (desiredRole || 'player').toLowerCase();
     if (redirectTarget) return redirectTarget;
@@ -47,30 +47,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // background refresh of user JWT every 20 minutes
   setInterval(() => refreshUserTokenIfNeeded(), 20 * 60 * 1000);
 
+  // Remove role selection since we're not using OAuth
   const roleButtons = Array.from(document.querySelectorAll('.role-option'));
   const roleNote = document.getElementById('role-note');
-
-  function setRole(role) {
-    desiredRole = role;
-    localStorage.setItem('loginRole', role);
-    setPostLoginRedirect();
+  if (roleButtons.length > 0) {
     roleButtons.forEach(btn => {
-      const isActive = btn.dataset.role === role;
-      btn.classList.toggle('active', isActive);
-    });
-    if (roleNote) {
-      roleNote.textContent = role === 'streamer'
-        ? 'Streamers get the admin panel; players can still join via chat.'
-        : 'Players go to their profile for cosmetics and purchases.';
-    }
-  }
-
-  if (roleButtons.length) {
-    setRole(desiredRole);
-    roleButtons.forEach(btn => {
-      btn.addEventListener('click', () => setRole(btn.dataset.role || 'player'));
+      btn.style.display = 'none';
     });
   }
+  if (roleNote) {
+    roleNote.style.display = 'none';
+  }
+
   setPostLoginRedirect();
 
   async function loadTwitchConfig() {

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        button { padding: 10px 20px; font-size: 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        #result { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 4px; }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        .info { background: #d1ecf1; border-color: #bee5eb; }
+    </style>
+</head>
+<body>
+    <h1>Login Test</h1>
+    <p>Testing mercetti login credentials</p>
+    
+    <button onclick="testLogin()">Test mercetti Login</button>
+    <button onclick="testTwitchLogin()">Test Twitch OAuth</button>
+    
+    <div id="result"></div>
+    
+    <script>
+        async function testLogin() {
+            const result = document.getElementById('result');
+            result.className = 'info';
+            result.textContent = 'Testing username/password login...';
+            
+            try {
+                const resp = await fetch('https://all-in-chat-poker.fly.dev/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        login: 'mercetti', 
+                        password: 'mercetti123' 
+                    }),
+                    mode: 'cors'
+                });
+                
+                const data = await resp.json();
+                
+                if (resp.ok && data.token) {
+                    result.className = 'success';
+                    result.innerHTML = `
+                        <h3>✅ Login Successful!</h3>
+                        <p><strong>Login:</strong> ${data.profile?.login}</p>
+                        <p><strong>Role:</strong> ${data.profile?.role}</p>
+                        <p><strong>Twitch Linked:</strong> ${data.profile?.twitchLinked}</p>
+                        <p><strong>Token Length:</strong> ${data.token?.length} characters</p>
+                        <p><strong>Force Password Reset:</strong> ${data.forcePasswordReset || 'No'}</p>
+                    `;
+                } else {
+                    result.className = 'error';
+                    result.innerHTML = `
+                        <h3>❌ Login Failed</h3>
+                        <p><strong>Status:</strong> ${resp.status} ${resp.statusText}</p>
+                        <p><strong>Error:</strong> ${data.error || 'Unknown error'}</p>
+                        <p><strong>Response:</strong> ${JSON.stringify(data, null, 2)}</p>
+                    `;
+                }
+            } catch (error) {
+                result.className = 'error';
+                result.innerHTML = `
+                    <h3>❌ Network Error</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p><strong>Stack:</strong> ${error.stack}</p>
+                    <p><strong>Check:</strong> Is the server running? Is CORS enabled?</p>
+                `;
+            }
+        }
+        
+        async function testTwitchLogin() {
+            const result = document.getElementById('result');
+            result.className = 'info';
+            result.innerHTML = `
+                <h3>🔗 Twitch OAuth Test</h3>
+                <p>Redirecting to Twitch OAuth...</p>
+                <p><strong>Note:</strong> This will redirect to the main login page</p>
+            `;
+            
+            // Redirect to the main login page for Twitch OAuth test
+            setTimeout(() => {
+                window.location.href = 'https://all-in-chat-poker.fly.dev/login.html';
+            }, 2000);
+        }
+        
+        // Test server connectivity on page load
+        window.addEventListener('load', async () => {
+            try {
+                const resp = await fetch('https://all-in-chat-poker.fly.dev/', { mode: 'cors' });
+                if (resp.ok) {
+                    console.log('✅ Server is reachable');
+                } else {
+                    console.log('⚠️ Server responded with:', resp.status);
+                }
+            } catch (error) {
+                console.log('❌ Server unreachable:', error.message);
+            }
+        });
+    </script>
+</body>
+</html>

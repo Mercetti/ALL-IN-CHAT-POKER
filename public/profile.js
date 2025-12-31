@@ -15,6 +15,11 @@ const fxRunners = { deal: null, win: null };
 let partnerProgress = null;
 let premierProposalProfile = null;
 
+// Helper function to get user token
+function getUserToken() {
+  return localStorage.getItem('user_jwt');
+}
+
 function loadImage(src) {
   return new Promise((resolve) => {
     const img = new Image();
@@ -354,7 +359,7 @@ function updateStreamLinks() {
   const channel = profileData.username || 'yourchannel';
   const origin = window.location.origin;
   setLinkTarget('overlay-url', `${origin}/obs-overlay.html?channel=${encodeURIComponent(channel)}`);
-  setLinkTarget('admin-url', `${origin}/admin2.html?channel=${encodeURIComponent(channel)}`);
+  setLinkTarget('admin-url', `${origin}/admin-enhanced.html?channel=${encodeURIComponent(channel)}`);
   setLinkTarget('leaderboard-url', `${origin}/leaderboard-overlay.html?channel=${encodeURIComponent(channel)}`);
 }
 
@@ -925,7 +930,7 @@ async function checkDevToolsAccess() {
         if (devToolsBtn) {
           devToolsBtn.style.display = 'inline-block';
           devToolsBtn.addEventListener('click', () => {
-            window.open('/admin-enhanced.html', '_blank');
+            window.location.href = '/admin-enhanced.html'; // Use same tab
           });
         }
       }

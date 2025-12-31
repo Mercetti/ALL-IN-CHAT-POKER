@@ -562,7 +562,7 @@ class EnhancedAdminDashboard {
     const token = localStorage.getItem('user_jwt');
     const login = this.decodeLogin(token);
     const url = login ? `/obs-overlay.html?channel=${encodeURIComponent(login)}` : '/obs-overlay.html';
-    window.open(url, '_blank', 'noopener');
+    window.open(url, '_blank', 'noopener'); // OBS overlay needs new tab
   }
 
   decodeLogin(token) {

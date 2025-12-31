@@ -10,6 +10,22 @@
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6226206359050540" crossorigin="anonymous"></script>
 </head>
 <body class="login-page">
+  <div class="enhanced-background">
+    <div class="floating-cards">
+      <div class="floating-card card-1">♠</div>
+      <div class="floating-card card-2">♥</div>
+      <div class="floating-card card-3">♦</div>
+      <div class="floating-card card-4">♣</div>
+      <div class="floating-card card-5">👑</div>
+    </div>
+    <div class="gradient-orbs">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+    </div>
+    <div class="poker-chips"></div>
+    <div class="store-glow"></div>
+  </div>
   <div class="login-container">
     <div class="login-card">
       <div class="login-brand">
@@ -20,35 +36,21 @@
         </div>
       </div>
       <button id="login-theme-toggle" class="btn btn-secondary btn-sm" style="margin-bottom: 12px;">Theme</button>
-      <p class="subtitle">Sign in with one tap, or use a minimal username/password form.</p>
+      <p class="subtitle">Sign in with your Twitch account for the best experience.</p>
 
-      <div class="compact-row" aria-label="Choose your role">
-        <span class="muted-label">Role</span>
-        <div class="role-toggle">
-          <button type="button" class="role-option" data-role="player">Player</button>
-          <button type="button" class="role-option" data-role="streamer">Streamer</button>
-        </div>
-      </div>
-      <p id="role-note" class="subtitle small-note">Streamers need Twitch linked; players can use any option.</p>
-
+      <!-- Primary Twitch OAuth Login -->
       <div class="oauth-section minimal-block">
-        <h3 style="margin:0 0 8px;">Continue with</h3>
+        <h3 style="margin:0 0 8px;">Sign in with</h3>
         <div class="auth-providers" role="group" aria-label="Sign in options">
-          <button class="provider-btn" data-provider="google" aria-label="Sign in with Google">
-            <span class="provider-label">Google</span>
-          </button>
-          <button class="provider-btn provider-required" data-provider="twitch" aria-label="Sign in with Twitch (required for gameplay)">
-            <span class="provider-label">Twitch</span>
-            <span class="required-tag" aria-hidden="true">Required</span>
-          </button>
-          <button class="provider-btn" data-provider="discord" aria-label="Sign in with Discord">
-            <span class="provider-label">Discord</span>
+          <button class="provider-btn provider-primary" data-provider="twitch" aria-label="Sign in with Twitch (recommended)">
+            <span class="provider-label">🎮 Twitch</span>
+            <span class="recommended-tag" aria-hidden="true">Recommended</span>
           </button>
         </div>
       </div>
 
-      <details class="minimal-block" open>
-        <summary class="summary-btn">Use username & password</summary>
+      <details class="minimal-block">
+        <summary class="summary-btn">Or use username & password</summary>
         <div class="local-auth">
           <form id="local-login-form" class="local-form">
             <input type="text" name="login" autocomplete="username" placeholder="Username" required>
@@ -106,53 +108,33 @@
   <!-- Toast Notifications -->
   <div id="toast-container" class="toast-container"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/supabase-auth.js"></script>
   <script src="client.js"></script>
   <script src="login.js"></script>
   <script>
-    (function wireSupabaseButtons() {
-      const buttons = document.querySelectorAll('.provider-btn[data-provider]');
-      const announcerId = 'auth-announcer';
-      let announcer = document.getElementById(announcerId);
-      if (!announcer) {
-        announcer = document.createElement('div');
-        announcer.id = announcerId;
-        announcer.className = 'visually-hidden';
-        announcer.setAttribute('aria-live', 'polite');
-        document.body.appendChild(announcer);
-      }
-      buttons.forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const startFn =
-            typeof window.startSupabaseOAuth === 'function'
-              ? window.startSupabaseOAuth
-              : (window.supabaseClient && window.supabaseClient.auth && window.supabaseClient.auth.signInWithOAuth);
-          if (!startFn) {
-            alert('Supabase auth helper is not available. Please reload and try again.');
-            return;
+    document.addEventListener('DOMContentLoaded', () => {
+      // Only handle Twitch OAuth button
+      const providerButtons = document.querySelectorAll('.provider-btn');
+      providerButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const provider = btn.getAttribute('data-provider');
+          
+          if (provider === 'twitch') {
+            // Use the existing Twitch OAuth flow from login.js
+            const twitchLoginBtn = document.getElementById('twitch-login-btn');
+            if (twitchLoginBtn) {
+              twitchLoginBtn.click();
+            } else {
+              if (typeof Toast !== 'undefined') {
+                Toast.error('Twitch login not available');
+              } else {
+                alert('Twitch login not available');
+              }
+            }
           }
-          const provider = btn.getAttribute('data-provider') || 'provider';
-          btn.setAttribute('aria-busy', 'true');
-          btn.setAttribute('aria-live', 'polite');
-          announcer.textContent = `Starting sign in with ${provider}.`;
-          if (startFn === window.startSupabaseOAuth) {
-            window.startSupabaseOAuth(provider);
-          } else {
-            // fallback: direct call if using supabaseClient
-            startFn.call(window.supabaseClient.auth, {
-              provider,
-              options: { redirectTo: window.location.origin + '/callback.html' },
-            });
-          }
-          setTimeout(() => {
-            btn.removeAttribute('aria-busy');
-            btn.removeAttribute('aria-live');
-            announcer.textContent = '';
-          }, 3000);
         });
       });
-    })();
+    });
   </script>
 </body>
 </html>

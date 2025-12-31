@@ -131,9 +131,11 @@
               <img src="/assets/cosmetics/effects/chips/chip-5-top.png" alt="5 chip" class="chip-stack-item">
               <img src="/assets/cosmetics/effects/chips/chip-1-top.png" alt="1 chip" class="chip-stack-item">
             </div>
-            <div class="chip-side-chips">
-              <img src="/assets/cosmetics/effects/chips/chip-100-top.png" alt="100 chip side" class="chip-stack-item">
-              <img src="/assets/cosmetics/effects/chips/chip-25-top.png" alt="25 chip side" class="chip-stack-item">
+            <div class="chip-scattered">
+              <img src="/assets/cosmetics/effects/chips/chip-100-top.png" alt="scattered chip" class="chip-stack-item">
+              <img src="/assets/cosmetics/effects/chips/chip-25-top.png" alt="scattered chip" class="chip-stack-item">
+              <img src="/assets/cosmetics/effects/chips/chip-5-top.png" alt="scattered chip" class="chip-stack-item">
+              <img src="/assets/cosmetics/effects/chips/chip-1-top.png" alt="scattered chip" class="chip-stack-item">
             </div>
           </div>
           <div class="gallery-label">Multi-Denomination Chip Stack</div>
@@ -141,7 +143,9 @@
         
         <!-- Deal Animation -->
         <div class="gallery-item">
-          <img src="/assets/cosmetics/effects/deals/face-down-deal.png" alt="Face-down deal animation sheet" class="gallery-img">
+          <div class="sprite-preview-canvas" id="deal-sprite-preview" aria-label="Deal animation sprite preview">
+            <div class="fallback-animation">Deal Animation</div>
+          </div>
           <div class="gallery-label">Deal Animation</div>
         </div>
         
@@ -205,8 +209,27 @@
   </div>
 
   <script>
-    (function () {
-      // Suggestion form handler
+    // Notification system
+    function showNotification(message, type = 'info') {
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.classList.add('show');
+      }, 100);
+      
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 300);
+      }, 3000);
+    }
+
+    // Suggestion form handler
+    document.addEventListener('DOMContentLoaded', () => {
       const btn = document.getElementById('send-suggestion');
       if (!btn) return;
       btn.addEventListener('click', () => {
@@ -225,7 +248,7 @@
         const body = encodeURIComponent(bodyLines.join('\n'));
         window.location.href = 'mailto:allinchatpoker@gmail.com?subject=' + subject + '&body=' + body;
       });
-    })();
+    });
 
     // Enhanced sprite preview with fallback
     (function () {
@@ -251,6 +274,32 @@
       // Fallback while loading
       preview.style.backgroundImage = `url('${SPRITE_URL}')`;
       preview.style.setProperty('--frames', 6);
+    })();
+
+    // Enhanced deal animation sprite with fallback
+    (function () {
+      const preview = document.getElementById('deal-sprite-preview');
+      if (!preview) return;
+      const SPRITE_URL = '/assets/cosmetics/effects/deals/face-down-deal.png';
+      const img = new Image();
+      img.onload = () => {
+        if (!img.naturalHeight) return;
+        const frames = Math.max(1, Math.round(img.naturalWidth / img.naturalHeight));
+        preview.style.setProperty('--frames', frames);
+        preview.style.backgroundImage = `url('${SPRITE_URL}')`;
+        preview.setAttribute('aria-label', `Deal animation sprite preview (${frames} frames)`);
+        preview.classList.add('loaded');
+      };
+      img.onerror = () => {
+        // Fallback to CSS animation
+        preview.classList.add('fallback-mode');
+        preview.setAttribute('aria-label', 'Deal animation CSS animation fallback');
+      };
+      img.src = SPRITE_URL;
+      
+      // Fallback while loading
+      preview.style.backgroundImage = `url('${SPRITE_URL}')`;
+      preview.style.setProperty('--frames', 8);
     })();
 
     // Enhanced win burst animation with fallback
@@ -330,135 +379,111 @@
             
             if (response.ok) {
               const data = await response.json();
-              return data.valid ? data.login : null;
+              return data.valid && data.login;
             }
-            return null;
-          } catch (err) {
-            console.error('Token validation failed:', err);
-            return null;
+            return false;
+          } catch (error) {
+            console.error('Token validation failed:', error);
+            return false;
           }
         };
         
         const tok = (localStorage.getItem && localStorage.getItem('user_jwt')) || '';
-        const login = await validateToken(tok);
-      
-      // Handle return URL from redirect
-      const urlParams = new URLSearchParams(window.location.search);
-      const returnUrl = urlParams.get('return');
-      
-      // Update navigation based on auth status
-      const navLinks = document.querySelectorAll('.nav-link');
-      const overlayLink = document.querySelector('a[href*="obs-overlay"]');
-      
-      if (login) {
-        // User is logged in - show authenticated state
-        if (overlayLink) {
-          overlayLink.href = `/obs-overlay.html?channel=${encodeURIComponent(login)}`;
-        }
+        const login = decodeLogin(tok);
+        const isValid = await validateToken(tok);
         
-        // Update navigation links to include auth
-        navLinks.forEach(link => {
-          const href = link.getAttribute('href');
-          if (href && !href.includes('obs-overlay') && !href.includes('paypal.com')) {
-            link.setAttribute('href', href);
-            link.removeAttribute('target');
-            link.removeAttribute('rel');
+        const params = new URLSearchParams(window.location.search);
+        const returnUrl = params.get('return');
+        
+        const navLinks = document.querySelectorAll('.nav-link');
+        const overlayLink = document.querySelector('a[href*="obs-overlay"]');
+        
+        if (isValid && login) {
+          // User is logged in - show authenticated state
+          if (overlayLink) {
+            overlayLink.href = `/obs-overlay.html?channel=${encodeURIComponent(login)}`;
           }
-        });
-        
-        // Show logged-in notification if returning from redirect (but avoid infinite loops)
-        if (returnUrl && !window.location.pathname.includes('welcome-enhanced.html')) {
-          showNotification(`Welcome back, ${login}! Redirecting...`, 'success');
-          setTimeout(() => {
-            window.location.href = decodeURIComponent(returnUrl);
-          }, 1500);
-        }
-      } else {
-        // User is not logged in - show login prompt for protected pages
-        navLinks.forEach(link => {
-          const href = link.getAttribute('href');
-          if (href && (href.includes('store') || href.includes('admin') || href.includes('overlay-editor') || href.includes('profile'))) {
-            link.addEventListener('click', (e) => {
-              e.preventDefault();
-              showNotification('Please log in to access this feature', 'warning');
-              // Redirect to login page with return URL
-              const returnUrl = encodeURIComponent(href);
-              window.location.href = `/login.html?return=${returnUrl}`;
-            });
-          }
-        });
-        
-        if (returnUrl && !window.location.pathname.includes('welcome-enhanced.html')) {
-          showNotification('Please log in to continue', 'warning');
-          setTimeout(() => {
-            window.location.href = `/login.html?return=${returnUrl}`;
-          }, 1500);
-        }
-      }
-      
-      // Clear invalid token
-      if (tok && !login) {
-        localStorage.removeItem('user_jwt');
-      }
-      
-      // Notification system
-      function showNotification(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.textContent = message;
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-          notification.classList.add('show');
-        }, 100);
-        
-        setTimeout(() => {
-          notification.classList.remove('show');
-          setTimeout(() => {
-            document.body.removeChild(notification);
-          }, 300);
-        }, 3000);
-      }
-      
-      // Initialize animations
-      initializeAnimations();
-      
-      function initializeAnimations() {
-        // Animate hero content on load
-        const heroContent = document.querySelector('.hero-content');
-        if (heroContent) {
-          heroContent.style.opacity = '0';
-          heroContent.style.transform = 'translateY(30px)';
           
-          setTimeout(() => {
-            heroContent.style.transition = 'all 1s ease';
-            heroContent.style.opacity = '1';
-            heroContent.style.transform = 'translateY(0)';
-          }, 100);
-        }
-        
-        // Animate cards on scroll
-        const cards = document.querySelectorAll('.card');
-        const observer = new IntersectionObserver((entries) => {
-          entries.forEach(entry => {
-            if (entry.isIntersecting) {
-              entry.target.style.opacity = '0';
-              entry.target.style.transform = 'translateY(20px)';
-              
-              setTimeout(() => {
-                entry.target.style.transition = 'all 0.6s ease';
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
-              }, 100);
-              
-              observer.unobserve(entry.target);
+          // Update navigation links to include auth
+          navLinks.forEach(link => {
+            const href = link.getAttribute('href');
+            if (href && !href.includes('obs-overlay') && !href.includes('paypal.com')) {
+              link.setAttribute('href', href);
+              link.removeAttribute('target');
+              link.removeAttribute('rel');
             }
           });
-        });
+          
+          // Show logged-in notification if returning from redirect (but avoid infinite loops)
+          if (returnUrl && !window.location.pathname.includes('welcome-enhanced.html')) {
+            showNotification(`Welcome back, ${login}! Redirecting...`, 'success');
+            setTimeout(() => {
+              window.location.href = decodeURIComponent(returnUrl);
+            }, 1500);
+          }
+        } else {
+          // User is not logged in - show login prompt for protected pages
+          navLinks.forEach(link => {
+            const href = link.getAttribute('href');
+            if (href && (href.includes('store') || href.includes('admin') || href.includes('overlay-editor') || href.includes('profile'))) {
+              link.addEventListener('click', (e) => {
+                e.preventDefault();
+                showNotification('Please log in to access this feature', 'warning');
+                // Redirect to login page with return URL
+                const returnUrl = encodeURIComponent(href);
+                window.location.href = `/login.html?return=${returnUrl}`;
+              });
+            }
+          });
+          
+          if (returnUrl && !window.location.pathname.includes('welcome-enhanced.html')) {
+            showNotification('Please log in to continue', 'warning');
+            setTimeout(() => {
+              window.location.href = `/login.html?return=${returnUrl}`;
+            }, 1500);
+          }
+        }
         
-        cards.forEach(card => observer.observe(card));
+        // Initialize animations
+        function initializeAnimations() {
+          // Animate hero content on load
+          const heroContent = document.querySelector('.hero-content');
+          if (heroContent) {
+            heroContent.style.opacity = '0';
+            heroContent.style.transform = 'translateY(30px)';
+            
+            setTimeout(() => {
+              heroContent.style.transition = 'all 1s ease';
+              heroContent.style.opacity = '1';
+              heroContent.style.transform = 'translateY(0)';
+            }, 100);
+          }
+          
+          // Animate cards on scroll
+          const cards = document.querySelectorAll('.card');
+          const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+              if (entry.isIntersecting) {
+                entry.target.style.opacity = '0';
+                entry.target.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                  entry.target.style.transition = 'all 0.6s ease';
+                  entry.target.style.opacity = '1';
+                  entry.target.style.transform = 'translateY(0)';
+                }, 100);
+                
+                observer.unobserve(entry.target);
+              }
+            });
+          });
+          
+          cards.forEach(card => observer.observe(card));
+        }
+        
+        initializeAnimations();
       })();
     });
-    </script>
+  </script>
 </body>
 </html>

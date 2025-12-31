@@ -667,3 +667,55 @@
     flex-wrap: wrap;
   }
 }
+
+/* Role badges */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge.player {
+  background-color: var(--color-muted);
+  color: white;
+}
+
+.badge.streamer {
+  background-color: var(--color-info);
+  color: white;
+}
+
+.badge.admin {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.badge.dev {
+  background-color: var(--color-warning);
+  color: #111;
+}
+
+.badge.owner {
+  background-color: var(--color-danger);
+  color: white;
+}
+
+.badge.premier {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.badge.ai {
+  background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+  color: white;
+}
+
+.btn-xs {
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  line-height: 1.2;
+}
