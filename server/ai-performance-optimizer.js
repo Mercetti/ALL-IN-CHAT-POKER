@@ -212,7 +212,18 @@ Respond with JSON only:
         maxTokens: 800
       });
 
-      return JSON.parse(response);
+      // Better JSON parsing with fallback
+      try {
+        return JSON.parse(response);
+      } catch (parseError) {
+        logger.warn('AI response not valid JSON, using fallback', { response: response.substring(0, 100) });
+        return { 
+          issues: [], 
+          recommendations: [], 
+          overallHealth: 'unknown',
+          error: 'AI response parsing failed'
+        };
+      }
     } catch (error) {
       logger.error('AI performance analysis failed', { error: error.message });
       return { issues: [], recommendations: [], overallHealth: 'unknown' };

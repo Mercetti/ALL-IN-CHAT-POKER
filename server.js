@@ -242,7 +242,7 @@ const { timerManager, performance: perfUtils, dbOptimizer, memoryMonitor, perfor
 //   }
 // });
 
-// Initialize AI monitoring systems (re-enabling gradually)
+// Initialize AI monitoring systems (gradual re-enablement)
 const AIErrorManager = require('./server/ai-error-manager');
 const AIPerformanceOptimizer = require('./server/ai-performance-optimizer');
 const AIUXMonitor = require('./server/ai-ux-monitor');
@@ -266,10 +266,10 @@ const aiUXMonitor = new AIUXMonitor({
   minUserSessions: 10
 });
 
-// Initialize AI self-healing middleware
+// Initialize AI self-healing middleware (re-enabling with fixed dependencies)
 const aiSelfHealing = require('./server/ai-self-healing');
 
-// Initialize AI Audio Generator
+// Initialize AI Audio Generator (re-enabling with increased resources)
 const AIAudioGenerator = require('./server/ai-audio-generator');
 
 const aiAudioGenerator = new AIAudioGenerator({
@@ -280,7 +280,7 @@ const aiAudioGenerator = new AIAudioGenerator({
   quality: 'high'
 });
 
-// Initialize Poker Audio System (Phased Implementation)
+// Initialize Poker Audio System (final AI system - re-enabling with robust resources)
 const PokerAudioSystem = require('./server/poker-audio-system');
 
 const pokerAudio = new PokerAudioSystem({
@@ -2989,7 +2989,7 @@ app.disable('x-powered-by');
 
 app.use(securityHeadersMiddleware);
 
-// AI Self-Healing Middleware
+// AI Self-Healing Middleware (re-enabling with fixed dependencies)
 app.use(aiSelfHealing.middleware());
 
 app.use('/uploads', express.static(uploadsDir));
@@ -12447,6 +12447,19 @@ app.post('/admin/ai/errors/fix', auth.requireAdmin, async (req, res) => {
 /**
  * Get AI Self-Healing Status (admin only)
  */
+app.get('/admin/ai/errors/status', auth.requireAdmin, (req, res) => {
+  try {
+    const healthReport = aiErrorManager.getHealthReport();
+    res.json(healthReport);
+  } catch (error) {
+    logger.error('AI error status check failed', { error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Get AI Self-Healing Status (admin only)
+ */
 app.get('/admin/ai/healing/status', auth.requireAdmin, (req, res) => {
   try {
     const healingStatus = aiSelfHealing.getHealingStatus();
@@ -12458,6 +12471,7 @@ app.get('/admin/ai/healing/status', auth.requireAdmin, (req, res) => {
 });
 
 /**
+ * Get AI Error Manager Status (admin only)
  * Get Audio Library (admin only)
  */
 app.get('/admin/ai/audio/library', auth.requireAdmin, (req, res) => {
@@ -12570,15 +12584,13 @@ app.get('/api/audio/library', auth.requireUser, (req, res) => {
   try {
     const userId = req.user?.id || 'anonymous';
     const userTier = req.query.tier || 'affiliate';
-    // const library = pokerAudio.getAvailableAudio(userId);
-    const library = { status: 'disabled', message: 'Poker audio system temporarily disabled' };
+    const library = pokerAudio.getAvailableAudio(userId);
     
     res.json({
       library,
       userTier,
-      // dmcaPolicy: pokerAudio.getDMCAPolicy(),
-      dmcaPolicy: { status: 'disabled' },
-      phases: [] // Object.keys(library)
+      dmcaPolicy: pokerAudio.getDMCAPolicy(),
+      phases: Object.keys(library)
     });
   } catch (error) {
     logger.error('Failed to get audio library', { error: error.message });
@@ -12592,8 +12604,7 @@ app.get('/api/audio/library', auth.requireUser, (req, res) => {
 app.get('/api/audio/settings', auth.requireUser, (req, res) => {
   try {
     const userId = req.user.id;
-    // const settings = pokerAudio.getUserSettings(userId);
-    const settings = { status: 'disabled', message: 'Poker audio system temporarily disabled' };
+    const settings = pokerAudio.getUserSettings(userId);
     
     res.json(settings);
   } catch (error) {
@@ -12610,8 +12621,7 @@ app.post('/api/audio/settings', auth.requireUser, (req, res) => {
     const userId = req.user.id;
     const settings = req.body;
     
-    // const updatedSettings = pokerAudio.updateUserSettings(userId, settings);
-    const updatedSettings = { status: 'disabled', message: 'Poker audio system temporarily disabled' };
+    const updatedSettings = pokerAudio.updateUserSettings(userId, settings);
     
     res.json({
       success: true,
@@ -12635,8 +12645,7 @@ app.post('/admin/audio/generate/phase', auth.requireAdmin, async (req, res) => {
     }
     
     const userTier = tier || 'affiliate';
-    // const result = await pokerAudio.generatePhaseAudio(phase, userTier);
-    const result = { success: false, message: 'Poker audio system temporarily disabled' };
+    const result = await pokerAudio.generatePhaseAudio(phase, userTier);
     
     logger.info('Phase audio generation completed', { 
       phase, 
@@ -12661,8 +12670,7 @@ app.post('/admin/audio/generate/tier-package', auth.requireAdmin, async (req, re
     
     logger.info('Starting tier package generation', { tier: userTier });
     
-    // const result = await pokerAudio.generateTierPackage(userTier);
-    const result = { success: false, message: 'Poker audio system temporarily disabled' };
+    const result = await pokerAudio.generateTierPackage(userTier);
     
     logger.info('Tier package generation completed', {
       tier: userTier,
@@ -13041,6 +13049,7 @@ app.get('/admin/ai/health', auth.requireAdmin, async (req, res) => {
       errorManager: errorHealth,
       performance: performanceHealth,
       ux: uxHealth,
+      healing: aiSelfHealing.getHealingStatus(),
       timestamp: new Date().toISOString()
     });
   } catch (error) {

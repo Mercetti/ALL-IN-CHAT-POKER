@@ -73,9 +73,9 @@ primary_region = "iad"
   path = "/metrics"
 
 [[vm]]
-  memory = "2gb"
+  memory = "4gb"
   cpu_kind = "shared"
-  cpus = 1
+  cpus = 2
 
 # Keep at least 1 machine running and disable autoscaling
 [experimental]
