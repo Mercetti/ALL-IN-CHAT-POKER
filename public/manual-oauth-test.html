@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Twitch OAuth Manual Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .debug { background: #f8f9fa; padding: 15px; border-radius: 4px; margin: 10px 0; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        input, button { padding: 10px; margin: 5px; font-size: 14px; }
+        button { background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        pre { background: #f1f3f4; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Twitch OAuth Manual Test</h1>
+    
+    <div class="debug">
+        <h3>Step 1: Get Authorization Code Manually</h3>
+        <p>Click this link to authorize with Twitch (will redirect back with code):</p>
+        <a href="https://id.twitch.tv/oauth2/authorize?client_id=wd0auklmfoa08w91k421it4qxe2ub9&redirect_uri=https%3A%2F%2Fall-in-chat-poker.fly.dev%2Flogin.html&response_type=code&scope=user:read:email&state=twitch_auth" target="_blank">
+            <button>Authorize with Twitch</button>
+        </a>
+        <p><strong>After authorizing, copy the authorization code from the URL and paste it below:</strong></p>
+    </div>
+    
+    <div class="debug">
+        <h3>Step 2: Test Token Exchange</h3>
+        <input type="text" id="auth-code" placeholder="Paste authorization code here" style="width: 400px;">
+        <button onclick="testTokenExchange()">Test Token Exchange</button>
+    </div>
+    
+    <div id="test-results"></div>
+    
+    <script>
+        async function testTokenExchange() {
+            const code = document.getElementById('auth-code').value.trim();
+            const results = document.getElementById('test-results');
+            
+            if (!code) {
+                results.innerHTML = '<div class="debug error">Please enter an authorization code</div>';
+                return;
+            }
+            
+            results.innerHTML = '<div class="debug">Testing token exchange...</div>';
+            
+            try {
+                const response = await fetch('/auth/twitch/token-exchange', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ code })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.token) {
+                    results.innerHTML = `
+                        <div class="debug success">
+                            <h3>✅ Token Exchange Successful!</h3>
+                            <p><strong>Login:</strong> ${data.login}</p>
+                            <p><strong>Role:</strong> ${data.role}</p>
+                            <p><strong>Twitch Linked:</strong> ${data.twitchLinked}</p>
+                            <p><strong>Token Length:</strong> ${data.token.length}</p>
+                            <p><strong>Display Name:</strong> ${data.profile?.display_name}</p>
+                            <p><strong>Twitch Avatar:</strong> ${data.profile?.twitch_avatar ? 'Yes' : 'No'}</p>
+                            <details>
+                                <summary>Full Response</summary>
+                                <pre>${JSON.stringify(data, null, 2)}</pre>
+                            </details>
+                            <p><strong>Token stored in localStorage - you can now access the app!</strong></p>
+                        </div>
+                    `;
+                    
+                    // Store the token
+                    localStorage.setItem('user_jwt', data.token);
+                } else {
+                    results.innerHTML = `
+                        <div class="debug error">
+                            <h3>❌ Token Exchange Failed</h3>
+                            <p><strong>Status:</strong> ${response.status}</p>
+                            <p><strong>Error:</strong> ${data.error || 'Unknown'}</p>
+                            <details>
+                                <summary>Full Response</summary>
+                                <pre>${JSON.stringify(data, null, 2)}</pre>
+                            </details>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                results.innerHTML = `
+                    <div class="debug error">
+                        <h3>❌ Network Error</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Auto-fill code from URL if present
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const state = urlParams.get('state');
+        
+        if (code && state === 'twitch_auth') {
+            document.getElementById('auth-code').value = code;
+            document.getElementById('test-results').innerHTML = '<div class="debug">Authorization code detected! Click "Test Token Exchange" to continue.</div>';
+        }
+    </script>
+</body>
+</html>

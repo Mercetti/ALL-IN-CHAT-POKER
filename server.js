@@ -2822,7 +2822,7 @@ app.get('/index.html', (_req, res) => {
 
   // Admin-only bot chat page
 
-  app.get('/admin-chat.html', auth.requireAdmin, (_req, res) => {
+  app.get('/admin-chat.html', auth.requireAdminOrRole(['admin', 'dev', 'owner', 'streamer']), (_req, res) => {
 
     res.sendFile(path.join(__dirname, 'public', 'admin-chat.html'));
 
@@ -3001,7 +3001,9 @@ app.use((req, res, next) => {
     '/store-enhanced.html',
     '/overlay-editor-enhanced.html', 
     '/admin-enhanced.html',
-    '/setup-enhanced.html'
+    '/setup-enhanced.html',
+    '/admin-chat.html',
+    '/admin-code.html'
   ];
   
   const isProtected = protectedPaths.some(path => req.path.startsWith(path));
@@ -3009,12 +3011,9 @@ app.use((req, res, next) => {
   if (isProtected) {
     const login = auth.extractUserLogin(req);
     if (!login) {
-      // Redirect to welcome page with return URL (but avoid redirect loops)
+      // Redirect to login page with return URL
       const returnUrl = encodeURIComponent(req.originalUrl);
-      // Don't redirect if we're already coming from welcome page
-      if (!req.headers.referer || !req.headers.referer.includes('welcome-enhanced.html')) {
-        return res.redirect(`/welcome-enhanced.html?return=${returnUrl}`);
-      }
+      return res.redirect(`/login.html?return=${returnUrl}`);
     }
   }
   
@@ -3033,6 +3032,26 @@ app.get('/assets/cosmetics/cards/faces/classic/', (_req, res) => {
 // AI Admin Dashboard
 app.get('/admin-dashboard', auth.requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin-dashboard.html'));
+});
+
+// Admin Dev Panel
+app.get('/admin-dev', auth.requireAdminOrRole(['admin', 'dev', 'owner']), (req, res) => {
+  res.redirect('/admin-enhanced.html');
+});
+
+// Login Test Page
+app.get('/test-login.html', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'test-login.html'));
+});
+
+// OAuth Debug Page
+app.get('/debug-oauth.html', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'debug-oauth.html'));
+});
+
+// Manual OAuth Test Page
+app.get('/manual-oauth-test.html', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'manual-oauth-test.html'));
 });
 
 // Supabase OAuth callback/consent helpers
@@ -7144,7 +7163,7 @@ app.get('/admin/security-snapshot', auth.requireAdminOrRole(['admin', 'dev', 'ow
 
 app.post('/admin/security-diagnose', auth.requireAdminOrRole(['admin', 'dev', 'owner']), async (_req, res) => {
 
-  if (!config.OPENAI_API_KEY) return res.status(400).json({ error: 'ai_not_configured' });
+  if (!config.OPENAI_API_KEY && config.AI_PROVIDER !== 'ollama') return res.status(400).json({ error: 'ai_not_configured' });
 
   try {
 
@@ -7252,7 +7271,7 @@ app.get('/admin/overlay-snapshot', auth.requireAdminOrRole(['admin', 'dev', 'own
 
 app.post('/admin/overlay-diagnose', auth.requireAdminOrRole(['admin', 'dev', 'owner']), async (req, res) => {
 
-  if (!config.OPENAI_API_KEY) return res.status(400).json({ error: 'ai_not_configured' });
+  if (!config.OPENAI_API_KEY && config.AI_PROVIDER !== 'ollama') return res.status(400).json({ error: 'ai_not_configured' });
 
   try {
 
@@ -9171,6 +9190,137 @@ app.post('/admin/user/password', auth.requireAdminOrRole(['admin', 'dev', 'owner
   }
 });
 
+/**
+ * Debug endpoint to check environment variables
+ */
+app.get('/debug/env', (req, res) => {
+  res.json({
+    TWITCH_CLIENT_ID: config.TWITCH_CLIENT_ID ? 'SET' : 'NOT_SET',
+    TWITCH_CLIENT_SECRET: config.TWITCH_CLIENT_SECRET ? 'SET' : 'NOT_SET',
+    TWITCH_REDIRECT_URI: config.TWITCH_REDIRECT_URI || 'NOT_SET',
+    NODE_ENV: config.NODE_ENV,
+    IS_PRODUCTION: config.IS_PRODUCTION
+  });
+});
+
+/**
+ * Twitch OAuth token exchange endpoint
+ * Exchanges authorization code for access token and logs user in
+ */
+app.post('/auth/twitch/token-exchange', rateLimit('auth_twitch_token', 60 * 1000, 5), async (req, res) => {
+  try {
+    const { code } = req.body || {};
+    
+    if (!code) {
+      return res.status(400).json({ error: 'authorization code required' });
+    }
+    
+    if (!config.TWITCH_CLIENT_ID || !config.TWITCH_CLIENT_SECRET) {
+      return res.status(500).json({ error: 'Twitch OAuth not configured' });
+    }
+    
+    const redirectUri = config.TWITCH_REDIRECT_URI || `${req.protocol}://${req.get('host')}/login.html`;
+    
+    // Exchange authorization code for access token
+    const tokenResponse = await fetch('https://id.twitch.tv/oauth2/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        client_id: config.TWITCH_CLIENT_ID,
+        client_secret: config.TWITCH_CLIENT_SECRET,
+        code,
+        grant_type: 'authorization_code',
+        redirect_uri: redirectUri,
+      }),
+    });
+    
+    if (!tokenResponse.ok) {
+      const errorText = await tokenResponse.text();
+      logger.warn('Twitch token exchange failed', { 
+        status: tokenResponse.status, 
+        error: errorText 
+      });
+      return res.status(400).json({ error: 'invalid_authorization_code' });
+    }
+    
+    const tokenData = await tokenResponse.json();
+    const accessToken = tokenData.access_token;
+    
+    if (!accessToken) {
+      return res.status(400).json({ error: 'no_access_token_received' });
+    }
+    
+    // Get Twitch user info with the access token
+    const twitchUser = await fetchTwitchUser(accessToken);
+    
+    if (!twitchUser || !twitchUser.login) {
+      return res.status(401).json({ error: 'invalid_twitch_token' });
+    }
+    
+    // Get or create user profile
+    const login = (twitchUser.login || '').toLowerCase();
+    
+    // Check if user is banned
+    if (isBanned(login, req.ip)) {
+      return res.status(403).json({ 
+        error: 'user_banned',
+        reason: 'User is banned',
+        expires: null
+      });
+    }
+    
+    // Get existing profile or create new one
+    let profile = db.getProfile(login);
+    if (!profile) {
+      profile = db.upsertProfile({
+        login,
+        role: 'player',
+        twitch_id: twitchUser.user_id,
+        twitch_avatar: twitchUser.avatarUrl,
+        display_name: twitchUser.display_name || twitchUser.login,
+        created_at: new Date().toISOString(),
+      });
+    } else {
+      // Update Twitch info
+      profile = db.upsertProfile({
+        ...profile,
+        twitch_id: twitchUser.user_id,
+        twitch_avatar: twitchUser.avatarUrl,
+        display_name: twitchUser.display_name || profile.display_name,
+        twitchLinked: true,
+      });
+    }
+    
+    // Generate JWT token
+    const userToken = auth.signUserJWT(login);
+    
+    logger.info('User logged in via Twitch OAuth', { 
+      login,
+      twitchId: twitchUser.user_id,
+      role: profile.role
+    });
+    
+    return res.json({
+      token: userToken,
+      login: profile.login,
+      role: profile.role,
+      twitchLinked: true,
+      profile: {
+        login: profile.login,
+        role: profile.role,
+        display_name: profile.display_name,
+        twitch_avatar: profile.twitch_avatar,
+      }
+    });
+    
+  } catch (err) {
+    logger.error('Twitch token exchange failed', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
 app.post('/user/role', (req, res) => {
 
   try {
@@ -10560,6 +10710,37 @@ app.get('/api/auth/validate', (req, res) => {
 });
 
 /**
+ * Get balances for admin panel
+ */
+app.get('/balances.json', auth.requireAdmin, (req, res) => {
+  try {
+    const profiles = db.getAllProfiles(1000);
+    const balances = {};
+    profiles.forEach(profile => {
+      balances[profile.login] = db.getBalance(profile.login);
+    });
+    return res.json(balances);
+  } catch (err) {
+    logger.error('Failed to get balances', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+/**
+ * Get admin audit log
+ */
+app.get('/admin/audit', auth.requireAdmin, (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 20;
+    const auditLog = db.getAuditLog(limit);
+    return res.json(auditLog);
+  } catch (err) {
+    logger.error('Failed to get audit log', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+/**
  * Get admin stats dashboard data
  */
 app.get('/api/admin/stats', auth.requireAdminOrRole(['admin', 'dev', 'owner']), (req, res) => {
@@ -11469,7 +11650,8 @@ app.get('/admin/partner/progress', auth.requireAdminOrRole(['admin', 'dev', 'own
 
   try {
 
-    const rows = db.listEligibility();
+    // Return empty partner progress data for now
+    const rows = [];
 
     res.json({ rows });
 

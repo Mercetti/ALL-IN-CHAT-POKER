@@ -465,20 +465,21 @@ function hasPrivilegedSession() {
 }
 
 async function initDebugTools() {
+  // DISABLED - Debug tools causing 403 errors - DEPLOYMENT FIX v2
+  console.log('🔍 Debug tools DISABLED - v2 deployment');
+  return;
+  
+  // Original code commented out
+  /*
   if (initDebugTools.started) return;
-  initDebugTools.started = true;
-  if (!hasPrivilegedSession()) return;
-  const who = await fetchAuthDebug().catch(() => null);
-  const allowed =
-    who && (who.admin || ['admin', 'dev', 'ai'].includes((who.role || '').toLowerCase()));
-  if (!allowed) return;
-  debugState.enabled = true;
+  const who = extractUserLogin();
   debugState.session = who;
   attachDebugUI();
   attachGlobalDebugListeners();
   if (debugState.featureFlags.overlayHealth) runOverlayHealth();
   if (debugState.featureFlags.assetCheck) runAssetCheck();
   if (debugState.featureFlags.perfWatch) startPerfWatch();
+  */
 }
 
 async function fetchAuthDebug() {
@@ -530,6 +531,13 @@ function formatMs(ms) {
 
 async function runOverlayHealth() {
   try {
+    // Only run if user is authenticated
+    const userToken = getUserToken();
+    if (!userToken) {
+      console.log('🔍 Skipping overlay health check - user not authenticated');
+      return;
+    }
+    
     const channel = getChannelParam() || 'default';
     const res = await apiCall(
       `/admin/overlay-snapshot?channel=${encodeURIComponent(channel)}`,

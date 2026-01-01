@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const computePostLoginRedirect = () => {
     const role = (desiredRole || 'player').toLowerCase();
     if (redirectTarget) return redirectTarget;
-    return role === 'streamer' ? '/admin2.html' : '/profile.html';
+    return role === 'streamer' ? '/admin-enhanced.html' : '/profile-enhanced.html';
   };
   const setPostLoginRedirect = () => {
     try {
@@ -81,6 +81,20 @@ document.addEventListener('DOMContentLoaded', () => {
     return params.get('access_token');
   }
 
+  function parseTwitchCodeFromSearch() {
+    const search = window.location.search || '';
+    if (!search.startsWith('?')) return null;
+    const params = new URLSearchParams(search.slice(1));
+    return params.get('code');
+  }
+
+  function parseTwitchStateFromSearch() {
+    const search = window.location.search || '';
+    if (!search.startsWith('?')) return null;
+    const params = new URLSearchParams(search.slice(1));
+    return params.get('state');
+  }
+
   function clearHash() {
     if (window.history.replaceState) {
       window.history.replaceState(null, '', window.location.pathname + window.location.search);
@@ -115,14 +129,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const isAdminRole = role === 'streamer' || role === 'admin';
     const loginLower = (loginHint || '').toLowerCase();
     if (loginLower === 'mercetti') {
-      window.location.href = '/admin-dev.html';
+      window.location.href = '/admin-enhanced.html';
       return;
     }
     if (isAdminRole || wantsAdmin) {
       const isDev = role === 'admin' || loginLower === 'mercetti';
-      window.location.href = isDev ? '/admin-dev.html' : '/admin2.html';
+      window.location.href = isDev ? '/admin-enhanced.html' : '/admin-enhanced.html';
     } else {
-      window.location.href = '/profile.html';
+      window.location.href = '/profile-enhanced.html';
     }
   }
 
@@ -137,10 +151,11 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     setPostLoginRedirect();
-    const cleanRedirect = (cfg.redirectUri || twitchRedirectUri || '').trim().replace(/\\+$/, '');
+    const cleanRedirect = (cfg.redirectUri || twitchRedirectUri || '').trim().replace(/\/+$/, '');
+    // Use authorization code flow instead of implicit flow
     const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${encodeURIComponent(
       cfg.twitchClientId
-    )}&redirect_uri=${encodeURIComponent(cleanRedirect)}&response_type=token&scope=user:read:email`;
+    )}&redirect_uri=${encodeURIComponent(cleanRedirect)}&response_type=code&scope=user:read:email&state=twitch_auth`;
     window.location.href = authUrl;
   });
 
@@ -162,19 +177,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Handle Twitch redirect back with access token in URL hash
+  // Handle Twitch redirect back with authorization code
   (async () => {
-    const twitchToken = parseTwitchTokenFromHash();
-    if (!twitchToken) return;
-    clearHash();
+    const twitchCode = parseTwitchCodeFromSearch();
+    const twitchState = parseTwitchStateFromSearch();
+    console.log('🔍 Twitch OAuth check:', { 
+      hasCode: !!twitchCode, 
+      codeLength: twitchCode?.length,
+      state: twitchState,
+      search: window.location.search 
+    });
+    
+    if (!twitchCode || twitchState !== 'twitch_auth') return;
+    
+    // Clear the URL parameters
+    if (window.history.replaceState) {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+    
     if (!twitchConfig) twitchConfig = await loadTwitchConfig();
     const existingUserToken = getUserToken();
     Toast.info(existingUserToken ? 'Linking Twitch to your account...' : 'Signing in with Twitch...');
     try {
       if (existingUserToken) {
+        // First exchange the code for a token, then link it
+        const tokenResult = await apiCall('/auth/twitch/token-exchange', {
+          method: 'POST',
+          body: JSON.stringify({ code: twitchCode }),
+        });
+        
         await apiCall('/auth/link/twitch', {
           method: 'POST',
-          body: JSON.stringify({ twitchToken }),
+          body: JSON.stringify({ twitchToken: tokenResult.access_token }),
           useUserToken: true,
         });
         Toast.success('Twitch linked to your account');
@@ -182,10 +216,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      const result = await apiCall('/user/login', {
+      console.log('🔍 Calling /auth/twitch/token-exchange with authorization code...');
+      const result = await apiCall('/auth/twitch/token-exchange', {
         method: 'POST',
-        body: JSON.stringify({ twitchToken }),
+        body: JSON.stringify({ code: twitchCode }),
       });
+      console.log('🔍 /auth/twitch/token-exchange response:', result);
+      
       if (result.token) {
         setUserToken(result.token);
         Toast.success(`Signed in as ${result.login}`);
@@ -211,11 +248,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.warn('Streamer role set failed', e);
               }
             }
-            window.location.href = '/admin2.html';
+            window.location.href = '/admin-enhanced.html';
           };
 
           const goPlayer = () => {
-            window.location.href = '/profile.html';
+            window.location.href = '/profile-enhanced.html';
           };
 
           if (isAdminRole || isConfiguredAdmin || desiredRole === 'streamer') {
@@ -225,8 +262,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
           goPlayer();
         }, 300);
+      } else {
+        console.error('🔍 No token in /user/login response:', result);
+        Toast.error('Twitch sign-in failed: No token received');
       }
     } catch (err) {
+      console.error('🔍 Twitch sign-in error:', err);
       Toast.error(`Twitch sign-in failed: ${err.message}`);
     }
   })();
