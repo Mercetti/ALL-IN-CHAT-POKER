@@ -312,7 +312,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (!allowed) {
     const currentPath = `${window.location.pathname}${window.location.search || ''}${window.location.hash || ''}`;
-    const redirect = encodeURIComponent(currentPath || '/admin2.html');
+    const redirect = encodeURIComponent(currentPath || '/admin-enhanced.html');
     window.location.href = `/login.html?redirect=${redirect}`;
     return;
   }
@@ -693,7 +693,7 @@ function setupEventListeners() {
       Toast.error('Enter a lobby code');
       return;
     }
-    const target = `/admin2.html?channel=${encodeURIComponent(code)}`;
+    const target = `/admin-enhanced.html?channel=${encodeURIComponent(code)}`;
     window.location.href = target;
   });
 

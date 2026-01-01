@@ -70,7 +70,7 @@ function validateConfig() {
     production: config.IS_PRODUCTION,
     features: {
       twitch: !!(config.TWITCH_CLIENT_ID && config.TWITCH_CLIENT_SECRET),
-      ai: !!config.OPENAI_API_KEY,
+      ai: !!(config.OPENAI_API_KEY || config.AI_PROVIDER === 'ollama'),
       supabase: !!(config.SUPABASE_URL && config.SUPABASE_ANON_KEY),
     },
   });

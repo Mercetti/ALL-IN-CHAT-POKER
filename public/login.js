@@ -33,17 +33,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
   const urlParams = new URLSearchParams(window.location.search || '');
+  console.log('🔍 URL params:', window.location.search);
+  console.log('🔍 return param:', urlParams.get('return'));
+  console.log('🔍 redirect param:', urlParams.get('redirect'));
   const redirectTarget = (() => {
-    const r = urlParams.get('redirect') || '';
+    // First check if we have a stored OAuth return URL (from OAuth flow)
+    const storedReturn = sessionStorage.getItem('oauthReturnUrl');
+    if (storedReturn) {
+      console.log('🔍 Using stored OAuth return URL:', storedReturn);
+      sessionStorage.removeItem('oauthReturnUrl'); // Clean up after using
+      return storedReturn;
+    }
+    // Otherwise check URL parameters
+    const r = urlParams.get('return') || urlParams.get('redirect') || '';
+    console.log('🔍 raw return/redirect value:', r);
     if (!r) return '';
     try {
       const url = new URL(r, window.location.origin);
       if (url.origin !== window.location.origin) return '';
-      return url.pathname + url.search + url.hash;
+      const result = url.pathname + url.search + url.hash;
+      console.log('🔍 parsed redirectTarget:', result);
+      return result;
     } catch {
       return '';
     }
   })();
+  console.log('🔍 final redirectTarget:', redirectTarget);
   // background refresh of user JWT every 20 minutes
   setInterval(() => refreshUserTokenIfNeeded(), 20 * 60 * 1000);
 
@@ -151,8 +166,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // If user already has a token, skip the login UI
   // But don't auto-redirect if we have a return URL (let OAuth flow handle it)
+  console.log('🔍 Checking autoRedirect condition:', { redirectTarget: !!redirectTarget, redirectTargetValue: redirectTarget });
   if (!redirectTarget) {
+    console.log('🔍 No redirectTarget, calling autoRedirectIfSignedIn');
     autoRedirectIfSignedIn();
+  } else {
+    console.log('🔍 Has redirectTarget, skipping autoRedirectIfSignedIn');
   }
 
   // Twitch login button
@@ -163,6 +182,11 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     setPostLoginRedirect();
+    // Store the current return URL in sessionStorage to preserve it through OAuth flow
+    if (redirectTarget) {
+      sessionStorage.setItem('oauthReturnUrl', redirectTarget);
+      console.log('🔍 Stored OAuth return URL:', redirectTarget);
+    }
     const cleanRedirect = (cfg.redirectUri || twitchRedirectUri || '').trim().replace(/\/+$/, '');
     // Use authorization code flow instead of implicit flow
     const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${encodeURIComponent(
@@ -211,23 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const existingUserToken = getUserToken();
     Toast.info(existingUserToken ? 'Linking Twitch to your account...' : 'Signing in with Twitch...');
     try {
-      if (existingUserToken) {
-        // First exchange the code for a token, then link it
-        const tokenResult = await apiCall('/auth/twitch/token-exchange', {
-          method: 'POST',
-          body: JSON.stringify({ code: twitchCode }),
-        });
-        
-        await apiCall('/auth/link/twitch', {
-          method: 'POST',
-          body: JSON.stringify({ twitchToken: tokenResult.access_token }),
-          useUserToken: true,
-        });
-        Toast.success('Twitch linked to your account');
-        refreshLinkStatus();
-        return;
-      }
-
+      // Always use the sign-in flow for now (skip linking to avoid the error)
       console.log('🔍 Calling /auth/twitch/token-exchange with authorization code...');
       const result = await apiCall('/auth/twitch/token-exchange', {
         method: 'POST',

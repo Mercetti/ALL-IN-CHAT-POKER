@@ -216,7 +216,8 @@ class EnhancedProfile {
       'store': 'store-enhanced.html',
       'editor': 'overlay-editor-enhanced.html',
       'profile': 'profile-enhanced.html',
-      'admin': 'admin-enhanced.html'
+      'admin': 'admin-enhanced.html',
+      'dev': 'admin-dev.html'
     };
     
     if (pageMap[page]) {
@@ -226,6 +227,33 @@ class EnhancedProfile {
 
   async loadProfileData() {
     try {
+      // First, try to get user data from API
+      try {
+        const token = localStorage.getItem('user_jwt');
+        if (token) {
+          const response = await fetch('/api/user/profile', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          if (response.ok) {
+            const userData = await response.json();
+            // Update profile data with actual user info
+            this.profileData.username = userData.login || this.profileData.username;
+            this.profileData.displayName = userData.displayName || userData.login || this.profileData.displayName;
+            
+            // Store user role info for navigation
+            this.userData = userData;
+            
+            // Update navigation based on user role
+            this.updateNavigation();
+          }
+        }
+      } catch (apiError) {
+        console.warn('Could not fetch user profile from API:', apiError);
+      }
+      
       // Load from API or localStorage
       const savedData = localStorage.getItem('profileData');
       if (savedData) {
@@ -237,6 +265,32 @@ class EnhancedProfile {
     } catch (error) {
       console.error('Error loading profile data:', error);
       this.showToast('Error loading profile data', 'error');
+    }
+  }
+
+  updateNavigation() {
+    const adminBtn = document.querySelector('[data-page="admin"]');
+    if (!adminBtn) return;
+    
+    if (this.userData) {
+      if (this.userData.isDev && !this.userData.isAdmin) {
+        // Show Dev button for dev users who aren't admins
+        adminBtn.innerHTML = `
+          <span class="nav-icon">🔧</span>
+          <span>Dev</span>
+        `;
+        adminBtn.setAttribute('data-page', 'dev');
+      } else if (this.userData.isAdmin) {
+        // Show Admin button for admin users
+        adminBtn.innerHTML = `
+          <span class="nav-icon">⚙️</span>
+          <span>Admin</span>
+        `;
+        adminBtn.setAttribute('data-page', 'admin');
+      } else {
+        // Hide button for regular users
+        adminBtn.style.display = 'none';
+      }
     }
   }
 
@@ -302,9 +356,8 @@ class EnhancedProfile {
 
   async saveProfileSettings() {
     try {
-      // Get form data
+      // Get form data (excluding username since it comes from API)
       const formData = {
-        username: document.getElementById('profile-username').value,
         displayName: document.getElementById('profile-display-name-input').value,
         theme: document.getElementById('profile-theme').value,
         startingChips: parseInt(document.getElementById('profile-starting-chips').value),

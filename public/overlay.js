@@ -739,12 +739,21 @@ socket.on('playerUpdate', (data) => {
   const idx = overlayPlayers.findIndex(p => p.login === data.login);
   if (idx !== -1) {
     overlayPlayers[idx] = { ...overlayPlayers[idx], ...data };
+    // Update cosmetics if provided
+    if (data.cosmetics) {
+      overlayPlayers[idx].cosmetics = data.cosmetics;
+    }
   } else {
     overlayPlayers.push(data);
   }
   renderPlayerHands(overlayPlayers);
   renderPot();
   updateActionButtons();
+  
+  // Update table skin if cosmetics changed and this is the streamer
+  if (data.cosmetics && data.login && data.login.toLowerCase() === streamerLogin) {
+    updateTableSkinFromPlayers([data]);
+  }
 });
 
 socket.on('error', (err) => {
@@ -1840,7 +1849,7 @@ if (btnStartRound) {
 const btnAdminPanel = document.getElementById('btn-admin-panel');
 if (btnAdminPanel) {
   btnAdminPanel.addEventListener('click', () => {
-    window.location.href = '/admin2.html';
+    window.location.href = '/admin-enhanced.html';
   });
 }
 

@@ -698,9 +698,9 @@
       renderAICPacks() {
         const aicGrid = document.getElementById('aic-grid');
         const aicPacks = [
-          { id: 'aic-1', name: 'Neon Dreams', price: 9.99, preview: '/assets/cosmetics/cards/basic/card-back-purple.svg' },
-          { id: 'aic-2', name: 'Cosmic Fire', price: 12.99, preview: '/assets/cosmetics/avatar/fire_ring.svg' },
-          { id: 'aic-3', name: 'Electric Blue', price: 7.99, preview: '/assets/cosmetics/table/neon_green.svg' }
+          { id: 'aic-1', name: 'Neon Dreams Chip Set', price: 1299, preview: '/assets/cosmetics/cards/basic/card-back-purple.svg', type: 'chip-set' },
+          { id: 'aic-2', name: 'Cosmic Fire Chip Set', price: 1599, preview: '/assets/cosmetics/avatar/fire_ring.svg', type: 'chip-set' },
+          { id: 'aic-3', name: 'Electric Blue Chip Set', price: 999, preview: '/assets/cosmetics/table/neon_green.svg', type: 'chip-set' }
         ];
 
         aicGrid.innerHTML = '';
@@ -710,12 +710,11 @@
           card.innerHTML = `
             <div class="aic-preview">
               <img src="${pack.preview}" alt="${pack.name}">
-              <div class="aic-badge">AI Generated</div>
             </div>
             <div class="aic-info">
               <h4>${pack.name}</h4>
-              <p>Unique AI-generated cosmetic pack</p>
-              <div class="aic-price">$${pack.price}</div>
+              <p>Complete chip set with all denominations</p>
+              <div class="aic-price">${pack.price}</div>
               <button class="btn btn-primary btn-sm" onclick="storeManager.purchaseAICPack('${pack.id}')">Generate</button>
             </div>
           `;

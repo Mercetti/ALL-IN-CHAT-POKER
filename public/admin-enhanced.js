@@ -77,6 +77,8 @@ class EnhancedAdminDashboard {
 
     // Header actions
     document.getElementById('theme-toggle')?.addEventListener('click', () => this.toggleTheme());
+    document.getElementById('profile-btn')?.addEventListener('click', () => this.goToProfile());
+    document.getElementById('overlay-editor-btn')?.addEventListener('click', () => this.goToOverlayEditor());
     document.getElementById('obs-overlay')?.addEventListener('click', () => this.openOBSOverlay());
     document.getElementById('logout-btn')?.addEventListener('click', () => this.logout());
 
@@ -155,7 +157,7 @@ class EnhancedAdminDashboard {
   updateDashboardStats(stats) {
     // Update stat cards
     this.updateElement('total-players', stats.totalPlayers || 0);
-    this.updateElement('total-balance', `$${stats.totalBalance || 0}`);
+    this.updateElement('total-balance', `${stats.totalBalance || 0} AIC`);
     this.updateElement('top-winner', stats.topWinner || '-');
     this.updateElement('active-games', stats.activeGames || 0);
     this.updateElement('active-partners', stats.activePartners || 0);
@@ -163,7 +165,7 @@ class EnhancedAdminDashboard {
 
     // Update status indicators
     this.updateElement('player-count', `${stats.currentPlayers || 0} Players`);
-    this.updateElement('current-pot', `Pot: $${stats.currentPot || 0}`);
+    this.updateElement('current-pot', `Pot: ${stats.currentPot || 0} AIC`);
   }
 
   updateActivityFeed(activities) {
@@ -250,7 +252,7 @@ class EnhancedAdminDashboard {
     tbody.innerHTML = players.map(player => `
       <tr>
         <td>${player.username}</td>
-        <td>$${player.balance}</td>
+        <td>${player.balance} AIC</td>
         <td><span class="status-dot ${player.online ? 'online' : 'offline'}"></span> ${player.status}</td>
         <td>${player.lastAction}</td>
         <td>
@@ -373,7 +375,7 @@ class EnhancedAdminDashboard {
       <tr>
         <td>${user.username}</td>
         <td>${user.displayName}</td>
-        <td>$${user.balance}</td>
+        <td>${user.balance} AIC</td>
         <td><span class="status-dot ${user.status === 'online' ? 'online' : 'offline'}"></span> ${user.status}</td>
         <td>${this.formatDate(user.joined)}</td>
         <td>${this.formatTime(user.lastActive)}</td>
@@ -392,7 +394,7 @@ class EnhancedAdminDashboard {
     this.updateElement('total-users', users?.length || 0);
     this.updateElement('online-users', onlineUsers);
     this.updateElement('new-users-today', newUsersToday);
-    this.updateElement('avg-balance', `$${Math.round(avgBalance)}`);
+    this.updateElement('avg-balance', `${Math.round(avgBalance)} AIC`);
   }
 
   formatDate(timestamp) {
@@ -582,6 +584,14 @@ class EnhancedAdminDashboard {
     this.showToast('Theme toggled', 'info');
   }
 
+  goToProfile() {
+    window.location.href = '/profile-enhanced.html';
+  }
+
+  goToOverlayEditor() {
+    window.location.href = '/overlay-editor-enhanced.html';
+  }
+
   logout() {
     if (confirm('Are you sure you want to logout?')) {
       localStorage.removeItem('user_jwt');
@@ -733,15 +743,330 @@ class EnhancedAdminDashboard {
   }
 
   editPartner(partnerId) {
-    this.showToast(`Edit partner ${partnerId} - feature coming soon`, 'info');
+    this.showEditPartnerModal(partnerId);
   }
 
   editCosmetic(cosmeticId) {
-    this.showToast(`Edit cosmetic ${cosmeticId} - feature coming soon`, 'info');
+    this.showEditCosmeticModal(cosmeticId);
   }
 
   editUser(userId) {
-    this.showToast(`Edit user ${userId} - feature coming soon`, 'info');
+    this.showEditUserModal(userId);
+  }
+
+  showEditPartnerModal(partnerId) {
+    // Find partner data
+    const partners = this.partnersData || [];
+    const partner = partners.find(p => p.id == partnerId);
+    
+    if (!partner) {
+      this.showToast('Partner not found', 'error');
+      return;
+    }
+
+    // Create modal HTML
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Edit Partner</h3>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="edit-partner-form">
+            <div class="form-group">
+              <label for="partner-name">Name</label>
+              <input type="text" id="partner-name" value="${partner.name || ''}" required>
+            </div>
+            <div class="form-group">
+              <label for="partner-email">Email</label>
+              <input type="email" id="partner-email" value="${partner.email || ''}" required>
+            </div>
+            <div class="form-group">
+              <label for="partner-tier">Tier</label>
+              <select id="partner-tier">
+                <option value="bronze" ${partner.tier === 'bronze' ? 'selected' : ''}>Bronze</option>
+                <option value="silver" ${partner.tier === 'silver' ? 'selected' : ''}>Silver</option>
+                <option value="gold" ${partner.tier === 'gold' ? 'selected' : ''}>Gold</option>
+                <option value="platinum" ${partner.tier === 'platinum' ? 'selected' : ''}>Platinum</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="partner-commission">Commission Rate (%)</label>
+              <input type="number" id="partner-commission" value="${partner.commission || 0}" min="0" max="100" step="0.1">
+            </div>
+            <div class="form-group">
+              <label for="partner-status">Status</label>
+              <select id="partner-status">
+                <option value="active" ${partner.status === 'active' ? 'selected' : ''}>Active</option>
+                <option value="inactive" ${partner.status === 'inactive' ? 'selected' : ''}>Inactive</option>
+                <option value="suspended" ${partner.status === 'suspended' ? 'selected' : ''}>Suspended</option>
+              </select>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+          <button type="button" class="btn btn-primary modal-save">Save Changes</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Handle modal events
+    const closeModal = () => {
+      document.body.removeChild(modal);
+    };
+
+    modal.querySelector('.modal-close').addEventListener('click', closeModal);
+    modal.querySelector('.modal-cancel').addEventListener('click', closeModal);
+    
+    modal.querySelector('.modal-save').addEventListener('click', async () => {
+      const formData = {
+        name: document.getElementById('partner-name').value,
+        email: document.getElementById('partner-email').value,
+        tier: document.getElementById('partner-tier').value,
+        commission: parseFloat(document.getElementById('partner-commission').value),
+        status: document.getElementById('partner-status').value
+      };
+
+      try {
+        await this.fetchAPI(`/api/admin/partners/${partnerId}`, {
+          method: 'PUT',
+          body: JSON.stringify(formData)
+        });
+        
+        this.showToast('Partner updated successfully', 'success');
+        closeModal();
+        this.refreshPartners();
+      } catch (error) {
+        this.showToast('Failed to update partner', 'error');
+        console.error('Error updating partner:', error);
+      }
+    });
+
+    // Close on outside click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+  }
+
+  showEditCosmeticModal(cosmeticId) {
+    // Find cosmetic data
+    const cosmetics = this.cosmeticsData || [];
+    const cosmetic = cosmetics.find(c => c.id == cosmeticId);
+    
+    if (!cosmetic) {
+      this.showToast('Cosmetic not found', 'error');
+      return;
+    }
+
+    // Create modal HTML
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Edit Cosmetic</h3>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="edit-cosmetic-form">
+            <div class="form-group">
+              <label for="cosmetic-name">Name</label>
+              <input type="text" id="cosmetic-name" value="${cosmetic.name || ''}" required>
+            </div>
+            <div class="form-group">
+              <label for="cosmetic-type">Type</label>
+              <select id="cosmetic-type">
+                <option value="chip-set" ${cosmetic.type === 'chip-set' ? 'selected' : ''}>Chip Set</option>
+                <option value="cardback" ${cosmetic.type === 'cardback' ? 'selected' : ''}>Card Back</option>
+                <option value="table" ${cosmetic.type === 'table' ? 'selected' : ''}>Table</option>
+                <option value="avatar" ${cosmetic.type === 'avatar' ? 'selected' : ''}>Avatar</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="cosmetic-price">Price (AIC)</label>
+              <input type="number" id="cosmetic-price" value="${cosmetic.price || 0}" min="0" required>
+            </div>
+            <div class="form-group">
+              <label for="cosmetic-rarity">Rarity</label>
+              <select id="cosmetic-rarity">
+                <option value="common" ${cosmetic.rarity === 'common' ? 'selected' : ''}>Common</option>
+                <option value="rare" ${cosmetic.rarity === 'rare' ? 'selected' : ''}>Rare</option>
+                <option value="epic" ${cosmetic.rarity === 'epic' ? 'selected' : ''}>Epic</option>
+                <option value="legendary" ${cosmetic.rarity === 'legendary' ? 'selected' : ''}>Legendary</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="cosmetic-status">Status</label>
+              <select id="cosmetic-status">
+                <option value="active" ${cosmetic.status === 'active' ? 'selected' : ''}>Active</option>
+                <option value="inactive" ${cosmetic.status === 'inactive' ? 'selected' : ''}>Inactive</option>
+                <option value="draft" ${cosmetic.status === 'draft' ? 'selected' : ''}>Draft</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="cosmetic-set-bonus">Set Bonus</label>
+              <input type="text" id="cosmetic-set-bonus" value="${cosmetic.setBonus || ''}" placeholder="e.g., +5% XP, +10% AIC">
+            </div>
+            <div class="form-group">
+              <label for="cosmetic-description">Description</label>
+              <textarea id="cosmetic-description" rows="3">${cosmetic.description || ''}</textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+          <button type="button" class="btn btn-primary modal-save">Save Changes</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Handle modal events
+    const closeModal = () => {
+      document.body.removeChild(modal);
+    };
+
+    modal.querySelector('.modal-close').addEventListener('click', closeModal);
+    modal.querySelector('.modal-cancel').addEventListener('click', closeModal);
+    
+    modal.querySelector('.modal-save').addEventListener('click', async () => {
+      const formData = {
+        name: document.getElementById('cosmetic-name').value,
+        type: document.getElementById('cosmetic-type').value,
+        price: parseInt(document.getElementById('cosmetic-price').value),
+        rarity: document.getElementById('cosmetic-rarity').value,
+        status: document.getElementById('cosmetic-status').value,
+        setBonus: document.getElementById('cosmetic-set-bonus').value,
+        description: document.getElementById('cosmetic-description').value
+      };
+
+      try {
+        await this.fetchAPI(`/api/admin/cosmetics/${cosmeticId}`, {
+          method: 'PUT',
+          body: JSON.stringify(formData)
+        });
+        
+        this.showToast('Cosmetic updated successfully', 'success');
+        closeModal();
+        this.refreshCosmetics();
+      } catch (error) {
+        this.showToast('Failed to update cosmetic', 'error');
+        console.error('Error updating cosmetic:', error);
+      }
+    });
+
+    // Close on outside click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+  }
+
+  showEditUserModal(userId) {
+    // Find user data
+    const users = this.usersData || [];
+    const user = users.find(u => u.login === userId || u.id == userId);
+    
+    if (!user) {
+      this.showToast('User not found', 'error');
+      return;
+    }
+
+    // Create modal HTML
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Edit User</h3>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="edit-user-form">
+            <div class="form-group">
+              <label for="user-login">Username</label>
+              <input type="text" id="user-login" value="${user.login || ''}" readonly>
+            </div>
+            <div class="form-group">
+              <label for="user-role">Role</label>
+              <select id="user-role">
+                <option value="player" ${user.role === 'player' ? 'selected' : ''}>Player</option>
+                <option value="streamer" ${user.role === 'streamer' ? 'selected' : ''}>Streamer</option>
+                <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                <option value="dev" ${user.role === 'dev' ? 'selected' : ''}>Developer</option>
+                <option value="owner" ${user.role === 'owner' ? 'selected' : ''}>Owner</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="user-balance">Balance (AIC)</label>
+              <input type="number" id="user-balance" value="${user.balance || 1000}" min="0" required>
+            </div>
+            <div class="form-group">
+              <label for="user-status">Status</label>
+              <select id="user-status">
+                <option value="active" ${user.status === 'active' ? 'selected' : ''}>Active</option>
+                <option value="inactive" ${user.status === 'inactive' ? 'selected' : ''}>Inactive</option>
+                <option value="banned" ${user.status === 'banned' ? 'selected' : ''}>Banned</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="user-twitch-linked">Twitch Linked</label>
+              <select id="user-twitch-linked">
+                <option value="true" ${user.twitchLinked === true ? 'selected' : ''}>Yes</option>
+                <option value="false" ${user.twitchLinked === false ? 'selected' : ''}>No</option>
+              </select>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+          <button type="button" class="btn btn-primary modal-save">Save Changes</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Handle modal events
+    const closeModal = () => {
+      document.body.removeChild(modal);
+    };
+
+    modal.querySelector('.modal-close').addEventListener('click', closeModal);
+    modal.querySelector('.modal-cancel').addEventListener('click', closeModal);
+    
+    modal.querySelector('.modal-save').addEventListener('click', async () => {
+      const formData = {
+        role: document.getElementById('user-role').value,
+        balance: parseInt(document.getElementById('user-balance').value),
+        status: document.getElementById('user-status').value,
+        twitchLinked: document.getElementById('user-twitch-linked').value === 'true'
+      };
+
+      try {
+        await this.fetchAPI(`/api/admin/users/${user.login}`, {
+          method: 'PUT',
+          body: JSON.stringify(formData)
+        });
+        
+        this.showToast('User updated successfully', 'success');
+        closeModal();
+        this.refreshUsers();
+      } catch (error) {
+        this.showToast('Failed to update user', 'error');
+        console.error('Error updating user:', error);
+      }
+    });
+
+    // Close on outside click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
   }
 
   adjustPlayerBalance(username) {

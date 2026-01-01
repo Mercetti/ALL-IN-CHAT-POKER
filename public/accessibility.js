@@ -524,7 +524,6 @@ if (document.readyState === 'loading') {
   accessibilityManager.enhancePage();
 }
 
-module.exports = {
-  AccessibilityManager,
-  accessibilityManager
-};
+// Make available globally for browser usage
+window.AccessibilityManager = AccessibilityManager;
+window.accessibilityManager = accessibilityManager;
