@@ -105,21 +105,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // If already signed in, skip login page
   async function autoRedirectIfSignedIn() {
+    console.log('🔍 autoRedirectIfSignedIn called');
     const existing = getUserToken && getUserToken();
     const existingLogin = decodeLoginFromToken(existing);
+    console.log('🔍 autoRedirectIfSignedIn:', { existing: !!existing, existingLogin });
     if (!existing) return;
     try {
       // Try to fetch link/status to infer role; if it fails, fall back to desiredRole
       const status = await apiCall('/auth/link/status', { useUserToken: true, noAuthBounce: true });
       const role = (status?.role || '').toLowerCase();
+      console.log('🔍 autoRedirectIfSignedIn: status fetched, redirecting');
       redirectAfterLogin(role || desiredRole, existingLogin);
     } catch (err) {
+      console.log('🔍 autoRedirectIfSignedIn: status failed, using desiredRole');
       redirectAfterLogin(desiredRole, existingLogin);
     }
   }
 
   function redirectAfterLogin(roleHint = 'player', loginHint = '') {
+    console.log('🔍 redirectAfterLogin called:', { roleHint, loginHint, redirectTarget, desiredRole });
     if (redirectTarget) {
+      console.log('🔍 Redirecting to redirectTarget:', redirectTarget);
       window.location.href = redirectTarget;
       return;
     }
@@ -129,19 +135,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const isAdminRole = role === 'streamer' || role === 'admin';
     const loginLower = (loginHint || '').toLowerCase();
     if (loginLower === 'mercetti') {
+      console.log('🔍 Redirecting mercetti to admin-enhanced.html');
       window.location.href = '/admin-enhanced.html';
       return;
     }
     if (isAdminRole || wantsAdmin) {
       const isDev = role === 'admin' || loginLower === 'mercetti';
+      console.log('🔍 Redirecting admin/streamer to admin-enhanced.html');
       window.location.href = isDev ? '/admin-enhanced.html' : '/admin-enhanced.html';
     } else {
+      console.log('🔍 Redirecting player to profile-enhanced.html');
       window.location.href = '/profile-enhanced.html';
     }
   }
 
   // If user already has a token, skip the login UI
-  autoRedirectIfSignedIn();
+  // But don't auto-redirect if we have a return URL (let OAuth flow handle it)
+  if (!redirectTarget) {
+    autoRedirectIfSignedIn();
+  }
 
   // Twitch login button
   twitchLoginBtn.addEventListener('click', async () => {
@@ -225,7 +237,13 @@ document.addEventListener('DOMContentLoaded', () => {
       
       if (result.token) {
         setUserToken(result.token);
+        // Also set a cookie for server-side authentication
+        const cookieValue = `user_jwt=${result.token}; path=/; max-age=${24 * 60 * 60}; samesite=strict`;
+        document.cookie = cookieValue;
+        console.log('🔍 Setting cookie:', cookieValue);
+        console.log('🔍 Cookie after setting:', document.cookie);
         Toast.success(`Signed in as ${result.login}`);
+        // Give cookie time to set before redirect
         setTimeout(() => {
           // Bot or streamer can hop straight to admin, others to overlay
           const login = (result.login || '').toLowerCase();
@@ -237,7 +255,10 @@ document.addEventListener('DOMContentLoaded', () => {
             (login === (twitchConfig.streamerLogin || '').toLowerCase() ||
               login === (twitchConfig.botAdminLogin || '').toLowerCase());
 
+          console.log('🔍 Redirect logic:', { login, role, isAdminRole, isConfiguredAdmin, desiredRole });
+
           const goAdmin = async () => {
+            console.log('🔍 Going to admin panel...');
             if (!isAdminRole && !isConfiguredAdmin && desiredRole === 'streamer') {
               try {
                 await apiCall('/user/role', {
@@ -248,10 +269,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.warn('Streamer role set failed', e);
               }
             }
+            console.log('🔍 Redirecting to /admin-enhanced.html');
             window.location.href = '/admin-enhanced.html';
           };
 
           const goPlayer = () => {
+            console.log('🔍 Going to player profile...');
             window.location.href = '/profile-enhanced.html';
           };
 
@@ -261,7 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
           goPlayer();
-        }, 300);
+        }, 1000); // Increased timeout for cookie setting
       } else {
         console.error('🔍 No token in /user/login response:', result);
         Toast.error('Twitch sign-in failed: No token received');

@@ -260,6 +260,22 @@ function requireAdminOrRole(roles = []) {
  * @returns {string|null}
  */
 function extractUserLogin(req) {
+  // Check for user JWT cookie first (for server-side page access)
+  const cookie = getHeader(req, 'cookie');
+  if (cookie) {
+    const match = cookie.match(/\buser_jwt=([^;]+)/);
+    if (match) {
+      try {
+        const decoded = verifyJwtWithOptionalAudience(match[1], 'user');
+        if (decoded && decoded.user) {
+          return decoded.user;
+        }
+      } catch (e) {
+        logger.debug('User JWT verification failed (cookie)', { error: e.message });
+      }
+    }
+  }
+
   // Socket.IO auth payload: { token }
   if (req && req.auth && typeof req.auth.token === 'string') {
     try {
