@@ -977,7 +977,7 @@ async function saveProfile() {
 }
 
 function viewProfile(login) {
-  window.location.href = `/profile.html?user=${login}`;
+  window.location.href = `/profile-enhanced.html?user=${login}`;
 }
 
 async function deleteAudit(id) {

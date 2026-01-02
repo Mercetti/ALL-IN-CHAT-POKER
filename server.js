@@ -3067,7 +3067,6 @@ app.use(aiSelfHealing.middleware());
 // Authentication middleware for protected pages
 app.use((req, res, next) => {
   const protectedPaths = [
-    // '/store-enhanced.html', // Temporarily removed for testing
     '/overlay-editor-enhanced.html', 
     '/admin-enhanced.html',
     '/setup-enhanced.html',

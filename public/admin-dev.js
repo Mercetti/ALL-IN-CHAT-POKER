@@ -465,7 +465,7 @@ async function loadPartnerSnapshot(opts = {}) {
         const goalCount = Object.values(goals).filter(g => (g.pass === undefined ? !!g : g.pass)).length;
         const win30 = r.windows?.win30 || {};
         const channel = r.channel || '';
-        const profileHref = channel ? `/profile.html?user=${encodeURIComponent(channel)}` : '#';
+        const profileHref = channel ? `/profile-enhanced.html?user=${encodeURIComponent(channel)}` : '#';
         return `
           <tr>
             <td>${channel || '-'}</td>
@@ -633,7 +633,7 @@ async function addTestBots() {
 function goToProfile(viewOnly = false) {
   const login = (el('profile-search-login')?.value || '').trim().toLowerCase();
   if (!login) return Toast.error('Enter a username');
-  const url = `/profile.html?user=${encodeURIComponent(login)}${viewOnly ? '&view=1' : ''}`;
+  const url = `/profile-enhanced.html?user=${encodeURIComponent(login)}${viewOnly ? '&view=1' : ''}`;
   window.open(url, '_blank', 'noopener');
 }
 

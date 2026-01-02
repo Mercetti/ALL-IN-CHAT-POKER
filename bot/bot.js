@@ -430,7 +430,7 @@ function startDiscordBot() {
     const { commandName } = interaction;
     if (commandName === 'ping') return interaction.reply({ content: 'Pong!', ephemeral: true });
     if (commandName === 'status') {
-      const msg = `Overlay: ${BACKEND_URL}/obs-overlay.html | Admin: ${BACKEND_URL}/admin2.html | Editor: ${BACKEND_URL}/overlay-editor.html`;
+      const msg = `Overlay: ${BACKEND_URL}/obs-overlay.html | Admin: ${BACKEND_URL}/admin2.html | Editor: ${BACKEND_URL}/overlay-editor-enhanced.html`;
       return interaction.reply({ content: msg, ephemeral: true });
     }
     if (commandName === 'help') {
@@ -569,7 +569,7 @@ function startDiscordBot() {
       try {
         const profile = await callAdminJson(`/admin/profile/${encodeURIComponent(login)}`);
         const label = profile?.display_name || profile?.login || login;
-        const link = `${BACKEND_URL}/profile.html?user=${encodeURIComponent(login)}`;
+        const link = `${BACKEND_URL}/profile-enhanced.html?user=${encodeURIComponent(login)}`;
         const text = `Profile: ${label}\nBalance: ${profile?.chips || profile?.balance || 'n/a'}\nLink: ${link}`;
         await interaction.reply({ content: text, ephemeral: true });
       } catch (err) {
@@ -603,7 +603,7 @@ function startDiscordBot() {
       return msg.reply('Join from Twitch chat with !join or !bet <amount>. Need rules? Try !rules poker or blackjack in chat.');
     }
     if (/status|overlay|admin/.test(lower)) {
-      return msg.reply(`Overlay: ${BACKEND_URL}/obs-overlay.html | Admin: ${BACKEND_URL}/admin2.html | Editor: ${BACKEND_URL}/overlay-editor.html`);
+      return msg.reply(`Overlay: ${BACKEND_URL}/obs-overlay.html | Admin: ${BACKEND_URL}/admin2.html | Editor: ${BACKEND_URL}/overlay-editor-enhanced.html`);
     }
     if (/study|homework|test|exam/.test(lower)) {
       return msg.reply(pick(quips.studyTips));

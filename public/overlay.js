@@ -1,5 +1,59 @@
-﻿import { getSocketUrl, isEventForChannel } from './js/overlay/overlay-config.js';
+﻿import {
+  getSocketUrl,
+  isEventForChannel,
+  CARD_FLIP_META,
+} from './js/overlay/overlay-config.js';
 import { createOverlayConnection } from './js/overlay/overlay-connection.js';
+import {
+  overlayState,
+  getOverlayPlayers,
+  setOverlayPlayers,
+  mergeOverlayPlayer,
+  getSelectedHeld,
+  resetSelectedHeld,
+  toggleHeldIndex,
+  setUserLogin,
+  setStreamerLogin,
+  setOverlayMode,
+  setCurrentPhase,
+  setCurrentDealerHand,
+  setPlayerBalances,
+  setMinBet,
+  setPotGlowMultiplier,
+  setOverlayTuning,
+  setOverlayFx,
+  setAllInFrames,
+  setCatalogCache,
+  getCatalogCache,
+  setLoadoutApplied,
+  setIsMultiStream,
+} from './js/overlay/overlay-state.js';
+import {
+  updateUI,
+  renderPlayerHands,
+  renderDealerHand,
+  renderCommunityCards,
+  renderPot,
+  renderQueue,
+  startCountdown,
+  startPlayerActionTimer,
+  startPerPlayerTimers,
+  highlightPlayer,
+  displayResult,
+  updatePhaseUI,
+  updateProfile,
+  updateActionButtons,
+  setPhaseLabel,
+  setModeBadge,
+  triggerFoldEffect,
+  triggerAllInEffect,
+  playWinEffect,
+  applyVisualSettings,
+  setFlipAssets,
+  setDealAssets,
+  setWinAssets,
+  registerActionButtons,
+} from './js/overlay/overlay-render.js';
 
 /**
  * Overlay client with Socket.IO integration
@@ -35,6 +89,7 @@ function formatTimeRemaining(endsAt) {
 const SOCKET_URL = getSocketUrl();
 let overlayChannel = typeof getChannelParam === 'function' ? getChannelParam() : '';
 const isMultiStream = overlayChannel && overlayChannel.toLowerCase().startsWith('lobby-');
+setIsMultiStream(isMultiStream);
 const eventMatchesChannel = (payload) => isEventForChannel(overlayChannel, payload);
 const authToken = (typeof window !== 'undefined' && window.__USER_TOKEN__) || (typeof getUserToken === 'function' ? getUserToken() : null);
 
@@ -43,37 +98,6 @@ const { socket } = createOverlayConnection({
   token: authToken,
   onConnectionState: (state) => setConnection(state),
 });
-
-let currentPhase = 'waiting';
-let selectedHeld = new Set();
-let userLogin = null;
-let countdownTimer = null;
-let countdownEndsAt = null;
-let playerActionTimer = null;
-const playerTimers = {};
-let overlayPlayers = [];
-let currentDealerHand = [];
-let overlayMode = 'blackjack';
-let streamerLogin = '';
-let previousCardCounts = new Map();
-let playerBalances = {};
-let currentPot = 0;
-let minBet = 10;
-let potGlowMultiplier = 5;
-let overlayTuning = {
-  dealDelayBase: 0.18,
-  dealDelayPerCard: 0.08,
-  chipVolume: 0.16,
-  potGlowMultiplier: 0,
-  cardBackVariant: 'default',
-  cardBackTint: null,
-  cardBackImage: null,
-  avatarRingColor: null,
-  profileCardBorder: null,
-  tableTint: null,
-  tableLogoColor: null,
-  tableTexture: null,
-};
 
 function normalizeSuitName(raw = '') {
   const s = (raw || '').toString().toLowerCase();
@@ -181,6 +205,7 @@ let flipSprite = null;
 let flipMeta = null;
 const CARD_FLIP_META = '/assets/cosmetics/effects/deals/face-up/card_flip_animation.json';
 let effectsMeta = null;
+let effectsMetaPromise = null;
 let winSprite = null;
 let winMeta = null;
 let dealSprite = null;
@@ -189,51 +214,76 @@ let overlayFx = { dealFx: 'card_deal_24', winFx: 'win_burst_6' };
 let allInFrames = 6;
 let loadoutApplied = false;
 let catalogCache = null;
+let allInSpritePromise = null;
 
-async function loadAllInSprite() {
-  const img = await loadImageCached(ALL_IN_EFFECT_SPRITE);
-  if (img && img.naturalHeight) {
-    const frames = Math.max(1, Math.round(img.naturalWidth / img.naturalHeight));
-    allInFrames = frames;
-    document.querySelectorAll('.all-in-effect').forEach(el => {
-      el.style.setProperty('--allin-frames', frames);
-    });
-  }
+async function ensureEffectsMetaLoaded() {
+  if (effectsMeta) return effectsMeta;
+  if (effectsMetaPromise) return effectsMetaPromise;
+  effectsMetaPromise = (async () => {
+    try {
+      const res = await fetch('/assets/cosmetics/effects/meta.json');
+      if (res.ok) {
+        effectsMeta = await res.json();
+        window.__EFFECTS_META__ = effectsMeta;
+      }
+    } catch (e) {
+      console.warn('[overlay] failed to load effects meta', e);
+    }
+    return effectsMeta;
+  })();
+  return effectsMetaPromise;
+}
+
+async function ensureAllInSpriteLoaded() {
+  if (allInSpritePromise || allInFrames !== 6) return allInSpritePromise;
+  allInSpritePromise = (async () => {
+    const img = await loadImageCached(ALL_IN_EFFECT_SPRITE);
+    if (img && img.naturalHeight) {
+      const frames = Math.max(1, Math.round(img.naturalWidth / img.naturalHeight));
+      allInFrames = frames;
+      document.querySelectorAll('.all-in-effect').forEach(el => {
+        el.style.setProperty('--allin-frames', frames);
+      });
+    }
+  })();
+  return allInSpritePromise;
 }
 
 async function loadPublicConfig() {
   try {
     const res = await fetch('/public-config.json');
-    if (res.ok) {
-      const cfg = await res.json();
-      streamerLogin = (cfg.streamerLogin || '').toLowerCase();
-    if (typeof cfg.minBet === 'number') minBet = cfg.minBet;
+    if (!res.ok) return;
+    const cfg = await res.json();
+    setStreamerLogin((cfg.streamerLogin || '').toLowerCase());
+    if (typeof cfg.minBet === 'number') setMinBet(cfg.minBet);
     if (typeof cfg.potGlowMultiplier === 'number') {
-      potGlowMultiplier = cfg.potGlowMultiplier;
-      overlayTuning.potGlowMultiplier = cfg.potGlowMultiplier;
+      setPotGlowMultiplier(cfg.potGlowMultiplier);
+      setOverlayTuning({ potGlowMultiplier: cfg.potGlowMultiplier });
     }
     updateUserBadge();
+  } catch (e) {
+    // ignore
   }
-} catch (e) {
-  // ignore
-}
 }
 loadPublicConfig();
 loadBalances();
-loadEffectsMeta();
-loadAllInSprite();
+scheduleOverlayAssetWarmup();
 
-async function loadEffectsMeta() {
-  try {
-    const res = await fetch('/assets/cosmetics/effects/meta.json');
-    if (res.ok) {
-      effectsMeta = await res.json();
-      window.__EFFECTS_META__ = effectsMeta;
-      loadWinSprite();
-      loadDealSprite();
-    }
-  } catch (e) {
-    // ignore
+function scheduleOverlayAssetWarmup() {
+  const kickoff = () => {
+    ensureEffectsMetaLoaded()
+      .then(() => {
+        loadWinSprite();
+        loadDealSprite();
+        loadFlipSprite();
+      })
+      .catch(() => {});
+    ensureAllInSpriteLoaded();
+  };
+  if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
+    window.requestIdleCallback(kickoff, { timeout: 1500 });
+  } else {
+    setTimeout(kickoff, 400);
   }
 }
 
@@ -258,9 +308,6 @@ async function loadFlipSprite() {
     // ignore sprite load failures
   }
 }
-loadFlipSprite();
-loadWinSprite();
-loadDealSprite();
 
 function loadFxChoice() {
   try {
@@ -272,8 +319,6 @@ function loadFxChoice() {
   }
 }
 loadFxChoice();
-loadWinSprite(overlayFx.winFx);
-loadDealSprite(overlayFx.dealFx);
 loadOverlayLoadout();
 
 async function fetchCatalogForLoadout() {
@@ -347,8 +392,6 @@ async function loadOverlayLoadout() {
     }
     if (mapped.fx && Object.keys(mapped.fx).length) {
       overlayFx = { ...overlayFx, ...mapped.fx };
-      loadDealSprite(overlayFx.dealFx);
-      loadWinSprite(overlayFx.winFx);
     }
     loadoutApplied = true;
   } catch (err) {
@@ -358,16 +401,18 @@ async function loadOverlayLoadout() {
 
 async function loadWinSprite(key) {
   try {
+    const metaData = await ensureEffectsMetaLoaded();
     const fxKey = key || overlayFx.winFx || 'win_burst_6';
-    const meta = effectsMeta?.animations?.[fxKey] || effectsMeta?.animations?.win_burst_6 || null;
+    const meta = metaData?.animations?.[fxKey] || metaData?.animations?.win_burst_6 || null;
     if (!meta) return;
-      const spritePath = meta.image
-        ? (meta.image.startsWith('http') ? meta.image : `/assets/cosmetics/effects/win/${meta.image}`)
-        : '/assets/cosmetics/effects/win/AllInChatPoker_Glitch_24Frames_1024x1024_Horizontal_FIXED.png';
+    const spritePath = meta.image
+      ? (meta.image.startsWith('http') ? meta.image : `/assets/cosmetics/effects/win/${meta.image}`)
+      : '/assets/cosmetics/effects/win/AllInChatPoker_Glitch_24Frames_1024x1024_Horizontal_FIXED.png';
     const img = await loadImageCached(spritePath);
     if (img) {
       winSprite = img;
       winMeta = meta;
+      setWinAssets({ sprite: winSprite, meta: winMeta });
     }
   } catch (e) {
     // ignore
@@ -376,16 +421,18 @@ async function loadWinSprite(key) {
 
 async function loadDealSprite(key) {
   try {
+    const metaData = await ensureEffectsMetaLoaded();
     const fxKey = key || overlayFx.dealFx || 'card_deal_24';
-    const meta = effectsMeta?.animations?.[fxKey] || effectsMeta?.animations?.card_deal_24 || null;
+    const meta = metaData?.animations?.[fxKey] || metaData?.animations?.card_deal_24 || null;
     if (!meta) return;
-      const spritePath = meta.image
-        ? (meta.image.startsWith('http') ? meta.image : `/assets/cosmetics/effects/deals/face-down/${meta.image}`)
-        : '/assets/cosmetics/effects/deals/face-down/horizontal_transparent_sheet.png';
+    const spritePath = meta.image
+      ? (meta.image.startsWith('http') ? meta.image : `/assets/cosmetics/effects/deals/face-down/${meta.image}`)
+      : '/assets/cosmetics/effects/deals/face-down/horizontal_transparent_sheet.png';
     const img = await loadImageCached(spritePath);
     if (img) {
       dealSprite = img;
       dealMeta = meta;
+      setDealAssets({ sprite: dealSprite, meta: dealMeta });
     }
   } catch (e) {
     // ignore
@@ -399,15 +446,17 @@ async function loadBalances() {
     const data = await res.json();
     if (data && typeof data === 'object') {
       // Check for balance changes and announce
-      if (accessibilityManager && playerBalances && userLogin) {
-        const oldBalance = playerBalances[userLogin] || 0;
-        const newBalance = data[userLogin] || 0;
+      const currentLogin = overlayState.userLogin;
+      const existingBalances = overlayState.playerBalances || {};
+      if (accessibilityManager && currentLogin) {
+        const oldBalance = existingBalances[currentLogin] || 0;
+        const newBalance = data[currentLogin] || 0;
         if (oldBalance !== newBalance) {
           const change = newBalance - oldBalance;
           accessibilityManager.announceBalanceChange(newBalance, change);
         }
       }
-      playerBalances = data;
+      setPlayerBalances(data);
     }
   } catch (e) {
     // ignore
@@ -436,11 +485,12 @@ function updateUserBadge() {
   const streamerBtn = document.getElementById('streamer-btn');
   const token = typeof getUserToken === 'function' ? getUserToken() : null;
   const login = decodeLoginFromJwt(token);
-  userLogin = login || null;
-  const isStreamer = login && streamerLogin && login.toLowerCase() === streamerLogin;
+  setUserLogin(login || null);
+  const currentLogin = overlayState.userLogin;
+  const isStreamer = currentLogin && overlayState.streamerLogin && currentLogin.toLowerCase() === overlayState.streamerLogin;
 
-  if (login) {
-    pill.textContent = `Signed in as ${login}`;
+  if (currentLogin) {
+    pill.textContent = `Signed in as ${currentLogin}`;
     pill.classList.remove('badge-secondary');
     pill.classList.add('badge-success');
     if (logoutBtn) logoutBtn.style.display = 'inline-flex';
@@ -527,11 +577,11 @@ socket.on('state', (data) => {
   if (!isEventForChannel(data)) return;
   console.log('State received:', data);
   updateUI(data);
-  overlayPlayers = data.players || [];
-  overlayMode = data.mode || overlayMode;
-  currentDealerHand = data.dealerHand || currentDealerHand;
-  if (data.phase) currentPhase = data.phase;
-  renderPlayerHands(overlayPlayers);
+  setOverlayPlayers(data.players || []);
+  setOverlayMode(data.mode || overlayState.overlayMode);
+  setCurrentDealerHand(data.dealerHand || overlayState.currentDealerHand);
+  if (data.phase) setCurrentPhase(data.phase);
+  renderPlayerHands(getOverlayPlayers());
   if (data.mode) setModeBadge(data.mode);
   renderPot(data);
   updateActionButtons();
@@ -565,13 +615,13 @@ socket.on('roundStarted', (data) => {
     // ignore
   }
   console.log('Round started:', data);
-  currentPhase = 'dealing';
-  currentDealerHand = data.dealerHand || [];
-  overlayPlayers = data.players || [];
-  overlayMode = data.mode || overlayMode;
-  renderDealerHand(currentDealerHand);
+  setCurrentPhase('dealing');
+  setCurrentDealerHand(data.dealerHand || []);
+  setOverlayPlayers(data.players || []);
+  setOverlayMode(data.mode || overlayState.overlayMode);
+  renderDealerHand(overlayState.currentDealerHand);
   renderCommunityCards(data.community || []);
-  renderPlayerHands(overlayPlayers);
+  renderPlayerHands(getOverlayPlayers());
   renderPot(data);
   updatePhaseUI('Dealing Cards');
   startCountdown(data.actionEndsAt || null);
@@ -596,35 +646,35 @@ socket.on('roundStarted', (data) => {
 socket.on('bettingStarted', (data) => {
   if (!isEventForChannel(data)) return;
   console.log('Betting started');
-  
+
   // Show loading state for betting phase
   if (window.loadingManager) {
     window.loadingManager.startLoading('betting', 'Betting phase active...');
   }
-  
-  currentPhase = 'betting';
+
+  setCurrentPhase('betting');
   updatePhaseUI('Place Your Bets');
-  renderPlayerHands(overlayPlayers);
+  renderPlayerHands(getOverlayPlayers());
   renderPot(data);
 });
 
 socket.on('roundResult', (data) => {
   if (!isEventForChannel(data)) return;
   console.log('Round result:', data);
-  
+
   // Stop betting loading state, start result loading
   if (window.loadingManager) {
     window.loadingManager.stopLoading('betting');
     window.loadingManager.startLoading('result', 'Processing results...');
   }
-  
-  currentPhase = 'result';
-  currentDealerHand = data.dealerHand || [];
-  overlayPlayers = data.players || [];
+
+  setCurrentPhase('result');
+  setCurrentDealerHand(data.dealerHand || []);
+  setOverlayPlayers(data.players || []);
   loadBalances();
-  renderDealerHand(currentDealerHand);
+  renderDealerHand(overlayState.currentDealerHand);
   renderCommunityCards(data.community || []);
-  renderPlayerHands(overlayPlayers);
+  renderPlayerHands(getOverlayPlayers());
   renderPot(data);
   displayResult(data);
   updatePhaseUI('Round Complete');
@@ -635,7 +685,7 @@ socket.on('roundResult', (data) => {
   const insuranceBanner = document.getElementById('insurance-banner');
   if (insuranceBanner) insuranceBanner.style.display = 'none';
   updateActionButtons();
-  
+
   // Accessibility announcements for results
   if (accessibilityManager && data.evaluation) {
     const handName = data.evaluation.name || 'No Winner';
@@ -717,13 +767,16 @@ socket.on('pokerBetting', (data) => {
     betEl.textContent = betVal.toLocaleString?.() || betVal;
     betEl.title = 'Current street bet to call';
   }
-  if (Array.isArray(overlayPlayers)) {
-    overlayPlayers = overlayPlayers.map(p => ({
+
+  const players = getOverlayPlayers();
+  if (Array.isArray(players) && players.length) {
+    const updated = players.map(p => ({
       ...p,
-      streetBet: (data && data.streetBets && data.streetBets[p.login]) || p.streetBet || 0,
-      bet: (data && data.totalBets && data.totalBets[p.login]) || p.bet || 0,
+      streetBet: (data?.streetBets && data.streetBets[p.login]) || p.streetBet || 0,
+      bet: (data?.totalBets && data.totalBets[p.login]) || p.bet || 0,
     }));
-    renderPlayerHands(overlayPlayers);
+    setOverlayPlayers(updated);
+    renderPlayerHands(updated);
     renderPot(data);
   }
 });
@@ -731,24 +784,10 @@ socket.on('pokerBetting', (data) => {
 socket.on('playerUpdate', (data) => {
   if (!isEventForChannel(data)) return;
   if (!data || !data.login) return;
-  const idx = overlayPlayers.findIndex(p => p.login === data.login);
-  if (idx !== -1) {
-    overlayPlayers[idx] = { ...overlayPlayers[idx], ...data };
-    // Update cosmetics if provided
-    if (data.cosmetics) {
-      overlayPlayers[idx].cosmetics = data.cosmetics;
-    }
-  } else {
-    overlayPlayers.push(data);
-  }
-  renderPlayerHands(overlayPlayers);
+  mergeOverlayPlayer(data);
+  renderPlayerHands(getOverlayPlayers());
   renderPot();
   updateActionButtons();
-  
-  // Update table skin if cosmetics changed and this is the streamer
-  if (data.cosmetics && data.login && data.login.toLowerCase() === streamerLogin) {
-    updateTableSkinFromPlayers([data]);
-  }
 });
 
 socket.on('error', (err) => {
@@ -765,485 +804,6 @@ window.addEventListener('message', (event) => {
     kickoffDealCanvases(true);
   }
 });
-
-// UI Functions
-function updateUI(data) {
-  const container = document.getElementById('player-hands');
-  if (container) container.innerHTML = '';
-  selectedHeld.clear();
-  updatePhaseUI('Waiting for round');
-
-  const resultDisplay = document.getElementById('result-display');
-  if (resultDisplay) resultDisplay.style.display = 'none';
-}
-
-function renderPlayerHands(players) {
-  const container = document.getElementById('player-hands');
-  if (!container) return;
-  container.innerHTML = '';
-  if (!Array.isArray(players)) return;
-  const isRevealPhase = ['result', 'showdown', 'reveal'].includes((currentPhase || '').toLowerCase());
-
-  updateTableSkinFromPlayers(players);
-
-  players.forEach((player, playerIdx) => {
-    const hand = player.hand || [];
-    const totalCards = player.hands && Array.isArray(player.hands)
-      ? player.hands.reduce((sum, h) => sum + (h ? h.length : 0), 0)
-      : hand.length;
-    const prevTotal = previousCardCounts.get(player.login) || 0;
-    let newRemaining = Math.max(totalCards - prevTotal, 0);
-    const balance = typeof player.balance === 'number' ? player.balance : playerBalances[player.login] || 0;
-    const betAmount = typeof player.bet === 'number' ? player.bet : 0;
-    const showBetStack = currentPhase === 'betting';
-    const streak = typeof player.streak === 'number' ? player.streak : 0;
-    const tilt = typeof player.tilt === 'number' ? player.tilt : 0;
-    const afk = !!player.afk;
-    const isSelf = userLogin && player.login && userLogin.toLowerCase() === player.login.toLowerCase();
-    const cosmetics = player.cosmetics || {};
-
-    const wrapper = document.createElement('div');
-    wrapper.className = 'player-hand';
-    if (player.login) wrapper.dataset.login = player.login;
-    if (cosmetics.avatarRingColor) wrapper.style.setProperty('--avatar-ring', cosmetics.avatarRingColor);
-    else wrapper.style.removeProperty('--avatar-ring');
-    if (cosmetics.avatarRingImage) wrapper.style.setProperty('--avatar-ring-img', `url('${cosmetics.avatarRingImage}')`);
-    else wrapper.style.removeProperty('--avatar-ring-img');
-    if (cosmetics.profileCardBorder) wrapper.style.setProperty('--profile-card-border', cosmetics.profileCardBorder);
-    if (streak >= 2) wrapper.classList.add('hot');
-    else if (streak <= -2) wrapper.classList.add('cold');
-    if (tilt >= 2) wrapper.classList.add('tilt');
-    const renderCards = (cards = []) => cards
-      .map((card, idx) => {
-        const isNew = newRemaining > 0 && idx >= cards.length - newRemaining;
-        if (isNew) newRemaining--;
-        const hidden = !isSelf;
-        const seatOffset = (playerIdx - Math.floor(players.length / 2)) * 26;
-        const dealFromY = 220; // dealer/front-center of the table
-        const delay = (playerIdx * (overlayTuning.dealDelayBase || 0.18)) + (idx * (overlayTuning.dealDelayPerCard || 0.08));
-        const rotate = (playerIdx % 2 ? 5 : -5) + idx * 1.5;
-        const styleParts = [];
-        if (isNew) {
-          styleParts.push(`--deal-from-x:${seatOffset}px`, `--deal-from-y:${dealFromY}px`, `--deal-rot:${rotate.toFixed(1)}deg`, `animation-delay:${delay.toFixed(2)}s`);
-        }
-        const tint = cosmetics.cardBackTint || overlayTuning.cardBackTint || null;
-        if (tint) {
-          styleParts.push(`--card-back-tint:${tint}`);
-        }
-        const backImg = cosmetics.cardBackImage || overlayTuning.cardBackImage || DEFAULT_CARD_BACK;
-        if (hidden && backImg) {
-          styleParts.push(`--card-back-img:url('${backImg}')`);
-        }
-        const dealImg = hidden ? DEAL_FACE_DOWN : DEAL_FACE_UP;
-        if (isNew && dealImg) {
-          styleParts.push(`--deal-effect:url('${dealImg}')`);
-        }
-        const faceImg = !hidden ? getCardFaceImage(card.rank, card.suit, cosmetics.cardFaceBase) : null;
-        if (faceImg) {
-          styleParts.push(`--card-face-img:url('${faceImg}')`);
-        }
-        const style = styleParts.length ? `style="${styleParts.join(';')}"` : '';
-        const flipClass = !hidden && isRevealPhase ? 'flip-in' : '';
-        const shouldFlip = !hidden && (isRevealPhase || isNew);
-        const classes = ['card-item'];
-        if (isNew) classes.push('deal-in');
-        if (flipClass) classes.push('flip-in');
-        if (hidden) classes.push('card-back');
-        if (faceImg) classes.push('has-face');
-        return `
-          <div class="${classes.join(' ')}" ${style} data-face-img="${faceImg || ''}" data-back-img="${backImg || ''}" data-should-flip="${shouldFlip ? '1' : '0'}" data-should-deal="${isNew ? '1' : '0'}">
-            <canvas class="deal-canvas" width="140" height="196"></canvas>
-            <canvas class="flip-canvas" width="128" height="180"></canvas>
-            <div class="card-rank">${hidden ? '' : card.rank}</div>
-            <div class="card-suit">${hidden ? '' : card.suit}</div>
-          </div>
-        `;
-      })
-      .join('');
-
-    const splitMarkup = player.hands && Array.isArray(player.hands)
-      ? `
-        <div class="split-hands">
-          ${player.hands.map((h, idx) => `
-            <div class="split-hand ${idx === player.activeHand ? 'active-turn' : ''}">
-              <div class="split-label">Hand ${idx + 1}</div>
-              <div class="cards-grid">${renderCards(h || [])}</div>
-            </div>
-          `).join('')}
-        </div>
-      `
-      : `
-        <div class="cards-grid">
-          ${renderCards(hand)}
-        </div>
-      `;
-
-    const chipStack = renderChipStack(balance);
-    const betStack = showBetStack ? renderBetChips(betAmount) : '';
-    const streakBadge = renderStreakBadge(streak, tilt, afk);
-
-    const ringImg = cosmetics.avatarRingImage;
-    const ringStyle = ringImg ? `style="--avatar-ring-img:url('${ringImg}')"` : '';
-    const avatarSrc = player.avatar || 'https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/default-profile_image.png';
-    wrapper.innerHTML = `
-      <div class="player-header">
-        <div class="player-avatar-wrapper ${ringImg ? 'has-ring-img' : ''}" ${ringStyle}>
-          ${ringImg ? '<div class="avatar-ring-img"></div>' : ''}
-          <div class="avatar-mask">
-            <img class="player-avatar" src="${avatarSrc}" alt="${player.login}">
-          </div>
-        </div>
-        <div>
-          <div class="player-name">${player.login}</div>
-          ${streakBadge}
-          ${player.evaluation ? `<div class="player-result">${player.evaluation.name} (${player.evaluation.payout}x)</div>` : ''}
-          <div class="bet-badge" title="Street / Total bet">
-            <span>Bet:</span>
-            <span class="value">${(player.streetBet || 0).toLocaleString?.() || player.streetBet || 0} / ${(player.bet || 0).toLocaleString?.() || player.bet || 0}</span>
-          </div>
-          ${betStack}
-          ${chipStack}
-          <div class="player-timer" id="timer-${player.login}"></div>
-        </div>
-      </div>
-      <div class="all-in-effect" style="background-image:url('${ALL_IN_EFFECT_SPRITE}');--allin-frames:${allInFrames};"></div>
-      <div class="fold-effect" style="background-image:url('${FOLD_EFFECT}');"></div>
-      ${splitMarkup}
-    `;
-    container.appendChild(wrapper);
-
-    previousCardCounts.set(player.login, totalCards);
-  });
-
-  kickoffFlipCanvases();
-  kickoffDealCanvases();
-  document.getElementById('btn-draw').disabled = false;
-}
-
-function updateTableSkinFromPlayers(players = []) {
-  if (!Array.isArray(players) || !players.length) return;
-  // Prefer streamer cosmetics if present
-  const streamer = players.find(p => p.login && p.login.toLowerCase() === streamerLogin);
-  const chosen = streamer || players[0];
-  if (chosen && chosen.cosmetics) {
-    if (chosen.cosmetics.tableTint) overlayTuning.tableTint = chosen.cosmetics.tableTint;
-    if (chosen.cosmetics.tableTexture) overlayTuning.tableTexture = chosen.cosmetics.tableTexture;
-    if (chosen.cosmetics.tableLogoColor) overlayTuning.tableLogoColor = chosen.cosmetics.tableLogoColor;
-    if (chosen.cosmetics.cardFaceBase) overlayTuning.cardFaceBase = chosen.cosmetics.cardFaceBase;
-    applyVisualSettings();
-  }
-}
-
-function renderPot(data) {
-  const potWrap = document.getElementById('pot-chips');
-  const potContainer = document.getElementById('table-pot');
-  if (!potWrap) return;
-  const explicitPot = data && typeof data.pot === 'number' ? data.pot : null;
-  const sumBets = overlayPlayers.reduce((sum, p) => sum + (p.bet || 0), 0);
-  const pot = explicitPot !== null ? explicitPot : sumBets;
-  const prevPot = currentPot;
-  currentPot = pot;
-  const chips = renderChipStack(pot);
-  potWrap.innerHTML = `<div class="pot-total">Total Pot: $${(pot || 0).toLocaleString?.() || pot || 0}</div>${chips}`;
-  if (potContainer) {
-    const glowThreshold = (minBet || 1) * ((overlayTuning.potGlowMultiplier || potGlowMultiplier || 5));
-    potContainer.classList.toggle('pot-glow', pot >= glowThreshold);
-    if (prevPot !== pot) {
-      bumpChips(potContainer);
-    }
-  }
-}
-
-function renderChipStack(amount) {
-  const total = Math.max(0, Math.floor(amount || 0));
-  if (!total) {
-    return `<div class="chip-stack" title="Chips"><div class="chip empty">0</div></div>`;
-  }
-
-  const pieces = [];
-  let remaining = total;
-  CHIP_DENOMS.forEach(denom => {
-    const count = Math.floor(remaining / denom.value);
-    if (count > 0) {
-      pieces.push({ ...denom, count });
-      remaining -= count * denom.value;
-    }
-  });
-
-  const chipsHtml = pieces
-    .map(part => {
-      const assets = CHIP_ASSETS[part.value] || {};
-      const styleParts = [`--chip-color:${part.color}`];
-      if (assets.top) styleParts.push(`--chip-img:url('${assets.top}')`);
-      if (assets.side) styleParts.push(`--chip-side-img:url('${assets.side}')`);
-      const style = `style="${styleParts.join(';')}"`;
-      return `<div class="chip" ${style} title="$${part.value} x ${part.count}">
-        <span class="chip-label">${part.label}</span>
-        <span class="chip-count">x${part.count}</span>
-      </div>`;
-    })
-    .join('');
-
-  return `
-    <div class="chip-stack" title="Chips: $${total.toLocaleString?.() || total}">
-      <div class="chip-total">Chips: $${total.toLocaleString?.() || total}</div>
-      <div class="chip-row">
-        ${chipsHtml}
-      </div>
-    </div>
-  `;
-}
-
-function renderBetChips(amount) {
-  const bet = Math.max(0, Math.floor(amount || 0));
-  const chips = renderChipStack(bet);
-  return `
-    <div class="player-bet-chips" title="Current Bet">
-      <div class="chip-total">Bet: $${bet.toLocaleString?.() || bet}</div>
-      ${chips}
-    </div>
-  `;
-}
-
-function renderStreakBadge(streak, tilt, afk) {
-  const parts = [];
-  if (streak >= 2) parts.push('<span class="streak-hot">Hot</span>');
-  else if (streak <= -2) parts.push('<span class="streak-cold">Cold</span>');
-  if (tilt >= 2) parts.push('<span class="streak-tilt">Tilt</span>');
-  if (afk) parts.push('<span class="streak-afk">AFK-prone</span>');
-  if (!parts.length) return '';
-  return `<div class="streak-badges">${parts.join('')}</div>`;
-}
-
-function renderDealerHand(hand) {
-  const section = document.getElementById('dealer-section');
-  const cardsEl = document.getElementById('dealer-cards');
-  if (!section || !cardsEl) return;
-
-  if (!hand || hand.length === 0) {
-    section.style.display = 'none';
-    cardsEl.innerHTML = '';
-    return;
-  }
-
-  section.style.display = 'block';
-  cardsEl.innerHTML = hand
-    .map(
-      card => {
-        const faceImg = getCardFaceImage(card.rank, card.suit, overlayTuning.cardFaceBase || null);
-        const styles = [];
-        if (faceImg) styles.push(`--card-face-img:url('${faceImg}')`);
-        const styleAttr = styles.length ? `style="${styles.join(';')}"` : '';
-        const cls = faceImg ? 'card-item has-face' : 'card-item';
-        const backImg = overlayTuning.cardBackImage || DEFAULT_CARD_BACK;
-        return `
-          <div class="${cls}" ${styleAttr} data-face-img="${faceImg || ''}" data-back-img="${backImg}" data-should-flip="1">
-            <canvas class="flip-canvas" width="128" height="180"></canvas>
-            <div class="card-rank">${card.rank}</div>
-            <div class="card-suit">${card.suit}</div>
-          </div>
-        `;
-      }
-    )
-    .join('');
-
-  // Toggle insurance banner based on upcard
-  const insuranceBanner = document.getElementById('insurance-banner');
-  if (insuranceBanner) {
-    if (hand[0] && hand[0].rank === 'A') {
-      insuranceBanner.style.display = 'flex';
-    } else {
-      insuranceBanner.style.display = 'none';
-    }
-  }
-  kickoffFlipCanvases();
-}
-
-function renderCommunityCards(cards) {
-  const section = document.getElementById('community-section');
-  const cardsEl = document.getElementById('community-cards');
-  if (!section || !cardsEl) return;
-
-  if (!cards || cards.length === 0) {
-    section.style.display = 'none';
-    cardsEl.innerHTML = '';
-    return;
-  }
-
-  section.style.display = 'block';
-  cardsEl.innerHTML = cards
-    .map(card => {
-      const faceImg = getCardFaceImage(card.rank, card.suit, overlayTuning.cardFaceBase || null);
-      const styles = [];
-      if (faceImg) styles.push(`--card-face-img:url('${faceImg}')`);
-      const styleAttr = styles.length ? `style="${styles.join(';')}"` : '';
-      const cls = faceImg ? 'card-item has-face' : 'card-item';
-      const backImg = overlayTuning.cardBackImage || DEFAULT_CARD_BACK;
-      return `
-        <div class="${cls} flip-in" ${styleAttr} data-face-img="${faceImg || ''}" data-back-img="${backImg}" data-should-flip="1" data-should-deal="0">
-          <canvas class="flip-canvas" width="128" height="180"></canvas>
-          <div class="card-rank">${card.rank}</div>
-          <div class="card-suit">${card.suit}</div>
-        </div>
-      `;
-    })
-    .join('');
-  kickoffFlipCanvases();
-  kickoffDealCanvases();
-}
-
-// Animation system using consolidated manager
-function flipCard(cardEl, faceSrc, backSrc, opts = {}) {
-  const canvas = cardEl.querySelector('canvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const w = canvas.width = cardEl.offsetWidth;
-  const h = canvas.height = cardEl.offsetHeight;
-  Promise.all([loadImageCached(faceSrc), loadImageCached(backSrc)]).then(([faceImg, backImg]) => {
-    if (!faceImg && !backImg) return;
-    cardEl.classList.add('flipping');
-    canvas.classList.add('active');
-    
-    const animId = `flip-${Date.now()}-${Math.random()}`;
-    
-    animationManager.addFlipAnimation(animId, {
-      duration: opts.durationMs || 600,
-      delay: opts.delayMs || 0,
-      onUpdate: (progress) => {
-        if (!flipMeta || !flipSprite || !canvas.isConnected) {
-          animationManager.removeAnimation(animId);
-          return;
-        }
-        
-        const frameIndex = Math.floor(progress * flipMeta.frameCount);
-        const frameData = flipMeta.frames[frameIndex];
-        if (!frameData) return;
-        
-        renderFlippingCard(ctx, flipSprite, flipMeta, frameIndex, backImg, faceImg, w, h);
-      },
-      onComplete: () => {
-        canvas.classList.remove('active');
-        canvas.parentElement?.classList.remove('flipping');
-      }
-    });
-  });
-}
-
-function kickoffFlipCanvases(force) {
-  if (!flipSprite || !flipMeta) {
-    if (force) setTimeout(() => kickoffFlipCanvases(false), 180);
-    return;
-  }
-  const cards = document.querySelectorAll('.card-item[data-should-flip="1"]:not([data-flip-bound="1"])');
-  cards.forEach(card => {
-    card.dataset.flipBound = '1';
-    const faceSrc = card.dataset.faceImg;
-    const backSrc = card.dataset.backImg;
-    if (faceSrc && backSrc) {
-      flipCard(card, faceSrc, backSrc);
-    }
-  });
-}
-
-function queueDealForCard(cardEl, opts = {}) {
-  if (!cardEl || !dealSprite || !dealMeta) return;
-  const canvas = cardEl.querySelector('.deal-canvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
-  const w = Math.max(1, Math.floor(cardEl.clientWidth || canvas.width || 120));
-  const h = Math.max(1, Math.floor(cardEl.clientHeight || canvas.height || 180));
-  canvas.width = w;
-  canvas.height = h;
-  canvas.style.opacity = '1';
-  
-  const animId = `deal-${Date.now()}-${Math.random()}`;
-  
-  animationManager.addDealAnimation(animId, {
-    duration: opts.durationMs || 400,
-    delay: opts.delayMs || 0,
-    onUpdate: (progress) => {
-      if (!dealMeta || !dealSprite || !canvas.isConnected) {
-        animationManager.removeAnimation(animId);
-        return;
-      }
-      
-      const frameIndex = Math.floor(progress * (dealMeta.frameCount || 1));
-      const spacing = Number.isFinite(dealMeta.spacing) ? dealMeta.spacing : 0;
-      const sx = frameIndex * (dealMeta.frameWidth + spacing);
-      const fw = dealMeta.frameWidth;
-      const fh = dealMeta.frameHeight;
-      
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(dealSprite, sx, 0, fw, fh, 0, 0, canvas.width, canvas.height);
-    },
-    onComplete: () => {
-      setTimeout(() => { if (canvas && canvas.isConnected) canvas.style.opacity = '0'; }, 120);
-    }
-  });
-}
-
-function kickoffDealCanvases(force) {
-  if (!dealSprite || !dealMeta) {
-    if (force) setTimeout(() => kickoffDealCanvases(false), 180);
-    return;
-  }
-  const cards = document.querySelectorAll('.card-item[data-should-deal="1"]:not([data-deal-bound="1"])');
-  cards.forEach(card => {
-    card.dataset.dealBound = '1';
-    queueDealForCard(card);
-    card.dataset.shouldDeal = '0';
-  });
-}
-
-function playWinEffect() {
-  const pot = document.getElementById('table-pot');
-  if (!pot || !winMeta || !winSprite) return;
-  let canvas = pot.querySelector('canvas.win-effect');
-  if (!canvas) {
-    canvas = document.createElement('canvas');
-    canvas.className = 'win-effect';
-    canvas.width = winMeta.frameWidth || 512;
-    canvas.height = winMeta.frameHeight || 512;
-    pot.appendChild(canvas);
-  }
-  const ctx = canvas.getContext('2d');
-  const total = winMeta.frameCount || 1;
-  const frameWidth = winMeta.frameWidth || winSprite.width;
-  const frameHeight = winMeta.frameHeight || winSprite.height;
-  const spacingX = typeof winMeta.spacing === 'number' ? winMeta.spacing : 0;
-  const spacingY = typeof winMeta.spacingY === 'number' ? winMeta.spacingY : spacingX;
-  const columns = winMeta.columns
-    || (frameWidth ? Math.max(1, Math.floor((winSprite.width + spacingX) / (frameWidth + spacingX))) : 1);
-  
-  const animId = `win-${Date.now()}-${Math.random()}`;
-  
-  animationManager.addWinAnimation(animId, {
-    fps: winMeta.fps || 18,
-    totalFrames: total,
-    onFrame: (frameIndex) => {
-      if (!canvas.isConnected) return;
-      const col = columns ? (frameIndex % columns) : frameIndex;
-      const row = columns ? Math.floor(frameIndex / columns) : 0;
-      const sx = (frameWidth + spacingX) * col;
-      const sy = (frameHeight + spacingY) * row;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(winSprite, sx, sy, frameWidth, frameHeight, 0, 0, canvas.width, canvas.height);
-    },
-    onComplete: () => {
-      setTimeout(() => { if (canvas && canvas.isConnected) canvas.remove(); }, 400);
-    }
-  });
-}
-
-// Queue rendering
-function renderQueue(waiting) {
-  const queueEl = document.getElementById('waiting-queue');
-  const count = document.getElementById('waiting-count');
-  if (!queueEl) return;
-  queueEl.innerHTML = waiting && waiting.length ? waiting.map(name => `<li>${name}</li>`).join('') : '<li>None</li>';
-  if (count) count.textContent = waiting?.length || 0;
-}
 
 socket.on('queueUpdate', (data) => {
   if (!isEventForChannel(data)) return;
@@ -1651,8 +1211,9 @@ if (btnForceDraw) {
   btnForceDraw.addEventListener('click', () => {
     if (socket.connected) {
       const heldBy = {};
-      if (userLogin) {
-        heldBy[userLogin] = Array.from(selectedHeld);
+      const currentLogin = overlayState.userLogin;
+      if (currentLogin) {
+        heldBy[currentLogin] = Array.from(getSelectedHeld());
       }
       socket.emit('forceDraw', { heldBy });
     }
@@ -1664,11 +1225,11 @@ document.querySelectorAll('.hold-checkbox').forEach(cb => {
   cb.addEventListener('change', (e) => {
     const idx = parseInt(e.target.dataset.idx, 10);
     if (Number.isInteger(idx)) {
-      if (e.target.checked) selectedHeld.add(idx);
-      else selectedHeld.delete(idx);
+      toggleHeldIndex(idx, e.target.checked);
     }
-    if (socket.connected && userLogin) {
-      socket.emit('playerHold', { held: Array.from(selectedHeld) });
+    const currentLogin = overlayState.userLogin;
+    if (socket.connected && currentLogin) {
+      socket.emit('playerHold', { held: Array.from(getSelectedHeld()) });
     }
   });
 });
@@ -1693,132 +1254,97 @@ if (!isMultiStream && pokerActions) {
   pokerActions.style.display = 'none';
 }
 
-if (btnHit) {
-  btnHit.addEventListener('click', () => {
-    if (socket.connected && userLogin) {
-      socket.emit('playerHit', {});
-    }
-  });
+registerActionButtons({
+  btnHit,
+  btnStand,
+  btnDouble,
+  btnSurrender,
+  btnInsurance,
+  btnSplit,
+  btnPrevHand,
+  btnNextHand,
+});
+
+const currentLogin = () => overlayState.userLogin || null;
+
+function guardedEmit(action, payload = {}) {
+  const login = currentLogin();
+  if (!socket.connected || !login) return;
+  socket.emit(action, payload);
 }
 
-if (btnStand) {
-  btnStand.addEventListener('click', () => {
-    if (socket.connected && userLogin) {
-      socket.emit('playerStand', {});
-    }
-  });
-}
+const actionEmitters = [
+  [btnHit, () => guardedEmit('playerHit', {})],
+  [btnStand, () => guardedEmit('playerStand', {})],
+  [btnDouble, () => guardedEmit('playerDouble')],
+  [btnSurrender, () => guardedEmit('playerSurrender')],
+  [btnSplit, () => guardedEmit('playerSplit')],
+  [btnPrevHand, () => {
+    const login = currentLogin();
+    if (!login) return;
+    const me = overlayState.overlayPlayers.find(p => p.login === login) || {};
+    const prevIdx = Math.max(0, (me.activeHand || 0) - 1);
+    guardedEmit('playerSwitchHand', { index: prevIdx });
+  }],
+  [btnNextHand, () => {
+    const login = currentLogin();
+    if (!login) return;
+    const me = overlayState.overlayPlayers.find(p => p.login === login) || {};
+    const nextIdx = Math.min((me.hands?.length || 1) - 1, (me.activeHand || 0) + 1);
+    guardedEmit('playerSwitchHand', { index: nextIdx });
+  }],
+];
 
-if (btnDouble) {
-  btnDouble.addEventListener('click', () => {
-    if (socket.connected && userLogin) {
-      socket.emit('playerDouble');
-    }
-  });
-}
-
-if (btnSurrender) {
-  btnSurrender.addEventListener('click', () => {
-    if (socket.connected && userLogin) {
-      socket.emit('playerSurrender');
-    }
-  });
-}
+actionEmitters.forEach(([btn, handler]) => {
+  if (btn) btn.addEventListener('click', handler);
+});
 
 if (btnInsurance) {
   btnInsurance.addEventListener('click', () => {
-    if (socket.connected && userLogin) {
-      const me = overlayPlayers.find(p => p.login === userLogin) || {};
-      const maxInsurance = Math.max(1, Math.floor((me.bet || 0) / 2));
-      const form = document.createElement('div');
-      form.className = 'prompt';
-      form.innerHTML = `
-        <div class="prompt-card">
-          <h4>Insurance</h4>
-          <p>Enter amount (max ${maxInsurance}).</p>
-          <input type="number" min="1" max="${maxInsurance}" step="1" id="insurance-input" class="form-input">
-          <div class="prompt-actions">
-            <button id="insurance-cancel" class="btn btn-secondary btn-sm">Cancel</button>
-            <button id="insurance-confirm" class="btn btn-info btn-sm">Confirm</button>
-          </div>
+    const login = currentLogin();
+    if (!login) return;
+    const me = overlayState.overlayPlayers.find(p => p.login === login) || {};
+    const maxInsurance = Math.max(1, Math.floor((me.bet || 0) / 2));
+    const form = document.createElement('div');
+    form.className = 'prompt';
+    form.innerHTML = `
+      <div class="prompt-card">
+        <h4>Insurance</h4>
+        <p>Enter amount (max ${maxInsurance}).</p>
+        <input type="number" min="1" max="${maxInsurance}" step="1" id="insurance-input" class="form-input">
+        <div class="prompt-actions">
+          <button id="insurance-cancel" class="btn btn-secondary btn-sm">Cancel</button>
+          <button id="insurance-confirm" class="btn btn-info btn-sm">Confirm</button>
         </div>
-      `;
-      document.body.appendChild(form);
-      form.querySelector('#insurance-cancel').onclick = () => form.remove();
-      form.querySelector('#insurance-confirm').onclick = () => {
-        const val = Number(form.querySelector('#insurance-input').value);
-        if (Number.isFinite(val) && val > 0 && val <= maxInsurance) {
-          socket.emit('playerInsurance', { amount: val });
-        }
-        form.remove();
-      };
-    }
-  });
-}
-
-if (btnSplit) {
-  btnSplit.addEventListener('click', () => {
-    if (socket.connected && userLogin) {
-      socket.emit('playerSplit');
-    }
-  });
-}
-
-if (btnPrevHand) {
-  btnPrevHand.addEventListener('click', () => {
-    if (socket.connected && userLogin) {
-      const me = overlayPlayers.find(p => p.login === userLogin) || {};
-      const prevIdx = Math.max(0, (me.activeHand || 0) - 1);
-      socket.emit('playerSwitchHand', { index: prevIdx });
-    }
-  });
-}
-
-if (btnNextHand) {
-  btnNextHand.addEventListener('click', () => {
-    if (socket.connected && userLogin) {
-      const me = overlayPlayers.find(p => p.login === userLogin) || {};
-      const nextIdx = Math.min((me.hands?.length || 1) - 1, (me.activeHand || 0) + 1);
-      socket.emit('playerSwitchHand', { index: nextIdx });
-    }
-  });
-}
-
-// Poker betting actions
-if (btnPokerCheck) {
-  btnPokerCheck.addEventListener('click', () => {
-    if (socket.connected && userLogin) {
-      socket.emit('playerCheck');
-    }
-  });
-}
-
-if (btnPokerCall) {
-  btnPokerCall.addEventListener('click', () => {
-    if (socket.connected && userLogin) {
-      socket.emit('playerCall');
-    }
-  });
-}
-
-if (btnPokerRaise) {
-  btnPokerRaise.addEventListener('click', () => {
-    if (socket.connected && userLogin) {
-      const amt = parseInt((inputPokerRaise && inputPokerRaise.value) || '0', 10);
-      if (Number.isInteger(amt) && amt > 0) {
-        socket.emit('playerRaise', { amount: amt });
+      </div>
+    `;
+    document.body.appendChild(form);
+    form.querySelector('#insurance-cancel').onclick = () => form.remove();
+    form.querySelector('#insurance-confirm').onclick = () => {
+      const val = Number(form.querySelector('#insurance-input').value);
+      if (Number.isFinite(val) && val > 0 && val <= maxInsurance) {
+        guardedEmit('playerInsurance', { amount: val });
       }
-    }
+      form.remove();
+    };
   });
 }
 
-if (btnPokerFold) {
-  btnPokerFold.addEventListener('click', () => {
-    if (socket.connected && userLogin) {
-      socket.emit('playerFold');
+const pokerHandlers = [
+  [btnPokerCheck, () => guardedEmit('playerCheck')],
+  [btnPokerCall, () => guardedEmit('playerCall')],
+  [btnPokerRaise, () => {
+    const amt = parseInt((inputPokerRaise && inputPokerRaise.value) || '0', 10);
+    if (Number.isInteger(amt) && amt > 0) {
+      guardedEmit('playerRaise', { amount: amt });
     }
-  });
-}
+  }],
+  [btnPokerFold, () => guardedEmit('playerFold')],
+];
+
+pokerHandlers.forEach(([btn, handler]) => {
+  if (btn) btn.addEventListener('click', handler);
+});
 
 if (btnThemeToggle) {
   btnThemeToggle.addEventListener('click', () => {

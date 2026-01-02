@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OBS Table Overlay | All-In Chat Poker</title>
   <link rel="icon" type="image/png" href="logo.png">
+  <link rel="preconnect" href="https://cdn.socket.io" crossorigin>
   <link rel="stylesheet" href="style-theme.css">
   <link rel="stylesheet" href="style-obs-overlay.css">
   <link rel="stylesheet" href="accessibility.css">
@@ -76,6 +77,27 @@
           <div class="seat-name">Open Seat</div>
         </div>
       </div>
+      <div class="table-stats">
+        <div class="table-stat">
+          <span class="table-stat-label">Phase</span>
+          <span class="table-stat-value" id="phase-label">Waiting</span>
+        </div>
+        <div class="table-stat">
+          <span class="table-stat-label">Timer</span>
+          <span class="table-stat-value" id="timer-badge">00:00</span>
+        </div>
+        <div class="table-stat">
+          <span class="table-stat-label">Total Pot</span>
+          <span class="table-stat-value" id="table-pot-value">$0</span>
+        </div>
+        <div class="table-stat">
+          <span class="table-stat-label">Queue</span>
+          <span class="table-stat-value">
+            <span id="waiting-count">0</span>
+            <span class="queue-names" id="waiting-names">None</span>
+          </span>
+        </div>
+      </div>
     </div>
 
     <div class="overflow-row" id="overflow-row">
@@ -85,9 +107,9 @@
   </div>
 
   <div id="toast-container" class="toast-container"></div>
-  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-  <script src="client.js"></script>
-  <script src="accessibility.js"></script>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" defer></script>
+  <script src="client.js" defer></script>
+  <script src="accessibility.js" defer></script>
   <script>
     enforceAuthenticatedPage({ page: 'overlay' });
   </script>
