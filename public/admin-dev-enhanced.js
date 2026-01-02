@@ -95,6 +95,92 @@ class DevAdminDashboard {
                 this.executeSafetyAction(action);
             });
         });
+
+        const grantSubmit = document.getElementById('grant-submit');
+        if (grantSubmit) {
+            grantSubmit.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.handleGrantSubmit();
+            });
+        }
+
+        const grantReset = document.getElementById('grant-reset');
+        if (grantReset) {
+            grantReset.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.resetGrantForm();
+            });
+        }
+    }
+
+    setGrantStatus(message, type = '') {
+        const statusEl = document.getElementById('grant-status');
+        if (!statusEl) return;
+        statusEl.textContent = message || '';
+        statusEl.classList.remove('success', 'error');
+        if (type) statusEl.classList.add(type);
+    }
+
+    resetGrantForm() {
+        document.getElementById('grant-login')?.value = '';
+        const amountEl = document.getElementById('grant-amount');
+        if (amountEl) amountEl.value = '1000';
+        document.getElementById('grant-reason')?.value = '';
+        this.setGrantStatus('', '');
+    }
+
+    async handleGrantSubmit() {
+        const loginEl = document.getElementById('grant-login');
+        const amountEl = document.getElementById('grant-amount');
+        const reasonEl = document.getElementById('grant-reason');
+        const submitBtn = document.getElementById('grant-submit');
+
+        if (!loginEl || !amountEl || !submitBtn) return;
+
+        const login = (loginEl.value || '').trim();
+        const amount = Number(amountEl.value);
+        const reason = (reasonEl?.value || '').trim();
+
+        if (!login) {
+            this.setGrantStatus('Player login is required.', 'error');
+            loginEl.focus();
+            return;
+        }
+
+        if (!Number.isFinite(amount) || amount <= 0) {
+            this.setGrantStatus('Enter a positive AIC amount.', 'error');
+            amountEl.focus();
+            return;
+        }
+
+        this.setGrantStatus('Granting AIC...', '');
+        submitBtn.disabled = true;
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Granting...';
+
+        try {
+            const payload = { login, amount, reason };
+            const result = await apiCall('/admin/coins/grant', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const granted = result?.granted ?? amount;
+            const balance = result?.balance;
+
+            const successMsg = `Granted ${granted.toLocaleString()} AIC to ${result?.login || login}${balance !== undefined ? ` · New balance: ${balance.toLocaleString()} AIC` : ''}.`;
+            this.setGrantStatus(successMsg, 'success');
+            this.showToast(successMsg, 'success');
+            this.resetGrantForm();
+        } catch (error) {
+            const message = error?.message || 'Unable to grant AIC.';
+            this.setGrantStatus(message, 'error');
+            this.showToast(`Grant failed: ${message}`, 'error');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+        }
     }
 
     switchTab(tabName) {

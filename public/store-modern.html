@@ -1358,21 +1358,6 @@
         return icons[category] || '📦';
       }
       
-      // Admin function to add AIC for testing
-      addAICForTesting() {
-        const amount = prompt('Enter AIC amount to add (for testing):', '10000');
-        if (amount && !isNaN(amount)) {
-          const aicAmount = parseInt(amount);
-          console.log(`Adding ${aicAmount} AIC for testing...`);
-          this.aicBalance += aicAmount;
-          this.updateBalanceDisplay();
-          alert(`Added ${aicAmount} AIC to your account for testing! This will be connected to the backend balance system.`);
-          
-          // In a real implementation, this would call the backend to update the user's AIC balance
-          // For now, just update the local display
-        }
-      }
-      
       // Update AIC balance display
       updateBalanceDisplay() {
         if (this.balanceElement) {
@@ -1481,14 +1466,9 @@
         }
       }
       
-      // Setup keyboard shortcut for admin function (Ctrl+Shift+A)
+      // Setup keyboard shortcut for admin function (deprecated)
       setupAdminShortcut() {
-        document.addEventListener('keydown', (e) => {
-          if (e.ctrlKey && e.shiftKey && e.key === 'A') {
-            e.preventDefault();
-            this.addAICForTesting();
-          }
-        });
+        // Hotkey disabled; use Admin > Grant AIC instead
       }
     }
     

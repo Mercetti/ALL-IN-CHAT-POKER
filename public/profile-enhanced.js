@@ -212,12 +212,16 @@ class EnhancedProfile {
   }
 
   navigateToPage(page) {
+    const params = new URLSearchParams(window.location.search || '');
+    const channel = params.get('channel') || this.profileData.username || '';
+    const channelSuffix = channel ? `?channel=${encodeURIComponent(channel)}` : '';
+    
     const pageMap = {
-      'store': 'store-enhanced.html',
-      'editor': 'overlay-editor-enhanced.html',
-      'profile': 'profile-enhanced.html',
-      'admin': 'admin-enhanced.html',
-      'dev': 'admin-dev.html'
+      'store': `store-modern.html${channelSuffix}`,
+      'editor': `overlay-editor-enhanced.html${channelSuffix}`,
+      'profile': `profile-enhanced.html${channelSuffix}`,
+      'admin': `admin-enhanced.html${channelSuffix}`,
+      'dev': `admin-dev-enhanced.html${channelSuffix}`
     };
     
     if (pageMap[page]) {
@@ -273,8 +277,9 @@ class EnhancedProfile {
     if (!adminBtn) return;
     
     if (this.userData) {
-      if (this.userData.isDev && !this.userData.isAdmin) {
-        // Show Dev button for dev users who aren't admins
+      const isDevOrOwner = this.userData.isDev || this.userData.isOwner;
+      if (isDevOrOwner && !this.userData.isAdmin) {
+        // Show Dev button for dev/owner users who aren't admins
         adminBtn.innerHTML = `
           <span class="nav-icon">🔧</span>
           <span>Dev</span>
@@ -756,16 +761,26 @@ class EnhancedProfile {
   }
 
   generateLinks() {
-    const username = this.profileData.username || 'user';
+    const params = new URLSearchParams(window.location.search || '');
+    const username = params.get('channel') || this.profileData.username || 'user';
     
     // Generate streaming links
     const baseUrl = window.location.origin;
     
     const links = {
-      overlay: `${baseUrl}/obs-overlay.html?channel=${username}`,
-      admin: `${baseUrl}/admin-enhanced.html?channel=${username}`,
-      leaderboard: `${baseUrl}/leaderboard-overlay.html?channel=${username}`
+      overlay: `${baseUrl}/obs-overlay.html?channel=${encodeURIComponent(username)}`,
+      admin: `${baseUrl}/admin-enhanced.html?channel=${encodeURIComponent(username)}`,
+      leaderboard: `${baseUrl}/leaderboard-overlay.html?channel=${encodeURIComponent(username)}`
     };
+    
+    const showDevLink = !!(this.userData && (this.userData.isDev || this.userData.isOwner || this.userData.isAdmin));
+    const devLinkItem = document.getElementById('dev-link-item');
+    if (showDevLink) {
+      links.dev = `${baseUrl}/admin-dev-enhanced.html?channel=${encodeURIComponent(username)}`;
+      if (devLinkItem) devLinkItem.style.display = 'flex';
+    } else if (devLinkItem) {
+      devLinkItem.style.display = 'none';
+    }
     
     // Update link elements
     Object.entries(links).forEach(([key, url]) => {
