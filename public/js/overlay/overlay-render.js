@@ -603,11 +603,29 @@ function renderQueue(waiting) {
   const queueEl = document.getElementById('waiting-queue');
   const count = document.getElementById('waiting-count');
   const waitingNames = document.getElementById('waiting-names');
+  const chipRow = document.getElementById('queue-chip-row');
   if (!queueEl) return;
   queueEl.innerHTML = waiting && waiting.length ? waiting.map(name => `<li>${name}</li>`).join('') : '<li>None</li>';
-  if (count) count.textContent = waiting?.length || 0;
+  const queueList = Array.isArray(waiting) ? waiting : [];
+  if (count) count.textContent = queueList.length;
   if (waitingNames) {
-    waitingNames.textContent = waiting && waiting.length ? waiting.join(' · ') : 'None';
+    waitingNames.textContent = queueList.length ? queueList.join(' · ') : 'None';
+  }
+  if (chipRow) {
+    if (!queueList.length) {
+      chipRow.innerHTML = '<span class="queue-chip queue-chip-empty">Queue is open</span>';
+    } else {
+      chipRow.innerHTML = queueList.slice(0, 6).map((name) => {
+        const player = getOverlayPlayers().find((p) => p.login === name) || {};
+        const avatar = player.avatar || player.profile?.avatar || '/assets/overlay/open-seat.svg';
+        return `
+          <span class="queue-chip">
+            <img src="${avatar}" alt="${name}" class="queue-chip-avatar" onerror="this.remove()">
+            ${name}
+          </span>
+        `;
+      }).join('');
+    }
   }
 }
 

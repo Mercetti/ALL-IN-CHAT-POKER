@@ -11,8 +11,6 @@ function createAuthRouter({
   validateBody,
   validateLocalLogin,
   isBanned,
-  fetchSupabaseUser,
-  deriveLoginFromSupabaseUser,
   fetchTwitchUser,
   defaultChannel,
 }) {
@@ -106,46 +104,6 @@ function createAuthRouter({
     } catch (err) {
       logger.error('auth login failed', { error: err.message });
       return res.status(500).json({ error: 'internal_error' });
-    }
-  });
-
-  router.post('/auth/supabase/exchange', rateLimit('auth_supabase_exchange', 60 * 1000, 10), async (req, res) => {
-    try {
-      const authHeader = (req.get && req.get('authorization')) || req.headers.authorization || '';
-      let supabaseToken = (req.body && req.body.token) || '';
-      if (!supabaseToken && authHeader.toLowerCase().startsWith('bearer ')) {
-        supabaseToken = authHeader.slice(7).trim();
-      }
-      if (!supabaseToken && !req.body?.user) return res.status(400).json({ error: 'missing_token' });
-      const supUser = req.body?.user || (await fetchSupabaseUser(supabaseToken));
-      const supEmail = (supUser.email || '').toLowerCase();
-      const existingByEmail = supEmail ? db.getProfileByEmail(supEmail) : null;
-      const login = existingByEmail?.login || deriveLoginFromSupabaseUser(supUser);
-      if (!login || !validateLocalLogin(login)) {
-        return res.status(400).json({ error: 'invalid_login' });
-      }
-      if (isBanned(login, req.ip)) return res.status(403).json({ error: 'banned' });
-      const existing = existingByEmail || db.getProfile(login);
-      const profile = db.upsertProfile({
-        login,
-        display_name: existing?.display_name || existingByEmail?.display_name || login,
-        email: supUser.email || existing?.email || existingByEmail?.email || '',
-        role: existing?.role || existingByEmail?.role || 'player',
-        settings:
-          existing?.settings ||
-          existingByEmail?.settings ||
-          { startingChips: config.GAME_STARTING_CHIPS, theme: 'dark' },
-      });
-      const token = auth.signUserJWT(login, config.USER_JWT_TTL_SECONDS);
-      return res.json({
-        token,
-        login,
-        email: profile?.email || supUser.email || '',
-        expiresIn: config.USER_JWT_TTL_SECONDS,
-      });
-    } catch (err) {
-      logger.warn('Supabase token exchange failed', { error: err.message });
-      return res.status(401).json({ error: 'supabase_invalid' });
     }
   });
 

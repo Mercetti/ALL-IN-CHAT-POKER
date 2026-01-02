@@ -82,6 +82,8 @@ function checkEnvironment() {
   }
 
   return {
+    missingEnv: Array.from(missingEnv),
+    isProd,
     ok: issues.length === 0,
     error: issues.join('; '),
     severity: issues.length > 0 ? (isProd ? 'critical' : 'warning') : undefined,

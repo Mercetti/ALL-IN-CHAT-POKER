@@ -14,8 +14,6 @@ class ProductionConfigValidator {
       'JWT_SECRET',
       'ADMIN_PASSWORD',
       'ADMIN_TOKEN',
-      'SUPABASE_URL',
-      'SUPABASE_ANON_KEY'
     ];
     
     this.optionalEnvVars = [
@@ -129,23 +127,6 @@ class ProductionConfigValidator {
   }
 
   validateServiceIntegrations() {
-    // Supabase validation
-    if (config.SUPABASE_URL) {
-      if (!config.SUPABASE_URL.startsWith('https://')) {
-        this.errors.push('SUPABASE_URL must use HTTPS in production');
-      }
-      
-      if (config.SUPABASE_URL.includes('localhost') || config.SUPABASE_URL.includes('127.0.0.1')) {
-        this.errors.push('SUPABASE_URL cannot point to localhost in production');
-      }
-    }
-
-    if (config.SUPABASE_ANON_KEY) {
-      if (config.SUPABASE_ANON_KEY === 'sb_publishable_b_GSUmpGQPhTBh_vow7O8g_S3IblsBa') {
-        this.errors.push('SUPABASE_ANON_KEY is still using the default value');
-      }
-    }
-
     // Optional service warnings
     this.optionalEnvVars.forEach(envVar => {
       if (!process.env[envVar]) {

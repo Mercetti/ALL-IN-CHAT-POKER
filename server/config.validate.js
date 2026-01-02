@@ -7,6 +7,9 @@ const config = require('./config');
 const Logger = require('./logger');
 
 const logger = new Logger('config.validate');
+const SHOULD_LOG =
+  (process.env.NODE_ENV || 'development') !== 'test'
+  || (process.env.SUPPRESS_CONFIG_LOGS || '').toLowerCase() === 'false';
 
 function validateConfig() {
   const errors = [];
@@ -14,14 +17,20 @@ function validateConfig() {
 
   // Required security configs in production
   if (config.IS_PRODUCTION) {
+    const hardEnforcement = !config.ALLOW_INSECURE_DEFAULTS;
+    const productionIssues = [];
     if (!config.JWT_SECRET || config.JWT_SECRET === 'your-secret-key-change-in-production') {
-      errors.push('JWT_SECRET must be set to a secure value in production');
+      productionIssues.push('JWT_SECRET must be set to a secure value in production');
     }
     if (!config.ADMIN_PASSWORD || config.ADMIN_PASSWORD === 'admin123') {
-      errors.push('ADMIN_PASSWORD must be set to a secure value in production');
+      productionIssues.push('ADMIN_PASSWORD must be set to a secure value in production');
     }
-    if (!config.SUPABASE_URL || !config.SUPABASE_ANON_KEY) {
-      errors.push('SUPABASE_URL and SUPABASE_ANON_KEY must be set in production');
+    if (productionIssues.length) {
+      if (hardEnforcement) {
+        errors.push(...productionIssues);
+      } else {
+        warnings.push(...productionIssues);
+      }
     }
   }
 
@@ -56,24 +65,25 @@ function validateConfig() {
 
   // Log results
   if (errors.length > 0) {
-    logger.error('Configuration validation failed', { errors });
+    if (SHOULD_LOG) logger.error('Configuration validation failed', { errors });
     throw new Error(`Configuration validation failed: ${errors.join(', ')}`);
   }
 
-  if (warnings.length > 0) {
+  if (warnings.length > 0 && SHOULD_LOG) {
     logger.warn('Configuration validation warnings', { warnings });
   }
 
-  logger.info('Configuration validation passed', {
-    port: config.PORT,
-    environment: config.NODE_ENV,
-    production: config.IS_PRODUCTION,
-    features: {
-      twitch: !!(config.TWITCH_CLIENT_ID && config.TWITCH_CLIENT_SECRET),
-      ai: !!(config.OPENAI_API_KEY || config.AI_PROVIDER === 'ollama'),
-      supabase: !!(config.SUPABASE_URL && config.SUPABASE_ANON_KEY),
-    },
-  });
+  if (SHOULD_LOG) {
+    logger.info('Configuration validation passed', {
+      port: config.PORT,
+      environment: config.NODE_ENV,
+      production: config.IS_PRODUCTION,
+      features: {
+        twitch: !!(config.TWITCH_CLIENT_ID && config.TWITCH_CLIENT_SECRET),
+        ai: !!(config.OPENAI_API_KEY || config.AI_PROVIDER === 'ollama'),
+      },
+    });
+  }
 
   return {
     valid: true,
