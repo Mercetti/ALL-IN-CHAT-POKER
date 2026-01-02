@@ -11,7 +11,7 @@
     .wrap { max-width: 1200px; margin: 0 auto; padding: 24px; }
     .header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
     .muted { color: var(--text-muted); }
-    .layout { display: grid; grid-template-columns: 200px 1fr 360px; gap: 14px; align-items: start; }
+    .layout { display: grid; grid-template-columns: 200px 1fr 400px 360px; gap: 14px; align-items: start; }
     .panel { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; box-shadow: var(--shadow-md); }
     .rail { display: flex; flex-direction: column; gap: 8px; }
     .rail button { text-align: left; width: 100%; }
@@ -29,6 +29,123 @@
     .panel.preview { position: sticky; top: 12px; align-self: start; }
     .preview .canvas-wrap, .preview .img-wrap { height: 260px; border-radius: 12px; border: 1px solid var(--border-color); background: radial-gradient(circle at 30% 30%, rgba(68,255,210,0.12), rgba(12,30,48,0.9)); display: grid; place-items: center; overflow: hidden; }
     .preview img { max-width: 100%; max-height: 100%; }
+    
+    /* Overlay Preview Styles */
+    .overlay-preview { 
+      background: var(--bg-secondary); 
+      border: 1px solid var(--border-color); 
+      border-radius: 12px; 
+      padding: 14px; 
+      box-shadow: var(--shadow-md); 
+    }
+    .overlay-preview .preview-container { 
+      height: 500px; 
+      border-radius: 12px; 
+      border: 2px solid var(--border-color); 
+      background: linear-gradient(135deg, #0a0e1a 0%, #1a2332 50%, #0f1419 100%); 
+      position: relative; 
+      overflow: hidden; 
+      display: grid; 
+      place-items: center; 
+    }
+    .overlay-preview .preview-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('/assets/table-texture.svg') repeat;
+      opacity: 0.1;
+      pointer-events: none;
+    }
+    .overlay-preview .preview-content {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .overlay-preview .player-area {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .overlay-preview .avatar-placeholder {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+    }
+    .overlay-preview .player-info {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .overlay-preview .player-name {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #fff;
+    }
+    .overlay-preview .player-stats {
+      display: flex;
+      gap: 15px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    .overlay-preview .chips-display {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .overlay-preview .chip-stack {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #8B4513, #A0522D);
+      border: 2px solid #654321;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: #ffd700;
+    }
+    .overlay-preview .card-area {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .overlay-preview .card {
+      width: 60px;
+      height: 80px;
+      background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+      border: 2px solid #333;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: #fff;
+    }
+    .overlay-preview .empty-state {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      text-align: center;
+      padding: 40px;
+    }
     .field { display: flex; flex-direction: column; gap: 6px; }
     canvas { width: 100%; height: 100%; }
     .controls { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:8px; }
@@ -37,10 +154,16 @@
     .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; z-index:999; }
     .modal { background: var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px; padding:16px; box-shadow: var(--shadow-lg); max-width:90vw; max-height:90vh; }
     .modal canvas, .modal img, .modal div { max-width:80vw; max-height:70vh; }
+    @media (max-width: 1400px) {
+      .layout { grid-template-columns: 200px 1fr 360px; }
+      .overlay-preview { display: none; }
+    }
     @media (max-width: 1080px) {
       .layout { grid-template-columns: 1fr; }
       .panel.preview { position: static; }
       .preview .canvas-wrap { height: 220px; }
+      .overlay-preview { display: block; }
+      .overlay-preview .preview-container { height: 300px; }
     }
   </style>
 </head>
@@ -96,6 +219,27 @@
         </div>
         <p class="muted" id="catalog-status" style="margin:0 0 8px;">Loading catalog...</p>
         <div class="grid" id="item-grid"></div>
+      </section>
+
+      <section class="panel overlay-preview">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <h3 style="margin:0;">Overlay Preview</h3>
+          <span class="muted" style="font-size:0.8rem;">Live preview</span>
+        </div>
+        <div class="preview-container" id="overlay-preview-container">
+          <div class="preview-content" id="overlay-preview-content">
+            <div class="empty-state">
+              <div>🃏</div>
+              <div>Select items to see overlay preview</div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:10px; padding:10px; background:var(--bg-tertiary); border-radius:8px;">
+          <div class="muted" style="font-size:0.8rem; margin-bottom:5px;">Equipped Items:</div>
+          <div id="equipped-items-list" style="display:flex; flex-direction:column; gap:5px;">
+            <div class="muted" style="font-size:0.8rem;">No items equipped</div>
+          </div>
+        </div>
       </section>
 
       <section class="panel preview">

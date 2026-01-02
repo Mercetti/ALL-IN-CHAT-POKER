@@ -199,6 +199,64 @@
   opacity: 0.8;
 }
 
+.grant-form {
+  margin-top: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.grant-form .form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.grant-form .form-group {
+  flex: 1 1 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.grant-form .form-input {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--text);
+}
+
+.grant-form .form-input:focus {
+  outline: none;
+  border-color: rgba(68, 255, 210, 0.6);
+  box-shadow: 0 0 0 1px rgba(68, 255, 210, 0.3);
+}
+
+.grant-form .button-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.grant-status {
+  min-height: 20px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.grant-status.success {
+  color: #4ade80;
+}
+
+.grant-status.error {
+  color: #f87171;
+}
+
 .tool-title {
   font-weight: 600;
   color: var(--text);

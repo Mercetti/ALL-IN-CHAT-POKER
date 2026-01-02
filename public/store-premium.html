@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Poker Store - Premium</title>
+  <style>
+    /* PREUM ENHANCED STANDALONE STYLES */
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 50%, #16213e 100%);
+      color: white;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .header {
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(20px);
+      padding: 40px;
+      border-radius: 20px;
+      margin-bottom: 40px;
+      text-align: center;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.1), transparent);
+      animation: shimmer 3s infinite;
+    }
+    
+    @keyframes shimmer {
+      0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+      100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+    }
+    
+    .header h1 {
+      color: #fff;
+      font-size: 3.5rem;
+      margin-bottom: 15px;
+      text-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+      background: linear-gradient(45deg, #ffd700, #ffed4e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .header p {
+      color: #ccc;
+      font-size: 1.4rem;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 30px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .stat {
+      text-align: center;
+    }
+    
+    .stat-number {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #ffd700;
+      display: block;
+    }
+    
+    .stat-label {
+      color: #aaa;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .section {
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(15px);
+      padding: 40px;
+      border-radius: 20px;
+      margin-bottom: 40px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    }
+    
+    .section h2 {
+      color: #fff;
+      font-size: 2.5rem;
+      margin-bottom: 30px;
+      text-align: center;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
+    
+    .section h2::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #ffd700, transparent);
+    }
+    
+    .items-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 30px;
+      margin-top: 40px;
+    }
+    
+    .item-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+      padding: 30px;
+      border-radius: 15px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .item-card::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      background: linear-gradient(45deg, #ffd700, #ff6b6b, #4ecdc4, #45b7d1, #ffd700);
+      border-radius: 15px;
+      opacity: 0;
+      z-index: -1;
+      transition: opacity 0.4s ease;
+      background-size: 400% 400%;
+      animation: gradient-shift 3s ease infinite;
+    }
+    
+    @keyframes gradient-shift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    .item-card:hover::before {
+      opacity: 1;
+    }
+    
+    .item-card:hover {
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+    }
+    
+    .item-image {
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 20px;
+      border-radius: 12px;
+      object-fit: contain;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .item-name {
+      color: #fff;
+      font-size: 1.4rem;
+      margin-bottom: 15px;
+      font-weight: 600;
+    }
+    
+    .item-price {
+      color: #ffd700;
+      font-size: 1.8rem;
+      font-weight: bold;
+      margin-bottom: 20px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    
+    .item-rarity {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-bottom: 15px;
+      letter-spacing: 1px;
+    }
+    
+    .rarity-common { background: #6c757d; color: white; }
+    .rarity-uncommon { background: #28a745; color: white; }
+    .rarity-rare { background: #007bff; color: white; }
+    .rarity-epic { background: #6f42c1; color: white; }
+    .rarity-legendary { background: #fd7e14; color: white; }
+    
+    .btn {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transition: left 0.5s ease;
+    }
+    
+    .btn:hover::before {
+      left: 100%;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #4ade80, #22c55e);
+    }
+    
+    .btn-primary:hover {
+      box-shadow: 0 10px 25px rgba(74, 222, 128, 0.4);
+    }
+    
+    /* Enhanced AIC Chip Stack Styles */
+    .aic-preview {
+      height: 150px;
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.6));
+      border: 2px solid rgba(255, 215, 0, 0.3);
+      border-radius: 15px;
+      margin: 20px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.5);
+    }
+    
+    .aic-preview::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
+      animation: rotate-glow 4s linear infinite;
+    }
+    
+    @keyframes rotate-glow {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .chip-stack-side-view {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+    }
+    
+    .main-stack {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transform: rotate(-15deg) perspective(100px) rotateX(10deg);
+      filter: drop-shadow(4px 4px 8px rgba(0, 0, 0, 0.8));
+    }
+    
+    .chip-main {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      margin: -8px 0;
+      filter: drop-shadow(4px 4px 8px rgba(0, 0, 0, 0.8));
+      transition: transform 0.3s ease;
+    }
+    
+    .chip-main:hover {
+      transform: scale(1.1);
+    }
+    
+    .leaning-chips {
+      position: absolute;
+      right: 30px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    
+    .chip-leaning {
+      width: 45px;
+      height: 45px;
+      object-fit: contain;
+      filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8));
+      transition: all 0.3s ease;
+    }
+    
+    .chip-leaning:hover {
+      transform: scale(1.15) rotate(5deg);
+    }
+    
+    .chip-500-lean { transform: rotate(30deg) translateY(-20px); }
+    .chip-100-lean { transform: rotate(20deg) translateY(-10px); }
+    .chip-25-lean { transform: rotate(15deg); }
+    .chip-5-lean { transform: rotate(10deg) translateY(10px); }
+    .chip-1-lean { transform: rotate(5deg) translateY(20px); }
+    
+    .status {
+      text-align: center;
+      padding: 30px;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(15px);
+      border-radius: 15px;
+      margin: 30px 0;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .loading {
+      color: #ffd700;
+      font-size: 1.2rem;
+    }
+    
+    .error {
+      color: #ff6b6b;
+      font-size: 1.2rem;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .container {
+        padding: 15px;
+      }
+      
+      .header {
+        padding: 30px 20px;
+      }
+      
+      .header h1 {
+        font-size: 2.5rem;
+      }
+      
+      .section {
+        padding: 30px 20px;
+      }
+      
+      .items-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      
+      .stats {
+        flex-direction: column;
+        gap: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>🃏 Premium Poker Store</h1>
+      <p>Ultimate poker experience with exclusive cosmetics</p>
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-number">500+</span>
+          <span class="stat-label">Items</span>
+        </div>
+        <div class="stat">
+          <span class="stat-number">50+</span>
+          <span class="stat-label">Themes</span>
+        </div>
+        <div class="stat">
+          <span class="stat-number">24/7</span>
+          <span class="stat-label">Support</span>
+        </div>
+      </div>
+    </header>
+    
+    <div class="status" id="status">Loading premium store...</div>
+    
+    <section class="section" style="display: none;" id="catalog-section">
+      <h2>🛍️ Premium Catalog</h2>
+      <div class="items-grid" id="catalog-items">
+        <!-- Catalog items will be loaded here -->
+      </div>
+    </section>
+    
+    <section class="section" style="display: none;" id="aic-section">
+      <h2>🤖 AI-Generated Masterpieces</h2>
+      <div class="items-grid" id="aic-items">
+        <!-- AIC items will be loaded here -->
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Premium Enhanced Store
+    class PremiumStore {
+      constructor() {
+        this.catalog = [];
+        this.statusEl = document.getElementById('status');
+        this.catalogSection = document.getElementById('catalog-section');
+        this.aicSection = document.getElementById('aic-section');
+        this.catalogItems = document.getElementById('catalog-items');
+        this.aicItems = document.getElementById('aic-items');
+      }
+      
+      async init() {
+        try {
+          this.statusEl.innerHTML = '<div class="loading">Loading premium catalog...</div>';
+          
+          // Load catalog
+          const response = await fetch('/catalog');
+          if (!response.ok) throw new Error('Failed to load catalog');
+          
+          this.catalog = await response.json();
+          console.log('Premium catalog loaded:', this.catalog.length, 'items');
+          
+          // Render items
+          this.renderCatalogItems();
+          this.renderAICItems();
+          
+          // Hide loading, show sections
+          this.statusEl.style.display = 'none';
+          this.catalogSection.style.display = 'block';
+          this.aicSection.style.display = 'block';
+          
+        } catch (error) {
+          console.error('Premium store initialization failed:', error);
+          this.statusEl.innerHTML = '<div class="error">Failed to load premium store. Please refresh.</div>';
+        }
+      }
+      
+      renderCatalogItems() {
+        const items = this.catalog.slice(0, 20); // Show more items
+        
+        this.catalogItems.innerHTML = items.map(item => {
+          const imageUrl = item.preview || item.image_url || '/logo.png';
+          const rarity = item.rarity || 'common';
+          
+          // Determine price display
+          let priceDisplay = 'FREE';
+          if (item.price_cents) {
+            if (item.price_cents >= 10000) {
+              // AIC items (100 cents = 1 AIC, so 10000+ cents = 100+ AIC)
+              priceDisplay = `${Math.floor(item.price_cents / 100)} AIC`;
+            } else {
+              // Regular items in cents
+              priceDisplay = `$${(item.price_cents / 100).toFixed(2)}`;
+            }
+          }
+          
+          return `
+            <div class="item-card" onclick="premiumStore.purchaseItem('${item.id}')">
+              <img src="${imageUrl}" alt="${item.name}" class="item-image">
+              <div class="item-rarity rarity-${rarity}">${rarity}</div>
+              <div class="item-name">${item.name}</div>
+              <div class="item-price">${priceDisplay}</div>
+              <button class="btn">Purchase</button>
+            </div>
+          `;
+        }).join('');
+      }
+      
+      renderAICItems() {
+        const aicItems = [
+          { id: 'aic-neon', name: 'Neon Dreams Chip Collection', price: 1299, rarity: 'legendary' },
+          { id: 'aic-cosmic', name: 'Cosmic Fire Master Set', price: 1599, rarity: 'legendary' },
+          { id: 'aic-electric', name: 'Electric Blue Elite Pack', price: 999, rarity: 'epic' },
+          { id: 'aic-quantum', name: 'Quantum Prism Collection', price: 1899, rarity: 'legendary' },
+          { id: 'aic-void', name: 'Void Walker Set', price: 2499, rarity: 'legendary' }
+        ];
+        
+        this.aicItems.innerHTML = aicItems.map(item => `
+          <div class="item-card" onclick="premiumStore.purchaseAICPack('${item.id}', ${item.price})">
+            <div class="aic-preview">
+              <div class="chip-stack-side-view">
+                <div class="main-stack">
+                  <img src="/assets/cosmetics/effects/chips/chip-500-top.png" alt="500" class="chip-main">
+                  <img src="/assets/cosmetics/effects/chips/chip-100-top.png" alt="100" class="chip-main">
+                  <img src="/assets/cosmetics/effects/chips/chip-25-top.png" alt="25" class="chip-main">
+                  <img src="/assets/cosmetics/effects/chips/chip-5-top.png" alt="5" class="chip-main">
+                  <img src="/assets/cosmetics/effects/chips/chip-1-top.png" alt="1" class="chip-main">
+                </div>
+                <div class="leaning-chips">
+                  <img src="/assets/cosmetics/effects/chips/chip-500-top.png" alt="500" class="chip-leaning chip-500-lean">
+                  <img src="/assets/cosmetics/effects/chips/chip-100-top.png" alt="100" class="chip-leaning chip-100-lean">
+                  <img src="/assets/cosmetics/effects/chips/chip-25-top.png" alt="25" class="chip-leaning chip-25-lean">
+                  <img src="/assets/cosmetics/effects/chips/chip-5-top.png" alt="5" class="chip-leaning chip-5-lean">
+                  <img src="/assets/cosmetics/effects/chips/chip-1-top.png" alt="1" class="chip-leaning chip-1-lean">
+                </div>
+              </div>
+            </div>
+            <div class="item-rarity rarity-${item.rarity}">${item.rarity}</div>
+            <div class="item-name">${item.name}</div>
+            <div class="item-price">${item.price} AIC</div>
+            <button class="btn btn-primary">Generate</button>
+          </div>
+        `).join('');
+      }
+      
+      purchaseItem(itemId) {
+        console.log('Purchase premium item:', itemId);
+        
+        // Find the item in catalog
+        const item = this.catalog.find(i => i.id === itemId);
+        if (!item) {
+          alert('Item not found!');
+          return;
+        }
+        
+        // Check if user has enough balance/currency
+        const price = item.price_cents || 0;
+        if (price > 0) {
+          // For now, just show purchase confirmation
+          const currency = price >= 10000 ? 'AIC' : '$';
+          const displayPrice = price >= 10000 ? 
+            `${Math.floor(price / 100)} AIC` : 
+            `$${(price / 100).toFixed(2)}`;
+          
+          if (confirm(`Purchase "${item.name}" for ${displayPrice}?`)) {
+            alert(`Purchased "${item.name}"! This will be connected to the backend purchase system.`);
+          }
+        } else {
+          if (confirm(`Equip "${item.name}" for FREE?`)) {
+            alert(`Equipped "${item.name}"!`);
+          }
+        }
+      }
+      
+      purchaseAICPack(packId, price) {
+        console.log('Purchase premium AIC pack:', packId, 'Price:', price);
+        
+        if (confirm(`Generate this AI pack for ${price} AIC?`)) {
+          alert(`Generating "${packId}" AI pack! This will be connected to the AI generation system.`);
+        }
+      }
+    }
+    
+    // Initialize premium store
+    const premiumStore = new PremiumStore();
+    premiumStore.init();
+  </script>
+</body>
+</html>

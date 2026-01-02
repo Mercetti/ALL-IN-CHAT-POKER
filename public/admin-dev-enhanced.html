@@ -447,6 +447,32 @@
               </div>
               <div class="db-status" id="db-status"></div>
             </div>
+
+            <div class="tool-group">
+              <h3>Grant AIC</h3>
+              <p class="form-description">Grant All-In Chips to a player to resolve support issues.</p>
+              <div class="grant-form">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="grant-login">Player Login</label>
+                    <input type="text" id="grant-login" class="form-input" placeholder="username" autocomplete="off">
+                  </div>
+                  <div class="form-group">
+                    <label for="grant-amount">Amount (AIC)</label>
+                    <input type="number" id="grant-amount" class="form-input" min="1" max="1000000" step="10" value="1000">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="grant-reason">Reason</label>
+                  <input type="text" id="grant-reason" class="form-input" placeholder="e.g., Tournament payout correction">
+                </div>
+                <div class="button-row">
+                  <button class="btn btn-primary" id="grant-submit">Grant AIC</button>
+                  <button class="btn btn-secondary" id="grant-reset">Reset</button>
+                </div>
+                <div class="grant-status" id="grant-status"></div>
+              </div>
+            </div>
           </div>
         </section>
 
