@@ -266,6 +266,7 @@ class EnhancedProfile {
       
       // Update UI
       this.updateProfileUI();
+      this.generateLinks();
     } catch (error) {
       console.error('Error loading profile data:', error);
       this.showToast('Error loading profile data', 'error');
