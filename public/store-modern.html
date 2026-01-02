@@ -13,6 +13,51 @@
       box-sizing: border-box;
     }
     
+    .header-nav {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin: 15px 0 0;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.05);
+      color: #f4f4f8;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+      font-size: 0.8rem;
+    }
+    
+    .nav-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(253, 224, 71, 0.8);
+      color: #fff;
+      transform: translateY(-2px);
+    }
+    
+    .nav-btn.active {
+      background: linear-gradient(135deg, #f59e0b, #fde047);
+      border-color: transparent;
+      color: #111;
+      box-shadow: 0 12px 25px rgba(253, 224, 71, 0.25);
+    }
+    
+    .nav-icon {
+      font-size: 1rem;
+    }
+    
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 50%, #16213e 100%);
@@ -672,6 +717,21 @@
       <h1>🃏 Modern Poker Store</h1>
       <p>Browse our complete collection of poker cosmetics</p>
       
+      <div class="header-nav">
+        <button class="nav-btn active" data-page="store">
+          <span class="nav-icon">🛒</span>
+          <span>Store</span>
+        </button>
+        <button class="nav-btn" data-page="editor">
+          <span class="nav-icon">🎨</span>
+          <span>Editor</span>
+        </button>
+        <button class="nav-btn" data-page="profile">
+          <span class="nav-icon">👤</span>
+          <span>Profile</span>
+        </button>
+      </div>
+      
       <div class="aic-balance">
         <div class="balance-card">
           <div class="balance-icon">💰</div>
@@ -882,6 +942,30 @@
       if (typeof enforceAuthenticatedPage === 'function' && !enforceAuthenticatedPage({ page: 'store', markOkBadge: true })) {
         return;
       }
+
+      const channelParam = typeof getChannelParam === 'function' ? getChannelParam() : '';
+      const suffix = channelParam ? `?channel=${encodeURIComponent(channelParam)}` : '';
+      const navTargets = {
+        store: `store-modern.html${suffix}`,
+        editor: `overlay-editor-enhanced.html${suffix}`,
+        profile: `profile-enhanced.html${suffix}`
+      };
+
+      function navigateToPage(page) {
+        const target = navTargets[page];
+        if (target) window.location.href = target;
+      }
+
+      function setupHeaderNavigation() {
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const page = btn.dataset.page;
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b === btn));
+            navigateToPage(page);
+          });
+        });
+      }
+      setupHeaderNavigation();
 
     // Modern Store with Categories
     class ModernStore {

@@ -291,21 +291,32 @@
 
     const notifications = new NotificationSystem();
 
+    function buildNavigationTarget(page) {
+      const params = new URLSearchParams(window.location.search || '');
+      const channel = params.get('channel') || '';
+      const suffix = channel ? `?channel=${encodeURIComponent(channel)}` : '';
+      const map = {
+        editor: `overlay-editor-enhanced.html${suffix}`,
+        store: `store-modern.html${suffix}`,
+        profile: `profile-enhanced.html${suffix}`
+      };
+      return map[page] || null;
+    }
+
+    function navigateToPage(page) {
+      const target = buildNavigationTarget(page);
+      if (target) window.location.href = target;
+    }
+
     // Enhanced UI interactions
     document.addEventListener('DOMContentLoaded', () => {
       // Navigation handling
       const navButtons = document.querySelectorAll('.nav-btn');
       navButtons.forEach(btn => {
         btn.addEventListener('click', () => {
-          navButtons.forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          
           const page = btn.dataset.page;
-          if (page === 'store') {
-            window.location.href = 'cosmetics-enhanced.html';
-          } else if (page === 'profile') {
-            window.location.href = 'profile.html';
-          }
+          navButtons.forEach(b => b.classList.toggle('active', b === btn));
+          navigateToPage(page);
         });
       });
 

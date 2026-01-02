@@ -1,4 +1,7 @@
-﻿/**
+﻿import { getSocketUrl, isEventForChannel } from './js/overlay/overlay-config.js';
+import { createOverlayConnection } from './js/overlay/overlay-connection.js';
+
+/**
  * Overlay client with Socket.IO integration
  */
 
@@ -29,24 +32,16 @@ function formatTimeRemaining(endsAt) {
   return minutes > 0 ? `${minutes}m ${secs}s` : `${secs}s`;
 }
 
-const SOCKET_URL = typeof getBackendBase === 'function' ? getBackendBase() : '';
-const overlayChannel = typeof getChannelParam === 'function' ? getChannelParam() : '';
+const SOCKET_URL = getSocketUrl();
+let overlayChannel = typeof getChannelParam === 'function' ? getChannelParam() : '';
 const isMultiStream = overlayChannel && overlayChannel.toLowerCase().startsWith('lobby-');
-const isEventForChannel = (payload) => {
-  if (!payload || !payload.channel) return true;
-  return payload.channel === overlayChannel;
-};
+const eventMatchesChannel = (payload) => isEventForChannel(overlayChannel, payload);
+const authToken = (typeof window !== 'undefined' && window.__USER_TOKEN__) || (typeof getUserToken === 'function' ? getUserToken() : null);
 
-const socket = io(SOCKET_URL || undefined, {
-  reconnection: true,
-  reconnectionDelay: 1000,
-  reconnectionDelayMax: 5000,
-  reconnectionAttempts: 5,
-  transports: ['websocket', 'polling'],
-  auth: {
-    token: (typeof window !== 'undefined' && window.__USER_TOKEN__) || (typeof getUserToken === 'function' ? getUserToken() : null),
-    channel: overlayChannel,
-  },
+const { socket } = createOverlayConnection({
+  channel: overlayChannel,
+  token: authToken,
+  onConnectionState: (state) => setConnection(state),
 });
 
 let currentPhase = 'waiting';

@@ -3,6 +3,8 @@
  * Handles profile management, customization, and user interactions
  */
 
+const DEFAULT_AVATAR_SRC = '/logo.png';
+
 class EnhancedProfile {
   constructor() {
     this.currentTab = 'settings';
@@ -309,9 +311,14 @@ class EnhancedProfile {
     if (displayNameEl) displayNameEl.textContent = this.profileData.displayName || 'Player';
     if (usernameEl) usernameEl.textContent = this.profileData.username ? `@${this.profileData.username}` : '@username';
     if (avatarEl) {
-      avatarEl.src = this.profileData.avatar || '/assets/default-avatar.png';
+      const preferredAvatar = (this.profileData.avatar || '').trim();
+      const initialSrc = preferredAvatar || DEFAULT_AVATAR_SRC;
+      avatarEl.dataset.fallbackApplied = 'false';
+      avatarEl.src = initialSrc;
       avatarEl.onerror = () => {
-        avatarEl.src = '/assets/default-avatar.png';
+        if (avatarEl.dataset.fallbackApplied === 'true') return;
+        avatarEl.dataset.fallbackApplied = 'true';
+        avatarEl.src = DEFAULT_AVATAR_SRC;
       };
     }
 
