@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Poker Store - Enhanced</title>
   <link rel="stylesheet" href="style-theme.css">
-  <link rel="stylesheet" href="style-store-enhanced.css">
+  <link rel="stylesheet" href="style-store-enhanced.css?v=7">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -281,6 +281,17 @@
         </div>
       </section>
 
+      <!-- Mystery Box Section -->
+      <section class="mystery-box glass-panel">
+        <div class="mystery-header">
+          <h3>🎁 Mystery Boxes</h3>
+          <p>Random cosmetic rewards with guaranteed value!</p>
+        </div>
+        <div class="mystery-grid" id="mystery-grid">
+          <!-- Mystery boxes will be populated here -->
+        </div>
+      </section>
+
       <!-- AIC Packs Section -->
       <section class="aic-packs glass-panel">
         <div class="aic-header">
@@ -391,18 +402,58 @@
         this.filteredCatalog = [];
         this.currentPage = 1;
         this.itemsPerPage = 12;
-        this.currentCategory = 'all';
-        this.currentFilters = {
-          category: '',
-          rarity: '',
-          price: '',
-          search: ''
+        this.userBalance = 5000;
+        this.ownedItems = new Set(['card-back-basic', 'avatar-ring-default']);
+        this.equippedItems = {
+          cardBack: 'card-back-basic',
+          avatarRing: 'avatar-ring-default'
         };
-        this.userBalance = 0;
-        this.ownedItems = new Set();
-        this.equippedItems = {};
-        
-        this.init();
+        this.currentFilter = 'all';
+        this.currentSort = 'name';
+        this.mysteryBoxes = [
+          {
+            id: 'box-basic',
+            name: 'Basic Mystery Box',
+            price: 499,
+            preview: '/assets/mystery-box-basic.png',
+            description: 'Contains 1-3 random common cosmetics',
+            guaranteedValue: 500,
+            possibleRewards: [
+              { type: 'cardBack', rarity: 'common', chance: 40 },
+              { type: 'avatarRing', rarity: 'common', chance: 30 },
+              { type: 'tableSkin', rarity: 'common', chance: 30 }
+            ]
+          },
+          {
+            id: 'box-premium',
+            name: 'Premium Mystery Box',
+            price: 1499,
+            preview: '/assets/mystery-box-premium.png',
+            description: 'Contains 2-4 random cosmetics with rare chances',
+            guaranteedValue: 1500,
+            possibleRewards: [
+              { type: 'cardBack', rarity: 'rare', chance: 25 },
+              { type: 'avatarRing', rarity: 'rare', chance: 20 },
+              { type: 'tableSkin', rarity: 'epic', chance: 15 },
+              { type: 'chip-set', rarity: 'rare', chance: 40 }
+            ]
+          },
+          {
+            id: 'box-legendary',
+            name: 'Legendary Mystery Box',
+            price: 2999,
+            preview: '/assets/mystery-box-legendary.png',
+            description: 'Contains 3-5 random cosmetics with legendary chances',
+            guaranteedValue: 3000,
+            possibleRewards: [
+              { type: 'cardBack', rarity: 'epic', chance: 20 },
+              { type: 'avatarRing', rarity: 'epic', chance: 20 },
+              { type: 'tableSkin', rarity: 'legendary', chance: 15 },
+              { type: 'chip-set', rarity: 'epic', chance: 35 },
+              { type: 'cardFace', rarity: 'legendary', chance: 10 }
+            ]
+          }
+        ];
       }
 
       async init() {
@@ -435,11 +486,22 @@
         const statusEl = document.getElementById('catalog-status');
         statusEl.textContent = 'Loading catalog...';
         
+        console.log('loadCatalog() called - DEBUG'); // DEBUG
+        
         try {
           const response = await fetch('/catalog');
+          console.log('Catalog response status:', response.status); // DEBUG
+          
           const items = await response.json();
+          console.log('Catalog items received:', items.length); // DEBUG
+          console.log('Catalog items sample:', items.slice(0, 3)); // DEBUG
+          
           this.catalog = items || [];
           this.filteredCatalog = [...this.catalog];
+          
+          console.log('Catalog set:', this.catalog.length); // DEBUG
+          console.log('Filtered catalog set:', this.filteredCatalog.length); // DEBUG
+          
           statusEl.textContent = '';
           notifications.show('Catalog loaded successfully', 'success');
         } catch (error) {
@@ -560,19 +622,34 @@
       renderStore() {
         this.renderItems();
         this.renderPagination();
+        this.renderMysteryBoxes();
         this.renderAICPacks();
       }
 
       renderItems() {
+        console.log('renderItems() called - DEBUG');
+        console.log('Catalog length:', this.catalog.length); // DEBUG
+        console.log('Filtered catalog length:', this.filteredCatalog.length); // DEBUG
+        
         const grid = document.getElementById('items-grid');
+        console.log('items-grid element:', grid); // DEBUG
+        
+        if (!grid) {
+          console.error('items-grid element not found!'); // DEBUG
+          return;
+        }
+        
         const start = (this.currentPage - 1) * this.itemsPerPage;
         const end = start + this.itemsPerPage;
         const items = this.filteredCatalog.slice(start, end);
+
+        console.log('Items to render:', items.length); // DEBUG
 
         grid.innerHTML = '';
         
         if (items.length === 0) {
           grid.innerHTML = '<div class="no-items">No items found matching your criteria.</div>';
+          console.log('No items to display'); // DEBUG
           return;
         }
 
@@ -580,6 +657,8 @@
           const card = this.createItemCard(item);
           grid.appendChild(card);
         });
+        
+        console.log('Items rendered successfully'); // DEBUG
       }
 
       createItemCard(item) {
@@ -695,13 +774,254 @@
         pagination.innerHTML = html;
       }
 
+      renderMysteryBoxes() {
+        const mysteryGrid = document.getElementById('mystery-grid');
+        const mysteryBoxes = [
+          {
+            id: 'box-basic',
+            name: 'Basic Mystery Box',
+            price: 499,
+            preview: '/assets/mystery-box-basic.png',
+            description: 'Contains 1-3 random common cosmetics',
+            guaranteedValue: 500,
+            possibleRewards: [
+              { type: 'cardBack', rarity: 'common', chance: 40 },
+              { type: 'avatarRing', rarity: 'common', chance: 30 },
+              { type: 'tableSkin', rarity: 'common', chance: 30 }
+            ]
+          },
+          {
+            id: 'box-premium',
+            name: 'Premium Mystery Box',
+            price: 1499,
+            preview: '/assets/mystery-box-premium.png',
+            description: 'Contains 2-4 random cosmetics with rare chances',
+            guaranteedValue: 1500,
+            possibleRewards: [
+              { type: 'cardBack', rarity: 'rare', chance: 25 },
+              { type: 'avatarRing', rarity: 'rare', chance: 20 },
+              { type: 'tableSkin', rarity: 'epic', chance: 15 },
+              { type: 'chip-set', rarity: 'rare', chance: 40 }
+            ]
+          },
+          {
+            id: 'box-legendary',
+            name: 'Legendary Mystery Box',
+            price: 2999,
+            preview: '/assets/mystery-box-legendary.png',
+            description: 'Contains 3-5 random cosmetics with legendary chances',
+            guaranteedValue: 3000,
+            possibleRewards: [
+              { type: 'cardBack', rarity: 'epic', chance: 20 },
+              { type: 'avatarRing', rarity: 'epic', chance: 20 },
+              { type: 'tableSkin', rarity: 'legendary', chance: 15 },
+              { type: 'chip-set', rarity: 'epic', chance: 35 },
+              { type: 'cardFace', rarity: 'legendary', chance: 10 }
+            ]
+          }
+        ];
+
+        mysteryGrid.innerHTML = '';
+        mysteryBoxes.forEach(box => {
+          const card = document.createElement('div');
+          card.className = 'mystery-box-card';
+          card.innerHTML = `
+            <div class="mystery-preview">
+              <div class="box-animation">
+                <img src="${box.preview}" alt="${box.name}" class="box-image" width="120" height="120">
+                <div class="glow-effect"></div>
+              </div>
+            </div>
+            <div class="mystery-info">
+              <h4>${box.name}</h4>
+              <p>${box.description}</p>
+              <div class="mystery-rewards">
+                <div class="reward-chance">
+                  <span class="chance-label">Guaranteed Value:</span>
+                  <span class="chance-value">$${box.guaranteedValue}</span>
+                </div>
+                <div class="reward-items">
+                  ${box.possibleRewards.map(reward => 
+                    `<span class="reward-tag ${reward.rarity}">${this.getTypeLabel(reward.type)} (${reward.chance}%)</span>`
+                  ).join('')}
+                </div>
+              </div>
+              <div class="mystery-price">
+                <span class="price-current">$${box.price}</span>
+                <span class="price-value">Value: $${box.guaranteedValue}</span>
+              </div>
+              <button class="btn btn-primary btn-glow" onclick="storeManager.openMysteryBox('${box.id}')">
+                <span class="btn-icon">🎁</span> Open Box
+              </button>
+            </div>
+          `;
+          mysteryGrid.appendChild(card);
+        });
+      }
+
+      async openMysteryBox(boxId) {
+        const box = this.mysteryBoxes.find(b => b.id === boxId);
+        if (!box) return;
+
+        const price = box.price || 0;
+        if (this.userBalance < price) {
+          notifications.show('Insufficient balance!', 'error');
+          return;
+        }
+
+        try {
+          // Show opening animation
+          this.showBoxOpeningAnimation(box);
+          
+          // Simulate box opening
+          this.userBalance -= price;
+          document.getElementById('user-balance').textContent = `$${this.userBalance.toFixed(2)}`;
+          
+          // Generate random rewards
+          const rewards = this.generateBoxRewards(box);
+          
+          // Show rewards after animation
+          setTimeout(() => {
+            this.showBoxRewards(box, rewards);
+            this.addRewardsToInventory(rewards);
+          }, 2000);
+          
+        } catch (error) {
+          console.error('Box opening failed:', error);
+          notifications.show('Box opening failed. Please try again.', 'error');
+        }
+      }
+
+      generateBoxRewards(box) {
+        const rewards = [];
+        const itemCount = Math.floor(Math.random() * 3) + (box.id === 'box-basic' ? 1 : box.id === 'box-premium' ? 2 : 3);
+        
+        for (let i = 0; i < itemCount; i++) {
+          const roll = Math.random() * 100;
+          let cumulative = 0;
+          
+          for (const reward of box.possibleRewards) {
+            cumulative += reward.chance;
+            if (roll <= cumulative) {
+              rewards.push({
+                type: reward.type,
+                rarity: reward.rarity,
+                name: this.generateRandomItemName(reward.type, reward.rarity)
+              });
+              break;
+            }
+          }
+        }
+        
+        return rewards;
+      }
+
+      generateRandomItemName(type, rarity) {
+        const prefixes = {
+          common: ['Basic', 'Simple', 'Standard', 'Classic'],
+          rare: ['Elegant', 'Refined', 'Premium', 'Special'],
+          epic: ['Mystic', 'Celestial', 'Quantum', 'Aurora'],
+          legendary: ['Divine', 'Eternal', 'Mythic', 'Ultimate']
+        };
+        
+        const suffixes = {
+          cardBack: ['Card Back', 'Design', 'Pattern'],
+          avatarRing: ['Ring', 'Aura', 'Circle'],
+          tableSkin: ['Table', 'Surface', 'Felt'],
+          chipSet: ['Chip Set', 'Chips', 'Collection'],
+          cardFace: ['Card Face', 'Design', 'Style']
+        };
+        
+        const prefix = prefixes[rarity][Math.floor(Math.random() * prefixes[rarity].length)];
+        const suffix = suffixes[type][Math.floor(Math.random() * suffixes[type].length)];
+        
+        return `${prefix} ${suffix}`;
+      }
+
+      showBoxOpeningAnimation(box) {
+        // Create overlay for animation
+        const overlay = document.createElement('div');
+        overlay.className = 'box-opening-overlay';
+        overlay.innerHTML = `
+          <div class="box-opening-container">
+            <div class="box-3d">
+              <img src="${box.preview}" alt="${box.name}" class="rotating-box">
+              <div class="particle-effects"></div>
+            </div>
+            <div class="opening-text">Opening...</div>
+          </div>
+        `;
+        
+        document.body.appendChild(overlay);
+        
+        // Remove overlay after animation
+        setTimeout(() => {
+          overlay.remove();
+        }, 2000);
+      }
+
+      showBoxRewards(box, rewards) {
+        const modal = document.getElementById('item-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalContent = modal.querySelector('.modal-body');
+        
+        modalTitle.textContent = `🎁 ${box.name} Rewards`;
+        
+        modalContent.innerHTML = `
+          <div class="rewards-display">
+            <div class="rewards-grid">
+              ${rewards.map((reward, index) => `
+                <div class="reward-item ${reward.rarity}" style="animation-delay: ${index * 0.2}s">
+                  <div class="reward-icon">${this.getTypeIcon(reward.type)}</div>
+                  <div class="reward-info">
+                    <div class="reward-name">${reward.name}</div>
+                    <div class="reward-meta">
+                      <span class="rarity-badge ${reward.rarity}">${reward.rarity}</span>
+                      <span class="reward-type">${this.getTypeLabel(reward.type)}</span>
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            <div class="rewards-summary">
+              <p>You received ${rewards.length} items!</p>
+              <button class="btn btn-primary" onclick="storeManager.closeRewardsModal()">Claim Items</button>
+            </div>
+          </div>
+        `;
+        
+        modal.style.display = 'flex';
+      }
+
+      closeRewardsModal() {
+        const modal = document.getElementById('item-modal');
+        modal.style.display = 'none';
+        notifications.show('Items added to your inventory!', 'success');
+        this.renderStore();
+      }
+
+      addRewardsToInventory(rewards) {
+        rewards.forEach(reward => {
+          const itemId = `${reward.type}_${reward.rarity}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          this.ownedItems.add(itemId);
+        });
+      }
+
       renderAICPacks() {
+        console.log('renderAICPacks() called - DEBUG');
         const aicGrid = document.getElementById('aic-grid');
+        console.log('aic-grid element:', aicGrid); // DEBUG
+        
         const aicPacks = [
           { id: 'aic-1', name: 'Neon Dreams Chip Set', price: 1299, preview: '/assets/cosmetics/cards/basic/card-back-purple.svg', type: 'chip-set' },
           { id: 'aic-2', name: 'Cosmic Fire Chip Set', price: 1599, preview: '/assets/cosmetics/avatar/fire_ring.svg', type: 'chip-set' },
           { id: 'aic-3', name: 'Electric Blue Chip Set', price: 999, preview: '/assets/cosmetics/table/neon_green.svg', type: 'chip-set' }
         ];
+
+        if (!aicGrid) {
+          console.error('aic-grid element not found!'); // DEBUG
+          return;
+        }
 
         aicGrid.innerHTML = '';
         aicPacks.forEach(pack => {
@@ -709,7 +1029,35 @@
           card.className = 'aic-pack-card';
           card.innerHTML = `
             <div class="aic-preview">
-              <img src="${pack.preview}" alt="${pack.name}">
+              <div class="aic-chip-stack-side-view">
+                <!-- Main chip stack (side view) -->
+                <div class="aic-chip-stack-side">
+                  <img src="/assets/cosmetics/effects/chips/chip-500-top.png" alt="500 chip" class="aic-chip-side-item">
+                  <img src="/assets/cosmetics/effects/chips/chip-100-top.png" alt="100 chip" class="aic-chip-side-item">
+                  <img src="/assets/cosmetics/effects/chips/chip-25-top.png" alt="25 chip" class="aic-chip-side-item">
+                  <img src="/assets/cosmetics/effects/chips/chip-5-top.png" alt="5 chip" class="aic-chip-side-item">
+                  <img src="/assets/cosmetics/effects/chips/chip-1-top.png" alt="1 chip" class="aic-chip-side-item">
+                </div>
+                
+                <!-- Individual chips leaning against the stack -->
+                <div class="aic-chip-leaning-container">
+                  <div class="aic-chip-leaning aic-chip-leaning-500">
+                    <img src="/assets/cosmetics/effects/chips/chip-500-top.png" alt="500 chip" class="aic-chip-leaning-item">
+                  </div>
+                  <div class="aic-chip-leaning aic-chip-leaning-100">
+                    <img src="/assets/cosmetics/effects/chips/chip-100-top.png" alt="100 chip" class="aic-chip-leaning-item">
+                  </div>
+                  <div class="aic-chip-leaning aic-chip-leaning-25">
+                    <img src="/assets/cosmetics/effects/chips/chip-25-top.png" alt="25 chip" class="aic-chip-leaning-item">
+                  </div>
+                  <div class="aic-chip-leaning aic-chip-leaning-5">
+                    <img src="/assets/cosmetics/effects/chips/chip-5-top.png" alt="5 chip" class="aic-chip-leaning-item">
+                  </div>
+                  <div class="aic-chip-leaning aic-chip-leaning-1">
+                    <img src="/assets/cosmetics/effects/chips/chip-1-top.png" alt="1 chip" class="aic-chip-leaning-item">
+                  </div>
+                </div>
+              </div>
             </div>
             <div class="aic-info">
               <h4>${pack.name}</h4>
@@ -720,6 +1068,8 @@
           `;
           aicGrid.appendChild(card);
         });
+        
+        console.log('AIC packs rendered:', aicPacks.length); // DEBUG
       }
 
       goToPage(page) {
@@ -808,6 +1158,7 @@
 
     // Initialize store
     const storeManager = new StoreManager();
+    storeManager.init(); // This was missing!
 
     // Enhanced animations
     const observer = new IntersectionObserver((entries) => {

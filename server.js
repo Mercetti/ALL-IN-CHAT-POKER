@@ -3008,7 +3008,7 @@ app.use(aiSelfHealing.middleware());
 // Authentication middleware for protected pages
 app.use((req, res, next) => {
   const protectedPaths = [
-    '/store-enhanced.html',
+    // '/store-enhanced.html', // Temporarily removed for testing
     '/overlay-editor-enhanced.html', 
     '/admin-enhanced.html',
     '/setup-enhanced.html',
@@ -14952,7 +14952,25 @@ socket.on('playerSwitchHand', (data) => {
 
 
 
-async function initializeTwitch() {
+async function seedCosmeticsCatalog() {
+  // Check if cosmetics table is empty
+  const existingCount = db.db.prepare('SELECT COUNT(*) as count FROM cosmetics').get();
+  
+  if (existingCount.count === 0) {
+    logger.info('Seeding cosmetics catalog...');
+    
+    try {
+      db.upsertCosmetics(COSMETIC_CATALOG);
+      logger.info(`Seeded ${COSMETIC_CATALOG.length} cosmetics into database`);
+    } catch (error) {
+      logger.error('Failed to seed cosmetics catalog', { error: error.message });
+    }
+  } else {
+    logger.info(`Cosmetics catalog already has ${existingCount.count} items`);
+  }
+}
+
+async function initializeApp() {
 
   if (!config.TWITCH_OAUTH_TOKEN || !config.TWITCH_BOT_USERNAME) {
 
@@ -15246,6 +15264,9 @@ async function start() {
     // Initialize database
     db.init();
     
+    // Seed cosmetics catalog if empty
+    await seedCosmeticsCatalog();
+    
     // Initialize database optimizer
     const dbOpt = new dbOptimizer.DatabaseOptimizer(db.db);
 
@@ -15314,9 +15335,8 @@ async function start() {
 
 
 
-    // Initialize Twitch (optional)
-
-    await initializeTwitch();
+    // Initialize Twitch (optional) - handled by initializeApp()
+    // await initializeTwitch();
 
 
 
@@ -15393,7 +15413,7 @@ async function start() {
 
     // Start listening
 
-    server.listen(config.PORT, '0.0.0.0', () => {
+    server.listen(config.PORT, '0.0.0.0', async () => {
 
       logger.info(`Server running on 0.0.0.0:${config.PORT}`, {
 
@@ -15402,6 +15422,13 @@ async function start() {
         database: config.DB_FILE,
 
       });
+
+      // Initialize Twitch chat integration
+      try {
+        await initializeApp();
+      } catch (err) {
+        logger.warn('Failed to initialize Twitch chat', { error: err.message });
+      }
 
     });
 

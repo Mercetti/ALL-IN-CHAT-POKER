@@ -5,8 +5,9 @@
   min-height: 100vh;
   position: relative;
   z-index: 1;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.3) !important;
   backdrop-filter: blur(10px);
+  border: 5px solid red !important; /* DEBUG BORDER */
 }
 
 /* ===== ENHANCED HEADER ===== */
@@ -177,6 +178,8 @@
   color: #e6f3ff;
   position: relative;
   z-index: 1;
+  background: rgba(255, 0, 0, 0.2) !important; /* DEBUG BACKGROUND */
+  border: 3px solid blue !important; /* DEBUG BORDER */
 }
 
 .content-header {
@@ -684,43 +687,221 @@
   margin: 0 auto;
 }
 
-.aic-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+/* ===== AIC CHIP STACK SIDE VIEW ===== */
+
+.aic-chip-stack-side-view {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 15px;
+  padding: 10px;
+  perspective: 800px;
+  min-height: 100px;
+  width: 100%;
+  height: 100%;
 }
 
-@media (min-width: 768px) {
-  .aic-grid {
-    grid-template-columns: repeat(3, 1fr);
+/* Main chip stack - side view (scaled for AIC cards) */
+.aic-chip-stack-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  transform: rotateX(-5deg) rotateY(0deg);
+}
+
+.aic-chip-side-item {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  position: absolute;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  transition: all 0.3s ease;
+  background: white !important;
+  object-fit: cover;
+}
+
+/* Side view stacking - chips slightly offset to show depth */
+.aic-chip-side-item:nth-child(1) { /* 500 chip - bottom */
+  bottom: 0;
+  z-index: 1;
+  transform: translateZ(0px) scale(1.0);
+}
+
+.aic-chip-side-item:nth-child(2) { /* 100 chip */
+  bottom: 2px;
+  z-index: 2;
+  transform: translateZ(2px) scale(0.98);
+}
+
+.aic-chip-side-item:nth-child(3) { /* 25 chip */
+  bottom: 4px;
+  z-index: 3;
+  transform: translateZ(4px) scale(0.96);
+}
+
+.aic-chip-side-item:nth-child(4) { /* 5 chip */
+  bottom: 6px;
+  z-index: 4;
+  transform: translateZ(6px) scale(0.94);
+}
+
+.aic-chip-side-item:nth-child(5) { /* 1 chip - top */
+  bottom: 8px;
+  z-index: 5;
+  transform: translateZ(8px) scale(0.92);
+}
+
+/* Leaning chips container */
+.aic-chip-leaning-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+
+.aic-chip-leaning {
+  display: flex;
+  align-items: center;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.aic-chip-leaning-item {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+  background: white !important;
+  object-fit: cover;
+}
+
+/* Individual chip leaning angles (scaled for AIC) */
+.aic-chip-leaning-500 {
+  transform: rotate(-15deg) translateX(-3px);
+}
+
+.aic-chip-leaning-100 {
+  transform: rotate(-10deg) translateX(-2px);
+}
+
+.aic-chip-leaning-25 {
+  transform: rotate(-5deg) translateX(-1px);
+}
+
+.aic-chip-leaning-5 {
+  transform: rotate(5deg) translateX(1px);
+}
+
+.aic-chip-leaning-1 {
+  transform: rotate(10deg) translateX(2px);
+}
+
+/* Hover effects for AIC cards */
+.aic-pack-card:hover .aic-chip-side-item {
+  transform: translateY(-2px) scale(1.05);
+}
+
+.aic-pack-card:hover .aic-chip-leaning-item {
+  transform: scale(1.1) rotate(0deg);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+}
+
+.aic-pack-card:hover .aic-chip-leaning-500 {
+  transform: scale(1.1) rotate(-12deg) translateX(-3px);
+}
+
+.aic-pack-card:hover .aic-chip-leaning-100 {
+  transform: scale(1.1) rotate(-8deg) translateX(-2px);
+}
+
+.aic-pack-card:hover .aic-chip-leaning-25 {
+  transform: scale(1.1) rotate(-3deg) translateX(-1px);
+}
+
+.aic-pack-card:hover .aic-chip-leaning-5 {
+  transform: scale(1.1) rotate(7deg) translateX(1px);
+}
+
+.aic-pack-card:hover .aic-chip-leaning-1 {
+  transform: scale(1.1) rotate(12deg) translateX(2px);
+}
+
+/* Responsive adjustments for AIC */
+@media (max-width: 768px) {
+  .aic-chip-stack-side-view {
+    gap: 15px;
+    padding: 10px;
+    min-height: 100px;
+  }
+  
+  .aic-chip-side-item {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .aic-chip-leaning-item {
+    width: 20px;
+    height: 20px;
   }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 480px) {
+  .aic-chip-stack-side-view {
+    flex-direction: column;
+    gap: 10px;
+    min-height: 80px;
+  }
+  
+  .aic-chip-side-item {
+    width: 25px;
+    height: 25px;
+  }
+  
+  .aic-chip-leaning-item {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.aic-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 16px !important;
+  max-width: 900px !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+}
+
+@media (max-width: 768px) {
   .aic-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
   }
 }
 
 @media (max-width: 480px) {
   .aic-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
   }
 }
 
 .aic-pack-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 16px;
-  padding: 20px;
-  text-align: center;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 12px !important;
+  padding: 16px !important;
+  text-align: center !important;
+  transition: all 0.3s ease !important;
+  position: relative !important;
+  overflow: hidden !important;
+  min-height: 200px !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 .aic-pack-card::before {
@@ -742,42 +923,45 @@
 
 .aic-preview {
   width: 100%;
-  height: 120px;
+  height: 120px; /* Increased height for chip stack display */
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16px;
-  border-radius: 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
   background: rgba(0, 0, 0, 0.2);
   overflow: hidden;
 }
 
 .aic-preview img {
-  max-width: 100%;
-  max-height: 100%;
+  max-width: 90%;
+  max-height: 90%;
   object-fit: contain;
-  border-radius: 8px;
+  border-radius: 6px;
+  width: 72px;
+  height: 72px;
 }
 
 .aic-info h4 {
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: var(--text);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
+  line-height: 1.2;
 }
 
 .aic-info p {
   color: var(--text-secondary);
-  font-size: 0.9rem;
-  margin-bottom: 16px;
-  line-height: 1.4;
+  font-size: 0.8rem;
+  margin-bottom: 12px;
+  line-height: 1.3;
 }
 
 .aic-price {
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #22c55e;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .aic-price::before {
