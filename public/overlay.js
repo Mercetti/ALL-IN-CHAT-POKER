@@ -1,4 +1,4 @@
-﻿import {
+import {
   getSocketUrl,
   isEventForChannel,
   CARD_FLIP_META,
@@ -87,35 +87,222 @@ function formatTimeRemaining(endsAt) {
 }
 
 const SOCKET_URL = getSocketUrl();
-let overlayChannel = typeof getChannelParam === 'function' ? getChannelParam() : '';
-const isMultiStream = overlayChannel && overlayChannel.toLowerCase().startsWith('lobby-');
-setIsMultiStream(isMultiStream);
+const initialQueryChannel = typeof getChannelParam === 'function' ? getChannelParam() : '';
+const hasChannelQuery = !!initialQueryChannel;
+let overlayChannel = initialQueryChannel;
+let isMultiStream = false;
+let connectionInitialized = false;
 const eventMatchesChannel = (payload) => isEventForChannel(overlayChannel, payload);
-const authToken = (typeof window !== 'undefined' && window.__USER_TOKEN__) || (typeof getUserToken === 'function' ? getUserToken() : null);
+const authToken =
+  (typeof window !== 'undefined' && window.__USER_TOKEN__) ||
+  (typeof getUserToken === 'function' ? getUserToken() : null);
 
-const { socket } = createOverlayConnection({
-  channel: overlayChannel,
-  token: authToken,
-  onConnectionState: (state) => setConnection(state),
-});
+const seatNodes = Array.from(document.querySelectorAll('.seat'));
+const seatOrder = seatNodes.map((_, idx) => idx);
+const seatAssignments = new Map();
+const overflowRow = document.getElementById('overflow-row');
+const overflowNames = document.getElementById('overflow-names');
+const connectionPill = document.getElementById('connection-pill');
+const channelPill = document.getElementById('channel-pill');
+const modePill = document.getElementById('mode-pill');
+const seatedPill = document.getElementById('seated-pill');
+const loadingScreen = document.getElementById('overlay-loading');
+const errorScreen = document.getElementById('overlay-error');
+const retryButton = document.getElementById('overlay-retry');
+let hasHydrated = false;
+let queueNamesCache = [];
 
-function normalizeSuitName(raw = '') {
-  const s = (raw || '').toString().toLowerCase();
-  if (['h', '♥', 'hearts', 'heart'].includes(s)) return 'hearts';
-  if (['d', '♦', 'diamonds', 'diamond'].includes(s)) return 'diamonds';
-  if (['c', '♣', 'clubs', 'club'].includes(s)) return 'clubs';
-  if (['s', '♠', 'spades', 'spade'].includes(s)) return 'spades';
-  return null;
+function refreshMultiStreamFlag() {
+  isMultiStream = !!overlayChannel && overlayChannel.toLowerCase().startsWith('lobby-');
+  setIsMultiStream(isMultiStream);
 }
 
-function normalizeRankName(raw = '') {
-  const r = (raw || '').toString().toUpperCase();
-  if (['T', '10'].includes(r)) return '10';
-  if (['J', 'JACK'].includes(r)) return 'jack';
-  if (['Q', 'QUEEN'].includes(r)) return 'queen';
-  if (['K', 'KING'].includes(r)) return 'king';
-  if (['A', 'ACE'].includes(r)) return 'ace';
-  return ['2', '3', '4', '5', '6', '7', '8', '9'].includes(r) ? r : null;
+function applyChannelFallback(candidate) {
+  const next = (candidate || '').toLowerCase();
+  if (!next || next === overlayChannel) return false;
+  overlayChannel = next;
+  refreshMultiStreamFlag();
+  updateChannelPill();
+  if (connectionInitialized && !hasChannelQuery) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('channel', overlayChannel);
+    window.location.replace(url.toString());
+  }
+  return true;
+}
+
+function normalizeQueueEntries(waiting) {
+  const list = Array.isArray(waiting) ? waiting : [];
+  return list
+    .map((entry) => {
+      if (!entry) return null;
+      if (typeof entry === 'string') {
+        return { login: entry.toLowerCase?.() || entry, label: entry };
+      }
+      if (typeof entry === 'object') {
+        const login =
+          entry.login ||
+          entry.name ||
+          entry.display_name ||
+          entry.username ||
+          entry.twitch ||
+          '';
+        const label = entry.display_name || entry.name || entry.login || entry.alias || 'Player';
+        return { login, label };
+      }
+      return null;
+    })
+    .filter((item) => item && item.label);
+}
+
+function getPlayerLabel(player) {
+  if (!player) return '';
+  return player.display_name || player.name || player.login || player.alias || 'Player';
+}
+
+function updateOverflowDisplay(overflowPlayers = []) {
+  if (!overflowRow || !overflowNames) return;
+  let names = [];
+  if (Array.isArray(overflowPlayers) && overflowPlayers.length) {
+    names = overflowPlayers.map((p) => getPlayerLabel(p)).filter(Boolean);
+  } else if (queueNamesCache.length) {
+    names = queueNamesCache.slice(0, 6);
+  }
+  overflowRow.classList.toggle('hidden', names.length === 0);
+  overflowNames.textContent = names.length ? names.join(' · ') : '-';
+}
+
+function toggleScreen(el, show) {
+  if (!el) return;
+  el.classList.toggle('hidden', !show);
+}
+
+function showLoadingScreen() {
+  toggleScreen(errorScreen, false);
+  toggleScreen(loadingScreen, true);
+}
+
+function showErrorScreen() {
+  toggleScreen(loadingScreen, false);
+  toggleScreen(errorScreen, true);
+}
+
+function hideOverlayScreens() {
+  toggleScreen(loadingScreen, false);
+  toggleScreen(errorScreen, false);
+}
+
+function updateChannelPill() {
+  if (!channelPill) return;
+  if (overlayChannel) {
+    channelPill.textContent = `Channel: ${overlayChannel}`;
+    channelPill.classList.add('channel');
+  } else {
+    channelPill.textContent = 'Channel: -';
+    channelPill.classList.remove('channel');
+  }
+}
+
+if (!overlayChannel && typeof getUserToken === 'function') {
+  const tokenLogin = decodeLoginFromJwt(getUserToken());
+  if (tokenLogin) {
+    applyChannelFallback(tokenLogin);
+  }
+}
+
+refreshMultiStreamFlag();
+updateChannelPill();
+showLoadingScreen();
+
+if (retryButton) {
+  retryButton.addEventListener('click', () => {
+    window.location.reload();
+  });
+}
+
+function setConnection(state) {
+  if (connectionPill) {
+    const text =
+      state === 'connected'
+        ? 'Connected'
+        : state === 'reconnecting'
+        ? 'Reconnecting...'
+        : 'Disconnected';
+    connectionPill.textContent = text;
+    connectionPill.classList.toggle('connected', state === 'connected');
+    connectionPill.classList.toggle('disconnected', state === 'disconnected');
+  }
+
+  if (state === 'connected') {
+    if (hasHydrated) {
+      hideOverlayScreens();
+    }
+  } else if (state === 'reconnecting') {
+    showLoadingScreen();
+  } else if (state === 'disconnected') {
+    showErrorScreen();
+  }
+}
+
+function updateModePill(mode) {
+  if (!modePill) return;
+  modePill.textContent = `Mode: ${mode || '-'}`;
+}
+
+function syncSeatAssignments(players) {
+  const active = new Set(players.map((p) => p.login));
+  Array.from(seatAssignments.keys()).forEach((login) => {
+    if (!active.has(login)) seatAssignments.delete(login);
+  });
+
+  const usedSeats = new Set(seatAssignments.values());
+  const availableSeats = seatOrder.filter((seatIdx) => !usedSeats.has(seatIdx));
+  players.forEach((player) => {
+    if (!seatAssignments.has(player.login) && availableSeats.length) {
+      const nextSeat = availableSeats.shift();
+      seatAssignments.set(player.login, nextSeat);
+    }
+  });
+}
+
+function renderSeatLayer(players = getOverlayPlayers()) {
+  const validPlayers = (players || []).filter((p) => p && p.login);
+  syncSeatAssignments(validPlayers);
+
+  const seatMap = {};
+  seatAssignments.forEach((seatIdx, login) => {
+    const player = validPlayers.find((p) => p.login === login);
+    if (player) seatMap[seatIdx] = player;
+  });
+
+  seatNodes.forEach((node) => {
+    const seatIdx = Number(node.dataset.seat);
+    const player = seatMap[seatIdx];
+    const avatar = node.querySelector('img');
+    const name = node.querySelector('.seat-name');
+    if (player) {
+      node.classList.remove('open');
+      if (avatar) {
+        avatar.src = player.avatar || player.profile?.avatar || '/assets/overlay/open-seat.svg';
+        avatar.alt = player.display_name || player.login;
+      }
+      if (name) name.textContent = player.display_name || player.login;
+    } else {
+      node.classList.add('open');
+      if (avatar) {
+        avatar.src = '/assets/overlay/open-seat.svg';
+        avatar.alt = 'Open seat';
+      }
+      if (name) name.textContent = 'Open Seat';
+    }
+  });
+
+  if (seatedPill) {
+    const seatedCount = Math.min(validPlayers.length, seatNodes.length);
+    seatedPill.textContent = `${seatedCount} / ${seatNodes.length} seated`;
+  }
+  const overflowPlayers = validPlayers.filter((p) => !seatAssignments.has(p.login));
+  updateOverflowDisplay(overflowPlayers);
 }
 
 function getCardFaceImage(rank, suit, basePath) {
@@ -255,6 +442,9 @@ async function loadPublicConfig() {
     if (!res.ok) return;
     const cfg = await res.json();
     setStreamerLogin((cfg.streamerLogin || '').toLowerCase());
+    if (!overlayChannel && (cfg.streamerLogin || cfg.twitchChannel)) {
+      applyChannelFallback(cfg.streamerLogin || cfg.twitchChannel || '');
+    }
     if (typeof cfg.minBet === 'number') setMinBet(cfg.minBet);
     if (typeof cfg.potGlowMultiplier === 'number') {
       setPotGlowMultiplier(cfg.potGlowMultiplier);
@@ -380,6 +570,7 @@ function mapLoadoutToOverlaySettings(loadout = {}, catalog = []) {
 
 async function loadOverlayLoadout() {
   try {
+    if (!overlayChannel) return;
     const qs = overlayChannel ? `?channel=${encodeURIComponent(overlayChannel)}` : '';
     const res = await fetch(`/overlay/loadout${qs}`);
     if (!res.ok) return;
@@ -573,18 +764,30 @@ socket.on('disconnect', () => {
   Toast.warning('Disconnected');
 });
 
+socket.on('connect_error', (err) => {
+  console.error('Overlay connect error', err);
+  Toast.error('Overlay connection failed');
+  setConnection('disconnected');
+});
+
 socket.on('state', (data) => {
   if (!isEventForChannel(data)) return;
   console.log('State received:', data);
   updateUI(data);
-  setOverlayPlayers(data.players || []);
+  applyPlayers(data.players || []);
   setOverlayMode(data.mode || overlayState.overlayMode);
   setCurrentDealerHand(data.dealerHand || overlayState.currentDealerHand);
   if (data.phase) setCurrentPhase(data.phase);
   renderPlayerHands(getOverlayPlayers());
   if (data.mode) setModeBadge(data.mode);
   renderPot(data);
-  updateActionButtons();
+  displayResult(data);
+  updatePhaseUI('Round Complete');
+  startCountdown(null);
+  if (data.waiting) renderQueue(data.waiting);
+  setPhaseLabel(data.phase);
+  highlightPlayer(null);
+  completeHydration();
 });
 
 socket.on('readyStatus', (data) => {
