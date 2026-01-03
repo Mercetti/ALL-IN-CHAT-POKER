@@ -577,6 +577,7 @@ async function seedSampleCosmetics() {
   }
 }
 
+
 function loadFlags() {
   const flags = JSON.parse(localStorage.getItem(flagStoreKey) || '{}');
   if (el('flag-drops')) el('flag-drops').checked = !!flags.drops;
@@ -696,30 +697,249 @@ async function loadSecuritySummary() {
   }
 }
 
-function updateSupabaseEdgeStatus() {
-  const pill = document.getElementById('supabase-edge-pill');
-  if (!pill) return;
-  const raw = localStorage.getItem('supabaseEdgeResult');
-  if (!raw) {
-    pill.textContent = 'Supabase: -';
-    pill.className = 'pill muted';
-    return;
-  }
+function loadFlags() {
+  const flags = JSON.parse(localStorage.getItem(flagStoreKey) || '{}');
+  if (el('flag-drops')) el('flag-drops').checked = !!flags.drops;
+  if (el('flag-avatar-refresh')) el('flag-avatar-refresh').checked = flags.avatarRefresh !== false;
+  if (el('flag-deal-speed')) el('flag-deal-speed').value = flags.dealSpeed || 'normal';
+}
+
+function saveFlags() {
+  const flags = {
+    drops: !!el('flag-drops')?.checked,
+    avatarRefresh: !!el('flag-avatar-refresh')?.checked,
+    dealSpeed: el('flag-deal-speed')?.value || 'normal',
+  };
+  localStorage.setItem(flagStoreKey, JSON.stringify(flags));
+  Toast.info('Feature toggles saved locally');
+}
+
+function clearLocalCaches() {
+  localStorage.removeItem('viewerEarnConfig');
+  localStorage.removeItem(flagStoreKey);
+  Toast.success('Local caches cleared');
+  loadFlags();
+  loadEarnConfig();
+}
+
+function clearHealth() {
+  overlayHealth.lastAvatar = null;
+  overlayHealth.lastSettings = null;
+  updateHealthDisplay();
+  Toast.info('Health counters cleared');
+}
+
+async function resetOverlaySettings() {
+  const ready = await ensureSocketConnected();
+  if (!ready) return Toast.error('Socket not connected');
+  devSocket.emit('overlaySettings', {});
+  Toast.info('Overlay settings reset/ping sent');
+}
+
+async function sendStartRound(opts = {}) {
+  const ready = await ensureSocketConnected();
+  if (!ready) return Toast.error('Socket not connected');
+  devSocket.emit('startRound', opts);
+}
+
+async function addTestBots() {
+  const ready = await ensureSocketConnected();
+  if (!ready) return Toast.error('Socket not connected');
+  const autoBet = !!el('auto-bet-bots')?.checked;
+  devSocket.emit('addTestBots', { count: 3, startNow: autoBet });
+  Toast.success('Added test bots');
+}
+
+function goToProfile(viewOnly = false) {
+  const login = (el('profile-search-login')?.value || '').trim().toLowerCase();
+  if (!login) return Toast.error('Enter a username');
+  const url = `/profile-enhanced.html?user=${encodeURIComponent(login)}${viewOnly ? '&view=1' : ''}`;
+  window.open(url, '_blank', 'noopener');
+}
+
+async function loadLastAiReport() {
   try {
-    const data = JSON.parse(raw);
-    const ts = data.at ? new Date(data.at).toLocaleTimeString() : '';
-    if (data.ok) {
-      pill.textContent = `Supabase: ok ${ts}`;
-      pill.className = 'pill success';
-    } else {
-      pill.textContent = `Supabase: failed ${ts}`;
-      pill.className = 'pill warning';
+    const res = await apiCall('/admin/ai-tests/report', { method: 'GET' });
+    if (res?.report && aiTestLast) {
+      const r = res.report;
+      const ts = r.startedAt ? new Date(r.startedAt).toLocaleString() : '';
+      aiTestLast.innerHTML = `<strong>Last scheduled/manual report (${r.kind || ''})</strong> ${ts}<br>${r.plan || ''}`;
+      if (aiTestDiag && r.diagnosis) aiTestDiag.textContent = r.diagnosis;
     }
-  } catch {
-    pill.textContent = 'Supabase: -';
-    pill.className = 'pill muted';
+  } catch (err) {
+    // ignore
   }
 }
+
+async function loadOpsSummary() {
+  if (!opsSummaryEl) return;
+  opsSummaryEl.textContent = 'Loading ops...';
+  try {
+    const res = await apiCall('/admin/ops-summary', { method: 'GET' });
+    const parts = [];
+    parts.push(`Bot: ${res.bot?.connected ? 'connected' : 'disconnected'} (channels: ${(res.bot?.channels || []).join(', ') || '-'})`);
+    parts.push(`Synthetic: ${res.synthetic?.length ? JSON.stringify(res.synthetic[res.synthetic.length - 1]) : 'none'}`);
+    parts.push(`Assets: ${res.assets?.length ? res.assets[res.assets.length - 1].results.map(r => `${r.asset}:${r.status}`).join(', ') : 'none'}`);
+    parts.push(`Errors (latest): ${res.errors?.length ? res.errors.slice(-3).map(e => `${e.status}@${e.path}`).join(', ') : 'none'}`);
+    parts.push(`Slow reqs: ${res.slow?.length || 0}`);
+    parts.push(`Socket disconnects: ${res.socketDisconnects?.length || 0}`);
+    parts.push(`DB backup: ${res.db?.lastBackup ? new Date(res.db.lastBackup.at).toLocaleString() : 'none'}`);
+    parts.push(`Last vacuum: ${res.db?.lastVacuum ? new Date(res.db.lastVacuum.at).toLocaleString() : 'none'}`);
+    parts.push(`Scheduler: last AI test date CST: ${res.scheduler?.lastAiTestRunDateCst || '-'}`);
+    opsSummaryEl.innerHTML = parts.map(p => `<div>${p}</div>`).join('');
+  } catch (err) {
+    opsSummaryEl.textContent = 'Failed to load ops summary';
+  }
+}
+
+async function loadSecuritySummary() {
+  if (!securitySummary) return;
+  securitySummary.textContent = 'Loading security...';
+  try {
+    const res = await apiCall('/admin/security-snapshot', { method: 'GET' });
+    const snap = res?.snapshot;
+    if (!snap) {
+      securitySummary.textContent = 'No snapshot';
+      return;
+    }
+    const parts = [];
+    parts.push(`Blocked IPs: ${(snap.rateLimits?.blockedIps || []).length}`);
+    parts.push(`Login attempts tracked: ${snap.rateLimits?.loginAttempts || 0}`);
+    parts.push(`Recent errors: ${(snap.errors || []).length}`);
+    parts.push(`Recent slow reqs: ${(snap.slow || []).length}`);
+    parts.push(`Bot: ${snap.bot?.connected ? 'connected' : 'disconnected'} (channels: ${(snap.bot?.channels || []).join(', ') || '-'})`);
+    parts.push(`Headers: CSP=${snap.headers?.csp ? 'on' : 'off'}, HSTS=${snap.headers?.hsts ? 'on' : 'off'}, CORS=${snap.headers?.cors || '*'}`);
+    parts.push(`Integrity hashes: ${snap.integrity ? 'ok' : 'n/a'}`);
+    securitySummary.innerHTML = parts.map(p => `<div>${p}</div>`).join('');
+  } catch (err) {
+    securitySummary.textContent = 'Failed to load security snapshot';
+  }
+}
+
+// User Role Management
+const roleUserLogin = el('role-user-login');
+const roleUserRole = el('role-user-role');
+const btnUpdateUserRole = el('btn-update-user-role');
+const btnRefreshUserRoles = el('btn-refresh-user-roles');
+const roleUpdateStatus = el('role-update-status');
+const userRolesTable = el('user-roles-table');
+
+const loadUserRoles = async () => {
+  try {
+    const profiles = await apiCall('/admin/profiles');
+    if (!userRolesTable) return;
+    
+    const tbody = userRolesTable.querySelector('tbody');
+    if (!tbody) return;
+
+    tbody.innerHTML = profiles
+      .sort((a, b) => a.login.localeCompare(b.login))
+      .map(profile => `
+        <tr>
+          <td>${profile.login}</td>
+          <td>${profile.display_name || profile.login}</td>
+          <td><span class="badge ${profile.role}">${profile.role || 'player'}</span></td>
+          <td>
+            <button class="btn btn-xs btn-secondary" onclick="setUserRoleForm('${profile.login}', '${profile.role || 'player'}')">Edit</button>
+          </td>
+        </tr>
+      `).join('');
+  } catch (err) {
+    console.error('Failed to load user roles:', err);
+    if (userRolesTable) {
+      const tbody = userRolesTable.querySelector('tbody');
+      if (tbody) tbody.innerHTML = '<tr><td colspan="4" class="muted">Failed to load users</td></tr>';
+    }
+  }
+};
+
+const setUserRoleForm = (login, currentRole) => {
+  if (roleUserLogin) roleUserLogin.value = login;
+  if (roleUserRole) roleUserRole.value = currentRole;
+};
+
+const updateUserRole = async () => {
+  const login = roleUserLogin?.value?.trim().toLowerCase();
+  const role = roleUserRole?.value;
+
+  if (!login || !role) {
+    if (roleUpdateStatus) roleUpdateStatus.textContent = 'Please enter both login and role';
+    return;
+  }
+
+  if (roleUpdateStatus) roleUpdateStatus.textContent = 'Updating role...';
+
+  try {
+    const result = await apiCall('/admin/user/role', {
+      method: 'POST',
+      body: JSON.stringify({ login, role })
+    });
+
+    if (roleUpdateStatus) roleUpdateStatus.textContent = `Updated ${login} to ${role} role`;
+    if (roleUserLogin) roleUserLogin.value = '';
+    if (roleUserRole) roleUserRole.value = '';
+    
+    Toast.success(`Updated ${login} to ${role} role`);
+    loadUserRoles();
+  } catch (err) {
+    console.error('Failed to update user role:', err);
+    if (roleUpdateStatus) roleUpdateStatus.textContent = `Failed: ${err.message}`;
+    Toast.error('Failed to update user role');
+  }
+};
+
+// Make setUserRoleForm global for onclick handlers
+if (typeof window !== 'undefined') {
+  window.setUserRoleForm = setUserRoleForm;
+}
+
+btnUpdateUserRole?.addEventListener('click', updateUserRole);
+btnRefreshUserRoles?.addEventListener('click', loadUserRoles);
+
+// Password Management
+const passwordUserLogin = el('password-user-login');
+const passwordUserPassword = el('password-user-password');
+const btnSetUserPassword = el('btn-set-user-password');
+const passwordUpdateStatus = el('password-update-status');
+
+const setUserPassword = async () => {
+  const login = passwordUserLogin?.value?.trim().toLowerCase();
+  const password = passwordUserPassword?.value;
+
+  if (!login || !password) {
+    if (passwordUpdateStatus) passwordUpdateStatus.textContent = 'Please enter both login and password';
+    return;
+  }
+
+  if (password.length < 8) {
+    if (passwordUpdateStatus) passwordUpdateStatus.textContent = 'Password must be at least 8 characters';
+    return;
+  }
+
+  if (passwordUpdateStatus) passwordUpdateStatus.textContent = 'Setting password...';
+
+  try {
+    const result = await apiCall('/admin/user/password', {
+      method: 'POST',
+      body: JSON.stringify({ login, password })
+    });
+
+    if (passwordUpdateStatus) passwordUpdateStatus.textContent = `Password set for ${login}`;
+    if (passwordUserLogin) passwordUserLogin.value = '';
+    if (passwordUserPassword) passwordUserPassword.value = '';
+    
+    Toast.success(`Password set for ${login}`);
+  } catch (err) {
+    console.error('Failed to set user password:', err);
+    if (passwordUpdateStatus) passwordUpdateStatus.textContent = `Failed: ${err.message}`;
+    Toast.error('Failed to set user password');
+  }
+};
+
+btnSetUserPassword?.addEventListener('click', setUserPassword);
+
+// Load user roles on page load
+loadUserRoles();
 
 document.addEventListener('DOMContentLoaded', async () => {
   const ok = await requireAdmin();
@@ -745,7 +965,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
   refreshSessionPill();
   setInterval(refreshSessionPill, 30000);
-  updateSupabaseEdgeStatus();
 
   updateHealthDisplay();
   loadFlags();
@@ -870,129 +1089,4 @@ document.addEventListener('DOMContentLoaded', async () => {
       Toast.error('AI security review failed');
     }
   });
-
-  // User Role Management
-  const roleUserLogin = el('role-user-login');
-  const roleUserRole = el('role-user-role');
-  const btnUpdateUserRole = el('btn-update-user-role');
-  const btnRefreshUserRoles = el('btn-refresh-user-roles');
-  const roleUpdateStatus = el('role-update-status');
-  const userRolesTable = el('user-roles-table');
-
-  const loadUserRoles = async () => {
-    try {
-      const profiles = await apiCall('/admin/profiles');
-      if (!userRolesTable) return;
-      
-      const tbody = userRolesTable.querySelector('tbody');
-      if (!tbody) return;
-
-      tbody.innerHTML = profiles
-        .sort((a, b) => a.login.localeCompare(b.login))
-        .map(profile => `
-          <tr>
-            <td>${profile.login}</td>
-            <td>${profile.display_name || profile.login}</td>
-            <td><span class="badge ${profile.role}">${profile.role || 'player'}</span></td>
-            <td>
-              <button class="btn btn-xs btn-secondary" onclick="setUserRoleForm('${profile.login}', '${profile.role || 'player'}')">Edit</button>
-            </td>
-          </tr>
-        `).join('');
-    } catch (err) {
-      console.error('Failed to load user roles:', err);
-      if (userRolesTable) {
-        const tbody = userRolesTable.querySelector('tbody');
-        if (tbody) tbody.innerHTML = '<tr><td colspan="4" class="muted">Failed to load users</td></tr>';
-      }
-    }
-  };
-
-  const setUserRoleForm = (login, currentRole) => {
-    if (roleUserLogin) roleUserLogin.value = login;
-    if (roleUserRole) roleUserRole.value = currentRole;
-  };
-
-  const updateUserRole = async () => {
-    const login = roleUserLogin?.value?.trim().toLowerCase();
-    const role = roleUserRole?.value;
-
-    if (!login || !role) {
-      if (roleUpdateStatus) roleUpdateStatus.textContent = 'Please enter both login and role';
-      return;
-    }
-
-    if (roleUpdateStatus) roleUpdateStatus.textContent = 'Updating role...';
-
-    try {
-      const result = await apiCall('/admin/user/role', {
-        method: 'POST',
-        body: JSON.stringify({ login, role })
-      });
-
-      if (roleUpdateStatus) roleUpdateStatus.textContent = `Updated ${login} to ${role} role`;
-      if (roleUserLogin) roleUserLogin.value = '';
-      if (roleUserRole) roleUserRole.value = '';
-      
-      Toast.success(`Updated ${login} to ${role} role`);
-      loadUserRoles();
-    } catch (err) {
-      console.error('Failed to update user role:', err);
-      if (roleUpdateStatus) roleUpdateStatus.textContent = `Failed: ${err.message}`;
-      Toast.error('Failed to update user role');
-    }
-  };
-
-  // Make setUserRoleForm global for onclick handlers
-  if (typeof window !== 'undefined') {
-    window.setUserRoleForm = setUserRoleForm;
-  }
-
-  btnUpdateUserRole?.addEventListener('click', updateUserRole);
-  btnRefreshUserRoles?.addEventListener('click', loadUserRoles);
-
-  // Password Management
-  const passwordUserLogin = el('password-user-login');
-  const passwordUserPassword = el('password-user-password');
-  const btnSetUserPassword = el('btn-set-user-password');
-  const passwordUpdateStatus = el('password-update-status');
-
-  const setUserPassword = async () => {
-    const login = passwordUserLogin?.value?.trim().toLowerCase();
-    const password = passwordUserPassword?.value;
-
-    if (!login || !password) {
-      if (passwordUpdateStatus) passwordUpdateStatus.textContent = 'Please enter both login and password';
-      return;
-    }
-
-    if (password.length < 8) {
-      if (passwordUpdateStatus) passwordUpdateStatus.textContent = 'Password must be at least 8 characters';
-      return;
-    }
-
-    if (passwordUpdateStatus) passwordUpdateStatus.textContent = 'Setting password...';
-
-    try {
-      const result = await apiCall('/admin/user/password', {
-        method: 'POST',
-        body: JSON.stringify({ login, password })
-      });
-
-      if (passwordUpdateStatus) passwordUpdateStatus.textContent = `Password set for ${login}`;
-      if (passwordUserLogin) passwordUserLogin.value = '';
-      if (passwordUserPassword) passwordUserPassword.value = '';
-      
-      Toast.success(`Password set for ${login}`);
-    } catch (err) {
-      console.error('Failed to set user password:', err);
-      if (passwordUpdateStatus) passwordUpdateStatus.textContent = `Failed: ${err.message}`;
-      Toast.error('Failed to set user password');
-    }
-  };
-
-  btnSetUserPassword?.addEventListener('click', setUserPassword);
-
-  // Load user roles on page load
-  loadUserRoles();
-});
+}

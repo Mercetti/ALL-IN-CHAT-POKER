@@ -14,6 +14,16 @@ const tmi = require('tmi.js');
 
 const socketIO = require('socket.io');
 
+const app = express();
+const server = http.createServer(app);
+const io = socketIO(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST'],
+    credentials: true,
+  },
+});
+
 const path = require('path');
 
 const fs = require('fs');
