@@ -1089,4 +1089,4 @@ document.addEventListener('DOMContentLoaded', async () => {
       Toast.error('AI security review failed');
     }
   });
-}
+});

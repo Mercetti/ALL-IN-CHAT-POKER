@@ -14,6 +14,8 @@ const tmi = require('tmi.js');
 
 const socketIO = require('socket.io');
 
+const { COSMETIC_CATALOG } = require('./server/cosmetic-catalog');
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server, {
