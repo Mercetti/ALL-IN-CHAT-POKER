@@ -515,13 +515,20 @@ class EnhancedProfile {
     this.achievements.social = this.stats.uniquePlayers >= 50; // Assuming we track this
     
     // Update achievement UI
+    let hasUnlocked = false;
     Object.entries(this.achievements).forEach(([key, unlocked]) => {
       const element = document.getElementById(key.replace(/([A-Z])/g, '-$1').toLowerCase());
       if (element) {
         element.textContent = unlocked ? '✅' : '🔒';
         element.className = unlocked ? 'achievement-status unlocked' : 'achievement-status locked';
       }
+      if (unlocked) hasUnlocked = true;
     });
+
+    const emptyCard = document.getElementById('achievements-empty');
+    if (emptyCard) {
+      emptyCard.classList.toggle('hidden', hasUnlocked);
+    }
   }
 
   async loadCosmetics() {
@@ -540,9 +547,17 @@ class EnhancedProfile {
 
   renderCosmetics() {
     const grid = document.getElementById('cosmetics-grid');
+    const emptyCard = document.getElementById('cosmetics-empty');
     if (!grid) return;
     
     grid.innerHTML = '';
+    
+    if (!Array.isArray(this.cosmetics) || this.cosmetics.length === 0) {
+      if (emptyCard) emptyCard.classList.remove('hidden');
+      return;
+    }
+    
+    if (emptyCard) emptyCard.classList.add('hidden');
     
     this.cosmetics.forEach(cosmetic => {
       const card = this.createCosmeticCard(cosmetic);
@@ -643,6 +658,7 @@ class EnhancedProfile {
     if (grid) {
       grid.innerHTML = '<div class="cosmetic-loading">Loading cosmetics...</div>';
     }
+    document.getElementById('cosmetics-empty')?.classList.add('hidden');
   }
 
   async loadEffects() {
@@ -743,8 +759,10 @@ class EnhancedProfile {
       { key: 'rounds', current: this.partnerProgress.rounds, target: 20 }
     ];
     
+    let hasProgress = false;
     progressItems.forEach(item => {
       const percentage = Math.min((item.current / item.target) * 100, 100);
+      if (item.current > 0) hasProgress = true;
       
       // Update progress bar
       const fill = document.getElementById(`${item.key}-fill`);
@@ -765,6 +783,11 @@ class EnhancedProfile {
         statusEl.textContent = 'In Progress';
         statusEl.className = 'status-badge progress';
       }
+    }
+
+    const emptyCard = document.getElementById('progress-empty');
+    if (emptyCard) {
+      emptyCard.classList.toggle('hidden', hasProgress || this.isPartner());
     }
   }
 
@@ -798,6 +821,11 @@ class EnhancedProfile {
         element.href = url;
       }
     });
+
+    const storeLink = document.getElementById('cosmetics-shop-link');
+    if (storeLink) {
+      storeLink.href = `store-modern.html?channel=${encodeURIComponent(username)}`;
+    }
   }
 
   loadLinksData() {

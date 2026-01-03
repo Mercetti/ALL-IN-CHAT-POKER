@@ -27,7 +27,7 @@
     </div>
   </div>
 
-  <div class="main-container">
+  <div class="main-container" id="profile-shell">
     <header class="enhanced-header">
       <div class="header-content">
         <div class="logo-section">
@@ -297,8 +297,30 @@
                     <h3>Cosmetics Collection</h3>
                     <p class="panel-subtitle">Your equipped and available cosmetics</p>
                   </div>
-                  <div class="cosmetics-grid" id="cosmetics-grid">
-                    <div class="cosmetic-loading">Loading cosmetics...</div>
+                  <div class="cosmetics-grid" id="cosmetics-grid" aria-live="polite">
+                    <div class="cosmetic-card skeleton">
+                      <div class="skeleton-thumb"></div>
+                      <div class="skeleton-line" style="width:70%;"></div>
+                      <div class="skeleton-line" style="width:55%;"></div>
+                      <div class="skeleton-line" style="width:80%; height:18px;"></div>
+                    </div>
+                    <div class="cosmetic-card skeleton">
+                      <div class="skeleton-thumb"></div>
+                      <div class="skeleton-line" style="width:60%;"></div>
+                      <div class="skeleton-line" style="width:45%;"></div>
+                      <div class="skeleton-line" style="width:70%; height:18px;"></div>
+                    </div>
+                    <div class="cosmetic-card skeleton">
+                      <div class="skeleton-thumb"></div>
+                      <div class="skeleton-line" style="width:65%;"></div>
+                      <div class="skeleton-line" style="width:40%;"></div>
+                      <div class="skeleton-line" style="width:75%; height:18px;"></div>
+                    </div>
+                  </div>
+                  <div class="empty-state-card hidden" id="cosmetics-empty">
+                    <span class="empty-icon">🃏</span>
+                    <p>No cosmetics yet. Visit the store to unlock your first set.</p>
+                    <a href="store-modern.html" class="btn btn-primary btn-sm" id="cosmetics-shop-link">Open Store</a>
                   </div>
                 </div>
               </div>
@@ -353,6 +375,10 @@
                   <div class="partner-status">
                     <span class="status-badge" id="partner-status">Loading...</span>
                   </div>
+                  <div class="progress-empty hidden" id="progress-empty">
+                    <span class="empty-icon">🌱</span>
+                    <p>Kick off a few community rounds to start populating your partner milestones.</p>
+                  </div>
                 </div>
 
                 <div class="glass-panel">
@@ -393,6 +419,10 @@
                       </div>
                       <div class="achievement-status locked" id="social">🔒</div>
                     </div>
+                  </div>
+                  <div class="empty-state-card" id="achievements-empty">
+                    <span class="empty-icon">🎯</span>
+                    <p>Play a few rounds to start unlocking achievements.</p>
                   </div>
                 </div>
               </div>

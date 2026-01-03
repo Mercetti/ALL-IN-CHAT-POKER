@@ -1,3 +1,28 @@
+function extractChannelParam() {
+  const params = new URLSearchParams(window.location.search || '');
+  const channel = params.get('channel');
+  if (channel) {
+    return channel;
+  }
+  const token = localStorage.getItem('user_jwt');
+  if (token && typeof token === 'string') {
+    try {
+      const payload = token.split('.')[1];
+      const pad = payload.length % 4 === 2 ? '==' : payload.length % 4 === 3 ? '=' : '';
+      const data = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/') + pad));
+      return (data.user || data.login || '').toLowerCase();
+    } catch {
+      return '';
+    }
+  }
+  return '';
+}
+
+function buildChannelUrl(path, channelParam) {
+  const channel = channelParam || extractChannelParam();
+  return channel ? `${path}?channel=${encodeURIComponent(channel)}` : path;
+}
+
 // ===== ENHANCED ADMIN DASHBOARD JAVASCRIPT =====
 
 class EnhancedAdminDashboard {
@@ -5,6 +30,20 @@ class EnhancedAdminDashboard {
     this.currentTab = 'dashboard';
     this.refreshInterval = null;
     this.toastContainer = document.getElementById('toast-container');
+    this.channelParam = this.extractChannelParam();
+    this.panelConfigs = {
+      activity: { container: 'activity-list', empty: 'activity-empty', error: 'activity-error', type: 'list', loadingRows: 2 },
+      players: { container: 'players-tbody', empty: 'players-empty', error: 'players-error', type: 'table', columns: 5, loadingRows: 3 },
+      partners: { container: 'partners-tbody', empty: 'partners-empty', error: 'partners-error', type: 'table', columns: 7, loadingRows: 3 },
+      cosmetics: { container: 'cosmetics-tbody', empty: 'cosmetics-empty', error: 'cosmetics-error', type: 'table', columns: 6, loadingRows: 3 },
+      users: { container: 'users-tbody', empty: 'users-empty', error: 'users-error', type: 'table', columns: 7, loadingRows: 3 },
+      applications: { container: 'applications-list', empty: 'applications-empty', error: 'applications-error', type: 'list', loadingRows: 1 }
+    };
+    this.partnersData = [];
+    this.cosmeticsData = [];
+    this.usersData = [];
+    this.playersData = [];
+    this.activityData = [];
     
     this.init();
   }
@@ -561,9 +600,7 @@ class EnhancedAdminDashboard {
   }
 
   openOBSOverlay() {
-    const token = localStorage.getItem('user_jwt');
-    const login = this.decodeLogin(token);
-    const url = login ? `/obs-overlay.html?channel=${encodeURIComponent(login)}` : '/obs-overlay.html';
+    const url = this.buildChannelUrl('obs-overlay.html');
     window.open(url, '_blank', 'noopener'); // OBS overlay needs new tab
   }
 
@@ -585,11 +622,11 @@ class EnhancedAdminDashboard {
   }
 
   goToProfile() {
-    window.location.href = '/profile-enhanced.html';
+    window.location.href = this.buildChannelUrl('profile-enhanced.html');
   }
 
   goToOverlayEditor() {
-    window.location.href = '/overlay-editor-enhanced.html';
+    window.location.href = this.buildChannelUrl('overlay-editor-enhanced.html');
   }
 
   logout() {

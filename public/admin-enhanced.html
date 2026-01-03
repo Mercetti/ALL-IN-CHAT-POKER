@@ -254,34 +254,31 @@
             </div>
           </div>
           
-          <div class="activity-feed" id="activity-list">
-            <!-- Activity items will be populated here -->
-            <div class="activity-item">
-              <div class="activity-icon">🎮</div>
-              <div class="activity-content">
-                <div class="activity-title">Game Started</div>
-                <div class="activity-desc">New blackjack round began</div>
-                <div class="activity-time">2 minutes ago</div>
+          <div class="activity-feed" id="activity-list" aria-live="polite">
+            <div class="activity-skeleton">
+              <div class="avatar"></div>
+              <div class="content">
+                <div class="skeleton-line" style="width:60%"></div>
+                <div class="skeleton-line" style="width:80%"></div>
+                <div class="skeleton-line" style="width:40%"></div>
               </div>
             </div>
-            
-            <div class="activity-item">
-              <div class="activity-icon">👤</div>
-              <div class="activity-content">
-                <div class="activity-title">User Joined</div>
-                <div class="activity-desc">player123 joined the game</div>
-                <div class="activity-time">5 minutes ago</div>
+            <div class="activity-skeleton">
+              <div class="avatar"></div>
+              <div class="content">
+                <div class="skeleton-line" style="width:50%"></div>
+                <div class="skeleton-line" style="width:70%"></div>
+                <div class="skeleton-line" style="width:35%"></div>
               </div>
             </div>
-            
-            <div class="activity-item">
-              <div class="activity-icon">💰</div>
-              <div class="activity-content">
-                <div class="activity-title">Big Win</div>
-                <div class="activity-desc">winner456 won $500</div>
-                <div class="activity-time">8 minutes ago</div>
-              </div>
-            </div>
+          </div>
+          <div class="panel-message empty hidden" id="activity-empty">
+            <span>Nothing to show yet. Trigger some actions to populate the feed.</span>
+            <button class="btn btn-secondary btn-sm panel-action" id="activity-retry">Refresh</button>
+          </div>
+          <div class="panel-message error hidden" id="activity-error">
+            <span>Failed to load activity.</span>
+            <button class="btn btn-secondary btn-sm panel-action" id="activity-retry-error">Retry</button>
           </div>
         </section>
       </div>
@@ -378,9 +375,26 @@
                     </tr>
                   </thead>
                   <tbody id="players-tbody">
-                    <tr><td colspan="5" class="no-data">No active players</td></tr>
+                    <tr class="table-skeleton">
+                      <td colspan="5">
+                        <div class="skeleton-line" style="width:80%"></div>
+                      </td>
+                    </tr>
+                    <tr class="table-skeleton">
+                      <td colspan="5">
+                        <div class="skeleton-line" style="width:70%"></div>
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
+              </div>
+              <div class="panel-message empty hidden" id="players-empty">
+                <span>No active players right now. Start a round or refresh later.</span>
+                <button class="btn btn-secondary btn-sm panel-action" id="players-refresh-empty">Refresh</button>
+              </div>
+              <div class="panel-message error hidden" id="players-error">
+                <span>We couldn’t load the player list.</span>
+                <button class="btn btn-secondary btn-sm panel-action" id="players-refresh-error">Retry</button>
               </div>
             </div>
           </div>
@@ -495,9 +509,18 @@
                   </tr>
                 </thead>
                 <tbody id="partners-tbody">
-                  <tr><td colspan="7" class="no-data">No partners found</td></tr>
+                  <tr class="table-skeleton"><td colspan="7"><div class="skeleton-line"></div></td></tr>
+                  <tr class="table-skeleton"><td colspan="7"><div class="skeleton-line"></div></td></tr>
                 </tbody>
               </table>
+            </div>
+            <div class="panel-message empty hidden" id="partners-empty">
+              <span>No partners matched your filters.</span>
+              <button class="btn btn-secondary btn-sm panel-action" id="partners-refresh-empty">Refresh</button>
+            </div>
+            <div class="panel-message error hidden" id="partners-error">
+              <span>Partner data failed to load.</span>
+              <button class="btn btn-secondary btn-sm panel-action" id="partners-refresh-error">Retry</button>
             </div>
           </div>
           
@@ -509,8 +532,20 @@
             </div>
             
             <div class="applications-list" id="applications-list">
-              <!-- Applications will be populated here -->
-              <div class="no-data">No pending applications</div>
+              <div class="activity-skeleton">
+                <div class="avatar"></div>
+                <div class="content">
+                  <div class="skeleton-line" style="width:80%"></div>
+                  <div class="skeleton-line" style="width:60%"></div>
+                </div>
+              </div>
+            </div>
+            <div class="panel-message empty hidden" id="applications-empty">
+              <span>All caught up! No pending applications.</span>
+            </div>
+            <div class="panel-message error hidden" id="applications-error">
+              <span>Couldn’t fetch applications.</span>
+              <button class="btn btn-secondary btn-sm panel-action" id="applications-retry">Retry</button>
             </div>
           </div>
         </section>
@@ -582,9 +617,18 @@
                   </tr>
                 </thead>
                 <tbody id="cosmetics-tbody">
-                  <tr><td colspan="6" class="no-data">No cosmetics found</td></tr>
+                  <tr class="table-skeleton"><td colspan="6"><div class="skeleton-line"></div></td></tr>
+                  <tr class="table-skeleton"><td colspan="6"><div class="skeleton-line"></div></td></tr>
                 </tbody>
               </table>
+            </div>
+            <div class="panel-message empty hidden" id="cosmetics-empty">
+              <span>No cosmetics matched your filters.</span>
+              <button class="btn btn-secondary btn-sm panel-action" id="cosmetics-refresh-empty">Refresh</button>
+            </div>
+            <div class="panel-message error hidden" id="cosmetics-error">
+              <span>Failed to load cosmetic catalog.</span>
+              <button class="btn btn-secondary btn-sm panel-action" id="cosmetics-refresh-error">Retry</button>
             </div>
           </div>
         </section>
@@ -666,9 +710,18 @@
                   </tr>
                 </thead>
                 <tbody id="users-tbody">
-                  <tr><td colspan="7" class="no-data">No users found</td></tr>
+                  <tr class="table-skeleton"><td colspan="7"><div class="skeleton-line"></div></td></tr>
+                  <tr class="table-skeleton"><td colspan="7"><div class="skeleton-line"></div></td></tr>
                 </tbody>
               </table>
+            </div>
+            <div class="panel-message empty hidden" id="users-empty">
+              <span>No users match the current filters.</span>
+              <button class="btn btn-secondary btn-sm panel-action" id="users-refresh-empty">Refresh</button>
+            </div>
+            <div class="panel-message error hidden" id="users-error">
+              <span>User directory failed to load.</span>
+              <button class="btn btn-secondary btn-sm panel-action" id="users-refresh-error">Retry</button>
             </div>
           </div>
         </section>

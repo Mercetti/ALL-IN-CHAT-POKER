@@ -16,6 +16,7 @@
       <span class="status-pill" id="connection-pill">Connecting...</span>
       <span class="status-pill" id="seated-pill">0 / 8 seated</span>
       <span class="status-pill" id="mode-pill">Mode: -</span>
+      <span class="status-pill" id="channel-pill">Channel: -</span>
     </div>
 
     <div class="table-frame">
@@ -118,6 +119,23 @@
     <div class="overflow-row" id="overflow-row">
       <span class="label">Waiting</span>
       <span class="names" id="overflow-names">-</span>
+    </div>
+  </div>
+
+  <div class="overlay-screen" id="overlay-loading">
+    <div class="screen-card">
+      <div class="screen-spinner"></div>
+      <h2>Spinning up the table…</h2>
+      <p>We’re syncing seats, cosmetics, and FX for your overlay.</p>
+    </div>
+  </div>
+
+  <div class="overlay-screen hidden" id="overlay-error">
+    <div class="screen-card error">
+      <div class="screen-icon">⚠️</div>
+      <h2>Overlay connection failed</h2>
+      <p>We couldn’t connect to the table feed. Check your auth token or network and try again.</p>
+      <button class="screen-btn" id="overlay-retry">Retry Connection</button>
     </div>
   </div>
 
