@@ -228,6 +228,22 @@ class DBHelper {
       )
     `);
 
+    // Friends & social graph
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS friends (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        owner_login TEXT NOT NULL,
+        friend_login TEXT NOT NULL,
+        status TEXT DEFAULT 'pending',
+        note TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(owner_login, friend_login)
+      )
+    `);
+    this.db.exec(`CREATE INDEX IF NOT EXISTS idx_friends_owner ON friends(owner_login)`);
+    this.db.exec(`CREATE INDEX IF NOT EXISTS idx_friends_friend ON friends(friend_login)`);
+
     // Cached eligibility snapshots
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS partner_eligibility (
@@ -733,6 +749,67 @@ class DBHelper {
     };
 
     this.updateStats(username, updated);
+  }
+
+  // ============ FRIENDS / SOCIAL ============
+
+  listFriends(login) {
+    if (!login) return [];
+    const stmt = this.db.prepare(`
+      SELECT id, owner_login, friend_login, status, note, created_at, updated_at
+      FROM friends
+      WHERE owner_login = ?
+      ORDER BY updated_at DESC
+    `);
+    return stmt.all(login);
+  }
+
+  listFriendshipsFor(login) {
+    if (!login) return [];
+    const stmt = this.db.prepare(`
+      SELECT id, owner_login, friend_login, status, note, created_at, updated_at
+      FROM friends
+      WHERE friend_login = ?
+      ORDER BY updated_at DESC
+    `);
+    return stmt.all(login);
+  }
+
+  upsertFriendship(ownerLogin, friendLogin, status = 'pending', note = '') {
+    if (!ownerLogin || !friendLogin || ownerLogin === friendLogin) return null;
+    const stmt = this.db.prepare(`
+      INSERT INTO friends (owner_login, friend_login, status, note, updated_at)
+      VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+      ON CONFLICT(owner_login, friend_login) DO UPDATE SET
+        status=excluded.status,
+        note=CASE WHEN excluded.note != '' THEN excluded.note ELSE friends.note END,
+        updated_at=CURRENT_TIMESTAMP
+    `);
+    stmt.run(ownerLogin, friendLogin, status, note || '');
+    return this.getFriendship(ownerLogin, friendLogin);
+  }
+
+  getFriendship(ownerLogin, friendLogin) {
+    if (!ownerLogin || !friendLogin) return null;
+    const stmt = this.db.prepare(`
+      SELECT * FROM friends WHERE owner_login = ? AND friend_login = ?
+    `);
+    return stmt.get(ownerLogin, friendLogin);
+  }
+
+  setFriendshipStatus(ownerLogin, friendLogin, status) {
+    if (!ownerLogin || !friendLogin || !status) return null;
+    const stmt = this.db.prepare(`
+      UPDATE friends SET status=?, updated_at=CURRENT_TIMESTAMP WHERE owner_login=? AND friend_login=?
+    `);
+    stmt.run(status, ownerLogin, friendLogin);
+    return this.getFriendship(ownerLogin, friendLogin);
+  }
+
+  deleteFriendship(ownerLogin, friendLogin) {
+    if (!ownerLogin || !friendLogin) return;
+    const stmt = this.db.prepare('DELETE FROM friends WHERE owner_login=? AND friend_login=?');
+    stmt.run(ownerLogin, friendLogin);
   }
 
   /**

@@ -1,0 +1,174 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Sora:wght@400;600&display=swap');
+
+:root {
+  --acey-bg: linear-gradient(135deg, rgba(19, 20, 31, 0.92), rgba(63, 29, 90, 0.88));
+  --acey-border: rgba(255, 255, 255, 0.15);
+  --acey-shadow: 0 10px 30px rgba(10, 6, 26, 0.55);
+  --acey-text: #f9f6ff;
+  --acey-accent: #ff6bd6;
+  --acey-secondary: #7ef0ff;
+  --acey-pulse: rgba(255, 107, 214, 0.45);
+}
+
+.acey-overlay {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  max-width: min(420px, 80vw);
+  width: clamp(280px, 32vw, 380px);
+  padding: 1rem 1.2rem 1.1rem;
+  border-radius: 18px;
+  background: var(--acey-bg);
+  border: 1px solid var(--acey-border);
+  box-shadow: var(--acey-shadow);
+  color: var(--acey-text);
+  font-family: "Space Grotesk", "Sora", "Segoe UI", system-ui, sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  backdrop-filter: blur(12px);
+  z-index: 1000;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(10px) scale(0.98);
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+.acey-overlay.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.acey-primary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 0.6rem;
+  position: relative;
+}
+
+.acey-overlay::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 20px;
+  background: radial-gradient(circle at 20% 20%, var(--acey-pulse), transparent 60%);
+  filter: blur(12px);
+  opacity: 0.65;
+  z-index: -1;
+}
+
+.acey-name {
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--acey-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.acey-name::before {
+  content: "✦";
+  color: var(--acey-accent);
+  font-size: 0.9rem;
+}
+
+.acey-text {
+  font-size: 1.05rem;
+  line-height: 1.45;
+  font-weight: 500;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+.acey-overlay.is-speaking .acey-text {
+  animation: aceyGlow 1.8s ease infinite;
+}
+
+.acey-alerts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.overlay-peak {
+  background-color: rgba(255, 255, 255, 0.92);
+  border-left: 5px solid #ff6b35;
+  padding: 0.75rem 0.9rem;
+  margin-bottom: 0.1rem;
+  border-radius: 12px;
+  font-weight: 600;
+  color: #0c0c15;
+  font-size: 0.95rem;
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+  display: none;
+  animation: fadeInOut 5s forwards;
+}
+
+.overlay-summary {
+  background-color: rgba(6, 6, 12, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  color: #f7f7fa;
+  font-size: 0.9rem;
+  max-height: 200px;
+  overflow-y: auto;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+}
+
+.overlay-summary::-webkit-scrollbar {
+  width: 4px;
+}
+
+.overlay-summary::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+}
+
+@keyframes aceyGlow {
+  0% {
+    text-shadow: 0 0 5px rgba(255, 107, 214, 0.4);
+  }
+  50% {
+    text-shadow: 0 0 14px rgba(126, 240, 255, 0.7);
+  }
+  100% {
+    text-shadow: 0 0 5px rgba(255, 107, 214, 0.4);
+  }
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  80% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+@media (max-width: 768px) {
+  .acey-overlay {
+    left: 1rem;
+    right: 1rem;
+    bottom: 1.25rem;
+    max-width: none;
+    padding: 0.85rem 1rem;
+  }
+
+  .acey-text {
+    font-size: 0.95rem;
+  }
+}
