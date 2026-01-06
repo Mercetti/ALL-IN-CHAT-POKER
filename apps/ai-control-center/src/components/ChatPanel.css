@@ -1,0 +1,80 @@
+.chat-panel {
+  min-height: 420px;
+}
+
+.chat-status {
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+}
+
+.chat-status.busy {
+  background: rgba(255, 191, 71, 0.2);
+  color: #ffbf47;
+}
+
+.chat-status.idle {
+  background: rgba(74, 222, 255, 0.15);
+  color: #4adeff;
+}
+
+.chat-log {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 12px;
+  height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chat-line {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+}
+
+.chat-line.role-user {
+  border-left: 3px solid #4adeff;
+}
+
+.chat-line.role-assistant {
+  border-left: 3px solid #9d6bff;
+}
+
+.chat-line.role-system {
+  border-left: 3px solid #ff8f8f;
+  color: #ffb4b4;
+}
+
+.chat-line-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--color-text-dim);
+  margin-bottom: 4px;
+}
+
+.chat-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chat-composer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chat-composer textarea {
+  min-height: 90px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(3, 6, 18, 0.6);
+  color: var(--color-text);
+  font-family: inherit;
+  padding: 10px;
+}

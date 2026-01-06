@@ -1,0 +1,38 @@
+:root {
+  --color-bg: #030712;
+  --color-panel: rgba(7, 13, 28, 0.9);
+  --color-panel-border: rgba(41, 84, 255, 0.35);
+  --color-text: #f2f5ff;
+  --color-text-dim: #8ca0d7;
+  --color-accent: #4adeff;
+  --color-accent-strong: #9d6bff;
+  --gradient-header: linear-gradient(135deg, #161b2e 0%, #0d1c33 50%, #0b1121 100%);
+  --panel-radius: 20px;
+  --panel-shadow: 0 20px 40px rgba(4, 10, 25, 0.5);
+  font-family: 'Space Grotesk', 'Segoe UI', system-ui;
+  color: var(--color-text);
+  background-color: var(--color-bg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at 20% 20%, rgba(74, 222, 255, 0.08), transparent 40%),
+    radial-gradient(circle at 80% 0%, rgba(157, 107, 255, 0.12), transparent 35%),
+    #050c16;
+  color: var(--color-text);
+}
+
+button {
+  font-family: inherit;
+  border: none;
+  cursor: pointer;
+}
+
+a {
+  color: var(--color-accent);
+}

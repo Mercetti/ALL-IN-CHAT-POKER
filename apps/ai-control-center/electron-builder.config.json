@@ -1,0 +1,28 @@
+{
+  "appId": "com.allin.chatpoker.ai-control-center",
+  "productName": "AI Control Center",
+  "files": [
+    "dist/renderer/**/*",
+    "electron/**/*",
+    "package.json"
+  ],
+  "directories": {
+    "output": "dist/pkg"
+  },
+  "asar": true,
+  "extraMetadata": {
+    "main": "electron/main.js"
+  },
+  "win": {
+    "target": "nsis",
+    "icon": "public/logo.ico"
+  },
+  "nsis": {
+    "oneClick": true,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": false,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "runAfterFinish": true
+  }
+}

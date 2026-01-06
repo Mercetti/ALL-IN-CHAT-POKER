@@ -1,0 +1,22 @@
+.panel-card {
+  position: relative;
+}
+
+.panel-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+}
+
+.panel-card .alert strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.panel-card .alert p {
+  margin: 0;
+  color: var(--color-text-dim);
+}
