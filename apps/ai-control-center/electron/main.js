@@ -3,7 +3,7 @@ const { app, BrowserWindow, ipcMain, nativeTheme, Notification } = require('elec
 const { spawn } = require('child_process');
 const path = require('path');
 
-const isDev = process.env.NODE_ENV !== 'production';
+const isDev = !app.isPackaged && process.env.NODE_ENV !== 'production';
 const devServerUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173';
 let mainWindow;
 let runtimeProcess = null;
