@@ -1,6 +1,7 @@
 /* eslint-env node */
 const { app, BrowserWindow, ipcMain, nativeTheme, Notification } = require('electron');
 const { spawn } = require('child_process');
+const { randomUUID } = require('crypto');
 const path = require('path');
 
 const isDev = !app.isPackaged && process.env.NODE_ENV !== 'production';
@@ -9,7 +10,9 @@ let mainWindow;
 let runtimeProcess = null;
 const runtimeLogs = [];
 const MAX_LOGS = 500;
-const repoRoot = path.resolve(__dirname, '..', '..', '..');
+const repoRoot = app.isPackaged
+  ? app.getPath('documents')
+  : path.resolve(__dirname, '..', '..', '..');
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -69,7 +72,7 @@ ipcMain.handle('notify', (_event, payload) => {
 
 function appendRuntimeLog(message, level = 'info') {
   const entry = {
-    id: Date.now() + Math.random().toString(16).slice(2),
+    id: randomUUID(),
     timestamp: Date.now(),
     level,
     message: typeof message === 'string' ? message : String(message)

@@ -1,6 +1,7 @@
 import type { PanelStatus } from '../types/panels';
 
-const API_BASE = `${import.meta.env.VITE_BACKEND_BASE ?? ''}`.replace(/\/$/, '');
+const defaultBackend = 'http://localhost:3000';
+const API_BASE = `${import.meta.env.VITE_BACKEND_BASE ?? defaultBackend}`.replace(/\/$/, '');
 
 async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const target = path.startsWith('http') ? path : `${API_BASE || ''}${path}`;
