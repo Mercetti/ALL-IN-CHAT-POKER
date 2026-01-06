@@ -321,12 +321,14 @@
           const imageUrl = item.preview || item.image_url || '/logo.png';
           const rarity = item.rarity || 'common';
           
+          const priceAIC = Number.isFinite(item.price_cents) ? Math.max(0, item.price_cents) : 0;
+          const priceLabel = priceAIC > 0 ? `${priceAIC.toLocaleString()} AIC` : 'FREE';
           return `
             <div class="store-item" onclick="classicStore.purchaseItem('${item.id}')">
               <img src="${imageUrl}" alt="${item.name}" class="item-image">
               <div class="item-rarity rarity-${rarity}">${rarity}</div>
               <div class="item-name">${item.name}</div>
-              <div class="item-price">${item.price_cents ? '$' + (item.price_cents / 100) : 'FREE'}</div>
+              <div class="item-price">${priceLabel}</div>
               <button class="btn">Purchase</button>
             </div>
           `;
@@ -340,7 +342,10 @@
           { id: 'aic-electric', name: 'Electric Blue Chip Set', price: 999, rarity: 'epic' }
         ];
         
-        this.aicItems.innerHTML = aicItems.map(item => `
+        this.aicItems.innerHTML = aicItems.map(item => {
+          const priceAIC = Number.isFinite(item.price) ? Math.max(0, item.price) : 0;
+          const priceLabel = priceAIC > 0 ? `${priceAIC.toLocaleString()} AIC` : 'FREE';
+          return `
           <div class="store-item" onclick="classicStore.purchaseAICPack('${item.id}')">
             <div class="aic-preview">
               <div class="chip-stack">
@@ -362,10 +367,11 @@
             </div>
             <div class="item-rarity rarity-${item.rarity}">${item.rarity}</div>
             <div class="item-name">${item.name}</div>
-            <div class="item-price">$${item.price}</div>
+            <div class="item-price">${priceLabel}</div>
             <button class="btn">Generate</button>
           </div>
-        `).join('');
+        `;
+        }).join('');
       }
       
       purchaseItem(itemId) {

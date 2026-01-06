@@ -192,7 +192,7 @@ function renderCosmetics() {
       const owned = ownedSet.has(item.id) || item.price_cents === 0 || item.price === 0;
       const eq = Object.values(equipped || {}).includes(item.id);
       const tint = item.tint || item.color || '';
-      const priceCents = Number.isFinite(item.price_cents) ? item.price_cents : (item.price || 0);
+      const priceAIC = Number.isFinite(item.price_cents) ? Math.max(0, item.price_cents) : Math.max(0, item.price || 0);
       const preview = buildCosmeticPreview(item);
       const rarityClass = item.rarity ? `rarity-${item.rarity.toLowerCase()}` : '';
       return `
@@ -206,7 +206,7 @@ function renderCosmetics() {
             <div class="cosmetic-preview">${preview}</div>
             <div class="cosmetic-meta">
               <span>${owned ? 'Owned' : 'Locked'}${eq ? ' · Equipped' : ''}</span>
-              <span class="price">${priceCents ? `$${(priceCents / 100).toFixed(2)}` : 'Free'}</span>
+              <span class="price">${priceAIC ? `${priceAIC.toLocaleString()} AIC` : 'Free'}</span>
             </div>
             <div class="cosmetic-actions">
               <button class="btn btn-secondary btn-sm" data-equip="${item.id}" ${owned ? '' : 'disabled'}>Equip</button>

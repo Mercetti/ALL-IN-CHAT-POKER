@@ -1334,20 +1334,29 @@
         // Process catalog items
         this.catalog.forEach(item => {
           // Skip items that are unlock-only
-          if (['streamer_goal', 'twitch_drop', 'subscriber', 'vip', 'follower'].includes(item.unlock_type)) {
+          if (['streamer_goal', 'twitch_drop', 'subscriber', 'vip', 'follower', 'basic'].includes(item.unlock_type)) {
             return;
           }
           
           const owned = this.ownedItems.has(item.id);
           const priceAIC = Math.max(0, item.price_cents || 0);
           const isFree = priceAIC === 0 || this.defaultFreeItems.has(item.id);
+          const isClaimable = isFree && this.isClaimable(item);
           
-          // Hide free items that are already owned
+          // Hide free items entirely unless they are claimable and not owned
+          if (isFree && !isClaimable) {
+            if (!owned && this.defaultFreeItems.has(item.id)) {
+              this.ownedItems.add(item.id);
+            }
+            return;
+          }
+          
           if (owned && isFree) {
             return;
           }
           
           item._owned = owned;
+          item._claimable = isClaimable;
           
           // Add to appropriate category
           if (!categorized[item.type]) {
@@ -1493,18 +1502,129 @@
         
         return sets;
       }
+
+      normalizeTags(tags) {
+        if (!tags) return [];
+        if (Array.isArray(tags)) {
+          return tags
+            .map(tag => String(tag || '').trim().toLowerCase())
+            .filter(Boolean);
+        }
+        if (typeof tags === 'string') {
+          return tags
+            .split(/[,|]/)
+            .map(tag => tag.split(/\s+/))
+            .flat()
+            .map(tag => tag.trim().toLowerCase())
+            .filter(Boolean);
+        }
+        return [];
+      }
+
+      hasTag(item, tag) {
+        if (!item || !tag) return false;
+        const normalized = String(tag).trim().toLowerCase();
+        if (!normalized) return false;
+        return this.normalizeTags(item.tags).includes(normalized);
+      }
+
+      normalizeType(type = '') {
+        const normalized = String(type || '').trim();
+        if (!normalized) return '';
+        const map = {
+          table: 'tableSkin',
+          frame: 'profileFrame',
+          avatar: 'avatarRing',
+          chips: 'chipSkin',
+        };
+        return map[normalized] || normalized;
+      }
+
+      getDynamicBasePrice(item, defaults) {
+        if (!item) return defaults.default;
+        const customBase = Number(item.base_price_aic || item.base_price || item.basePrice);
+        if (Number.isFinite(customBase) && customBase > 0) {
+          return customBase;
+        }
+        const typeKey = this.normalizeType(item.type);
+        return defaults[typeKey] || defaults.default;
+      }
+
+      getRarityMultiplier(item, multipliers) {
+        const direct = Number(item?.rarity_multiplier);
+        if (Number.isFinite(direct) && direct > 0) {
+          return direct;
+        }
+        const rarityKey = String(item?.rarity || 'common').toLowerCase();
+        return multipliers[rarityKey] || multipliers.default;
+      }
+
+      isPriceLocked(item) {
+        if (!item) return false;
+        const flagKeys = ['price_locked', 'manual_price', 'static_price'];
+        if (flagKeys.some(key => Boolean(item?.[key]))) return true;
+        if (item?.dynamic_price === false || item?.dynamicPricing === false) return true;
+        return this.hasTag(item, 'fixed-price') || this.hasTag(item, 'static-price');
+      }
+
+      getPriceOverrideValue(item) {
+        if (!item) return null;
+        const overrideKeys = [
+          'price_override_aic',
+          'price_override',
+          'override_price_aic',
+          'override_price',
+        ];
+        for (const key of overrideKeys) {
+          const value = Number(item?.[key]);
+          if (Number.isFinite(value) && value > 0) {
+            return Math.round(value);
+          }
+        }
+        if (this.isPriceLocked(item) && Number.isFinite(item?.price_cents) && item.price_cents > 0) {
+          return Math.round(item.price_cents);
+        }
+        return null;
+      }
+
+      isClaimable(item) {
+        if (!item) return false;
+        if (item.claimable === true) return true;
+        if (typeof item.claimable === 'string') {
+          const val = item.claimable.trim().toLowerCase();
+          if (['true', '1', 'yes', 'claim'].includes(val)) return true;
+        }
+        const unlockType = String(item.unlock_type || '').toLowerCase();
+        if (['claimable', 'free_claim', 'limited_free'].includes(unlockType)) return true;
+        if (this.hasTag(item, 'claimable') || this.hasTag(item, 'free-claim')) return true;
+        return false;
+      }
+
+      shouldStayFree(item) {
+        if (!item) return false;
+        if (this.defaultFreeItems.has(item.id)) return true;
+        const unlockType = String(item.unlock_type || '').toLowerCase();
+        if (['basic', 'default', 'starter', 'auto'].includes(unlockType)) return true;
+        if (this.hasTag(item, 'always-free')) return true;
+        return false;
+      }
       
       addPricingToItems(categorized) {
         // Default pricing for different item types (in AIC)
         const defaultPrices = {
           chipSkin: 500,
+          chips: 500,
           nameplate: 200,
           profileFrame: 250,
+          frame: 250,
           tableSkin: 400,
+          table: 400,
           avatarRing: 300,
+          avatar: 300,
           cardBack: 150,
           cardFace: 100,
-          bundle: 1000
+          bundle: 1000,
+          default: 200
         };
         
         const rarityMultipliers = {
@@ -1512,27 +1632,36 @@
           uncommon: 1.3,
           rare: 1.8,
           epic: 2.4,
-          legendary: 3.5
+          legendary: 3.5,
+          default: 1
         };
         
         const roundToNearestTen = (value) => Math.max(10, Math.round(value / 10) * 10);
         
-        Object.keys(categorized).forEach(category => {
-          if (category === 'aic' || category === 'aic-packages') return;
+        Object.entries(categorized).forEach(([category, items]) => {
+          if (['all', 'aic', 'aic-packages'].includes(category)) return;
           
-          categorized[category].forEach(item => {
+          items.forEach(item => {
+            if (!item) return;
             if (item.type === 'chipSkin' && item.chips) return;
-            
-            const rarityKey = (item.rarity || 'common').toLowerCase();
-            const multiplier = rarityMultipliers[rarityKey] || 1;
-            const basePrice = defaultPrices[item.type] || 200;
-            
-            if (!item.price_cents || item.price_cents <= 0) {
-              const computed = roundToNearestTen(basePrice * multiplier);
-              item.price_cents = computed;
-            } else {
-              item.price_cents = Math.max(0, Math.round(item.price_cents));
+
+            const priceOverride = this.getPriceOverrideValue(item);
+            if (priceOverride !== null) {
+              item.price_cents = Math.max(0, priceOverride);
+              return;
             }
+
+            const initialPrice = Number(item.price_cents);
+            const isCurrentlyFree = Number.isFinite(initialPrice) && initialPrice <= 0;
+            if ((isCurrentlyFree && !this.isClaimable(item)) && this.shouldStayFree(item)) {
+              item.price_cents = 0;
+              return;
+            }
+
+            const basePrice = this.getDynamicBasePrice(item, defaultPrices);
+            const multiplier = this.getRarityMultiplier(item, rarityMultipliers);
+            const computed = roundToNearestTen(basePrice * multiplier);
+            item.price_cents = Math.max(0, computed);
           });
         });
       }
@@ -1564,11 +1693,18 @@
           const owned = Boolean(item._owned);
           const priceAIC = Math.max(0, item.price_cents || 0);
           const isFree = priceAIC === 0;
-          const priceDisplay = priceAIC > 0 ? `${priceAIC.toLocaleString()} AIC` : 'FREE';
-          const buttonLabel = owned ? 'Owned' : (isFree ? 'Claim Free' : 'Purchase');
-          const statusBadge = owned ? `<div class="item-status">Owned</div>` : '';
+          const isClaimable = Boolean(item._claimable);
+          const priceDisplay = priceAIC > 0
+            ? `${priceAIC.toLocaleString()} AIC`
+            : (isClaimable ? 'Claimable • 0 AIC' : 'FREE');
+          const buttonLabel = owned
+            ? 'Purchased'
+            : (isFree ? (isClaimable ? 'Claim' : 'Unavailable') : 'Purchase');
+          const buttonDisabled = owned || (isFree && !isClaimable);
+          const statusBadge = owned ? `<div class="item-status">Purchased</div>` : '';
           const cardClasses = ['item-card'];
           if (owned) cardClasses.push('owned');
+          if (isClaimable && !owned) cardClasses.push('claimable');
           
           let extraInfo = '';
           if (item.type === 'chipSkin' && item.chips) {
@@ -1576,14 +1712,14 @@
           }
           
           return `
-            <div class="${cardClasses.join(' ')}" data-item-id="${item.id}">
+            <div class="${cardClasses.join(' ')}" data-item-id="${item.id}" data-claimable="${isClaimable}">
               ${statusBadge}
               <img src="${imageUrl}" alt="${item.name}" class="item-image">
               <div class="item-rarity rarity-${rarity}">${rarity}</div>
               ${extraInfo}
               <div class="item-name">${item.name}</div>
               <div class="item-price">${priceDisplay}</div>
-              <button class="btn" data-purchase="${item.id}" ${owned ? 'disabled' : ''}>${buttonLabel}</button>
+              <button class="btn" data-purchase="${item.id}" ${buttonDisabled ? 'disabled' : ''}>${buttonLabel}</button>
             </div>
           `;
         }).join('');
@@ -1775,6 +1911,7 @@
           this.updateBalanceDisplay();
           await this.renderAllCategories();
           alert(`Unlocked "${item.name}"!`);
+          window.location.reload();
         } catch (err) {
           console.error('Purchase failed', err);
           const message = err?.message || 'Unable to complete purchase.';
