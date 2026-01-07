@@ -217,6 +217,9 @@ const utils = require('./server/utils');
 // Initialize logger
 const Logger = require('./server/logger');
 const logger = new Logger('server');
+logger.info('Admin control center origins configured', {
+  origins: config.ADMIN_CONTROL_CENTER_ORIGINS || '(none)',
+});
 
 /**
  * Dispatches a monitor alert to the configured webhook (Discord/Slack/etc)
