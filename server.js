@@ -78,36 +78,30 @@ const encryptSensitive = (value) => {
 const socketRateStore = new Map(); // key -> {count, reset}
 
 const socketRateLimit = (socket, key, windowMs, max) => {
-
   const now = Date.now();
-
   const login = (socket?.data?.login || '').toLowerCase();
-
   const ip = socket?.handshake?.address || socket?.conn?.remoteAddress || 'ipless';
-
   const rateKey = `${key}:${login || 'anon'}:${ip}`;
-
   let entry = socketRateStore.get(rateKey);
-
   if (!entry || now > entry.reset) {
-
     entry = { count: 0, reset: now + windowMs };
-
+  }
+  entry.count += 1;
+  socketRateStore.set(rateKey, entry);
+  if (entry.count > max) {
+    logger.warn('Socket rate limited', { rateKey, key, login, ip });
+    return false;
   }
 
-  entry.count += 1;
+  return true;
+};
 
-  socketRateStore.set(rateKey, entry);
-
-  if (entry.count > max) {
-
-
+const securityHeadersMiddleware = (req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-
   res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-
   res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
-
   const csp = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com https://www.googletagmanager.com https://cdn.jsdelivr.net https://cdn.socket.io",
