@@ -90,44 +90,6 @@ const socketRateLimit = (socket, key, windowMs, max) => {
   socketRateStore.set(rateKey, entry);
   if (entry.count > max) {
     logger.warn('Socket rate limited', { rateKey, key, login, ip });
-    return false;
-  }
-
-  return true;
-};
-
-const securityHeadersMiddleware = (req, res, next) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-  res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
-  const csp = [
-    "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com https://www.googletagmanager.com https://cdn.jsdelivr.net https://cdn.socket.io",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com",
-    "img-src 'self' data: https://static-cdn.jtvnw.net https://pagead2.googlesyndication.com",
-    "connect-src 'self' https://id.twitch.tv https://gql.twitch.tv https://www.twitch.tv https://cdn.jsdelivr.net https://cdn.socket.io",
-    "font-src 'self' https://fonts.gstatic.com data:",
-    "frame-ancestors 'self'",
-  ].join('; ');
-
-  res.setHeader('Content-Security-Policy', csp);
-
-  if (config.IS_PRODUCTION) {
-
-    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-
-  }
-
-  next();
-
-};
-
-const PNG = require('pngjs').PNG;
-
-const jpeg = require('jpeg-js');
-
 const { createTwoFilesPatch } = require('diff');
 
 const { spawn } = require('child_process');
@@ -184,20 +146,6 @@ const {
   startPokerPhaseTimer,
 
   createPokerHandlers,
-
-  settleAndEmit: settleAndEmitPoker,
-
-} = require('./server/modes/poker');
-
-const { applyPatchFile } = require('./server/patch');
-
-const utils = require('./server/utils');
-const { createCorsMiddleware } = require('./server/middleware');
-
-// Initialize logger
-const Logger = require('./server/logger');
-const logger = new Logger('server');
-logger.info('Admin control center origins configured', {
   origins: config.ADMIN_CONTROL_CENTER_ORIGINS || '(none)',
 });
 
@@ -1176,6 +1124,8 @@ app.disable('x-powered-by');
 const corsMiddleware = createCorsMiddleware({ config });
 app.use(corsMiddleware);
 app.use(securityHeadersMiddleware);
+app.use(express.json());
+app.use(authRouter);
 
 // AI Self-Healing Middleware (gradually re-enabling on fresh machine)
 app.use(aiSelfHealing.middleware());
