@@ -3,6 +3,11 @@
  * All environment variables and constants in one place
  */
 
+const path = require('path');
+const dotenv = require('dotenv');
+
+dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
+
 const IS_PRODUCTION = (process.env.NODE_ENV || 'development') === 'production';
 const ALLOW_INSECURE_DEFAULTS = IS_PRODUCTION
   ? (process.env.ALLOW_INSECURE_DEFAULTS || '').toLowerCase() === 'true'
