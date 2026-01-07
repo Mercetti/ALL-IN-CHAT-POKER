@@ -9,6 +9,10 @@ const fs = require('fs');
 const path = require('path');
 
 const isDev = !app.isPackaged && process.env.NODE_ENV !== 'production';
+
+if (isDev) {
+  process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
+}
 const devServerUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173';
 let mainWindow;
 let runtimeProcess = null;

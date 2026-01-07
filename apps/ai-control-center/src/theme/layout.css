@@ -13,7 +13,13 @@
 
 @media (min-width: 1200px) {
   .content-layout {
-    grid-template-columns: minmax(0, 2fr) minmax(260px, 360px);
+    grid-template-columns: minmax(0, 2fr) minmax(320px, 420px);
+  }
+}
+
+@media (min-width: 1500px) {
+  .content-layout {
+    grid-template-columns: minmax(0, 2.2fr) minmax(400px, 560px);
   }
 }
 
