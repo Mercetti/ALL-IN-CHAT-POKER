@@ -10,9 +10,10 @@ let mainWindow;
 let runtimeProcess = null;
 const runtimeLogs = [];
 const MAX_LOGS = 500;
-const repoRoot = app.isPackaged
-  ? app.getPath('documents')
-  : path.resolve(__dirname, '..', '..', '..');
+const runtimeCwd = process.env.AI_RUNTIME_CWD
+  || (app.isPackaged
+    ? path.join(app.getPath('documents'), 'poker-game')
+    : path.resolve(__dirname, '..', '..', '..'));
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -109,12 +110,14 @@ ipcMain.handle('runtime:start', async () => {
   }
 
   const runtimeCmd = process.env.AI_RUNTIME_CMD || 'node';
-  const runtimeArgs = process.env.AI_RUNTIME_ARGS?.split(' ').filter(Boolean) || ['server.js'];
+  const runtimeArgs = process.env.AI_RUNTIME_ARGS
+    ? process.env.AI_RUNTIME_ARGS.split(' ').filter(Boolean)
+    : ['server.js'];
 
   appendRuntimeLog(`Starting local AI runtime: ${runtimeCmd} ${runtimeArgs.join(' ')}`);
 
   runtimeProcess = spawn(runtimeCmd, runtimeArgs, {
-    cwd: repoRoot,
+    cwd: runtimeCwd,
     env: { ...process.env, NODE_ENV: process.env.NODE_ENV || 'development' },
     stdio: ['pipe', 'pipe', 'pipe']
   });
