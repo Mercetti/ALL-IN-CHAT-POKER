@@ -314,7 +314,7 @@
   <script>
     enforceAuthenticatedPage({ page: 'main' });
   </script>
-  <script src="overlay.js"></script>
+  <script type="module" src="overlay.js"></script>
   <script>
     // Expose the stored user token for Socket.IO auth
     window.__USER_TOKEN__ = getUserToken && getUserToken();
