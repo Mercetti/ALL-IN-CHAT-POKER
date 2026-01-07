@@ -1,5 +1,5 @@
 /* eslint-env node */
-const { app, BrowserWindow, ipcMain, nativeTheme, Notification } = require('electron');
+const { app, BrowserWindow, ipcMain, nativeTheme, Notification, shell } = require('electron');
 const { spawn } = require('child_process');
 const { randomUUID } = require('crypto');
 const fs = require('fs');
@@ -43,7 +43,37 @@ function createWindow() {
   });
 }
 
+function ensureUserShortcuts() {
+  if (!app.isPackaged) return;
+  try {
+    const desktopDir = app.getPath('desktop');
+    const shortcutPath = path.join(desktopDir, 'AI Control Center.lnk');
+    if (!fs.existsSync(shortcutPath)) {
+      shell.writeShortcutLink(shortcutPath, 'create', {
+        target: process.execPath,
+        description: 'AI Control Center – unified cockpit for every AI system',
+        icon: process.execPath,
+        appUserModelId: 'com.allin.chatpoker.ai-control-center'
+      });
+    }
+
+    const startMenuDir = path.join(app.getPath('appData'), 'Microsoft', 'Windows', 'Start Menu', 'Programs');
+    const startMenuShortcut = path.join(startMenuDir, 'AI Control Center.lnk');
+    if (!fs.existsSync(startMenuShortcut)) {
+      shell.writeShortcutLink(startMenuShortcut, 'create', {
+        target: process.execPath,
+        description: 'AI Control Center',
+        icon: process.execPath,
+        appUserModelId: 'com.allin.chatpoker.ai-control-center'
+      });
+    }
+  } catch (err) {
+    appendRuntimeLog(`Failed to ensure shortcuts: ${err.message}`, 'warn');
+  }
+}
+
 app.whenReady().then(() => {
+  ensureUserShortcuts();
   createWindow();
 
   app.on('activate', () => {
