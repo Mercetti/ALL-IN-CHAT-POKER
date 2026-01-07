@@ -2,6 +2,7 @@
 const { app, BrowserWindow, ipcMain, nativeTheme, Notification } = require('electron');
 const { spawn } = require('child_process');
 const { randomUUID } = require('crypto');
+const fs = require('fs');
 const path = require('path');
 
 const isDev = !app.isPackaged && process.env.NODE_ENV !== 'production';
@@ -114,11 +115,30 @@ ipcMain.handle('runtime:start', async () => {
     ? process.env.AI_RUNTIME_ARGS.split(' ').filter(Boolean)
     : ['server.js'];
 
-  appendRuntimeLog(`Starting local AI runtime: ${runtimeCmd} ${runtimeArgs.join(' ')}`);
+  const dbFile = process.env.DB_FILE || path.join(runtimeCwd, 'data', 'data.db');
+  const dbDir = path.dirname(dbFile);
+
+  try {
+    if (!fs.existsSync(runtimeCwd)) {
+      fs.mkdirSync(runtimeCwd, { recursive: true });
+    }
+    if (!fs.existsSync(dbDir)) {
+      fs.mkdirSync(dbDir, { recursive: true });
+    }
+  } catch (err) {
+    appendRuntimeLog(`Failed to prepare runtime directories: ${err.message}`, 'error');
+    return { ...getRuntimeStatus(), logs: runtimeLogs.slice(-200) };
+  }
+
+  appendRuntimeLog(`Starting local AI runtime: ${runtimeCmd} ${runtimeArgs.join(' ')} (cwd=${runtimeCwd})`);
 
   runtimeProcess = spawn(runtimeCmd, runtimeArgs, {
     cwd: runtimeCwd,
-    env: { ...process.env, NODE_ENV: process.env.NODE_ENV || 'development' },
+    env: {
+      ...process.env,
+      NODE_ENV: process.env.NODE_ENV || 'development',
+      DB_FILE: dbFile,
+    },
     stdio: ['pipe', 'pipe', 'pipe']
   });
 
