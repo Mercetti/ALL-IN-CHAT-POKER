@@ -101,21 +101,6 @@ const socketRateLimit = (socket, key, windowMs, max) => {
 
   if (entry.count > max) {
 
-    logger.warn('Socket rate limited', { rateKey, key, login, ip });
-
-    return false;
-
-  }
-
-  return true;
-
-};
-
-const securityHeadersMiddleware = (req, res, next) => {
-
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-
-  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
 
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 
@@ -213,6 +198,7 @@ const {
 const { applyPatchFile } = require('./server/patch');
 
 const utils = require('./server/utils');
+const { createCorsMiddleware } = require('./server/middleware');
 
 // Initialize logger
 const Logger = require('./server/logger');
@@ -1193,6 +1179,8 @@ app.get('/auth/twitch/subs/callback', async (req, res) => {
 
 app.disable('x-powered-by');
 
+const corsMiddleware = createCorsMiddleware({ config });
+app.use(corsMiddleware);
 app.use(securityHeadersMiddleware);
 
 // AI Self-Healing Middleware (gradually re-enabling on fresh machine)
