@@ -24,9 +24,11 @@ const ENFORCE_ADMIN_CSRF = IS_PRODUCTION
 const CORS_ALLOWED_ORIGINS = (process.env.CORS_ALLOWED_ORIGINS || '').trim();
 const ADMIN_CONTROL_CENTER_ORIGINS = (process.env.ADMIN_CONTROL_CENTER_ORIGINS || '').trim();
 
+const PORT = 8080;
+
 module.exports = {
   // Server
-  PORT: parseInt(process.env.PORT || '8080', 10),
+  PORT,
   NODE_ENV: process.env.NODE_ENV || 'development',
   IS_PRODUCTION,
 
