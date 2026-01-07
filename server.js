@@ -218,6 +218,279 @@ const utils = require('./server/utils');
 const Logger = require('./server/logger');
 const logger = new Logger('server');
 
+/**
+ * Dispatches a monitor alert to the configured webhook (Discord/Slack/etc)
+ * @param {string} message - Primary alert content
+ * @param {Object} options - Optional embed metadata
+ */
+async function sendMonitorAlert(message, options = {}) {
+  if (!config.MONITOR_WEBHOOK_URL) {
+    return false;
+  }
+
+  const payload = {
+    content: (message || 'Monitor alert').slice(0, 1900),
+  };
+
+  const fields = Array.isArray(options.fields) ? options.fields.slice(0, 10) : undefined;
+  const hasEmbedContent = options.description || (fields && fields.length);
+  if (hasEmbedContent) {
+    const severity = (options.severity || 'info').toLowerCase();
+    const severityColors = {
+      info: 0x38bdf8,
+      warning: 0xfacc15,
+      critical: 0xf87171,
+    };
+
+    payload.embeds = [
+      {
+        title: options.title || 'AI Control Center',
+        description: options.description?.slice(0, 1900),
+        color: severityColors[severity] || severityColors.info,
+        fields,
+        timestamp: new Date().toISOString(),
+      },
+    ];
+  }
+
+  try {
+    await fetch(config.MONITOR_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    return true;
+  } catch (error) {
+    logger.warn('Monitor alert dispatch failed', { error: error.message });
+    return false;
+  }
+}
+
+const PANEL_TEMPLATES = {
+  errorManager: {
+    key: 'errorManager',
+    category: 'Stability',
+    title: 'Error Manager',
+    description: 'Auto-detects regressions & suggests patches.',
+  },
+  performanceOptimizer: {
+    key: 'performanceOptimizer',
+    category: 'Performance',
+    title: 'Performance Optimizer',
+    description: 'Monitors CPU/memory & applies live tuning.',
+  },
+  uxMonitor: {
+    key: 'uxMonitor',
+    category: 'Experience',
+    title: 'UX Monitor',
+    description: 'Tracks funnel health and friction events.',
+  },
+  audioGenerator: {
+    key: 'audioGenerator',
+    category: 'Media',
+    title: 'AI Audio Generator',
+    description: 'Builds music beds and FX packs on demand.',
+  },
+  selfHealing: {
+    key: 'selfHealing',
+    category: 'Reliability',
+    title: 'Self-Healing Middleware',
+    description: 'Applies hot fixes & restarts services automatically.',
+  },
+  pokerAudio: {
+    key: 'pokerAudio',
+    category: 'Immersion',
+    title: 'Poker Audio System',
+    description: 'Keeps broadcast-quality soundscapes running.',
+  },
+};
+
+const makeAlertId = () => (crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(8).toString('hex'));
+
+function pct(value) {
+  if (!Number.isFinite(value)) return '0%';
+  return `${Math.round(value * 100)}%`;
+}
+
+function buildErrorManagerPanel() {
+  const base = { ...PANEL_TEMPLATES.errorManager };
+  try {
+    const report = aiErrorManager?.getHealthReport?.() || {};
+    const metrics = report.metrics || {};
+    const activeErrors = Array.isArray(report.activeErrors) ? report.activeErrors : [];
+    const state = activeErrors.length > 5 ? 'critical'
+      : activeErrors.length > 0 ? 'warning'
+        : 'healthy';
+
+    return {
+      ...base,
+      state,
+      metrics: [
+        { label: 'Active errors', value: String(activeErrors.length) },
+        { label: 'Fix success', value: pct(metrics.successRate ?? 0) },
+        { label: 'Patterns learned', value: String((metrics.patterns ?? report.learnedPatterns?.length) || 0) },
+      ],
+      alerts: activeErrors.slice(0, 3).map((err) => ({
+        id: err.id || makeAlertId(),
+        title: err.type || 'Active error',
+        message: err.error?.message || err.message || 'Investigate regression',
+        severity: err.severity === 'critical' ? 'critical' : 'warning',
+        timestamp: err.lastSeen || Date.now(),
+      })),
+    };
+  } catch (error) {
+    logger.warn('Failed to summarize AI error manager', { error: error.message });
+    return {
+      ...base,
+      state: 'critical',
+      metrics: [{ label: 'Status', value: 'Unavailable' }],
+    };
+  }
+}
+
+function buildPerformancePanel() {
+  const base = { ...PANEL_TEMPLATES.performanceOptimizer };
+  try {
+    if (!aiPerformanceOptimizer?.getPerformanceReport) {
+      return {
+        ...base,
+        state: 'offline',
+        metrics: [{ label: 'Status', value: 'Initializing' }],
+      };
+    }
+
+    const report = aiPerformanceOptimizer.getPerformanceReport();
+    const healthScore = report?.health ?? 0;
+    const state = healthScore >= 0.8 ? 'healthy' : healthScore >= 0.6 ? 'warning' : 'critical';
+
+    const latestCpu = report?.current?.cpu ?? report?.metrics?.cpu?.slice(-1)[0]?.value;
+    const latestMem = report?.current?.memory?.heapUsed ?? report?.metrics?.memory?.slice(-1)[0]?.value;
+
+    return {
+      ...base,
+      state,
+      metrics: [
+        { label: 'Health', value: `${Math.round(healthScore * 100)} / 100` },
+        { label: 'CPU', value: latestCpu ? `${latestCpu.toFixed(1)}%` : 'n/a' },
+        { label: 'Heap used', value: latestMem ? `${(latestMem / 1024 / 1024).toFixed(1)} MB` : 'n/a' },
+      ],
+      alerts: Array.isArray(report?.issues)
+        ? report.issues.slice(0, 3).map((issue, idx) => ({
+            id: issue.id || `${base.key}-issue-${idx}`,
+            title: issue.type || 'Performance issue',
+            message: issue.description || issue.message || 'Investigate performance regression',
+            severity: issue.severity === 'high' ? 'critical' : 'warning',
+            timestamp: issue.timestamp || Date.now(),
+          }))
+        : undefined,
+    };
+  } catch (error) {
+    logger.warn('Failed to summarize AI performance optimizer', { error: error.message });
+    return {
+      ...base,
+      state: 'critical',
+      metrics: [{ label: 'Status', value: 'Unavailable' }],
+    };
+  }
+}
+
+function buildUxPanel() {
+  const base = { ...PANEL_TEMPLATES.uxMonitor };
+  try {
+    const report = aiUXMonitor?.getUXReport?.();
+    if (!report) {
+      return {
+        ...base,
+        state: 'offline',
+        metrics: [{ label: 'Status', value: 'No telemetry' }],
+      };
+    }
+
+    const summary = report.summary || {};
+    const recentErrors = summary.recentErrors ?? 0;
+    const state = recentErrors > 50 ? 'critical' : recentErrors > 10 ? 'warning' : 'healthy';
+
+    return {
+      ...base,
+      state,
+      metrics: [
+        { label: 'Active sessions', value: String(summary.activeSessions ?? 0) },
+        { label: 'Interactions (5 min)', value: String(summary.totalInteractions ?? 0) },
+        { label: 'Recent UX errors', value: String(recentErrors) },
+      ],
+      alerts: Array.isArray(report.insights)
+        ? report.insights.slice(0, 3).map((insight, idx) => ({
+            id: insight.id || `${base.key}-insight-${idx}`,
+            title: insight.type || 'UX insight',
+            message: insight.description || insight.impact || 'UX insight available',
+            severity: insight.priority === 'high' ? 'critical' : 'warning',
+            timestamp: insight.timestamp || Date.now(),
+          }))
+        : undefined,
+    };
+  } catch (error) {
+    logger.warn('Failed to summarize AI UX monitor', { error: error.message });
+    return {
+      ...base,
+      state: 'critical',
+      metrics: [{ label: 'Status', value: 'Unavailable' }],
+    };
+  }
+}
+
+function buildAudioPanel() {
+  return {
+    ...PANEL_TEMPLATES.audioGenerator,
+    state: 'offline',
+    metrics: [{ label: 'Status', value: 'External service' }],
+  };
+}
+
+function buildSelfHealingPanel() {
+  const base = { ...PANEL_TEMPLATES.selfHealing };
+  try {
+    const status = aiSelfHealing?.getHealingStatus?.() || {};
+    const activeCount = Array.isArray(status.activeHealings) ? status.activeHealings.length : 0;
+    const recentHistory = Array.isArray(status.healingHistory) ? status.healingHistory.length : 0;
+    const state = activeCount > 0 ? 'warning' : 'healthy';
+
+    return {
+      ...base,
+      state,
+      metrics: [
+        { label: 'Active healings', value: String(activeCount) },
+        { label: 'History entries', value: String(recentHistory) },
+      ],
+    };
+  } catch (error) {
+    logger.warn('Failed to summarize AI self-healing middleware', { error: error.message });
+    return {
+      ...base,
+      state: 'critical',
+      metrics: [{ label: 'Status', value: 'Unavailable' }],
+    };
+  }
+}
+
+function buildPokerAudioPanel() {
+  return {
+    ...PANEL_TEMPLATES.pokerAudio,
+    state: 'offline',
+    metrics: [{ label: 'Status', value: 'Maintenance' }],
+  };
+}
+
+function collectAiOverviewPanels() {
+  return [
+    buildErrorManagerPanel(),
+    buildPerformancePanel(),
+    buildUxPanel(),
+    buildAudioPanel(),
+    buildSelfHealingPanel(),
+    buildPokerAudioPanel(),
+  ];
+}
+
 // Cleanup on server shutdown
 process.on('SIGTERM', () => {
   logger.info('Server shutting down, cleaning up timers');
@@ -237,6 +510,7 @@ process.on('SIGINT', () => {
 
 // Timer manager for centralized timer management
 const { timerManager, performance: perfUtils, dbOptimizer, memoryMonitor, performanceMonitor } = utils;
+const { registerAdminAiControlRoutes } = require('./server/routes/admin-ai-control');
 
 // Initialize unified AI system
 const unifiedAI = new UnifiedAISystem({
@@ -11317,6 +11591,15 @@ app.post('/api/ai/chat', async (req, res) => {
     logger.error('AI chat processing failed', { error: error.message });
     res.status(500).json({ error: error.message });
   }
+});
+
+registerAdminAiControlRoutes(app, {
+  auth,
+  performanceMonitor,
+  collectAiOverviewPanels,
+  unifiedAI,
+  sendMonitorAlert,
+  logger,
 });
 
 /**

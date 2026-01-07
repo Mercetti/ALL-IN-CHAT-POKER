@@ -1,4 +1,7 @@
+/// <reference types="node" />
 /* eslint-env node */
+/* eslint-disable no-undef */
+/* global process, __dirname */
 const { app, BrowserWindow, ipcMain, nativeTheme, Notification, shell } = require('electron');
 const { spawn } = require('child_process');
 const { randomUUID } = require('crypto');
