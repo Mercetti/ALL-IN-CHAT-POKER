@@ -64,12 +64,15 @@ function RuntimePanel() {
           {logs.length === 0 ? (
             <div className="log-empty">Logs will appear here once the runtime starts producing output.</div>
           ) : (
-            logs.slice(-12).map((log) => (
-              <div key={log.id} className={`log-line level-${log.level}`}>
+            logs.slice(-12).map((log, idx) => {
+              const safeId = log.id || `${log.timestamp}-${idx}`;
+              return (
+                <div key={safeId} className={`log-line level-${log.level}`}>
                 <span className="log-time">{new Date(log.timestamp).toLocaleTimeString()}</span>
                 <span>{log.message}</span>
-              </div>
-            ))
+                </div>
+              );
+            })
           )}
         </div>
       </div>
