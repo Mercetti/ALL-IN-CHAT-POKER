@@ -20,7 +20,9 @@
     "logs": "tail -f logs/app.log",
     "backup": "cp data/data.db backups/data_$(date +%Y%m%d_%H%M%S).db",
     "desktop": "electron electron/main.js",
-    "desktop:pack": "electron-packager . allin-chat-bot --platform=win32 --arch=x64 --out=dist --overwrite --prune=false --ignore=\"^/dist$|^/.git$|^/test$\""
+    "desktop:pack": "electron-packager . allin-chat-bot --platform=win32 --arch=x64 --out=dist --overwrite --prune=false --ignore=\"^/dist$|^/.git$|^/test$\"",
+    "control:center": "npm run dev --prefix ./apps/ai-control-center",
+    "control:electron": "npm run start --prefix ./apps/ai-control-center"
   },
   "keywords": [
     "poker",
