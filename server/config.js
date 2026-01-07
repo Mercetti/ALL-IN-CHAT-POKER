@@ -22,6 +22,7 @@ const ENFORCE_ADMIN_CSRF = IS_PRODUCTION
   : false;
 
 const CORS_ALLOWED_ORIGINS = (process.env.CORS_ALLOWED_ORIGINS || '').trim();
+const ADMIN_CONTROL_CENTER_ORIGINS = (process.env.ADMIN_CONTROL_CENTER_ORIGINS || '').trim();
 
 module.exports = {
   // Server
@@ -33,6 +34,7 @@ module.exports = {
   ENABLE_OWNER_BOOTSTRAP,
   ENFORCE_ADMIN_CSRF,
   CORS_ALLOWED_ORIGINS,
+  ADMIN_CONTROL_CENTER_ORIGINS,
   ALLOW_ADMIN_QUERY_TOKEN: (process.env.ALLOW_ADMIN_QUERY_TOKEN || '').toLowerCase() === 'true',
   ALLOW_USER_JWT_ADMIN_FALLBACK: (process.env.ALLOW_USER_JWT_ADMIN_FALLBACK || '').toLowerCase() === 'true',
 

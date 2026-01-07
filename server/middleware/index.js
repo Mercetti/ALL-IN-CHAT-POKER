@@ -98,11 +98,32 @@ function createCorsMiddleware({ config }) {
       .split(',')
       .map((s) => s.trim())
       .filter(Boolean);
+    const adminControlOrigins = (config.ADMIN_CONTROL_CENTER_ORIGINS || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
 
     const isAdminPath = pathName.startsWith('/admin/');
     const isCrossOrigin = sameOrigin ? origin !== sameOrigin : true;
 
     if (isAdminPath && isCrossOrigin) {
+      if (adminControlOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Vary', 'Origin');
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+        res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+        res.setHeader(
+          'Access-Control-Allow-Headers',
+          'Content-Type, Authorization, X-CSRF-Token, X-Channel, X-Requested-With'
+        );
+
+        if ((req.method || '').toUpperCase() === 'OPTIONS') {
+          return res.status(204).end();
+        }
+
+        return next();
+      }
+
       if ((req.method || '').toUpperCase() === 'OPTIONS') {
         return res.status(403).end();
       }
