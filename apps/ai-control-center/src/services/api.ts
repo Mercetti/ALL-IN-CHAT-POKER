@@ -1,7 +1,9 @@
 import type { PanelStatus } from '../types/panels';
 
 const defaultBackend = 'http://localhost:3000';
-const API_BASE = `${import.meta.env.VITE_BACKEND_BASE ?? defaultBackend}`.replace(/\/$/, '');
+// Use Fly backend when running in Electron (production-like environment)
+const isElectron = typeof window !== 'undefined' && !!(window as any).process?.versions?.electron;
+const API_BASE = `${import.meta.env.VITE_BACKEND_BASE ?? (isElectron ? 'https://all-in-chat-poker.fly.dev' : defaultBackend)}`.replace(/\/$/, '');
 
 async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const target = path.startsWith('http') ? path : `${API_BASE || ''}${path}`;
