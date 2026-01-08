@@ -17,7 +17,7 @@ const panelOrder: PanelKey[] = [
 ];
 
 function App() {
-  const { statuses, isLoading, lastSync, fetchAll, authRequired, markAuthenticated, error } = useDashboardStore();
+  const { statuses, isLoading, lastSync, fetchAll, authRequired, markAuthenticated, setAuthRequired, error } = useDashboardStore();
   const [password, setPassword] = useState('');
   const [loginPending, setLoginPending] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
@@ -83,6 +83,8 @@ function App() {
           <button className="ghost-btn" onClick={fetchAll} disabled={isLoading}>
             {isLoading ? 'Syncing' : 'Manual Sync'}
           </button>
+          {/* Debug button to force login */}
+          <button className="ghost-btn" onClick={() => setAuthRequired(true)}>Force Login</button>
         </div>
         {showAuthPanel && (
           <div className="auth-panel">
