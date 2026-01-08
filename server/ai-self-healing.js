@@ -3,20 +3,29 @@
  * Automatically detects and fixes common issues
  */
 
-const aiErrorManager = require('./ai-error-manager');
-const aiPerformanceOptimizer = require('./ai-performance-optimizer');
-const aiUXMonitor = require('./ai-ux-monitor');
-const Logger = require('./logger');
-
-const logger = new Logger();
-
 class AISelfHealingMiddleware {
-  constructor(options = {}) {
+  constructor({
+    aiErrorManager,
+    aiPerformanceOptimizer,
+    aiUXMonitor,
+    logger,
+    enableAutoHealing = true,
+    healingInterval = 60000,
+    maxHealingAttempts = 3,
+  } = {}) {
+    if (!aiErrorManager) {
+      throw new Error('aiErrorManager instance is required');
+    }
+
+    this.aiErrorManager = aiErrorManager;
+    this.aiPerformanceOptimizer = aiPerformanceOptimizer;
+    this.aiUXMonitor = aiUXMonitor;
+    this.logger = logger || console;
+
     this.options = {
-      enableAutoHealing: options.enableAutoHealing !== false,
-      healingInterval: options.healingInterval || 60000, // 1 minute
-      maxHealingAttempts: options.maxHealingAttempts || 3,
-      ...options
+      enableAutoHealing,
+      healingInterval,
+      maxHealingAttempts,
     };
     
     this.healingHistory = new Map();
@@ -32,7 +41,7 @@ class AISelfHealingMiddleware {
     // Set up error handlers
     this.setupErrorHandlers();
     
-    logger.info('AI Self-Healing Middleware initialized', {
+    this.logger.info('AI Self-Healing Middleware initialized', {
       autoHealing: this.options.enableAutoHealing,
       interval: this.options.healingInterval
     });
@@ -49,7 +58,7 @@ class AISelfHealingMiddleware {
 
       try {
         // Detect and analyze error
-        const errorInfo = await aiErrorManager.detectError(error, {
+        const errorInfo = await this.aiErrorManager.detectError(error, {
           url: req.url,
           method: req.method,
           userAgent: req.get('User-Agent'),
@@ -59,10 +68,10 @@ class AISelfHealingMiddleware {
 
         // Attempt auto-fix
         if (errorInfo.severity === 'high' || errorInfo.severity === 'critical') {
-          const fixResult = await aiErrorManager.attemptAutoFix(errorInfo);
+          const fixResult = await this.aiErrorManager.attemptAutoFix(errorInfo);
           
           if (fixResult.success) {
-            logger.info('Auto-fix successful', { 
+            this.logger.info('Auto-fix successful', { 
               errorId: errorInfo.id,
               fixType: fixResult.type 
             });
@@ -79,7 +88,7 @@ class AISelfHealingMiddleware {
         next(error);
 
       } catch (healingError) {
-        logger.error('Self-healing failed', { 
+        this.logger.error('Self-healing failed', { 
           originalError: error.message,
           healingError: healingError.message 
         });
@@ -156,7 +165,7 @@ class AISelfHealingMiddleware {
 
     try {
       // Detect error
-      const errorInfo = await aiErrorManager.detectError(error, {
+      const errorInfo = await this.aiErrorManager.detectError(error, {
         context: 'critical_system_error',
         timestamp: Date.now()
       });
@@ -165,12 +174,12 @@ class AISelfHealingMiddleware {
       const fixResult = await aiErrorManager.attemptAutoFix(errorInfo);
 
       if (fixResult.success) {
-        logger.info('Critical error auto-fixed', { 
+        this.logger.info('Critical error auto-fixed', { 
           healingId,
           errorId: errorInfo.id 
         });
       } else {
-        logger.error('Failed to auto-fix critical error', { 
+        this.logger.error('Failed to auto-fix critical error', { 
           healingId,
           errorId: errorInfo.id,
           reason: fixResult.reason 
@@ -178,7 +187,7 @@ class AISelfHealingMiddleware {
       }
 
     } catch (healingError) {
-      logger.error('Critical error healing failed', { 
+      this.logger.error('Critical error healing failed', { 
         healingId,
         error: healingError.message 
       });
@@ -213,7 +222,7 @@ class AISelfHealingMiddleware {
       await this.applyPreventiveOptimizations();
       
     } catch (error) {
-      logger.error('Periodic healing failed', { error: error.message });
+      this.logger.error('Periodic healing failed', { error: error.message });
     }
   }
 
@@ -224,21 +233,21 @@ class AISelfHealingMiddleware {
     let performanceReport = { metrics: { health: 1.0, issues: [] } };
     
     try {
-      if (aiPerformanceOptimizer && typeof aiPerformanceOptimizer.getPerformanceReport === 'function') {
-        performanceReport = aiPerformanceOptimizer.getPerformanceReport();
+      if (this.aiPerformanceOptimizer && typeof this.aiPerformanceOptimizer.getPerformanceReport === 'function') {
+        performanceReport = this.aiPerformanceOptimizer.getPerformanceReport();
       }
     } catch (error) {
-      logger.warn('Performance optimizer not available', { error: error.message });
+      this.logger.warn('Performance optimizer not available', { error: error.message });
     }
     
     let errorHealth = { metrics: { activeErrors: 0 } };
     
     try {
-      if (aiErrorManager && typeof aiErrorManager.getHealthReport === 'function') {
-        errorHealth = aiErrorManager.getHealthReport();
+      if (this.aiErrorManager && typeof this.aiErrorManager.getHealthReport === 'function') {
+        errorHealth = this.aiErrorManager.getHealthReport();
       }
     } catch (error) {
-      logger.warn('Error manager not available', { error: error.message });
+      this.logger.warn('Error manager not available', { error: error.message });
     }
     
     // Check if system is unhealthy
@@ -291,15 +300,17 @@ class AISelfHealingMiddleware {
 
     try {
       // Trigger performance optimizations
-      await aiPerformanceOptimizer.handleHighSeverityIssue(issue);
+      if (this.aiPerformanceOptimizer?.handleHighSeverityIssue) {
+        await this.aiPerformanceOptimizer.handleHighSeverityIssue(issue);
+      }
       
-      logger.info('Performance healing applied', { 
+      this.logger.info('Performance healing applied', { 
         healingId,
         issueType: issue.type 
       });
       
     } catch (error) {
-      logger.error('Performance healing failed', { 
+      this.logger.error('Performance healing failed', { 
         healingId,
         error: error.message 
       });
@@ -322,17 +333,17 @@ class AISelfHealingMiddleware {
 
     try {
       // Attempt auto-fix
-      const fixResult = await aiErrorManager.attemptAutoFix(error);
+      const fixResult = await this.aiErrorManager.attemptAutoFix(error);
       
       if (fixResult.success) {
-        logger.info('Error healing applied', { 
+        this.logger.info('Error healing applied', { 
           healingId,
           errorId: error.id 
         });
       }
       
     } catch (healingError) {
-      logger.error('Error healing failed', { 
+      this.logger.error('Error healing failed', { 
         healingId,
         error: healingError.message 
       });
@@ -345,7 +356,7 @@ class AISelfHealingMiddleware {
    * Check for recurring issues
    */
   async checkRecurringIssues() {
-    const errorHealth = aiErrorManager.getHealthReport();
+    const errorHealth = this.aiErrorManager.getHealthReport();
     const recurringErrors = errorHealth.metrics.errorsDetected > 10;
     
     if (recurringErrors) {
@@ -386,13 +397,13 @@ class AISelfHealingMiddleware {
         await this.applyConfigFix(pattern);
       }
       
-      logger.info('Pattern-based fix applied', { 
+      this.logger.info('Pattern-based fix applied', { 
         healingId,
         patternKey 
       });
       
     } catch (error) {
-      logger.error('Pattern-based fix failed', { 
+      this.logger.error('Pattern-based fix failed', { 
         healingId,
         error: error.message 
       });
@@ -428,17 +439,17 @@ class AISelfHealingMiddleware {
       
       if (memoryUsagePercent > 0.8 && global.gc) {
         global.gc();
-        logger.info('Preventive garbage collection triggered');
+        this.logger.info('Preventive garbage collection triggered');
       }
       
       // Clear caches if needed
       if (global.clearCache && memoryUsagePercent > 0.7) {
         global.clearCache();
-        logger.info('Preventive cache clearing triggered');
+        this.logger.info('Preventive cache clearing triggered');
       }
       
     } catch (error) {
-      logger.error('Preventive optimization failed', { error: error.message });
+      this.logger.error('Preventive optimization failed', { error: error.message });
     }
   }
 
@@ -463,10 +474,11 @@ class AISelfHealingMiddleware {
 }
 
 // Create singleton instance
-const aiSelfHealing = new AISelfHealingMiddleware({
-  enableAutoHealing: true,
-  healingInterval: 60000,
-  maxHealingAttempts: 3
-});
+function createAISelfHealing(options) {
+  return new AISelfHealingMiddleware(options);
+}
 
-module.exports = aiSelfHealing;
+module.exports = {
+  AISelfHealingMiddleware,
+  createAISelfHealing,
+};

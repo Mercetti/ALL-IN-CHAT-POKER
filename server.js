@@ -528,7 +528,7 @@ const aiUXMonitor = new AIUXMonitor({
 });
 
 // Initialize AI self-healing middleware (gradually re-enabling on fresh machine)
-const aiSelfHealing = require('./server/ai-self-healing');
+const { createAISelfHealing } = require('./server/ai-self-healing');
 
 // Audio AI systems moved to dedicated machine: audio process group
 const AUDIO_SERVICE_URL = process.env.AUDIO_SERVICE_URL || 'http://1781950aee6038.vm.internal:8080';
@@ -1106,6 +1106,7 @@ app.disable('x-powered-by');
 const { createCorsMiddleware, createSecurityHeadersMiddleware, issueCsrfCookie } = require('./server/middleware');
 const corsMiddleware = createCorsMiddleware({ config });
 const securityHeadersMiddleware = createSecurityHeadersMiddleware({ config });
+const { createPublicRouter } = require('./server/routes/public');
 const { createAuthRouter } = require('./server/routes/auth');
 const authRouter = createAuthRouter({
   config,
@@ -1121,10 +1122,25 @@ const authRouter = createAuthRouter({
   fetchTwitchUser: auth.fetchTwitchUser,
   defaultChannel: getDefaultChannel(),
 });
+const publicRouter = createPublicRouter({
+  config,
+  startup,
+  defaultChannel: getDefaultChannel(),
+});
+const aiSelfHealing = createAISelfHealing({
+  aiErrorManager,
+  aiPerformanceOptimizer,
+  aiUXMonitor,
+  logger,
+  enableAutoHealing: true,
+  healingInterval: 60000,
+  maxHealingAttempts: 3,
+});
 
 app.use(corsMiddleware);
 app.use(securityHeadersMiddleware);
 app.use(express.json());
+app.use(publicRouter);
 app.use(authRouter);
 
 // AI Self-Healing Middleware (gradually re-enabling on fresh machine)
