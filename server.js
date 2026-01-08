@@ -13493,7 +13493,7 @@ async function start() {
 
         runOverlayDiagnosis(DEFAULT_CHANNEL).catch(err => logger.warn('overlay auto-check failed', { error: err.message }));
 
-      }, AUTO_AI_CHECK_MS);
+      }, config.AUTO_AI_CHECK_MS);
 
 
 

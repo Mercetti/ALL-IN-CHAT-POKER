@@ -155,6 +155,7 @@ module.exports = {
   AI_MAX_TOKENS: parseInt(process.env.AI_MAX_TOKENS || '1200', 10),
   OLLAMA_HOST: process.env.OLLAMA_HOST || 'http://127.0.0.1:11434',
   OLLAMA_MODEL: process.env.OLLAMA_MODEL || 'tinyllama',  // Use tinyllama as default model
+  AUTO_AI_CHECK_MS: parseInt(process.env.AUTO_AI_CHECK_MS || '30000', 10),  // AI check interval
 
   // Monitoring / alerts
   MONITOR_WEBHOOK_URL: process.env.MONITOR_WEBHOOK_URL || '',
