@@ -74,6 +74,17 @@ function extractAdminToken(req) {
  * @returns {Object|null} - JWT payload or null
  */
 function extractJWT(req) {
+  // First try Authorization header (Bearer token)
+  const authHeader = getHeader(req, 'authorization');
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    try {
+      return verifyJwtWithOptionalAudience(authHeader.slice(7), 'admin');
+    } catch (e) {
+      logger.debug('JWT verification failed (Bearer)', { error: e.message });
+    }
+  }
+
+  // Fallback to cookie
   const cookie = getHeader(req, 'cookie');
   if (!cookie) return null;
 
@@ -83,7 +94,7 @@ function extractJWT(req) {
   try {
     return verifyJwtWithOptionalAudience(match[1], 'admin');
   } catch (e) {
-    logger.debug('JWT verification failed', { error: e.message });
+    logger.debug('JWT verification failed (cookie)', { error: e.message });
     return null;
   }
 }

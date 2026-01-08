@@ -7,11 +7,19 @@ const API_BASE = `${import.meta.env.VITE_BACKEND_BASE ?? (isElectron ? 'https://
 
 async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const target = path.startsWith('http') ? path : `${API_BASE || ''}${path}`;
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string> || {}),
+  };
+
+  // Add Authorization header if we have a token
+  const token = localStorage.getItem('admin_token');
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const res = await fetch(target, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-    },
+    headers,
     credentials: 'include',
     ...options,
   });
@@ -74,8 +82,15 @@ export async function requestCosmeticAsset(prompt: string): Promise<{ id?: strin
 }
 
 export async function controlCenterLogin(password: string): Promise<{ success: boolean }> {
-  return apiFetch<{ success: boolean }>('/auth/login', {
+  const result = await apiFetch<{ success: boolean; token?: string }>('/auth/login', {
     method: 'POST',
     body: JSON.stringify({ password }),
   });
+
+  // Store the token if provided
+  if (result.success && result.token) {
+    localStorage.setItem('admin_token', result.token);
+  }
+
+  return { success: result.success };
 }

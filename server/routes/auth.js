@@ -98,7 +98,7 @@ function createAuthRouter({
       });
 
       logger.info('admin login success', { ip: req.ip });
-      return res.json({ success: true });
+      return res.json({ success: true, token }); // Also return token for Electron
     } catch (err) {
       logger.error('admin login failed', { error: err.message, stack: err.stack });
       return res.status(500).json({ error: 'internal_error' });
