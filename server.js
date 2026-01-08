@@ -114,6 +114,7 @@ const blackjack = require('./server/blackjack');
 const stateAdapter = require('./server/state-adapter');
 const ai = require('./server/ai');
 const UnifiedAISystem = require('./server/unified-ai');
+const utils = require('./server/utils');
 const {
   normalizeChannelName: normalizeChannelNameScoped,
   getDefaultChannel,
@@ -1105,6 +1106,21 @@ app.disable('x-powered-by');
 const { createCorsMiddleware, createSecurityHeadersMiddleware, issueCsrfCookie } = require('./server/middleware');
 const corsMiddleware = createCorsMiddleware({ config });
 const securityHeadersMiddleware = createSecurityHeadersMiddleware({ config });
+const { createAuthRouter } = require('./server/routes/auth');
+const authRouter = createAuthRouter({
+  config,
+  auth,
+  db,
+  jwt,
+  logger,
+  fetch,
+  rateLimit,
+  validateBody: (payload, schema) => validation.validateShape(payload, schema),
+  validateLocalLogin,
+  isBanned: auth.isBanned,
+  fetchTwitchUser: auth.fetchTwitchUser,
+  defaultChannel: getDefaultChannel(),
+});
 
 app.use(corsMiddleware);
 app.use(securityHeadersMiddleware);

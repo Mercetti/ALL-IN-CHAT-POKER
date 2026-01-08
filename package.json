@@ -31,7 +31,7 @@
     "game",
     "video-poker"
   ],
-  "author": "Your Name",
+  "author": "Mercetti",
   "license": "MIT",
   "dependencies": {
     "better-sqlite3": "^9.0.0",
