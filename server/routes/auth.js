@@ -1,5 +1,5 @@
 const express = require('express');
-const { createAdminJWT } = require('../auth/jwt');
+const { createAdminJWT } = require('../auth');
 
 function createAuthRouter({
   config,
