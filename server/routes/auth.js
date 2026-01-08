@@ -68,41 +68,34 @@ function createAuthRouter({
     }
   });
 
+  // Simple admin password-only login for Control Center
   router.post('/auth/login', rateLimit('auth_login', 60 * 1000, 5), (req, res) => {
     try {
-      const { login, password } = req.body || {};
+      const { password } = req.body || {};
 
-      if (!validateBody({ login, password }, { login: 'string', password: 'string' })) {
+      if (!password || typeof password !== 'string') {
         return res.status(400).json({ error: 'invalid_payload' });
       }
 
-      const normalized = (login || '').trim().toLowerCase();
-
-      if (isBanned(normalized, req.ip)) return res.status(403).json({ error: 'banned' });
-      if (!validateLocalLogin(normalized) || !password) return res.status(400).json({ error: 'invalid_credentials' });
-
-      const profile = db.getProfile(normalized);
-      if (!profile || !profile.password_hash) {
-        return res.status(401).json({ error: 'not_found' });
+      // Compare against ADMIN_PASSWORD env var
+      const adminPassword = config.ADMIN_PASSWORD;
+      if (!adminPassword || password !== adminPassword) {
+        return res.status(401).json({ error: 'invalid_credentials' });
       }
 
-      const ok = auth.verifyPassword(password, profile.password_hash);
-      if (!ok) return res.status(401).json({ error: 'invalid_credentials' });
+      // Create admin JWT as cookie
+      const { token } = createAdminJWT();
 
-      const token = auth.signUserJWT(normalized);
-
-      return res.json({
-        token,
-        profile: {
-          login: profile.login,
-          role: profile.role,
-          twitchLinked: !!profile.twitch_id,
-          discordLinked: !!profile.discord_id,
-        },
-        forcePasswordReset: !!profile.force_pwd_reset,
+      res.cookie('admin_jwt', token, {
+        httpOnly: true,
+        secure: config.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: config.ADMIN_JWT_TTL_SECONDS * 1000,
       });
+
+      return res.json({ success: true });
     } catch (err) {
-      logger.error('auth login failed', { error: err.message });
+      logger.error('admin login failed', { error: err.message, stack: err.stack });
       return res.status(500).json({ error: 'internal_error' });
     }
   });
