@@ -5,7 +5,6 @@ import './ChatPanel.css';
 
 const quickPrompts: { label: string; value: string }[] = [
   { label: 'AI errors summary', value: 'Summarize the latest AI errors and proposed fixes.' },
-  { label: 'Neon card back', value: 'Generate a new neon card back concept with cyan + violet accents.' },
   { label: 'Self-healing status', value: 'List pending self-healing tasks and their ETA.' },
 ];
 

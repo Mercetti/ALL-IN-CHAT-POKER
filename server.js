@@ -105,61 +105,36 @@ const { spawn } = require('child_process');
 // Import utilities
 
 const config = require('./server/config');
-
 const validation = require('./server/validation');
-
 const auth = require('./server/auth');
-
 const startup = require('./server/startup');
-
 const db = require('./server/db');
-
 const game = require('./server/game');
-
 const blackjack = require('./server/blackjack');
-
 const stateAdapter = require('./server/state-adapter');
-
 const ai = require('./server/ai');
 const UnifiedAISystem = require('./server/unified-ai');
-
 const {
-
   normalizeChannelName: normalizeChannelNameScoped,
-
   getDefaultChannel,
-
 } = require('./server/channel-state');
-
 const payoutStore = require('./server/payout-store');
-
 const { buildPayoutIdempotencyKey } = require('./server/payout-utils');
-
 const {
-
   startBlackjackRound,
-
   createBlackjackHandlers,
-
   settleAndEmit: settleAndEmitBlackjack,
-
-} = require('./server/modes/blackjack');
-
-const {
-
   startPokerRound,
-
   startPokerPhaseTimer,
-
   createPokerHandlers,
+} = require('./server/modes/blackjack');
+const Logger = require('./server/logger');
+const logger = new Logger('server');
+
+logger.info('Admin control center origins configured', {
   origins: config.ADMIN_CONTROL_CENTER_ORIGINS || '(none)',
 });
 
-/**
- * Dispatches a monitor alert to the configured webhook (Discord/Slack/etc)
- * @param {string} message - Primary alert content
- * @param {Object} options - Optional embed metadata
- */
 async function sendMonitorAlert(message, options = {}) {
   if (!config.MONITOR_WEBHOOK_URL) {
     return false;

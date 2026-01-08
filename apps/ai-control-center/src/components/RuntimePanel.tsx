@@ -67,9 +67,9 @@ function RuntimePanel() {
             logs.slice(-12).map((log, idx) => {
               const safeId = log.id || `${log.timestamp}-${idx}`;
               return (
-                <div key={safeId} className={`log-line level-${log.level}`}>
-                <span className="log-time">{new Date(log.timestamp).toLocaleTimeString()}</span>
-                <span>{log.message}</span>
+                <div key={`${safeId}-${idx}`} className={`log-line level-${log.level}`}>
+                  <span className="log-time">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                  <span>{log.message}</span>
                 </div>
               );
             })
