@@ -1128,7 +1128,11 @@ app.get('/auth/twitch/subs/callback', async (req, res) => {
 app.disable('x-powered-by');
 
 const { createCorsMiddleware, createSecurityHeadersMiddleware, issueCsrfCookie } = require('./server/middleware');
-app.use(createSecurityHeadersMiddleware());
+const corsMiddleware = createCorsMiddleware({ config });
+const securityHeadersMiddleware = createSecurityHeadersMiddleware({ config });
+
+app.use(corsMiddleware);
+app.use(securityHeadersMiddleware);
 app.use(express.json());
 app.use(authRouter);
 
