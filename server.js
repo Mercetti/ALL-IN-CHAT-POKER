@@ -90,6 +90,12 @@ const socketRateLimit = (socket, key, windowMs, max) => {
   socketRateStore.set(rateKey, entry);
   if (entry.count > max) {
     logger.warn('Socket rate limited', { rateKey, key, login, ip });
+    return false;
+  }
+
+  return true;
+};
+
 const { createTwoFilesPatch } = require('diff');
 
 const { spawn } = require('child_process');
@@ -1121,9 +1127,8 @@ app.get('/auth/twitch/subs/callback', async (req, res) => {
 
 app.disable('x-powered-by');
 
-const corsMiddleware = createCorsMiddleware({ config });
-app.use(corsMiddleware);
-app.use(securityHeadersMiddleware);
+const { createCorsMiddleware, createSecurityHeadersMiddleware, issueCsrfCookie } = require('./server/middleware');
+app.use(createSecurityHeadersMiddleware());
 app.use(express.json());
 app.use(authRouter);
 

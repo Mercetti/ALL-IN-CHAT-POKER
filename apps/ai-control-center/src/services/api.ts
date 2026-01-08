@@ -16,7 +16,16 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(text || `API error ${res.status}`);
+    let message = text || `API error ${res.status}`;
+    try {
+      const parsed = JSON.parse(text);
+      if (parsed && typeof parsed === 'object') {
+        message = parsed.error || parsed.message || message;
+      }
+    } catch {
+      // leave message as-is
+    }
+    throw new Error(message);
   }
 
   return res.json();
@@ -60,4 +69,11 @@ export async function requestCosmeticAsset(prompt: string): Promise<{ id?: strin
       content: 'Cosmetic generation endpoint is unavailable. Please retry later.',
     };
   }
+}
+
+export async function controlCenterLogin(password: string): Promise<{ success: boolean }> {
+  return apiFetch<{ success: boolean }>('/control-center/login', {
+    method: 'POST',
+    body: JSON.stringify({ password }),
+  });
 }

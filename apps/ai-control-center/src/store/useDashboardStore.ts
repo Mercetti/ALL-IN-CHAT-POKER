@@ -7,6 +7,7 @@ export type DashboardStore = {
   lastSync: number | null;
   isLoading: boolean;
   error?: string;
+  authRequired: boolean;
   chat: {
     history: ChatMessage[];
     isSending: boolean;
@@ -14,6 +15,8 @@ export type DashboardStore = {
   fetchAll: () => Promise<void>;
   sendChat: (content: string) => Promise<void>;
   generateCosmetic: (prompt: string) => Promise<void>;
+  markAuthenticated: () => void;
+  setAuthRequired: (value: boolean) => void;
 };
 
 const defaultStatuses: Record<PanelKey, PanelStatus> = {
@@ -94,9 +97,16 @@ const useDashboardStore = create<DashboardStore>((set, get) => ({
   statuses: defaultStatuses,
   lastSync: null,
   isLoading: false,
+  authRequired: false,
   chat: {
     history: loadStoredChat(),
     isSending: false,
+  },
+  markAuthenticated() {
+    set({ authRequired: false, error: undefined });
+  },
+  setAuthRequired(value: boolean) {
+    set({ authRequired: value });
   },
   async fetchAll() {
     if (get().isLoading) return;
@@ -111,11 +121,15 @@ const useDashboardStore = create<DashboardStore>((set, get) => ({
         statuses: merged,
         lastSync: Date.now(),
         isLoading: false,
+        authRequired: false,
       });
     } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to refresh dashboards';
+      const requiresAuth = typeof message === 'string' && message.toLowerCase().includes('not authorized');
       set({
         isLoading: false,
-        error: err instanceof Error ? err.message : 'Failed to refresh dashboards',
+        error: message,
+        authRequired: requiresAuth,
       });
     }
   },
