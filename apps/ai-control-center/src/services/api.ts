@@ -74,7 +74,7 @@ export async function requestCosmeticAsset(prompt: string): Promise<{ id?: strin
 }
 
 export async function controlCenterLogin(password: string): Promise<{ success: boolean }> {
-  return apiFetch<{ success: boolean }>('/control-center/login', {
+  return apiFetch<{ success: boolean }>('/auth/login', {
     method: 'POST',
     body: JSON.stringify({ password }),
   });
