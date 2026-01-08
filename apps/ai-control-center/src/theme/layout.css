@@ -1,7 +1,9 @@
 .app-shell {
   padding: 32px clamp(24px, 4vw, 64px);
-  max-width: 1400px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: none;
+  min-height: 100vh;
+  box-sizing: border-box;
 }
 
 .content-layout {
@@ -9,24 +11,30 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 24px;
+  align-items: start;
 }
 
 @media (min-width: 1200px) {
   .content-layout {
-    grid-template-columns: minmax(0, 2fr) minmax(320px, 420px);
+    grid-template-columns: minmax(280px, 360px) minmax(0, 1fr) minmax(280px, 360px);
   }
 }
 
 @media (min-width: 1500px) {
   .content-layout {
-    grid-template-columns: minmax(0, 2.2fr) minmax(400px, 560px);
+    grid-template-columns: minmax(320px, 420px) minmax(0, 1fr) minmax(320px, 420px);
   }
 }
 
-.side-column {
+.rail {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.left-rail .side-card,
+.right-rail .side-card {
+  height: fit-content;
 }
 
 .app-header {

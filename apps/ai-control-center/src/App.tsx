@@ -106,16 +106,19 @@ function App() {
       </header>
 
       <div className="content-layout">
+        <section className="rail left-rail">
+          <RuntimePanel />
+        </section>
+
         <main className="panel-grid">
           {panelOrder.map((key) => (
             <PanelCard key={key} status={statuses[key]} onRefresh={fetchAll} />
           ))}
         </main>
 
-        <aside className="side-column">
-          <RuntimePanel />
+        <section className="rail right-rail">
           <ChatPanel />
-        </aside>
+        </section>
       </div>
     </div>
   );
