@@ -20,3 +20,17 @@ contextBridge.exposeInMainWorld('aiBridge', {
     }
   }
 });
+
+// Inject the production backend URL for the renderer
+if (process.env.VITE_BACKEND_BASE) {
+  const script = document.createElement('script');
+  script.textContent = `window.VITE_BACKEND_BASE = '${process.env.VITE_BACKEND_BASE}';`;
+  document.documentElement.appendChild(script);
+  script.remove();
+} else {
+  // Fallback to Fly backend for Electron builds
+  const script = document.createElement('script');
+  script.textContent = `window.VITE_BACKEND_BASE = 'https://all-in-chat-poker.fly.dev';`;
+  document.documentElement.appendChild(script);
+  script.remove();
+}

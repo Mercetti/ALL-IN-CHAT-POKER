@@ -33,12 +33,15 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
-      sandbox: true
+      sandbox: true,
+      webSecurity: false,
     }
   });
 
   if (isDev) {
-    mainWindow.loadURL(devServerUrl);
+    const url = new URL(devServerUrl);
+    url.searchParams.set('VITE_BACKEND_BASE', 'https://all-in-chat-poker.fly.dev');
+    mainWindow.loadURL(url.toString());
     mainWindow.webContents.openDevTools({ mode: 'detach' });
   } else {
     const rendererPath = path.join(__dirname, '..', 'dist', 'renderer', 'index.html');
