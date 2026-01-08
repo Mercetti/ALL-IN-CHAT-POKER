@@ -175,6 +175,7 @@ ipcMain.handle('runtime:start', async () => {
       ...process.env,
       NODE_ENV: process.env.NODE_ENV || 'development',
       DB_FILE: dbFile,
+      VITE_BACKEND_BASE: 'https://all-in-chat-poker.fly.dev',
     },
     stdio: ['pipe', 'pipe', 'pipe']
   });
