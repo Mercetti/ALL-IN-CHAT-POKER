@@ -209,6 +209,13 @@ function getAdminCookieOptions() {
  * @param {Function} next - Express next
  */
 function requireAdmin(req, res, next) {
+  // Debug: Log all headers
+  logger.debug('admin request headers', { 
+    authorization: getHeader(req, 'authorization'),
+    cookie: getHeader(req, 'cookie'),
+    ip: req.ip 
+  });
+
   if (!isAdminRequest(req)) {
     logger.warn('Unauthorized admin access attempt', { ip: req.ip });
     return res.status(403).json({ error: 'not authorized' });
