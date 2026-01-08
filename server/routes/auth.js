@@ -74,12 +74,15 @@ function createAuthRouter({
     try {
       const { password } = req.body || {};
 
+      logger.info('admin login attempt', { hasPassword: !!password, ip: req.ip });
+
       if (!password || typeof password !== 'string') {
         return res.status(400).json({ error: 'invalid_payload' });
       }
 
       // Compare against ADMIN_PASSWORD env var
       const adminPassword = config.ADMIN_PASSWORD;
+      logger.info('admin password check', { configured: !!adminPassword });
       if (!adminPassword || password !== adminPassword) {
         return res.status(401).json({ error: 'invalid_credentials' });
       }
@@ -94,6 +97,7 @@ function createAuthRouter({
         maxAge: config.ADMIN_JWT_TTL_SECONDS * 1000,
       });
 
+      logger.info('admin login success', { ip: req.ip });
       return res.json({ success: true });
     } catch (err) {
       logger.error('admin login failed', { error: err.message, stack: err.stack });
