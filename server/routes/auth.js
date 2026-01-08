@@ -90,6 +90,8 @@ function createAuthRouter({
       // Create admin JWT as cookie
       const { token } = createAdminJWT();
 
+      logger.info('admin token generated', { tokenPreview: token.slice(0, 20) + '...' });
+
       res.cookie('admin_jwt', token, {
         httpOnly: true,
         secure: config.NODE_ENV === 'production',
