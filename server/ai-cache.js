@@ -27,14 +27,92 @@ class AICache {
    * Generate cache key from messages and options
    */
   generateKey(messages = [], options = {}) {
+    // Create a more flexible cache key that groups similar requests
+    const lastMessage = messages[messages.length - 1]?.content || '';
+    const context = messages[0]?.content || '';
+    
+    // Extract key patterns for better cache hits
     const keyData = {
-      messages: messages.slice(-3), // Last 3 messages for context
+      // Simplified message pattern - focus on intent, not exact wording
+      intent: this.extractIntent(lastMessage),
+      context: this.extractContext(context),
       model: options.model || 'default',
-      maxTokens: options.maxTokens || 1000,
-      temperature: options.temperature || 0.7
+      // Group similar token ranges
+      tokenRange: this.getTokenRange(options.maxTokens || 1000),
+      // Group similar temperatures
+      tempRange: this.getTempRange(options.temperature || 0.7)
     };
     
     return crypto.createHash('md5').update(JSON.stringify(keyData)).digest('hex');
+  }
+
+  /**
+   * Extract intent from message for better cache grouping
+   */
+  extractIntent(message) {
+    const lowerMessage = message.toLowerCase();
+    
+    // Common patterns
+    if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
+      return 'greeting';
+    }
+    if (lowerMessage.includes('help') || lowerMessage.includes('assist') || lowerMessage.includes('support')) {
+      return 'help_request';
+    }
+    if (lowerMessage.includes('error') || lowerMessage.includes('bug') || lowerMessage.includes('issue')) {
+      return 'error_help';
+    }
+    if (lowerMessage.includes('generate') || lowerMessage.includes('create') || lowerMessage.includes('make')) {
+      return 'generation';
+    }
+    if (lowerMessage.includes('test') || lowerMessage.includes('check') || lowerMessage.includes('verify')) {
+      return 'testing';
+    }
+    
+    // Default: use first few words
+    return lowerMessage.split(' ').slice(0, 3).join('_');
+  }
+
+  /**
+   * Extract context from system message
+   */
+  extractContext(systemMessage) {
+    const lowerMessage = systemMessage.toLowerCase();
+    
+    if (lowerMessage.includes('poker') || lowerMessage.includes('dealer')) {
+      return 'poker';
+    }
+    if (lowerMessage.includes('coding') || lowerMessage.includes('code') || lowerMessage.includes('programming')) {
+      return 'coding';
+    }
+    if (lowerMessage.includes('personality') || lowerMessage.includes('flirty') || lowerMessage.includes('savage')) {
+      return 'personality';
+    }
+    if (lowerMessage.includes('audio') || lowerMessage.includes('music') || lowerMessage.includes('sound')) {
+      return 'audio';
+    }
+    
+    return 'general';
+  }
+
+  /**
+   * Group token amounts into ranges
+   */
+  getTokenRange(tokens) {
+    if (tokens <= 10) return 'tiny';
+    if (tokens <= 25) return 'small';
+    if (tokens <= 50) return 'medium';
+    if (tokens <= 100) return 'large';
+    return 'huge';
+  }
+
+  /**
+   * Group temperatures into ranges
+   */
+  getTempRange(temp) {
+    if (temp <= 0.3) return 'low';
+    if (temp <= 0.7) return 'medium';
+    return 'high';
   }
 
   /**

@@ -1,0 +1,74 @@
+VS Code Settings Setup Guide
+==========================
+
+WHERE TO PLACE THE SETTINGS:
+
+Option 1: Global Settings (Recommended)
+------------------------------------
+1. Open VS Code
+2. Press Ctrl+Shift+P
+3. Type: "Open Settings (JSON)"
+4. Press Enter
+5. ADD this to your EXISTING settings.json (don't replace everything):
+
+{
+  // YOUR EXISTING SETTINGS HERE,
+  // THEN ADD THESE AI CONTROL CENTER SETTINGS:
+  
+  "liveServer.settings.port": 5173,
+  "liveServer.settings.root": "/apps/ai-control-center", 
+  "liveServer.settings.wait": 1000,
+  "liveServer.settings.customBrowser": "chrome",
+  "liveServer.settings.ignoreFiles": [
+    ".git/**",
+    "node_modules/**",
+    "dist/**", 
+    ".vite/**"
+  ],
+  "emmet.includeLanguages": {
+    "javascript": "javascriptreact"
+  },
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.vite": true
+  },
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.env.windows": {
+    "NODE_ENV": "development"
+  }
+}
+
+Option 2: Workspace Settings (Project-specific only)
+--------------------------------------------------
+1. In VS Code, open this folder: C:\Users\merce\Documents\poker-game
+2. Press Ctrl+Shift+P
+3. Type: "Open Workspace Settings (JSON)"
+4. Press Enter
+5. Paste the settings there
+
+This creates: .vscode\settings.json in your project folder
+
+OPTION 3: Manual File Creation
+---------------------------
+1. Create folder: C:\Users\merce\Documents\poker-game\.vscode
+2. Create file: settings.json inside that folder
+3. Paste the JSON content
+
+IMPORTANT NOTES:
+--------------
+• For Option 1: ADD to existing settings, don't replace everything
+• For Options 2&3: This only affects this project
+• The settings prevent VS Code stream errors and port conflicts
+• Restart VS Code after adding settings
