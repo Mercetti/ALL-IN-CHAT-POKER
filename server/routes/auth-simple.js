@@ -7,13 +7,13 @@ function createSimpleAuthRouter() {
   // Simple login endpoint for testing
   router.post('/login', (req, res) => {
     try {
-      const { login, password } = req.body || {};
+      const { password } = req.body || {};
       
-      if (!login || !password) {
-        return res.status(400).json({ error: 'Login and password required' });
+      if (!password) {
+        return res.status(400).json({ error: 'Password required' });
       }
       
-      // For now, accept any login/password for testing
+      // For now, accept any password for testing
       // TODO: Implement proper authentication
       const token = crypto.randomBytes(32).toString('hex');
       
@@ -21,8 +21,8 @@ function createSimpleAuthRouter() {
         success: true,
         token,
         user: {
-          login,
-          role: 'admin', // Temporary admin role for testing
+          login: 'admin', // Default admin login
+          role: 'admin',
           timestamp: new Date().toISOString()
         }
       });
