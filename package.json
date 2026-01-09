@@ -26,7 +26,6 @@
     "check": "node pre-deploy-check.js",
     "backup": "cp data/data.db backups/data_$(date +%Y%m%d_%H%M%S).db",
     "desktop": "electron electron/main.js",
-    "desktop:pack": "electron-packager . allin-chat-bot --platform=win32 --arch=x64 --out=dist --overwrite --prune=false --ignore=\"^/dist$|^/.git$|^/test$\"",
     "control:center": "npm run dev --prefix ./apps/ai-control-center",
     "control:electron": "npm run start --prefix ./apps/ai-control-center",
     "dev:start": "start-dev.bat",
@@ -40,7 +39,8 @@
     "dev:kill": "kill-port-5173.bat",
     "dev:watch": "node auto-watch.js",
     "dev:monitor": "node auto-deploy-monitor.js",
-    "dev:all": "smart-start-dev-bg.bat"
+    "dev:all": "smart-start-dev-bg.bat",
+    "start:everything": "node startup-everything.js"
   },
   "keywords": [
     "poker",

@@ -964,4 +964,142 @@ router.get('/cosmetics/templates', auth.requireAdmin, async (req, res) => {
   }
 });
 
+/**
+ * Resource Manager - Control AI and PC resources
+ */
+router.get('/resources/status', auth.requireAdmin, async (req, res) => {
+  try {
+    const ResourceManager = require('../resource-manager');
+    const resourceManager = new ResourceManager();
+    
+    const status = resourceManager.getStatus();
+    
+    res.json({
+      success: true,
+      data: status
+    });
+  } catch (error) {
+    logger.error('Failed to get resource status', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Turn on AI system
+ */
+router.post('/resources/turn-on-ai', auth.requireAdmin, async (req, res) => {
+  try {
+    const ResourceManager = require('../resource-manager');
+    const resourceManager = new ResourceManager();
+    
+    const result = await resourceManager.turnOnAI();
+    
+    res.json({
+      success: result,
+      message: result ? 'AI system turned on' : 'Failed to turn on AI system'
+    });
+  } catch (error) {
+    logger.error('Failed to turn on AI', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Turn off AI system
+ */
+router.post('/resources/turn-off-ai', auth.requireAdmin, async (req, res) => {
+  try {
+    const ResourceManager = require('../resource-manager');
+    const resourceManager = new ResourceManager();
+    
+    const result = await resourceManager.turnOffAI();
+    
+    res.json({
+      success: result,
+      message: result ? 'AI system turned off' : 'Failed to turn off AI system'
+    });
+  } catch (error) {
+    logger.error('Failed to turn off AI', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Optimize system for gaming
+ */
+router.post('/resources/optimize-gaming', auth.requireAdmin, async (req, res) => {
+  try {
+    const ResourceManager = require('../resource-manager');
+    const resourceManager = new ResourceManager();
+    
+    const result = await resourceManager.optimizeForGaming();
+    
+    res.json({
+      success: result,
+      message: result ? 'System optimized for gaming' : 'Failed to optimize system'
+    });
+  } catch (error) {
+    logger.error('Failed to optimize system', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Clear AI cache
+ */
+router.post('/resources/clear-cache', auth.requireAdmin, async (req, res) => {
+  try {
+    const ResourceManager = require('../resource-manager');
+    const resourceManager = new ResourceManager();
+    
+    const result = await resourceManager.clearAICache();
+    
+    res.json({
+      success: result,
+      message: result ? 'AI cache cleared' : 'Failed to clear AI cache'
+    });
+  } catch (error) {
+    logger.error('Failed to clear AI cache', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Generate resource report
+ */
+router.get('/resources/report', auth.requireAdmin, async (req, res) => {
+  try {
+    const ResourceManager = require('../resource-manager');
+    const resourceManager = new ResourceManager();
+    
+    const report = resourceManager.generateReport();
+    
+    res.json({
+      success: true,
+      data: report
+    });
+  } catch (error) {
+    logger.error('Failed to generate resource report', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
 module.exports = router;
