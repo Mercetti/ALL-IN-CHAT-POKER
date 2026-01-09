@@ -16,6 +16,8 @@
     "security:check": "node -e \"const validator = require('./server/config-validator'); validator.printValidationReport();\"",
     "deploy": "node pre-deploy-check.js && fly deploy -a all-in-chat-poker --strategy immediate",
     "deploy:safe": "node pre-deploy-check.js && fly deploy -a all-in-chat-poker --strategy immediate",
+    "deploy:smart": "smart-deploy.bat",
+    "deploy:monitor": "node auto-deploy-monitor.js",
     "deploy:rollback": "./deploy.sh --rollback",
     "health": "curl -f http://localhost:3000/health || exit 1",
     "logs": "tail -f logs/app.log",

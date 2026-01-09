@@ -6221,6 +6221,145 @@ async function runSyntheticCheck(type = 'manual') {
   }
 }
 
+// Asset check function
+async function runAssetCheck(type = 'manual') {
+  try {
+    logger.info('Running asset check', { type });
+    const startTime = Date.now();
+    
+    // Check critical assets
+    const assets = [
+      '/public/css/main.css',
+      '/public/js/main.js',
+      '/public/images/logo.png'
+    ];
+    
+    const results = {};
+    for (const asset of assets) {
+      try {
+        const fs = require('fs');
+        const path = require('path');
+        const fullPath = path.join(__dirname, asset);
+        results[asset] = fs.existsSync(fullPath);
+      } catch (error) {
+        results[asset] = false;
+      }
+    }
+    
+    const endTime = Date.now();
+    const responseTime = endTime - startTime;
+    
+    const result = {
+      type,
+      timestamp: new Date().toISOString(),
+      responseTime,
+      status: 'success',
+      assets: results,
+      overall: Object.values(results).every(Boolean)
+    };
+    
+    logger.info('Asset check completed', result);
+    return result;
+    
+  } catch (error) {
+    logger.error('Asset check failed', { error: error.message });
+    return {
+      type,
+      timestamp: new Date().toISOString(),
+      status: 'error',
+      error: error.message,
+      overall: false
+    };
+  }
+}
+
+// Database backup function
+function backupDb() {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const backupPath = path.join(__dirname, 'backups', `data_${timestamp}.db`);
+    
+    // Ensure backups directory exists
+    const backupsDir = path.dirname(backupPath);
+    if (!fs.existsSync(backupsDir)) {
+      fs.mkdirSync(backupsDir, { recursive: true });
+    }
+    
+    // Copy database file
+    const dbPath = path.join(__dirname, 'data', 'data.db');
+    if (fs.existsSync(dbPath)) {
+      fs.copyFileSync(dbPath, backupPath);
+      logger.info('Database backup created', { path: backupPath });
+      return { success: true, path: backupPath, timestamp };
+    } else {
+      throw new Error('Database file not found');
+    }
+    
+  } catch (error) {
+    logger.error('Database backup failed', { error: error.message });
+    return { success: false, error: error.message };
+  }
+}
+
+// Database vacuum function
+async function vacuumDb() {
+  try {
+    const db = require('./server/db');
+    return new Promise((resolve, reject) => {
+      db.run('VACUUM', (err) => {
+        if (err) {
+          logger.error('Database vacuum failed', { error: err.message });
+          reject(err);
+        } else {
+          logger.info('Database vacuum completed');
+          resolve({ success: true, timestamp: new Date().toISOString() });
+        }
+      });
+    });
+  } catch (error) {
+    logger.error('Database vacuum failed', { error: error.message });
+    return { success: false, error: error.message };
+  }
+}
+
+// Get critical hashes function
+function getCriticalHashes() {
+  try {
+    const crypto = require('crypto');
+    const fs = require('fs');
+    const path = require('path');
+    
+    const criticalFiles = [
+      'server.js',
+      'package.json',
+      'server/ai.js',
+      'server/db.js'
+    ];
+    
+    const hashes = {};
+    criticalFiles.forEach(file => {
+      try {
+        const filePath = path.join(__dirname, file);
+        if (fs.existsSync(filePath)) {
+          const content = fs.readFileSync(filePath, 'utf8');
+          hashes[file] = crypto.createHash('sha256').update(content).digest('hex');
+        } else {
+          hashes[file] = 'FILE_NOT_FOUND';
+        }
+      } catch (error) {
+        hashes[file] = 'ERROR';
+      }
+    });
+    
+    return hashes;
+  } catch (error) {
+    logger.error('Failed to get critical hashes', { error: error.message });
+    return {};
+  }
+}
+
 app.post('/admin/ops/run-synthetic', auth.requireAdminOrRole(['admin', 'dev', 'owner']), async (_req, res) => {
   try {
     const result = await runSyntheticCheck('manual');
