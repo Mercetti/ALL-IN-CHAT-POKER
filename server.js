@@ -6163,16 +6163,9 @@ app.get('/admin/ops-summary', auth.requireAdminOrRole(['admin', 'dev', 'owner'])
 
     },
 
-  });
-
-});
-
-
-
 app.post('/admin/ops/run-synthetic', auth.requireAdminOrRole(['admin', 'dev', 'owner']), async (_req, res) => {
 
   try {
-
     const result = await runSyntheticCheck('manual');
 
     res.json({ result });
