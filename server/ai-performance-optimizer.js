@@ -205,23 +205,51 @@ Respond with JSON only:
 
     try {
       const response = await ai.chat([
-        { role: 'system', content: 'You are an expert performance analyst. Respond only with valid JSON.' },
+        { role: 'system', content: 'You are a performance analyst. Always respond with valid JSON only. No explanations outside JSON.' },
         { role: 'user', content: prompt }
       ], {
-        temperature: 0.3,
-        maxTokens: 800
+        temperature: 0.1, // Lower temperature for more consistent output
+        maxTokens: 500    // Smaller token limit for reliability
       });
 
-      // Better JSON parsing with fallback
+      // Enhanced JSON parsing with multiple fallback strategies
       try {
+        // First try direct JSON parse
         return JSON.parse(response);
       } catch (parseError) {
-        logger.warn('AI response not valid JSON, using fallback', { response: response.substring(0, 100) });
+        // Try to extract JSON from response
+        const jsonMatch = response.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          try {
+            return JSON.parse(jsonMatch[0]);
+          } catch (extractError) {
+            logger.warn('Extracted JSON still invalid, using fallback', { extracted: jsonMatch[0].substring(0, 100) });
+          }
+        }
+        
+        // Final fallback with structured response
+        logger.warn('AI response not valid JSON, using structured fallback', { response: response.substring(0, 100) });
         return { 
-          issues: [], 
-          recommendations: [], 
-          overallHealth: 'unknown',
-          error: 'AI response parsing failed'
+          issues: [
+            {
+              type: 'ai-performance',
+              severity: 'low',
+              description: 'AI analysis temporarily unavailable',
+              impact: 'Performance recommendations may be limited'
+            }
+          ], 
+          recommendations: [
+            {
+              type: 'ai-config',
+              priority: 'medium',
+              description: 'Check AI model configuration',
+              expectedImprovement: 'Better performance analysis',
+              implementation: 'Verify AI model is properly loaded and configured'
+            }
+          ], 
+          overallHealth: 'fair',
+          error: 'AI response parsing failed',
+          originalResponse: response.substring(0, 200)
         };
       }
     } catch (error) {
