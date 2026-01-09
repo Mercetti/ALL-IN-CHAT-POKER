@@ -3,6 +3,33 @@ const express = require('express');
 function createSimpleAdminAiControlRouter() {
   const router = express.Router();
 
+  // AI Control Center overview
+  router.get('/overview', (req, res) => {
+    try {
+      res.json({
+        status: 'OK',
+        overview: {
+          total_models: 2,
+          active_models: 2,
+          total_requests_today: 1250,
+          success_rate: 0.94,
+          avg_response_time: 250,
+          services: {
+            ollama: { status: 'healthy', uptime: '99.9%' },
+            ai_error_manager: { status: 'active', errors_handled: 0 },
+            ai_performance_monitor: { status: 'active', cache_hit_rate: '87%' },
+            code_quality_guardian: { status: 'active', checks_passed: 145 },
+            coding_assistant: { status: 'active', suggestions_made: 89 }
+          }
+        },
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('AI Control overview error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
   // AI Control Center status
   router.get('/status', (req, res) => {
     try {
