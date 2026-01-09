@@ -36,13 +36,13 @@ const auth = require('./server/auth');
 const config = require('./server/config');
 
 // Import routes
-const adminRoutes = require('./server/routes/admin');
-const authRoutes = require('./server/routes/auth');
-const publicRoutes = require('./server/routes/public');
-const adminServicesRoutes = require('./server/routes/admin-services');
-const adminAiControlRoutes = require('./server/routes/admin-ai-control');
-const partnersRoutes = require('./server/routes/partners');
-const catalogRoutes = require('./server/routes/catalog');
+const { createAdminRouter } = require('./server/routes/admin');
+const { createAuthRouter } = require('./server/routes/auth');
+const { createPublicRouter } = require('./server/routes/public');
+const { createAdminServicesRouter } = require('./server/routes/admin-services');
+const { createAdminAiControlRouter } = require('./server/routes/admin-ai-control');
+const { createPartnersRouter } = require('./server/routes/partners');
+const { createCatalogRouter } = require('./server/routes/catalog');
 
 // Game modules
 const pokerGame = require('./server/game/poker');
@@ -120,6 +120,14 @@ app.use(cors(corsOptions));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Routes
+const adminRoutes = createAdminRouter({ auth, middleware: {}, config, logger: console, rateLimit, db, tmiClient: null, blockedIPs: new Set(), adminLoginAttempts: new Map(), recentErrors: [], recentSlowRequests: [], recentSocketDisconnects: [], lastTmiReconnectAt: null, getCriticalHashes, recordLoginAttempt: () => {} });
+const authRoutes = createAuthRouter({ auth, config, db, logger: console, rateLimit });
+const publicRoutes = createPublicRouter({ config, db, logger: console });
+const adminServicesRoutes = createAdminServicesRouter({ db, logger: console });
+const adminAiControlRoutes = createAdminAiControlRouter({ logger: console });
+const partnersRoutes = createPartnersRouter({ db, logger: console });
+const catalogRoutes = createCatalogRouter({ db });
+
 app.use('/admin', adminRoutes);
 app.use('/auth', authRoutes);
 app.use('/', publicRoutes);
