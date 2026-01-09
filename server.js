@@ -466,63 +466,25 @@ const unifiedAI = new UnifiedAISystem({
   }
 });
 
-/**
- * Admin: grant AIC to a user
- */
-app.post('/admin/coins/grant', auth.requireAdminOrRole(['admin', 'dev', 'owner']), (req, res) => {
-  try {
-    const actor = auth.extractUserLogin(req) || 'unknown';
-    const { login, amount, reason } = req.body || {};
-    
-    if (!validation.validateUsername(login || '')) {
-      return res.status(400).json({ error: 'invalid_login' });
-    }
-    
-    const parsedAmount = typeof amount === 'string' ? Number(amount) : amount;
-    if (!Number.isFinite(parsedAmount)) {
-      return res.status(400).json({ error: 'invalid_amount' });
-    }
-    
-    const roundedAmount = Math.round(parsedAmount);
-    if (roundedAmount <= 0) {
-      return res.status(400).json({ error: 'amount_must_be_positive' });
-    }
-    
-    const MAX_GRANT = 1_000_000;
-    const grantAmount = Math.min(MAX_GRANT, roundedAmount);
-    const normalizedLogin = (login || '').toLowerCase();
-    const profile = db.getProfile(normalizedLogin);
-    
-    if (!profile) {
-      return res.status(404).json({ error: 'user_not_found' });
-    }
-    
-    const targetLogin = (profile.login || normalizedLogin).toLowerCase();
-    const currentBalance = db.getBalance(targetLogin) || 0;
-    const newBalance = currentBalance + grantAmount;
-    
-    db.setBalance(targetLogin, newBalance);
-    
-    logger.info('Admin granted AIC', {
-      actor,
-      target: targetLogin,
-      grantAmount,
-      newBalance,
-      reason,
-    });
-    
-    sendMonitorAlert?.(`Admin ${actor} granted ${grantAmount} AIC to ${targetLogin}${reason ? ` (${reason})` : ''}`);
-    
-    return res.json({
-      success: true,
-      login: targetLogin,
-      granted: grantAmount,
-      balance: newBalance,
-    });
-  } catch (err) {
-    logger.error('Admin grant AIC failed', { error: err.message, stack: err.stack });
-    return res.status(500).json({ error: 'internal_error' });
-  }
+// Register admin AI control routes
+registerAdminAiControlRoutes(app, { auth, db, logger, unifiedAI });
+
+// Use admin services routes
+app.use('/admin', adminServicesRoutes);
+
+// Initialize connection hardener
+connectionHardener.initialize(app, server, io);
+
+// Start server
+const PORT = process.env.PORT || 8080;
+const HOST = process.env.HOST || '0.0.0.0';
+
+server.listen(PORT, HOST, () => {
+  logger.info(`Server running on ${HOST}:${PORT}`);
+  logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  
+  // Initialize connection hardener after server starts
+  connectionHardener.startMonitoring();
 });
 
 // Initialize AI monitoring systems (gradually re-enabling on fresh machine)
