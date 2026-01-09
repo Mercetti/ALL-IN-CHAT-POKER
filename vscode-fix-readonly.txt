@@ -1,0 +1,54 @@
+Fix VS Code Read-Only Settings
+=============================
+
+SOLUTION 1: Use Settings UI (Recommended)
+----------------------------------------
+1. Open VS Code
+2. Go to File → Preferences → Settings (or Ctrl+,)
+3. Search for each setting individually:
+   • Search: "liveServer.settings.port" → Set to 5173
+   • Search: "liveServer.settings.root" → Set to "/apps/ai-control-center"
+   • Search: "liveServer.settings.wait" → Set to 1000
+   • Search: "liveServer.settings.customBrowser" → Set to "chrome"
+   • Search: "files.exclude" → Add node_modules, dist, .vite
+   • Search: "editor.formatOnSave" → Check the box
+   • Search: "terminal.integrated.defaultProfile.windows" → Set to "PowerShell"
+
+SOLUTION 2: Run VS Code as Administrator
+---------------------------------------
+1. Close VS Code
+2. Right-click VS Code icon
+3. Select "Run as administrator"
+4. Try opening settings.json again
+
+SOLUTION 3: Edit Settings File Directly
+------------------------------------
+1. Close VS Code
+2. Open File Explorer
+3. Navigate to: C:\Users\YOUR-USER\AppData\Roaming\Code\User\
+4. Right-click settings.json → Properties
+5. Uncheck "Read-only" → OK
+6. Open with Notepad or VS Code
+7. Add the settings
+8. Save the file
+
+SOLUTION 4: Workspace Settings (Project Only)
+-------------------------------------------
+1. In VS Code, open the poker-game folder
+2. Press Ctrl+Shift+P
+3. Type: "Open Workspace Settings (JSON)"
+4. This creates: .vscode\settings.json (usually not read-only)
+5. Add the settings there
+
+SOLUTION 5: Command Palette Method
+--------------------------------
+1. Press Ctrl+Shift+P
+2. Type: "Preferences: Open Default Settings (JSON)"
+3. This opens a read-only file - DON'T edit this
+4. Instead, use: "Preferences: Open User Settings (JSON)"
+
+TROUBLESHOOTING
+---------------
+• If settings.json doesn't exist, create it
+• Make sure VS Code is closed when editing manually
+• Try Solution 4 (workspace settings) - usually works best
