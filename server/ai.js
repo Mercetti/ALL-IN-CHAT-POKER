@@ -1,5 +1,34 @@
 const Logger = require('./logger');
 const logger = new Logger('AI');
+
+// AI response validation
+const parseAIResponse = (response) => {
+  try {
+    return JSON.parse(response);
+  } catch (error) {
+    logger.warn('AI response not valid JSON', { 
+      response: response?.substring(0, 200), 
+      error: error.message 
+    });
+    
+    // Try to extract JSON from response
+    const jsonMatch = response?.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        return JSON.parse(jsonMatch[0]);
+      } catch (e) {
+        logger.warn('Failed to extract JSON from response');
+      }
+    }
+    
+    // Return structured fallback
+    return {
+      type: 'fallback_response',
+      message: response,
+      timestamp: new Date().toISOString()
+    };
+  }
+};
 const config = require('./config');
 const TunnelOptimizer = require('./tunnel-optimizer');
 const FreeAIManager = require('./free-ai-manager');

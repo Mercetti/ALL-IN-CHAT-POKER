@@ -792,4 +792,176 @@ router.get('/audio/files', auth.requireAdmin, async (req, res) => {
   }
 });
 
+/**
+ * Upload image for cosmetic
+ */
+router.post('/cosmetics/upload-image', auth.requireAdmin, async (req, res) => {
+  try {
+    const cosmeticGenerator = require('../enhanced-cosmetic-generator');
+    const result = await cosmeticGenerator.uploadImage(req.file, req.body.type || 'item');
+    
+    res.json({
+      success: result.success,
+      data: result
+    });
+  } catch (error) {
+    logger.error('Failed to upload cosmetic image', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Create complete cosmetic set
+ */
+router.post('/cosmetics/create-set', auth.requireAdmin, async (req, res) => {
+  try {
+    const cosmeticGenerator = require('../enhanced-cosmetic-generator');
+    const result = await cosmeticGenerator.createCosmeticSet(req.body);
+    
+    res.json({
+      success: result.success,
+      data: result
+    });
+  } catch (error) {
+    logger.error('Failed to create cosmetic set', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Get all cosmetic sets
+ */
+router.get('/cosmetics/sets', auth.requireAdmin, async (req, res) => {
+  try {
+    const cosmeticGenerator = require('../enhanced-cosmetic-generator');
+    const result = cosmeticGenerator.getAllCosmeticSets();
+    
+    res.json({
+      success: result.success,
+      data: result
+    });
+  } catch (error) {
+    logger.error('Failed to get cosmetic sets', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Get cosmetic set by ID
+ */
+router.get('/cosmetics/set/:setId', auth.requireAdmin, async (req, res) => {
+  try {
+    const { setId } = req.params;
+    const cosmeticGenerator = require('../enhanced-cosmetic-generator');
+    const result = cosmeticGenerator.getCosmeticSet(setId);
+    
+    res.json({
+      success: result.success,
+      data: result
+    });
+  } catch (error) {
+    logger.error('Failed to get cosmetic set', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Update cosmetic set
+ */
+router.put('/cosmetics/set/:setId', auth.requireAdmin, async (req, res) => {
+  try {
+    const { setId } = req.params;
+    const cosmeticGenerator = require('../enhanced-cosmetic-generator');
+    const result = await cosmeticGenerator.updateCosmeticSet(setId, req.body);
+    
+    res.json({
+      success: result.success,
+      data: result
+    });
+  } catch (error) {
+    logger.error('Failed to update cosmetic set', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Delete cosmetic set
+ */
+router.delete('/cosmetics/set/:setId', auth.requireAdmin, async (req, res) => {
+  try {
+    const { setId } = req.params;
+    const cosmeticGenerator = require('../enhanced-cosmetic-generator');
+    const result = await cosmeticGenerator.deleteCosmeticSet(setId);
+    
+    res.json({
+      success: result.success,
+      data: result
+    });
+  } catch (error) {
+    logger.error('Failed to delete cosmetic set', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Generate cosmetic set from template
+ */
+router.post('/cosmetics/generate-from-template', auth.requireAdmin, async (req, res) => {
+  try {
+    const { template } = req.body;
+    const cosmeticGenerator = require('../enhanced-cosmetic-generator');
+    const result = await cosmeticGenerator.generateFromTemplate(template);
+    
+    res.json({
+      success: result.success,
+      data: result
+    });
+  } catch (error) {
+    logger.error('Failed to generate from template', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Get available templates
+ */
+router.get('/cosmetics/templates', auth.requireAdmin, async (req, res) => {
+  try {
+    const cosmeticGenerator = require('../enhanced-cosmetic-generator');
+    const result = cosmeticGenerator.getAvailableTemplates();
+    
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    logger.error('Failed to get templates', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
 module.exports = router;
