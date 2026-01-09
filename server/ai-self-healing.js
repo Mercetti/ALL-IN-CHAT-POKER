@@ -20,17 +20,13 @@ class AISelfHealingMiddleware {
     this.aiErrorManager = aiErrorManager;
     this.aiPerformanceOptimizer = aiPerformanceOptimizer;
     this.aiUXMonitor = aiUXMonitor;
-    this.logger = logger || console;
+    this.logger = logger;
+    this.enableAutoHealing = enableAutoHealing;
+    this.healingInterval = healingInterval;
+    this.maxHealingAttempts = maxHealingAttempts;
 
-    this.options = {
-      enableAutoHealing,
-      healingInterval,
-      maxHealingAttempts,
-    };
-    
     this.healingHistory = new Map();
     this.activeHealings = new Set();
-    
     this.init();
   }
 
@@ -42,8 +38,8 @@ class AISelfHealingMiddleware {
     this.setupErrorHandlers();
     
     this.logger.info('AI Self-Healing Middleware initialized', {
-      autoHealing: this.options.enableAutoHealing,
-      interval: this.options.healingInterval
+      autoHealing: this.enableAutoHealing,
+      interval: this.healingInterval
     });
   }
 
@@ -52,7 +48,7 @@ class AISelfHealingMiddleware {
    */
   middleware() {
     return async (error, req, res, next) => {
-      if (!this.options.enableAutoHealing) {
+      if (!this.enableAutoHealing) {
         return next(error);
       }
 
@@ -117,15 +113,17 @@ class AISelfHealingMiddleware {
   trackUXImpact(error, req) {
     const userId = req.user?.id || 'anonymous';
     
-    aiUXMonitor.trackUserError(userId, {
-      type: error.name || 'unknown',
-      message: error.message,
-      context: {
-        url: req.url,
-        method: req.method,
-        userAgent: req.get('User-Agent')
-      }
-    });
+    if (this.aiUXMonitor && this.aiUXMonitor.trackUserError) {
+      this.aiUXMonitor.trackUserError(userId, {
+        type: error.name || 'unknown',
+        message: error.message,
+        context: {
+          url: req.url,
+          method: req.method,
+          userAgent: req.get('User-Agent')
+        }
+      });
+    }
   }
 
   /**
@@ -134,18 +132,18 @@ class AISelfHealingMiddleware {
   setupErrorHandlers() {
     // Handle uncaught exceptions
     process.on('uncaughtException', async (error) => {
-      logger.error('Uncaught exception', { error: error.message, stack: error.stack });
+      this.logger.error('Uncaught exception', { error: error.message, stack: error.stack });
       
-      if (this.options.enableAutoHealing) {
+      if (this.enableAutoHealing) {
         await this.handleCriticalError(error);
       }
     });
 
     // Handle unhandled promise rejections
     process.on('unhandledRejection', async (reason, promise) => {
-      logger.error('Unhandled promise rejection', { reason, promise });
+      this.logger.error('Unhandled promise rejection', { reason, promise });
       
-      if (this.options.enableAutoHealing) {
+      if (this.enableAutoHealing) {
         await this.handleCriticalError(new Error(`Unhandled rejection: ${reason}`));
       }
     });
@@ -171,7 +169,7 @@ class AISelfHealingMiddleware {
       });
 
       // Attempt fix
-      const fixResult = await aiErrorManager.attemptAutoFix(errorInfo);
+      const fixResult = await this.aiErrorManager.attemptAutoFix(errorInfo);
 
       if (fixResult.success) {
         this.logger.info('Critical error auto-fixed', { 
@@ -201,10 +199,10 @@ class AISelfHealingMiddleware {
    */
   startPeriodicHealing() {
     setInterval(async () => {
-      if (this.options.enableAutoHealing) {
+      if (this.enableAutoHealing) {
         await this.performPeriodicHealing();
       }
-    }, this.options.healingInterval);
+    }, this.healingInterval);
   }
 
   /**
