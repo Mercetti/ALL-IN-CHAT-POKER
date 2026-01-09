@@ -11552,6 +11552,7 @@ registerAdminAiControlRoutes(app, {
   performanceMonitor,
   collectAiOverviewPanels,
   unifiedAI,
+  logger
 });
 
 // Mount AI service management routes
