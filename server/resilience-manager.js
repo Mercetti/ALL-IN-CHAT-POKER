@@ -3,7 +3,8 @@
  * Provides multiple layers of protection and auto-recovery
  */
 
-const logger = require('./utils/logger');
+const Logger = require('./logger');
+const logger = new Logger('RESILIENCE');
 
 class ResilienceManager {
   constructor() {

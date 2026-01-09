@@ -1,4 +1,5 @@
-const logger = require('./utils/logger');
+const Logger = require('./logger');
+const logger = new Logger('AI');
 const config = require('./config');
 const tunnelOptimizer = require('./tunnel-optimizer');
 const freeAI = require('./free-ai-manager');
