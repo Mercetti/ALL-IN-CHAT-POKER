@@ -6111,16 +6111,13 @@ app.post('/admin/premier/revert', auth.requireAdmin, (req, res) => {
 
   }
 
-});
+};
 
 
 
 /**
-
  * Admin: ops summary + controls
-
  */
-
 app.get('/admin/ops-summary', auth.requireAdminOrRole(['admin', 'dev', 'owner']), (_req, res) => {
 
   const botChannels = (tmiClient && typeof tmiClient.getChannels === 'function') ? tmiClient.getChannels() : [];
@@ -6163,22 +6160,75 @@ app.get('/admin/ops-summary', auth.requireAdminOrRole(['admin', 'dev', 'owner'])
 
     },
 
-app.post('/admin/ops/run-synthetic', auth.requireAdminOrRole(['admin', 'dev', 'owner']), async (_req, res) => {
-
-  try {
-    const result = await runSyntheticCheck('manual');
-
-    res.json({ result });
-
-  } catch (err) {
-
-    res.status(500).json({ error: 'internal_error' });
-
-  }
+  });
 
 });
 
+// Synthetic health check function
+async function runSyntheticCheck(type = 'manual') {
+  try {
+    logger.info('Running synthetic health check', { type });
+    
+    // Test basic server functionality
+    const startTime = Date.now();
+    
+    // Test database connection
+    const dbTest = await new Promise((resolve) => {
+      const db = require('./server/db');
+      db.get('SELECT 1 as test', (err, row) => {
+        resolve(err ? false : true);
+      });
+    });
+    
+    // Test AI system
+    let aiTest = false;
+    try {
+      const { chat } = require('./server/ai');
+      await chat([{ role: 'user', content: 'test' }], { maxTokens: 5 });
+      aiTest = true;
+    } catch (error) {
+      logger.warn('AI synthetic check failed', { error: error.message });
+    }
+    
+    const endTime = Date.now();
+    const responseTime = endTime - startTime;
+    
+    const result = {
+      type,
+      timestamp: new Date().toISOString(),
+      responseTime,
+      status: 'success',
+      checks: {
+        database: dbTest,
+        ai: aiTest,
+        server: true
+      },
+      overall: dbTest && aiTest
+    };
+    
+    logger.info('Synthetic health check completed', result);
+    return result;
+    
+  } catch (error) {
+    logger.error('Synthetic health check failed', { error: error.message });
+    return {
+      type,
+      timestamp: new Date().toISOString(),
+      status: 'error',
+      error: error.message,
+      overall: false
+    };
+  }
+}
 
+app.post('/admin/ops/run-synthetic', auth.requireAdminOrRole(['admin', 'dev', 'owner']), async (_req, res) => {
+  try {
+    const result = await runSyntheticCheck('manual');
+    res.json({ result });
+  } catch (err) {
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
 
 app.post('/admin/ops/asset-check', auth.requireAdminOrRole(['admin', 'dev', 'owner']), async (req, res) => {
 
