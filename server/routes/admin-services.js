@@ -406,4 +406,65 @@ router.post('/test-connection', auth.requireAdmin, async (req, res) => {
   }
 });
 
+// AI Performance monitoring endpoint
+router.get('/ai/performance', (req, res) => {
+  try {
+    const ai = require('../ai');
+    const performanceReport = ai.getAIPerformanceReport();
+    const cacheStats = ai.getAICacheStats();
+    const tunnelStatus = ai.getTunnelStatus();
+    
+    res.json({
+      success: true,
+      data: {
+        performance: performanceReport,
+        cache: cacheStats,
+        tunnel: tunnelStatus,
+        timestamp: Date.now()
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Clear AI cache endpoint
+router.post('/ai/cache/clear', (req, res) => {
+  try {
+    const ai = require('../ai');
+    ai.clearAICache();
+    
+    res.json({
+      success: true,
+      message: 'AI cache cleared successfully'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Reset AI performance metrics endpoint
+router.post('/ai/performance/reset', (req, res) => {
+  try {
+    const ai = require('../ai');
+    ai.resetAIPerformanceMetrics();
+    
+    res.json({
+      success: true,
+      message: 'AI performance metrics reset successfully'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;
