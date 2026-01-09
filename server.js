@@ -8,6 +8,11 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 
+// Import simple auth routes
+const { createSimpleAuthRouter } = require('./server/routes/auth-simple');
+const { createSimpleAdminServicesRouter } = require('./server/routes/admin-services-simple');
+const { createSimpleAdminAiControlRouter } = require('./server/routes/admin-ai-control-simple');
+
 // Create Express app
 const app = express();
 const server = http.createServer(app);
@@ -27,6 +32,18 @@ app.use(express.urlencoded({ extended: true }));
 
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Auth routes
+const authRoutes = createSimpleAuthRouter();
+app.use('/auth', authRoutes);
+
+// Admin services routes
+const adminServicesRoutes = createSimpleAdminServicesRouter();
+app.use('/admin/services', adminServicesRoutes);
+
+// Admin AI control routes
+const adminAiControlRoutes = createSimpleAdminAiControlRouter();
+app.use('/admin/ai', adminAiControlRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
