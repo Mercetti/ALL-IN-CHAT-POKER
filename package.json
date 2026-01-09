@@ -30,9 +30,11 @@
     "control:center": "npm run dev --prefix ./apps/ai-control-center",
     "control:electron": "npm run start --prefix ./apps/ai-control-center",
     "dev:start": "start-dev.bat",
+    "dev:smart": "smart-start-dev.bat",
+    "dev:kill": "kill-port-5173.bat",
     "dev:watch": "node auto-watch.js",
     "dev:monitor": "node auto-deploy-monitor.js",
-    "dev:all": "start-dev.bat"
+    "dev:all": "smart-start-dev.bat"
   },
   "keywords": [
     "poker",
