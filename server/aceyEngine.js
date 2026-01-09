@@ -1,6 +1,7 @@
 const EventEmitter = require('events');
 const Logger = require('./logger');
 const { aceyPhrases } = require('./aceyPhrases');
+const { getUnifiedAI } = require('./ai');
 
 const BLOCKLIST = ['idiot', 'stupid', 'hate', 'kill'];
 
@@ -34,6 +35,8 @@ class AceyEngine extends EventEmitter {
     this.summaryInterval = options.summaryInterval || SUMMARY_INTERVAL_MS;
     this.sessions = new Map();
     this.summaryTimer = setInterval(() => this.tickSummaries(), 60 * 1000).unref?.();
+    this.ai = getUnifiedAI();
+    this.useAI = options.useAI !== false; // Enable AI by default
   }
 
   stop() {
@@ -170,12 +173,127 @@ class AceyEngine extends EventEmitter {
     return 'playful';
   }
 
+  async generateAIResponse(session, tone, context) {
+    if (!this.useAI || !this.ai) {
+      // Fallback to static phrases
+      return this.formatDealerLine(context.type, context.player, context.card);
+    }
+
+    const personalityPrompts = {
+      flirty: "You are Acey, a flirty and confident AI poker dealer. You make playful, teasing comments that are charming but not inappropriate. Use winky faces 😉 and playful language.",
+      savage: "You are Acey, a sharp-tongued AI poker dealer who delivers savage trash talk. Be witty and cutting but not truly mean. Use 😏 and 😅 expressions.",
+      playful: "You are Acey, a fun and energetic AI poker dealer. Make enthusiastic, playful commentary about the game. Use 😎 and 😏 expressions."
+    };
+
+    const systemPrompt = personalityPrompts[tone] || personalityPrompts.playful;
+    
+    let userPrompt = `Generate a short, one-sentence response for this poker game situation:\n`;
+    userPrompt += `Player: ${context.player || 'Unknown'}\n`;
+    userPrompt += `Action: ${context.type}\n`;
+    
+    if (context.card) userPrompt += `Card: ${context.card}\n`;
+    if (context.streak) userPrompt += `Streak: ${context.streak} wins\n`;
+    
+    // Add some memory context
+    const recentEvents = session.memory.slice(-3);
+    if (recentEvents.length > 0) {
+      userPrompt += `Recent events: ${recentEvents.map(e => `${e.player} ${e.type}`).join(', ')}\n`;
+    }
+    
+    userPrompt += `\nKeep it short, punchy, and in character!`;
+
+    try {
+      const response = await this.ai.generateResponse(userPrompt, {
+        systemPrompt,
+        maxTokens: 50,
+        temperature: 0.8
+      });
+      
+      // Clean up and validate response
+      let cleanResponse = response.trim();
+      
+      // Remove any quotes around the response
+      if (cleanResponse.startsWith('"') && cleanResponse.endsWith('"')) {
+        cleanResponse = cleanResponse.slice(1, -1);
+      }
+      
+      // Ensure it's not too long
+      if (cleanResponse.length > 100) {
+        cleanResponse = cleanResponse.split('.')[0] + '.';
+      }
+      
+      return cleanResponse || this.formatDealerLine(context.type, context.player, context.card);
+    } catch (error) {
+      this.logger.warn('AI response generation failed, falling back to static phrase', { error: error.message });
+      return this.formatDealerLine(context.type, context.player, context.card);
+    }
+  }
+
   formatDealerLine(type, player = '', card = '') {
     const pool = aceyPhrases.dealer?.[type];
     if (!pool || !pool.length) return null;
     return randomChoice(pool)
       .replace(/{player}/g, player || 'Player')
       .replace(/{card}/g, card || 'a wild card');
+  }
+
+  async handleGameEvent(session, event) {
+    this.addMemory(session, event);
+
+    if (event.type === 'win') {
+      const streak = this.getConsecutiveWins(session, event.player);
+      const tone = streak >= PEAK_STREAK_THRESHOLD ? 'flirty' : 'playful';
+      
+      let response;
+      if (this.useAI && this.ai) {
+        response = await this.generateAIResponse(session, tone, {
+          type: 'win',
+          player: event.player,
+          streak
+        });
+      } else {
+        response = this.formatDealerLine('win', event.player);
+      }
+      
+      if (response) this.emitOverlay(session, response, tone, 'message');
+    }
+
+    if (event.type === 'lose') {
+      let response;
+      if (this.useAI && this.ai) {
+        response = await this.generateAIResponse(session, 'savage', {
+          type: 'lose',
+          player: event.player
+        });
+      } else {
+        response = this.formatDealerLine('lose', event.player);
+      }
+      
+      if (response) this.emitOverlay(session, response, 'savage', 'message');
+    }
+
+    if (event.type === 'specialCard') {
+      let response;
+      if (this.useAI && this.ai) {
+        response = await this.generateAIResponse(session, 'playful', {
+          type: 'specialCard',
+          player: event.player,
+          card: event.card
+        });
+      } else {
+        response = this.formatDealerLine('specialCard', event.player, event.card);
+      }
+      
+      if (response) this.emitOverlay(session, response, 'playful', 'peak');
+      
+      const learned = {
+        text: `Whoa, ${event.player} just pulled ${event.card}!`,
+        tone: 'playful',
+        source: 'game',
+        timestamp: Date.now(),
+      };
+      this.addDynamicPhrase(session, learned);
+    }
   }
 
   getConsecutiveWins(session, player) {
@@ -187,6 +305,26 @@ class AceyEngine extends EventEmitter {
       else if (entry.type === 'win') break;
     }
     return count;
+  }
+
+  async processEvent(sessionId = 'default', event) {
+    const session = this.getSession(sessionId);
+    
+    if (event.type === 'win' || event.type === 'lose' || event.type === 'specialCard') {
+      await this.handleGameEvent(session, event);
+    }
+    
+    if (event.type === 'chat') {
+      const tone = this.detectTone(event.text);
+      const learned = {
+        text: event.text,
+        tone,
+        source: 'chat',
+        user: event.user,
+        timestamp: Date.now(),
+      };
+      this.addDynamicPhrase(session, learned);
+    }
   }
 
   tickSummaries() {
