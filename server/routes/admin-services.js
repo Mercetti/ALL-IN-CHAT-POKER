@@ -208,7 +208,64 @@ router.post('/config/update', auth.requireAdmin, async (req, res) => {
     });
     
     const updates = [];
+    const isLocal = process.env.NODE_ENV !== 'production' || !process.env.FLY_APP_NAME;
     
+    // For local development, update the config directly
+    if (isLocal) {
+      if (provider && provider !== config.AI_PROVIDER) {
+        config.AI_PROVIDER = provider;
+        updates.push({
+          variable: 'AI_PROVIDER',
+          oldValue: config.AI_PROVIDER,
+          newValue: provider,
+          updated: true
+        });
+      }
+      
+      if (ollamaHost && ollamaHost !== config.OLLAMA_HOST) {
+        config.OLLAMA_HOST = ollamaHost;
+        updates.push({
+          variable: 'OLLAMA_HOST',
+          oldValue: config.OLLAMA_HOST,
+          newValue: ollamaHost,
+          updated: true
+        });
+      }
+      
+      if (ollamaModel && ollamaModel !== config.OLLAMA_MODEL) {
+        config.OLLAMA_MODEL = ollamaModel;
+        updates.push({
+          variable: 'OLLAMA_MODEL',
+          oldValue: config.OLLAMA_MODEL,
+          newValue: ollamaModel,
+          updated: true
+        });
+      }
+      
+      if (updates.length === 0) {
+        return res.json({
+          success: true,
+          message: 'No configuration changes needed',
+          data: { updates: [], requiresRestart: false }
+        });
+      }
+      
+      return res.json({
+        success: true,
+        message: `Updated ${updates.length} configuration values`,
+        data: { 
+          updates,
+          requiresRestart: false,
+          currentConfig: {
+            aiProvider: config.AI_PROVIDER,
+            ollamaHost: config.OLLAMA_HOST,
+            ollamaModel: config.OLLAMA_MODEL
+          }
+        }
+      });
+    }
+    
+    // For Fly.io, return commands to update secrets
     if (provider && provider !== config.AI_PROVIDER) {
       updates.push({
         variable: 'AI_PROVIDER',
@@ -236,28 +293,17 @@ router.post('/config/update', auth.requireAdmin, async (req, res) => {
       });
     }
     
-    if (updates.length === 0) {
-      return res.json({
-        success: true,
-        message: 'No configuration changes needed',
-        data: { updates: [] }
-      });
-    }
-    
     // Note: Actual environment variable updates would require
     // restarting the server or using a configuration management system
     // For now, return the commands needed for manual updates
-    
     res.json({
       success: true,
-      message: 'Configuration update commands generated',
-      data: {
-        updates: updates,
-        requiresRestart: true,
-        instructions: 'Run the provided commands with fly CLI, then restart the server'
+      message: 'Configuration update requires Fly.io secrets update',
+      data: { 
+        updates,
+        requiresRestart: true
       }
     });
-    
   } catch (error) {
     logger.error('Failed to update config', { error: error.message });
     res.status(500).json({

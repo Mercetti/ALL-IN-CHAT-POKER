@@ -119,6 +119,12 @@ export default function ServiceManagementPanel() {
         if (response.data.requiresRestart) {
           alert('Configuration updated! Run these commands and restart:\n\n' + 
                 response.data.updates.map((u: any) => u.command).join('\n'));
+        } else {
+          // Local update - refresh the config
+          if (response.data.currentConfig) {
+            setConfig(response.data.currentConfig);
+          }
+          alert(`Configuration updated successfully!`);
         }
       }
     } catch (error) {
