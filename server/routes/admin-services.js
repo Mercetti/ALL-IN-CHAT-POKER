@@ -172,7 +172,24 @@ router.post('/tunnel/stop', auth.requireAdmin, async (req, res) => {
  */
 router.get('/ollama/models', auth.requireAdmin, async (req, res) => {
   try {
-    const models = await serviceManager.getOllamaModels();
+    // Try to get models from service manager first
+    let models = await serviceManager.getOllamaModels();
+    
+    // If service manager is disabled (running on Fly.io), try direct fetch
+    if (models.length === 0 && config.OLLAMA_HOST) {
+      try {
+        const response = await fetch(`${config.OLLAMA_HOST}/api/tags`, {
+          timeout: 5000
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          models = data.models || [];
+        }
+      } catch (error) {
+        logger.warn('Failed to fetch models directly', { error: error.message });
+      }
+    }
     
     logger.info('Admin requested Ollama models', { count: models.length, ip: req.ip });
     
