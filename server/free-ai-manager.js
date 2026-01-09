@@ -3,15 +3,11 @@
  * Supports multiple free AI options: Ollama, Local Models, and Rule-Based AI
  */
 
-const fetch = global.fetch;
+const Logger = require('./logger');
 const config = require('./config');
+const ollamaHybridConfig = require('./ollama-hybrid-config');
 
-// Simple logger fallback for when logger module isn't available
-const logger = {
-  info: (message, meta) => console.log(`[FreeAI] ${message}`, meta || ''),
-  warn: (message, meta) => console.warn(`[FreeAI] ${message}`, meta || ''),
-  error: (message, meta) => console.error(`[FreeAI] ${message}`, meta || '')
-};
+const logger = new Logger('free-ai-manager');
 
 class FreeAIManager {
   constructor(options = {}) {
@@ -181,22 +177,23 @@ class OllamaProvider {
 
   async chat(messages = [], options = {}) {
     const model = options.model || this.defaultModel;
-    const maxTokens = options.maxTokens || 1000;
-    const temperature = options.temperature || 0.7;
+    const context = options.context || 'general';
+    
+    // Apply Hybrid GPU + CPU optimization
+    const optimizedOptions = ollamaHybridConfig.optimizeRequest({
+      model,
+      messages,
+      ...options
+    }, context);
 
     const response = await fetch(`${this.host}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model,
+        model: optimizedOptions.model,
         stream: false,
-        messages,
-        options: { 
-          temperature, 
-          num_predict: maxTokens,
-          top_p: 0.9,
-          repeat_penalty: 1.1
-        }
+        messages: optimizedOptions.messages,
+        options: optimizedOptions.options
       })
     });
 
