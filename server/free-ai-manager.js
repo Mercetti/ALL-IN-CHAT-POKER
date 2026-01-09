@@ -156,7 +156,7 @@ class OllamaProvider {
   constructor() {
     this.name = 'ollama';
     this.host = config.OLLAMA_HOST || 'http://127.0.0.1:11434';
-    this.defaultModel = config.OLLAMA_MODEL || 'llama3.2';
+    this.defaultModel = config.OLLAMA_MODEL || 'deepseek-coder:1.3b';
   }
 
   isAvailable() {
