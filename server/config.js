@@ -153,7 +153,7 @@ module.exports = {
   AI_MODEL: process.env.AI_MODEL || 'gpt-4o-mini',
   AI_TIMEOUT_MS: parseInt(process.env.AI_TIMEOUT_MS || '15000', 10),
   AI_MAX_TOKENS: parseInt(process.env.AI_MAX_TOKENS || '1200', 10),
-  OLLAMA_HOST: process.env.OLLAMA_HOST || 'https://hobbies-preparing-advice-obligation.trycloudflare.com',
+  OLLAMA_HOST: process.env.OLLAMA_HOST || 'http://127.0.0.1:11434',
   OLLAMA_MODEL: process.env.OLLAMA_MODEL || 'deepseek-coder:1.3b',  // Use deepseek-coder for coding tasks
   AUTO_AI_CHECK_MS: parseInt(process.env.AUTO_AI_CHECK_MS || '30000', 10),  // AI check interval
 

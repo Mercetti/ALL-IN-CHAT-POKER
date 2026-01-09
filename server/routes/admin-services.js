@@ -467,4 +467,62 @@ router.post('/ai/performance/reset', (req, res) => {
   }
 });
 
+/**
+ * Get resilience status
+ */
+router.get('/resilience-status', auth.requireAdmin, async (req, res) => {
+  try {
+    const resilienceManager = require('../resilience-manager');
+    const status = resilienceManager.getResilienceStatus();
+    const health = await resilienceManager.getAllHealthChecks();
+    
+    res.json({
+      success: true,
+      data: {
+        resilience: status,
+        health: health,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get resilience status', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get resilience status'
+    });
+  }
+});
+
+/**
+ * Reset circuit breakers
+ */
+router.post('/resilience/reset', auth.requireAdmin, async (req, res) => {
+  try {
+    const resilienceManager = require('../resilience-manager');
+    
+    // Reset all circuit breakers
+    for (const [serviceName, breaker] of resilienceManager.circuitBreakers) {
+      breaker.state = 'CLOSED';
+      breaker.failures = 0;
+      breaker.lastFailure = 0;
+    }
+    
+    // Reset retry attempts
+    resilienceManager.retryAttempts.clear();
+    
+    logger.info('Circuit breakers reset by admin', { ip: req.ip });
+    
+    res.json({
+      success: true,
+      message: 'All circuit breakers reset successfully'
+    });
+  } catch (error) {
+    logger.error('Failed to reset circuit breakers', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to reset circuit breakers'
+    });
+  }
+});
+
 module.exports = router;

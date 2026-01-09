@@ -1,6 +1,7 @@
 /**
  * Production configuration validation and management
  * Ensures all required production settings are properly configured
+ * Enhanced with hardening and resilience features
  */
 
 const crypto = require('crypto');
