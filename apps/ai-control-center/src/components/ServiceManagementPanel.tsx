@@ -55,11 +55,17 @@ export default function ServiceManagementPanel() {
   const fetchModels = async () => {
     try {
       const response = await apiFetch<{ success: boolean; data: { models: OllamaModel[] } }>('/admin/ai/services/ollama/models');
-      if (response.success) {
+      if (response.success && response.data.models) {
         setModels(response.data.models);
       }
     } catch (error) {
       console.error('Failed to fetch models:', error);
+      // Set some default models if fetch fails
+      setModels([
+        { name: 'llama3.2:latest', model: 'llama3.2:latest', size: 0, digest: '' },
+        { name: 'llama3.2:1b', model: 'llama3.2:1b', size: 0, digest: '' },
+        { name: 'codellama:latest', model: 'codellama:latest', size: 0, digest: '' }
+      ]);
     }
   };
 
