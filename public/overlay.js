@@ -54,6 +54,7 @@ import {
   setWinAssets,
   registerActionButtons,
 } from './js/overlay/overlay-render.js';
+import { queueValidator } from './js/overlay/queue-validation.js';
 
 /**
  * Overlay client with Socket.IO integration
@@ -87,6 +88,28 @@ function formatTimeRemaining(endsAt) {
 }
 
 const SOCKET_URL = getSocketUrl();
+const socket = io(SOCKET_URL, {
+  transports: ['websocket', 'polling'],
+  timeout: 10000,
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000,
+});
+
+// Global overlay state
+let hasHydrated = false;
+let connectionPill = null;
+let modePill = null;
+
+// Initialize UI elements
+document.addEventListener('DOMContentLoaded', () => {
+  connectionPill = document.getElementById('connection-pill');
+  modePill = document.getElementById('mode-pill');
+  
+  // Set initial connection state
+  setConnection('disconnected');
+});
+
 const initialQueryChannel = typeof getChannelParam === 'function' ? getChannelParam() : '';
 const hasChannelQuery = !!initialQueryChannel;
 let overlayChannel = initialQueryChannel;
@@ -102,14 +125,11 @@ const seatOrder = seatNodes.map((_, idx) => idx);
 const seatAssignments = new Map();
 const overflowRow = document.getElementById('overflow-row');
 const overflowNames = document.getElementById('overflow-names');
-const connectionPill = document.getElementById('connection-pill');
 const channelPill = document.getElementById('channel-pill');
-const modePill = document.getElementById('mode-pill');
 const seatedPill = document.getElementById('seated-pill');
 const loadingScreen = document.getElementById('overlay-loading');
 const errorScreen = document.getElementById('overlay-error');
 const retryButton = document.getElementById('overlay-retry');
-let hasHydrated = false;
 let queueNamesCache = [];
 
 function refreshMultiStreamFlag() {
@@ -753,15 +773,64 @@ if (readyBtn) {
     }
   });
 }
-// Socket.IO event handlers
+function completeHydration() {
+  console.log('Overlay hydration complete');
+  hasHydrated = true;
+  
+  // Hide loading screens and show the overlay
+  hideOverlayScreens();
+  
+  // Set connection state to connected
+  setConnection('connected');
+  
+  // Apply any pending state that was received during hydration
+  if (overlayState.pendingState) {
+    updateUI(overlayState.pendingState);
+    overlayState.pendingState = null;
+  }
+  
+  // Start any periodic updates or animations
+  startOverlayAnimations();
+  
+  // Emit hydration complete event for other components
+  window.dispatchEvent(new CustomEvent('overlay-hydration-complete'));
+}
+
+function startOverlayAnimations() {
+  // Start any periodic animations or effects
+  if (overlayState.overlayMode === 'poker') {
+    // Start poker-specific animations
+    startPokerAnimations();
+  }
+}
+
+function startPokerAnimations() {
+  // Initialize card flip animations, pot glow effects, etc.
+  console.log('Starting poker overlay animations');
+}
+
+// Socket.IO event handlers with proper connection routing
 socket.on('connect', () => {
   console.log('Connected to server');
   Toast.info('Connected');
+  setConnection('connected');
 });
 
 socket.on('disconnect', () => {
   console.log('Disconnected from server');
   Toast.warning('Disconnected');
+  setConnection('disconnected');
+});
+
+socket.on('reconnect', () => {
+  console.log('Reconnected to server');
+  Toast.info('Reconnected');
+  setConnection('connected');
+});
+
+socket.on('reconnecting', () => {
+  console.log('Reconnecting to server...');
+  setConnection('reconnecting');
 });
 
 socket.on('connect_error', (err) => {
@@ -784,7 +853,11 @@ socket.on('state', (data) => {
   displayResult(data);
   updatePhaseUI('Round Complete');
   startCountdown(null);
-  if (data.waiting) renderQueue(data.waiting);
+  if (data.waiting) {
+    const validatedQueue = queueValidator.updateQueue(data.waiting);
+    renderQueue(validatedQueue.seated, validatedQueue.overflow);
+    updateOverflowDisplay(validatedQueue.overflow);
+  }
   setPhaseLabel(data.phase);
   highlightPlayer(null);
   completeHydration();
@@ -828,7 +901,11 @@ socket.on('roundStarted', (data) => {
   renderPot(data);
   updatePhaseUI('Dealing Cards');
   startCountdown(data.actionEndsAt || null);
-  if (data.waiting) renderQueue(data.waiting);
+  if (data.waiting) {
+    const validatedQueue = queueValidator.updateQueue(data.waiting);
+    renderQueue(validatedQueue.seated, validatedQueue.overflow);
+    updateOverflowDisplay(validatedQueue.overflow);
+  }
   if (data.phase) setPhaseLabel(data.phase);
   if (data.mode) setModeBadge(data.mode);
   highlightPlayer(null);
@@ -882,7 +959,11 @@ socket.on('roundResult', (data) => {
   displayResult(data);
   updatePhaseUI('Round Complete');
   startCountdown(null);
-  if (data.waiting) renderQueue(data.waiting);
+  if (data.waiting) {
+    const validatedQueue = queueValidator.updateQueue(data.waiting);
+    renderQueue(validatedQueue.seated, validatedQueue.overflow);
+    updateOverflowDisplay(validatedQueue.overflow);
+  }
   setPhaseLabel('Showdown');
   if (data.mode) setModeBadge(data.mode);
   const insuranceBanner = document.getElementById('insurance-banner');
@@ -952,7 +1033,9 @@ socket.on('payouts', (data) => {
   }
 
   if (data.waiting) {
-    renderQueue(data.waiting);
+    const validatedQueue = queueValidator.updateQueue(data.waiting);
+    renderQueue(validatedQueue.seated, validatedQueue.overflow);
+    updateOverflowDisplay(validatedQueue.overflow);
   }
 });
 
@@ -1010,7 +1093,9 @@ window.addEventListener('message', (event) => {
 
 socket.on('queueUpdate', (data) => {
   if (!isEventForChannel(data)) return;
-  renderQueue(data.waiting || []);
+  const validatedQueue = queueValidator.updateQueue(data.waiting || []);
+  renderQueue(validatedQueue.seated, validatedQueue.overflow);
+  updateOverflowDisplay(validatedQueue.overflow);
 });
 
 socket.on('bettingStarted', (data) => {
