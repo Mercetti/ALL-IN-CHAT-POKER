@@ -154,7 +154,7 @@ module.exports = {
   AI_TIMEOUT_MS: parseInt(process.env.AI_TIMEOUT_MS || '15000', 10),
   AI_MAX_TOKENS: parseInt(process.env.AI_MAX_TOKENS || '1200', 10),
   OLLAMA_HOST: process.env.OLLAMA_HOST || 'https://hobbies-preparing-advice-obligation.trycloudflare.com',
-  OLLAMA_MODEL: process.env.OLLAMA_MODEL || 'llama3.2:latest',  // Use llama3.2 as default model
+  OLLAMA_MODEL: process.env.OLLAMA_MODEL || 'deepseek-coder:1.3b',  // Use deepseek-coder for coding tasks
   AUTO_AI_CHECK_MS: parseInt(process.env.AUTO_AI_CHECK_MS || '30000', 10),  // AI check interval
 
   // Monitoring / alerts

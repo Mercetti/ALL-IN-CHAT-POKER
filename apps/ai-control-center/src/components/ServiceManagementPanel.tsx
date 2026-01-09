@@ -62,9 +62,10 @@ export default function ServiceManagementPanel() {
       console.error('Failed to fetch models:', error);
       // Set some default models if fetch fails
       setModels([
-        { name: 'llama3.2:latest', model: 'llama3.2:latest', size: 0, digest: '' },
-        { name: 'llama3.2:1b', model: 'llama3.2:1b', size: 0, digest: '' },
-        { name: 'codellama:latest', model: 'codellama:latest', size: 0, digest: '' }
+        { name: 'deepseek-coder:1.3b', model: 'deepseek-coder:1.3b', size: 0, digest: '' },
+        { name: 'qwen:0.5b', model: 'qwen:0.5b', size: 0, digest: '' },
+        { name: 'tinyllama:latest', model: 'tinyllama:latest', size: 0, digest: '' },
+        { name: 'llama3.2:1b', model: 'llama3.2:1b', size: 0, digest: '' }
       ]);
     }
   };
