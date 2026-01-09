@@ -14194,4 +14194,26 @@ const VALID_TEXTURES = [
     }
   });
 
+// Initialize Acey services
+const { AceyWebSocket } = require('./server/acey-websocket');
+const aceyTTSRouter = require('./server/acey-tts');
+
+// Start Acey WebSocket server
+const aceyWebSocket = new AceyWebSocket({ port: 8081 });
+aceyWebSocket.start();
+
+// Mount Acey TTS routes
+app.use('/acey', aceyTTSRouter);
+
+// Graceful shutdown for Acey services
+process.on('SIGTERM', () => {
+  logger.info('Shutting down Acey services...');
+  aceyWebSocket.stop();
+});
+
+process.on('SIGINT', () => {
+  logger.info('Shutting down Acey services...');
+  aceyWebSocket.stop();
+});
+
 
