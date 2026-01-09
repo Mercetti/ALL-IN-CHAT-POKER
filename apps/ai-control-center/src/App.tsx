@@ -3,6 +3,7 @@ import PanelCard from './components/PanelCard';
 import RuntimePanel from './components/RuntimePanel';
 import ChatPanel from './components/ChatPanel';
 import ServiceManagementPanel from './components/ServiceManagementPanel';
+import AIPerformancePanel from './components/AIPerformancePanel';
 import useDashboardStore from './store/useDashboardStore';
 import { controlCenterLogin } from './services/api';
 import type { PanelKey } from './types/panels';
@@ -22,7 +23,7 @@ function App() {
   const [password, setPassword] = useState('');
   const [loginPending, setLoginPending] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'services'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'services' | 'performance'>('overview');
 
   useEffect(() => {
     fetchAll();
@@ -99,6 +100,12 @@ function App() {
           >
             Service Management
           </button>
+          <button 
+            className={`nav-tab ${activeTab === 'performance' ? 'active' : ''}`}
+            onClick={() => setActiveTab('performance')}
+          >
+            AI Performance
+          </button>
         </div>
         
         {showAuthPanel && (
@@ -141,6 +148,10 @@ function App() {
           </>
         ) : (
           <ServiceManagementPanel />
+        )}
+
+        {activeTab === 'performance' && (
+          <AIPerformancePanel />
         )}
       </div>
     </div>
