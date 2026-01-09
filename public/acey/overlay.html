@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acey Overlay</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        #aceyOverlay {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            max-width: 300px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        #aceyOverlay.is-visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        #aceyOverlay.is-speaking {
+            animation: pulse 1.8s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .acey-text {
+            font-size: 16px;
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        #peakEvent {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+            z-index: 2000;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        #peakEvent.acey-peak-animate {
+            animation: peakSlide 5s ease-in-out;
+        }
+
+        @keyframes peakSlide {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+            80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+        }
+
+        #periodicSummary {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            max-width: 250px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .tone-flirty { border-left: 4px solid #ff69b4; }
+        .tone-savage { border-left: 4px solid #ff4444; }
+        .tone-playful { border-left: 4px solid #44ff44; }
+        .tone-dealer { border-left: 4px solid #4444ff; }
+    </style>
+</head>
+<body>
+    <div id="aceyOverlay">
+        <p class="acey-text">Acey is loading...</p>
+    </div>
+    
+    <div id="peakEvent"></div>
+    <div id="periodicSummary"></div>
+
+    <script type="module">
+        window.AceyConfig = {
+            sessionId: 'default',
+            userId: 'streamer',
+            userEmail: 'streamer@poker.local',
+            isUltra: true
+        };
+    </script>
+    <script type="module" src="aceyUI.js"></script>
+</body>
+</html>
