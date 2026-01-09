@@ -154,6 +154,121 @@ function registerAdminAiControlRoutes(app, deps) {
       return res.status(500).json({ error: 'ai_cosmetic_generation_failed' });
     }
   });
+
+  /**
+   * AI Performance monitoring endpoint (admin only)
+   */
+  app.get('/admin/ai/performance', auth.requireAdmin, (req, res) => {
+    const actor = auth.extractUserLogin(req) || 'admin';
+    const stopTimer = performanceMonitor?.startTimer?.('admin.ai.performance', {
+      method: req.method,
+      actor,
+      endpoint: req.originalUrl,
+    });
+
+    try {
+      // Get AI performance data from the ai module
+      const ai = require('../ai');
+      const performanceReport = ai.getAIPerformanceReport();
+      const cacheStats = ai.getAICacheStats();
+      const tunnelStatus = ai.getTunnelStatus();
+      
+      logger.info?.('Admin AI performance requested', { actor });
+      
+      res.json({
+        success: true,
+        data: {
+          performance: performanceReport,
+          cache: cacheStats,
+          tunnel: tunnelStatus,
+          timestamp: Date.now()
+        }
+      });
+      
+      stopTimer?.({ success: true });
+    } catch (error) {
+      logger.error?.('Admin AI performance request failed', { 
+        actor, 
+        error: error.message 
+      });
+      
+      sendMonitorAlert?.('Admin AI performance request failed', {
+        severity: 'warning',
+        description: error.message,
+      })?.catch?.(() => {});
+      
+      res.status(500).json({ error: 'performance_data_failed' });
+      stopTimer?.({ success: false, error: error.message });
+    }
+  });
+
+  /**
+   * Clear AI cache endpoint (admin only)
+   */
+  app.post('/admin/ai/cache/clear', auth.requireAdmin, (req, res) => {
+    const actor = auth.extractUserLogin(req) || 'admin';
+    const stopTimer = performanceMonitor?.startTimer?.('admin.ai.cache.clear', {
+      method: req.method,
+      actor,
+      endpoint: req.originalUrl,
+    });
+
+    try {
+      const ai = require('../ai');
+      ai.clearAICache();
+      
+      logger.info?.('Admin AI cache cleared', { actor });
+      
+      res.json({
+        success: true,
+        message: 'AI cache cleared successfully'
+      });
+      
+      stopTimer?.({ success: true });
+    } catch (error) {
+      logger.error?.('Admin AI cache clear failed', { 
+        actor, 
+        error: error.message 
+      });
+      
+      res.status(500).json({ error: 'cache_clear_failed' });
+      stopTimer?.({ success: false, error: error.message });
+    }
+  });
+
+  /**
+   * Reset AI performance metrics endpoint (admin only)
+   */
+  app.post('/admin/ai/performance/reset', auth.requireAdmin, (req, res) => {
+    const actor = auth.extractUserLogin(req) || 'admin';
+    const stopTimer = performanceMonitor?.startTimer?.('admin.ai.performance.reset', {
+      method: req.method,
+      actor,
+      endpoint: req.originalUrl,
+    });
+
+    try {
+      const ai = require('../ai');
+      ai.resetAIPerformanceMetrics();
+      
+      logger.info?.('Admin AI performance metrics reset', { actor });
+      
+      res.json({
+        success: true,
+        message: 'AI performance metrics reset successfully'
+      });
+      
+      stopTimer?.({ success: true });
+    } catch (error) {
+      logger.error?.('Admin AI performance reset failed', { 
+        actor, 
+        error: error.message 
+      });
+      
+      res.status(500).json({ error: 'performance_reset_failed' });
+      stopTimer?.({ success: false, error: error.message });
+    }
+  });
 }
 
 module.exports = {
