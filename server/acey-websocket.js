@@ -18,17 +18,25 @@ class AceyWebSocket {
     });
     this.port = options.port || 8081;
     
+    // Only start WebSocket server if not on Fly.io
+    this.isLocal = process.env.NODE_ENV !== 'production' || !process.env.FLY_APP_NAME;
+    
     // Forward Acey events to WebSocket clients
     this.aceyEngine.on('overlay', (data) => {
-      this.broadcast(data);
+      if (this.wss) this.broadcast(data);
     });
     
     this.aceyEngine.on('dynamicMemory', (data) => {
-      this.broadcast({ type: 'dynamicMemory', data });
+      if (this.wss) this.broadcast({ type: 'dynamicMemory', data });
     });
   }
 
   start() {
+    // Don't start WebSocket server on Fly.io
+    if (!this.isLocal) {
+      Logger('acey-websocket').info('WebSocket server disabled on Fly.io');
+      return;
+    }
     this.wss = new WebSocket.Server({ 
       port: this.port,
       path: '/acey'
