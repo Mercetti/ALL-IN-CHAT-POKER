@@ -357,6 +357,42 @@ function createSimpleAdminAiControlRouter() {
     }
   });
 
+  // AI Tools chat endpoint
+  router.post('/ai-tools/chat', (req, res) => {
+    try {
+      const { message, model = 'llama2-7b' } = req.body || {};
+      
+      if (!message) {
+        return res.status(400).json({ error: 'Message is required' });
+      }
+      
+      // Simulate AI chat response
+      const responses = [
+        "I understand your request. Let me help you with that.",
+        "That's an interesting question. Based on my analysis...",
+        "I can assist you with this task. Here's what I recommend...",
+        "Thank you for your message. I'm processing your request...",
+        "I've analyzed your input and here's my response..."
+      ];
+      
+      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+      
+      res.json({
+        status: 'OK',
+        response: {
+          message: randomResponse,
+          model,
+          timestamp: new Date().toISOString(),
+          tokens_used: Math.floor(Math.random() * 100) + 50,
+          response_time: Math.floor(Math.random() * 500) + 200
+        }
+      });
+    } catch (error) {
+      console.error('Chat error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
   return router;
 }
 
