@@ -64,8 +64,9 @@ export default function ServiceManagementPanel() {
       setModels([
         { name: 'deepseek-coder:1.3b', model: 'deepseek-coder:1.3b', size: 0, digest: '' },
         { name: 'qwen:0.5b', model: 'qwen:0.5b', size: 0, digest: '' },
+        { name: 'llama3.2:1b', model: 'llama3.2:1b', size: 0, digest: '' },
         { name: 'tinyllama:latest', model: 'tinyllama:latest', size: 0, digest: '' },
-        { name: 'llama3.2:1b', model: 'llama3.2:1b', size: 0, digest: '' }
+        { name: 'llama3.2:latest', model: 'llama3.2:latest', size: 0, digest: '' }
       ]);
     }
   };

@@ -334,6 +334,7 @@ class AIAudioGenerator {
           content: prompt 
         }
       ], {
+        context: 'audio',
         temperature: 0.8,
         maxTokens: 1000
       });

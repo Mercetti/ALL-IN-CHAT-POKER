@@ -179,6 +179,9 @@ class AceyEngine extends EventEmitter {
       return this.formatDealerLine(context.type, context.player, context.card);
     }
 
+    // Context-aware model selection
+    const modelForContext = this.selectModelForContext(tone, context);
+    
     const personalityPrompts = {
       flirty: "You are Acey, a flirty and confident AI poker dealer. You make playful, teasing comments that are charming but not inappropriate. Use winky faces 😉 and playful language.",
       savage: "You are Acey, a sharp-tongued AI poker dealer who delivers savage trash talk. Be witty and cutting but not truly mean. Use 😏 and 😅 expressions.",
@@ -205,6 +208,7 @@ class AceyEngine extends EventEmitter {
     try {
       const response = await this.ai.generateResponse(userPrompt, {
         systemPrompt,
+        model: modelForContext,
         maxTokens: 50,
         temperature: 0.8
       });
@@ -227,6 +231,30 @@ class AceyEngine extends EventEmitter {
       this.logger.warn('AI response generation failed, falling back to static phrase', { error: error.message });
       return this.formatDealerLine(context.type, context.player, context.card);
     }
+  }
+
+  selectModelForContext(tone, context) {
+    // Available models that fit in 8.6GB RAM
+    const availableModels = ['deepseek-coder:1.3b', 'qwen:0.5b', 'llama3.2:1b', 'tinyllama:latest', 'llama3.2:latest'];
+    
+    // For creative/personality-driven responses, use smaller, faster models
+    if (tone === 'flirty' || tone === 'playful') {
+      return 'qwen:0.5b'; // Better for casual, creative responses
+    }
+    
+    // For sharp/savage responses, use a balanced model
+    if (tone === 'savage') {
+      return 'qwen:0.5b'; // Quick wit, good for trash talk
+    }
+    
+    // For technical/game logic, use deepseek-coder
+    if (context.type === 'specialCard' || context.streak > 2) {
+      return 'deepseek-coder:1.3b'; // Better for complex game situations
+    }
+    
+    // Default fallback - ensure it's available
+    const defaultModel = 'deepseek-coder:1.3b';
+    return availableModels.includes(defaultModel) ? defaultModel : 'qwen:0.5b';
   }
 
   formatDealerLine(type, player = '', card = '') {
