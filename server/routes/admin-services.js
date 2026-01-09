@@ -525,4 +525,271 @@ router.post('/resilience/reset', auth.requireAdmin, async (req, res) => {
   }
 });
 
+/**
+ * Get copy-paste friendly patch for error
+ */
+router.post('/error-manager/patch', auth.requireAdmin, async (req, res) => {
+  try {
+    const { errorId, includeAIFix } = req.body;
+    const errorManager = require('../ai-error-manager');
+    
+    // Get error info (mock for now - would come from error history)
+    const errorInfo = {
+      id: errorId,
+      type: 'syntax',
+      severity: 'high',
+      category: 'backend',
+      message: 'Sample error message',
+      likelyCause: 'Syntax error in code',
+      suggestedFixes: ['Check syntax', 'Validate code']
+    };
+    
+    // Generate fix plan
+    const fixPlan = await errorManager.generateFixPlan(errorInfo);
+    
+    // Generate copy-paste patch
+    const patch = errorManager.generateCopyPastePatch(errorInfo, fixPlan);
+    
+    // If AI fix requested, get AI solution
+    let aiFix = null;
+    if (includeAIFix) {
+      aiFix = await errorManager.askAIToFix(errorInfo);
+    }
+    
+    res.json({
+      success: true,
+      data: {
+        patch,
+        aiFix,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to generate patch', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to generate patch'
+    });
+  }
+});
+
+/**
+ * Ask AI to fix error directly
+ */
+router.post('/error-manager/ai-fix', auth.requireAdmin, async (req, res) => {
+  try {
+    const { errorId, applyFix } = req.body;
+    const errorManager = require('../ai-error-manager');
+    
+    // Get error info (mock for now)
+    const errorInfo = {
+      id: errorId,
+      type: 'syntax',
+      severity: 'high',
+      category: 'backend',
+      message: 'Sample error message',
+      likelyCause: 'Syntax error in code',
+      suggestedFixes: ['Check syntax', 'Validate code']
+    };
+    
+    // Ask AI to fix
+    const aiFix = await errorManager.askAIToFix(errorInfo);
+    
+    // Apply fix if requested
+    let appliedFix = null;
+    if (applyFix && aiFix.success) {
+      appliedFix = await errorManager.applyAIFix(aiFix);
+    }
+    
+    res.json({
+      success: true,
+      data: {
+        aiFix,
+        appliedFix,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to get AI fix', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get AI fix'
+    });
+  }
+});
+
+/**
+ * Detect duplicate cosmetics with image analysis
+ */
+router.post('/cosmetics/deduplicate', auth.requireAdmin, async (req, res) => {
+  try {
+    const { action, cosmetics } = req.body;
+    const cosmeticDeduplicator = require('../cosmetic-deduplicator');
+    
+    let result;
+    switch (action) {
+      case 'detect':
+        result = await cosmeticDeduplicator.detectDuplicates(cosmetics);
+        break;
+      case 'remove':
+        result = await cosmeticDeduplicator.removeDuplicates(cosmetics);
+        break;
+      case 'merge':
+        result = await cosmeticDeduplicator.mergeSimilar(cosmetics);
+        break;
+      case 'smart-cleanup':
+        result = await cosmeticDeduplicator.smartCleanup(cosmetics);
+        break;
+      default:
+        throw new Error('Invalid action. Use: detect, remove, merge, or smart-cleanup');
+    }
+    
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    logger.error('Cosmetic deduplication failed', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * AI-powered cosmetic cleanup
+ */
+router.post('/cosmetics/ai-cleanup', auth.requireAdmin, async (req, res) => {
+  try {
+    const { cosmetics } = req.body;
+    const cosmeticDeduplicator = require('../cosmetic-deduplicator');
+    
+    // Smart cleanup with AI assistance
+    const result = await cosmeticDeduplicator.smartCleanup(cosmetics);
+    
+    // Generate cleanup report
+    const report = cosmeticDeduplicator.generateCleanupReport(result.original, result.cleaned, result.duplicates);
+    
+    res.json({
+      success: true,
+      data: {
+        result,
+        report
+      }
+    });
+  } catch (error) {
+    logger.error('AI cosmetic cleanup failed', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Generate background music
+ */
+router.post('/audio/generate', auth.requireAdmin, async (req, res) => {
+  try {
+    const { type, mood, duration, effectType, description, character, gameState } = req.body;
+    const audioAIManager = require('../audio-ai-manager');
+    
+    let result;
+    switch (type) {
+      case 'background_music':
+        result = await audioAIManager.generateBackgroundMusic(mood, duration);
+        break;
+      case 'game_sound':
+        result = await audioAIManager.generateGameSound(effectType, description);
+        break;
+      case 'voice_line':
+        result = await audioAIManager.generateVoiceLine(text, character);
+        break;
+      case 'ambient_soundscape':
+        result = await audioAIManager.generateAmbientSoundscape(gameState);
+        break;
+      case 'audio_package':
+        result = await audioAIManager.generateAudioPackage(gameState);
+        break;
+      default:
+        throw new Error('Invalid audio type. Use: background_music, game_sound, voice_line, ambient_soundscape, or audio_package');
+    }
+    
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    logger.error('Audio generation failed', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Get audio generation status
+ */
+router.get('/audio/status', auth.requireAdmin, async (req, res) => {
+  try {
+    const audioAIManager = require('../audio-ai-manager');
+    const status = audioAIManager.getGenerationStatus();
+    
+    res.json({
+      success: true,
+      data: status
+    });
+  } catch (error) {
+    logger.error('Failed to get audio status', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Clear audio cache
+ */
+router.post('/audio/clear', auth.requireAdmin, async (req, res) => {
+  try {
+    const audioAIManager = require('../audio-ai-manager');
+    audioAIManager.clearCache();
+    
+    res.json({
+      success: true,
+      message: 'Audio cache cleared successfully'
+    });
+  } catch (error) {
+    logger.error('Failed to clear audio cache', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Get generated audio files
+ */
+router.get('/audio/files', auth.requireAdmin, async (req, res) => {
+  try {
+    const audioAIManager = require('../audio-ai-manager');
+    const files = audioAIManager.getGeneratedFiles();
+    
+    res.json({
+      success: true,
+      data: files
+    });
+  } catch (error) {
+    logger.error('Failed to get audio files', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
 module.exports = router;

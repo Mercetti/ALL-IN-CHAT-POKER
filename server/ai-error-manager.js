@@ -314,8 +314,214 @@ Respond with JSON only:
   }
 
   /**
-   * Execute code changes
+   * Generate copy-paste friendly patch format
    */
+  generateCopyPastePatch(errorInfo, fixPlan) {
+    const patch = {
+      errorInfo: {
+        type: errorInfo.type,
+        severity: errorInfo.severity,
+        category: errorInfo.category,
+        message: errorInfo.message,
+        likelyCause: errorInfo.likelyCause
+      },
+      suggestedFixes: errorInfo.suggestedFixes,
+      aiGeneratedFix: fixPlan,
+      copyPasteInstructions: this.generateCopyPasteInstructions(fixPlan),
+      timestamp: new Date().toISOString()
+    };
+
+    return patch;
+  }
+
+  /**
+   * Generate copy-paste instructions for the fix
+   */
+  generateCopyPasteInstructions(fixPlan) {
+    if (!fixPlan || !fixPlan.changes) {
+      return {
+        type: 'manual',
+        instructions: errorInfo.suggestedFixes,
+        description: 'Manual fixes suggested - apply these changes manually'
+      };
+    }
+
+    const instructions = {
+      type: 'automated',
+      targetFile: fixPlan.targetFile,
+      description: fixPlan.description || 'Apply the following code changes',
+      changes: [],
+      fullPatch: '',
+      risk: fixPlan.risk || 'medium',
+      expectedOutcome: fixPlan.expectedOutcome
+    };
+
+    // Generate individual change instructions
+    for (const change of fixPlan.changes) {
+      const changeInstruction = {
+        line: change.line,
+        type: change.type,
+        description: change.description || `${change.type} line ${change.line}`,
+        before: change.old || '',
+        after: change.new || '',
+        copyCommand: this.generateCopyCommand(change)
+      };
+      instructions.changes.push(changeInstruction);
+    }
+
+    // Generate full patch in unified diff format
+    instructions.fullPatch = this.generateUnifiedDiff(fixPlan);
+
+    return instructions;
+  }
+
+  /**
+   * Generate copy command for a change
+   */
+  generateCopyCommand(change) {
+    const content = change.type === 'modify' ? change.new : change.new;
+    return `# Copy this line:\n${content}`;
+  }
+
+  /**
+   * Generate unified diff format
+   */
+  generateUnifiedDiff(fixPlan) {
+    if (!fixPlan.changes || !fixPlan.changes.length) {
+      return '# No automated changes available';
+    }
+
+    let diff = `--- a/${fixPlan.targetFile}\n+++ b/${fixPlan.targetFile}\n`;
+    
+    for (const change of fixPlan.changes) {
+      if (change.type === 'modify') {
+        diff += `@@ -${change.line + 1},${change.line + 1} +${change.line + 1},${change.line + 1} @@\n`;
+        diff += `-${change.old}\n`;
+        diff += `+${change.new}\n`;
+      } else if (change.type === 'insert') {
+        diff += `@@ -${change.line + 1},0 +${change.line + 1},1 @@\n`;
+        diff += `+${change.new}\n`;
+      } else if (change.type === 'delete') {
+        diff += `@@ -${change.line + 1},1 +${change.line},0 @@\n`;
+        diff += `-${change.old}\n`;
+      }
+    }
+
+    return diff;
+  }
+
+  /**
+   * Ask AI to fix the issue directly
+   */
+  async askAIToFix(errorInfo) {
+    const prompt = `You are an expert Node.js developer. I need you to fix this error:
+
+ERROR DETAILS:
+- Type: ${errorInfo.type}
+- Severity: ${errorInfo.severity}
+- Category: ${errorInfo.category}
+- Message: ${errorInfo.message}
+- Likely Cause: ${errorInfo.likelyCause}
+- Suggested Fixes: ${errorInfo.suggestedFixes.join(', ')}
+
+Please provide:
+1. The exact file path that needs to be modified
+2. The complete fixed code (not just changes)
+3. A brief explanation of what you fixed
+
+Format your response as:
+\`\`\`javascript
+// File: [file-path]
+[complete fixed code]
+\`\`\`
+
+Explanation: [brief explanation]`;
+
+    try {
+      const response = await ai.chat([
+        { role: 'system', content: 'You are an expert Node.js developer. Provide complete, working code solutions.' },
+        { role: 'user', content: prompt }
+      ], {
+        temperature: 0.1,
+        maxTokens: 2000
+      });
+
+      return this.parseAIFixResponse(response);
+    } catch (error) {
+      logger.error('AI fix request failed', { error: error.message });
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Parse AI fix response to extract code and explanation
+   */
+  parseAIFixResponse(response) {
+    try {
+      // Extract code block
+      const codeBlockMatch = response.match(/```javascript\s*\/\/ File: (.+)\n([\s\S]*?)```/);
+      if (!codeBlockMatch) {
+        return { success: false, error: 'No code block found in AI response' };
+      }
+
+      const filePath = codeBlockMatch[1];
+      const code = codeBlockMatch[2];
+
+      // Extract explanation
+      const explanationMatch = response.match(/Explanation:\s*(.+?)(?:\n\n|$)/);
+      const explanation = explanationMatch ? explanationMatch[1] : 'No explanation provided';
+
+      return {
+        success: true,
+        filePath,
+        code,
+        explanation,
+        fullResponse: response
+      };
+    } catch (error) {
+      return { success: false, error: `Failed to parse AI response: ${error.message}` };
+    }
+  }
+
+  /**
+   * Apply AI fix directly
+   */
+  async applyAIFix(aiFixResponse) {
+    if (!aiFixResponse.success) {
+      return { success: false, error: aiFixResponse.error };
+    }
+
+    try {
+      const filePath = path.resolve(aiFixResponse.filePath);
+      
+      if (!fs.existsSync(filePath)) {
+        return { success: false, error: `File not found: ${filePath}` };
+      }
+
+      // Backup original file
+      const backupPath = `${filePath}.backup.${Date.now()}`;
+      fs.copyFileSync(filePath, backupPath);
+
+      // Write the fixed code
+      fs.writeFileSync(filePath, aiFixResponse.code);
+
+      logger.info('AI fix applied successfully', { 
+        file: aiFixResponse.filePath,
+        backup: backupPath,
+        explanation: aiFixResponse.explanation
+      });
+
+      return {
+        success: true,
+        file: aiFixResponse.filePath,
+        backup: backupPath,
+        explanation: aiFixResponse.explanation
+      };
+    } catch (error) {
+      logger.error('Failed to apply AI fix', { error: error.message });
+      return { success: false, error: error.message };
+    }
+  }
   async executeCodeChange(fixPlan, errorInfo) {
     const filePath = path.resolve(fixPlan.targetFile);
     
