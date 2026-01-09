@@ -105,6 +105,8 @@ const { spawn } = require('child_process');
 // Import utilities
 
 const config = require('./server/config');
+
+const DEFAULT_CHANNEL = config.STREAMER_LOGIN || config.TWITCH_CHANNEL || 'streamer';
 const validation = require('./server/validation');
 const auth = require('./server/auth');
 const startup = require('./server/startup');
