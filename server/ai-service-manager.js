@@ -12,6 +12,16 @@ const logger = new Logger('service-manager');
 
 class AIServiceManager {
   constructor() {
+    // Only initialize service management if running locally
+    this.isLocal = process.env.NODE_ENV !== 'production' || 
+                   process.env.FLY_APP_NAME === undefined ||
+                   (process.env.FLY_APP_NAME && process.env.FLY_REGION === 'local');
+    
+    if (!this.isLocal) {
+      logger.info('Service management disabled - running on Fly.io');
+      return;
+    }
+    
     this.services = {
       ollama: {
         process: null,
@@ -37,6 +47,10 @@ class AIServiceManager {
    * Start Ollama service
    */
   async startOllama() {
+    if (!this.isLocal) {
+      return { success: false, message: 'Service management only available when running locally' };
+    }
+    
     if (this.services.ollama.status === 'running') {
       return { success: false, message: 'Ollama is already running' };
     }
@@ -98,6 +112,10 @@ class AIServiceManager {
    * Stop Ollama service
    */
   async stopOllama() {
+    if (!this.isLocal) {
+      return { success: false, message: 'Service management only available when running locally' };
+    }
+    
     if (this.services.ollama.status !== 'running' && this.services.ollama.status !== 'starting') {
       return { success: false, message: 'Ollama is not running' };
     }
@@ -135,6 +153,10 @@ class AIServiceManager {
    * Start Cloudflare tunnel
    */
   async startTunnel() {
+    if (!this.isLocal) {
+      return { success: false, message: 'Service management only available when running locally' };
+    }
+    
     if (this.services.tunnel.status === 'running') {
       return { success: false, message: 'Tunnel is already running' };
     }
@@ -213,6 +235,10 @@ class AIServiceManager {
    * Stop Cloudflare tunnel
    */
   async stopTunnel() {
+    if (!this.isLocal) {
+      return { success: false, message: 'Service management only available when running locally' };
+    }
+    
     if (this.services.tunnel.status !== 'running' && this.services.tunnel.status !== 'starting') {
       return { success: false, message: 'Tunnel is not running' };
     }
@@ -251,6 +277,25 @@ class AIServiceManager {
    * Get status of all services
    */
   async getServicesStatus() {
+    if (!this.isLocal) {
+      return {
+        ollama: {
+          status: 'unavailable',
+          pid: null,
+          port: 11434,
+          lastCheck: null,
+          message: 'Service management only available when running locally'
+        },
+        tunnel: {
+          status: 'unavailable',
+          pid: null,
+          url: null,
+          lastCheck: null,
+          message: 'Service management only available when running locally'
+        }
+      };
+    }
+    
     // Update health status
     await this.checkOllamaHealth();
     await this.checkTunnelHealth();
@@ -353,6 +398,10 @@ class AIServiceManager {
    * Get Ollama models
    */
   async getOllamaModels() {
+    if (!this.isLocal) {
+      return [];
+    }
+    
     try {
       const response = await fetch('http://localhost:11434/api/tags');
       if (response.ok) {
