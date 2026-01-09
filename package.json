@@ -32,6 +32,7 @@
     "dev:start": "start-dev.bat",
     "dev:smart": "smart-start-dev.bat",
     "dev:bg": "smart-start-dev-bg.bat",
+    "dev:simple": "start-simple.bat",
     "dev:interactive": "smart-start-dev-interactive.bat",
     "dev:stop": "stop-all-dev.bat",
     "dev:status": "dev-status.bat",
