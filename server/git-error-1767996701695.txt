@@ -1,0 +1,16 @@
+> git -c user.useConfigOnly=true commit --quiet --allow-empty-message --file -
+🔍 Running pre-commit checks...
+📝 server.js modified - running syntax check...
+🔍 Pre-Deployment Check Started
+==================================================
+📝 Checking syntax...
+✅ Syntax OK
+🔧 Checking critical functions...
+❌ Missing Critical Functions:
+   - runSyntheticCheck
+   - runAssetCheck
+   - backupDb
+   - vacuumDb
+   - getCriticalHashes
+❌ Critical functions missing - commit blocked!
+💡 Add missing functions before committing

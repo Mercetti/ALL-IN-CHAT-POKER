@@ -1,0 +1,872 @@
+﻿/**
+
+ * Main Express/Socket.IO server with game logic, auth, and Twitch integration
+const express = require('express');
+const http = require('http');
+const https = require('https');
+const socketIo = require('socket.io');
+const path = require('path');
+const fs = require('fs');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const { v4: uuidv4 } = require('uuid');
+const { createProxyMiddleware } = require('http-proxy-middleware');
+const Logger = require('./logger');
+const config = require('./config');
+const ConnectionHardener = require('./connection-hardener');
+const multer = require('multer');
+
+const logger = new Logger('SERVER');
+const connectionHardener = new ConnectionHardener();
+
+// Configure multer for file uploads
+const upload = multer({
+  dest: path.join(__dirname, 'data', 'uploads', 'cosmetics'),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB
+    files: 5 // Max 5 files at once
+  },
+  fileFilter: (req, file, cb) => {
+    // Allow images only
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.mimetype)) {
+      return cb(new Error('Only image files are allowed'), false);
+    }
+    cb(null, true);
+  }
+});
+const jwt = require('jsonwebtoken');
+const uploadsDir = path.join(__dirname, 'data', 'uploads');
+fs.mkdirSync(uploadsDir, { recursive: true });
+const taxDir = path.join(uploadsDir, 'tax');
+fs.mkdirSync(taxDir, { recursive: true });
+
+const tmi = require('tmi.js');
+const crypto = require('crypto');
+const { COSMETIC_CATALOG } = require('./server/cosmetic-catalog');
+
+const app = express();
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST'],
+    credentials: true,
+  },
+});
+
+const premierHistory = new Map();
+
+const stagedCosmetics = [];
+
+const lastAppliedBranding = new Map();
+
+const logoCache = new Map(); // hash -> { palette, normalizedPath, thumbnails, at }
+
+const thumbCache = new Map(); // key -> { dataUrl, at }
+
+let aiGenerateBusy = false;
+
+const MIN_CONTRAST = 3.0;
+
+const CACHE_TTL_MS = 1000 * 60 * 30; // 30 minutes
+
+const generationQueue = [];
+
+const rateStore = new Map();
+const validateLocalLogin = (login) => /^[a-zA-Z0-9_]{3,20}$/.test((login || '').trim());
+const REJOIN_COOLDOWN_MS = 5000;
+const lastBetAttempt = new Map(); // login -> timestamp
+const signCheckout = (login, packId, orderId) => {
+  const h = crypto.createHmac('sha256', config.CHECKOUT_SIGNING_SECRET);
+  h.update(`${login}:${packId}:${orderId}`);
+  return h.digest('hex');
+};
+
+// AES-256-GCM helper for sensitive fields (e.g., tax IDs)
+const deriveSensitiveKey = () => crypto.createHash('sha256').update(config.JWT_SECRET || 'fallback-secret').digest();
+const encryptSensitive = (value) => {
+  if (!value) return { data: null, iv: null };
+  const key = deriveSensitiveKey();
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+  const enc = Buffer.concat([cipher.update(String(value), 'utf8'), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  return { data: Buffer.concat([enc, tag]), iv };
+};
+const socketRateStore = new Map(); // key -> {count, reset}
+
+const socketRateLimit = (socket, key, windowMs, max) => {
+  const now = Date.now();
+  const login = (socket?.data?.login || '').toLowerCase();
+  const ip = socket?.handshake?.address || socket?.conn?.remoteAddress || 'ipless';
+  const rateKey = `${key}:${login || 'anon'}:${ip}`;
+  let entry = socketRateStore.get(rateKey);
+  if (!entry || now > entry.reset) {
+    entry = { count: 0, reset: now + windowMs };
+  }
+  entry.count += 1;
+  socketRateStore.set(rateKey, entry);
+  if (entry.count > max) {
+    logger.warn('Socket rate limited', { rateKey, key, login, ip });
+    return false;
+  }
+
+  return true;
+};
+
+const { createTwoFilesPatch } = require('diff');
+
+const { spawn } = require('child_process');
+
+
+
+// Import utilities
+
+const config = require('./server/config');
+
+const DEFAULT_CHANNEL = config.STREAMER_LOGIN || config.TWITCH_CHANNEL || 'streamer';
+const validation = require('./server/validation');
+const auth = require('./server/auth');
+const startup = require('./server/startup');
+const db = require('./server/db');
+const game = require('./server/game');
+const blackjack = require('./server/blackjack');
+const stateAdapter = require('./server/state-adapter');
+const ai = require('./server/ai');
+const UnifiedAISystem = require('./server/unified-ai');
+const utils = require('./server/utils');
+const {
+  normalizeChannelName: normalizeChannelNameScoped,
+  getDefaultChannel,
+} = require('./server/channel-state');
+const payoutStore = require('./server/payout-store');
+const { buildPayoutIdempotencyKey } = require('./server/payout-utils');
+const {
+  startBlackjackRound,
+  createBlackjackHandlers,
+  settleAndEmit: settleAndEmitBlackjack,
+  startPokerRound,
+  startPokerPhaseTimer,
+  createPokerHandlers,
+} = require('./server/modes/blackjack');
+const Logger = require('./server/logger');
+const logger = new Logger('server');
+
+logger.info('Admin control center origins configured', {
+  origins: config.ADMIN_CONTROL_CENTER_ORIGINS || '(none)',
+});
+
+async function sendMonitorAlert(message, options = {}) {
+  if (!config.MONITOR_WEBHOOK_URL) {
+    return false;
+  }
+
+  const payload = {
+    content: (message || 'Monitor alert').slice(0, 1900),
+  };
+
+  const fields = Array.isArray(options.fields) ? options.fields.slice(0, 10) : undefined;
+  const hasEmbedContent = options.description || (fields && fields.length);
+  if (hasEmbedContent) {
+    const severity = (options.severity || 'info').toLowerCase();
+    const severityColors = {
+      info: 0x38bdf8,
+      warning: 0xfacc15,
+      critical: 0xf87171,
+    };
+
+    payload.embeds = [
+      {
+        title: options.title || 'AI Control Center',
+        description: options.description?.slice(0, 1900),
+        color: severityColors[severity] || severityColors.info,
+        fields,
+        timestamp: new Date().toISOString(),
+      },
+    ];
+  }
+
+  try {
+    await fetch(config.MONITOR_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    return true;
+  } catch (error) {
+    logger.warn('Monitor alert dispatch failed', { error: error.message });
+    return false;
+  }
+}
+
+const PANEL_TEMPLATES = {
+  errorManager: {
+    key: 'errorManager',
+    category: 'Stability',
+    title: 'Error Manager',
+    description: 'Auto-detects regressions & suggests patches.',
+  },
+  performanceOptimizer: {
+    key: 'performanceOptimizer',
+    category: 'Performance',
+    title: 'Performance Optimizer',
+    description: 'Monitors CPU/memory & applies live tuning.',
+  },
+  uxMonitor: {
+    key: 'uxMonitor',
+    category: 'Experience',
+    title: 'UX Monitor',
+    description: 'Tracks funnel health and friction events.',
+  },
+  audioGenerator: {
+    key: 'audioGenerator',
+    category: 'Media',
+    title: 'AI Audio Generator',
+    description: 'Builds music beds and FX packs on demand.',
+  },
+  selfHealing: {
+    key: 'selfHealing',
+    category: 'Reliability',
+    title: 'Self-Healing Middleware',
+    description: 'Applies hot fixes & restarts services automatically.',
+  },
+  pokerAudio: {
+    key: 'pokerAudio',
+    category: 'Immersion',
+    title: 'Poker Audio System',
+    description: 'Keeps broadcast-quality soundscapes running.',
+  },
+};
+
+const makeAlertId = () => (crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(8).toString('hex'));
+
+function pct(value) {
+  if (!Number.isFinite(value)) return '0%';
+  return `${Math.round(value * 100)}%`;
+}
+
+function buildErrorManagerPanel() {
+  const base = { ...PANEL_TEMPLATES.errorManager };
+  try {
+    const report = aiErrorManager?.getHealthReport?.() || {};
+    const metrics = report.metrics || {};
+    const activeErrors = Array.isArray(report.activeErrors) ? report.activeErrors : [];
+    const state = activeErrors.length > 5 ? 'critical'
+      : activeErrors.length > 0 ? 'warning'
+        : 'healthy';
+
+    return {
+      ...base,
+      state,
+      metrics: [
+        { label: 'Active errors', value: String(activeErrors.length) },
+        { label: 'Fix success', value: pct(metrics.successRate ?? 0) },
+        { label: 'Patterns learned', value: String((metrics.patterns ?? report.learnedPatterns?.length) || 0) },
+      ],
+      alerts: activeErrors.slice(0, 3).map((err) => ({
+        id: err.id || makeAlertId(),
+        title: err.type || 'Active error',
+        message: err.error?.message || err.message || 'Investigate regression',
+        severity: err.severity === 'critical' ? 'critical' : 'warning',
+        timestamp: err.lastSeen || Date.now(),
+      })),
+    };
+  } catch (error) {
+    logger.warn('Failed to summarize AI error manager', { error: error.message });
+    return {
+      ...base,
+      state: 'critical',
+      metrics: [{ label: 'Status', value: 'Unavailable' }],
+    };
+  }
+}
+
+function buildPerformancePanel() {
+  const base = { ...PANEL_TEMPLATES.performanceOptimizer };
+  try {
+    if (!aiPerformanceOptimizer?.getPerformanceReport) {
+      return {
+        ...base,
+        state: 'offline',
+        metrics: [{ label: 'Status', value: 'Initializing' }],
+      };
+    }
+
+    const report = aiPerformanceOptimizer.getPerformanceReport();
+    const healthScore = report?.health ?? 0;
+    const state = healthScore >= 0.8 ? 'healthy' : healthScore >= 0.6 ? 'warning' : 'critical';
+
+    const latestCpu = report?.current?.cpu ?? report?.metrics?.cpu?.slice(-1)[0]?.value;
+    const latestMem = report?.current?.memory?.heapUsed ?? report?.metrics?.memory?.slice(-1)[0]?.value;
+
+    return {
+      ...base,
+      state,
+      metrics: [
+        { label: 'Health', value: `${Math.round(healthScore * 100)} / 100` },
+        { label: 'CPU', value: latestCpu ? `${latestCpu.toFixed(1)}%` : 'n/a' },
+        { label: 'Heap used', value: latestMem ? `${(latestMem / 1024 / 1024).toFixed(1)} MB` : 'n/a' },
+      ],
+      alerts: Array.isArray(report?.issues)
+        ? report.issues.slice(0, 3).map((issue, idx) => ({
+            id: issue.id || `${base.key}-issue-${idx}`,
+            title: issue.type || 'Performance issue',
+            message: issue.description || issue.message || 'Investigate performance regression',
+            severity: issue.severity === 'high' ? 'critical' : 'warning',
+            timestamp: issue.timestamp || Date.now(),
+          }))
+        : undefined,
+    };
+  } catch (error) {
+    logger.warn('Failed to summarize AI performance optimizer', { error: error.message });
+    return {
+      ...base,
+      state: 'critical',
+      metrics: [{ label: 'Status', value: 'Unavailable' }],
+    };
+  }
+}
+
+function buildUxPanel() {
+  const base = { ...PANEL_TEMPLATES.uxMonitor };
+  try {
+    const report = aiUXMonitor?.getUXReport?.();
+    if (!report) {
+      return {
+        ...base,
+        state: 'offline',
+        metrics: [{ label: 'Status', value: 'No telemetry' }],
+      };
+    }
+
+    const summary = report.summary || {};
+    const recentErrors = summary.recentErrors ?? 0;
+    const state = recentErrors > 50 ? 'critical' : recentErrors > 10 ? 'warning' : 'healthy';
+
+    return {
+      ...base,
+      state,
+      metrics: [
+        { label: 'Active sessions', value: String(summary.activeSessions ?? 0) },
+        { label: 'Interactions (5 min)', value: String(summary.totalInteractions ?? 0) },
+        { label: 'Recent UX errors', value: String(recentErrors) },
+      ],
+      alerts: Array.isArray(report.insights)
+        ? report.insights.slice(0, 3).map((insight, idx) => ({
+            id: insight.id || `${base.key}-insight-${idx}`,
+            title: insight.type || 'UX insight',
+            message: insight.description || insight.impact || 'UX insight available',
+            severity: insight.priority === 'high' ? 'critical' : 'warning',
+            timestamp: insight.timestamp || Date.now(),
+          }))
+        : undefined,
+    };
+  } catch (error) {
+    logger.warn('Failed to summarize AI UX monitor', { error: error.message });
+    return {
+      ...base,
+      state: 'critical',
+      metrics: [{ label: 'Status', value: 'Unavailable' }],
+    };
+  }
+}
+
+function buildAudioPanel() {
+  return {
+    ...PANEL_TEMPLATES.audioGenerator,
+    state: 'offline',
+    metrics: [{ label: 'Status', value: 'External service' }],
+  };
+}
+
+function buildSelfHealingPanel() {
+  const base = { ...PANEL_TEMPLATES.selfHealing };
+  try {
+    const status = aiSelfHealing?.getHealingStatus?.() || {};
+    const activeCount = Array.isArray(status.activeHealings) ? status.activeHealings.length : 0;
+    const recentHistory = Array.isArray(status.healingHistory) ? status.healingHistory.length : 0;
+    const state = activeCount > 0 ? 'warning' : 'healthy';
+
+    return {
+      ...base,
+      state,
+      metrics: [
+        { label: 'Active healings', value: String(activeCount) },
+        { label: 'History entries', value: String(recentHistory) },
+      ],
+    };
+  } catch (error) {
+    logger.warn('Failed to summarize AI self-healing middleware', { error: error.message });
+    return {
+      ...base,
+      state: 'critical',
+      metrics: [{ label: 'Status', value: 'Unavailable' }],
+    };
+  }
+}
+
+function buildPokerAudioPanel() {
+  return {
+    ...PANEL_TEMPLATES.pokerAudio,
+    state: 'offline',
+    metrics: [{ label: 'Status', value: 'Maintenance' }],
+  };
+}
+
+function collectAiOverviewPanels() {
+  return [
+    buildErrorManagerPanel(),
+    buildPerformancePanel(),
+    buildUxPanel(),
+    buildAudioPanel(),
+    buildSelfHealingPanel(),
+    buildPokerAudioPanel(),
+  ];
+}
+
+// Cleanup on server shutdown
+process.on('SIGTERM', () => {
+  logger.info('Server shutting down, cleaning up timers');
+  if (timerManager && timerManager.clearAll) {
+    timerManager.clearAll();
+  }
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  logger.info('Server interrupted, cleaning up timers');
+  if (timerManager && timerManager.clearAll) {
+    timerManager.clearAll();
+  }
+  process.exit(0);
+});
+
+// Timer manager for centralized timer management
+const { timerManager, performance: perfUtils, dbOptimizer, memoryMonitor, performanceMonitor } = utils;
+const { registerAdminAiControlRoutes } = require('./server/routes/admin-ai-control');
+const adminServicesRoutes = require('./server/routes/admin-services');
+
+// Initialize unified AI system
+const unifiedAI = new UnifiedAISystem({
+  enableChatBot: true,
+  enableCosmeticAI: true,
+  chatBotOptions: {
+    enableAI: true,
+    aiProvider: 'ollama', // Use free Ollama provider
+    personality: 'friendly',
+    gameKnowledge: true
+  },
+  cosmeticAIOptions: {
+    enablePublicGeneration: true,
+    maxConcurrentGenerations: 3
+  },
+  sharedOptions: {
+    enableDebugMode: true
+  }
+});
+
+// Register admin AI control routes
+registerAdminAiControlRoutes(app, { auth, db, logger, unifiedAI });
+
+// Use admin services routes
+app.use('/admin', adminServicesRoutes);
+
+// Initialize connection hardener
+connectionHardener.initialize(app, server, io);
+
+// Initialize AI monitoring systems (gradually re-enabling on fresh machine)
+const AIErrorManager = require('./server/ai-error-manager');
+const AIPerformanceOptimizer = require('./server/ai-performance-optimizer');
+const AIUXMonitor = require('./server/ai-ux-monitor');
+
+const aiErrorManager = new AIErrorManager({
+  enableAutoFix: true,
+  enableLearning: true,
+  maxFixAttempts: 3,
+  confidenceThreshold: 0.7
+});
+
+const aiPerformanceOptimizer = new AIPerformanceOptimizer({
+  enableAutoOptimize: true,
+  monitoringInterval: 30000,
+  alertThreshold: 0.8
+});
+
+const aiUXMonitor = new AIUXMonitor({
+  enableAutoImprovements: true,
+  trackingWindow: 300000,
+  minUserSessions: 10
+});
+
+// Initialize AI self-healing middleware (gradually re-enabling on fresh machine)
+const { createAISelfHealing } = require('./server/ai-self-healing');
+
+// Audio AI systems moved to dedicated machine: audio process group
+const AUDIO_SERVICE_URL = process.env.AUDIO_SERVICE_URL || 'http://1781950aee6038.vm.internal:8080';
+
+// Initialize AI Audio Generator (temporarily disabled for startup troubleshooting)
+// const AIAudioGenerator = require('./server/ai-audio-generator');
+
+// const aiAudioGenerator = new AIAudioGenerator({
+//   outputDir: path.join(__dirname, 'public/assets/audio'),
+//   enableGeneration: true,
+//   maxConcurrentGenerations: 2,
+//   defaultFormat: 'wav',
+//   quality: 'high'
+// });
+
+// Initialize Poker Audio System (temporarily disabled for startup troubleshooting)
+// const PokerAudioSystem = require('./server/poker-audio-system');
+
+// const pokerAudio = new PokerAudioSystem({
+//   outputDir: path.join(__dirname, 'public/assets/audio'),
+//   enableGeneration: true,
+//   dmcaSafe: true,
+//   defaultMusicOff: true,
+//   maxDuration: 90,
+//   sampleRate: 44100
+// });
+
+// Initialize Poker Audio Production System (temporarily disabled)
+// const PokerAudioProductionSystem = require('./server/poker-audio-production');
+
+// const pokerAudioProduction = new PokerAudioProductionSystem({
+//   outputDir: path.join(__dirname, 'public/assets/audio'),
+//   primaryFormat: 'ogg',
+//   fallbackFormat: 'mp3',
+//   targetLoudness: -16,
+//   enableNormalization: true,
+//   dmcaSafe: true
+// });
+
+// Database performance monitoring wrapper (temporarily disabled)
+// const monitoredDb = db.db ? new Proxy(db.db, {
+//   get(target, prop) {
+//     const value = target[prop];
+//     
+//     if (typeof value === 'function') {
+//       return function(...args) {
+//         const endTimer = performanceMonitor.startTimer(`db.${prop}`, {
+//           operation: prop,
+//           argsCount: args.length
+//         });
+//         
+//         try {
+//           const result = value.apply(target, args);
+//           endTimer({ success: true });
+//           return result;
+//         } catch (error) {
+//           endTimer({ success: false, error: error.message });
+//           throw error;
+//         }
+//       };
+//     }
+//     
+//     return value;
+//   }
+// }) : db;
+
+const monitoredDb = db;
+
+// Create state cache for expensive computations
+const playerStatesCache = new Map(); // channel -> { data, timestamp }
+
+function getCachedPlayerStates(channelName, state) {
+  const now = Date.now();
+  const cached = playerStatesCache.get(channelName);
+  
+  // Use cached data if less than 50ms old and state hasn't changed
+  if (cached && (now - cached.timestamp) < 50 && 
+      JSON.stringify(cached.stateSnapshot) === JSON.stringify({
+        playerStates: state.playerStates,
+        currentMode: state.currentMode,
+        currentHand: state.currentHand
+      })) {
+    return cached.data;
+  }
+  
+  // Compute and cache the expensive operation
+  const computedPlayers = Object.entries(state.playerStates || {}).map(([login, st]) => ({
+    login,
+    hand: st.hand,
+    hands: st.hands,
+    bet: st.bet,
+    chips: st.chips,
+    activeHand: st.activeHand,
+    split: st.split,
+    insurance: st.insurance,
+    insurancePlaced: st.insurancePlaced,
+    result: st.result,
+    folded: st.folded,
+    seat: st.seat,
+  }));
+  
+  playerStatesCache.set(channelName, {
+    data: computedPlayers,
+    timestamp: now,
+    stateSnapshot: {
+      playerStates: state.playerStates,
+      currentMode: state.currentMode,
+      currentHand: state.currentHand
+    }
+  });
+  
+  // Clean old cache entries periodically
+  if (playerStatesCache.size > 20) {
+    const cutoff = now - 1000; // Remove entries older than 1 second
+    for (const [key, value] of playerStatesCache.entries()) {
+      if (value.timestamp < cutoff) {
+        playerStatesCache.delete(key);
+      }
+    }
+  }
+  
+  return computedPlayers;
+}
+
+// Admin modules - conservative import (functions will be removed incrementally)
+const admin = require('./server/admin');
+
+const fetch = global.fetch;
+
+const DEFAULT_AVATAR = 'https://all-in-chat-poker.fly.dev/logo.png';
+
+const DEFAULT_AVATAR_COLORS = [
+  '#1abc9c',
+  '#3498db',
+  '#9b59b6',
+  '#e67e22',
+  '#e74c3c',
+  '#f39c12',
+  '#16a085',
+  '#2ecc71',
+  '#2980b9',
+  '#8e44ad',
+  '#c0392b',
+  '#d35400',
+  '#ff69b4', // added new color
+];
+
+// Rate limiting function
+const rateLimit = (key, windowMs, max) => {
+  const store = new Map();
+  return (req, res, next) => {
+    const now = Date.now();
+    const keyStr = `${key}:${req.ip || 'unknown'}`;
+    const record = store.get(keyStr);
+    
+    if (!record || now - record.resetTime > windowMs) {
+      store.set(keyStr, { count: 1, resetTime: now + windowMs });
+      return next();
+    }
+    
+    if (record.count >= max) {
+      return res.status(429).json({ error: 'rate_limit_exceeded' });
+    }
+    
+    record.count++;
+    next();
+  };
+};
+
+// Middleware setup
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Serve a default card face if the directory path is requested directly
+app.get('/assets/cosmetics/cards/faces/classic/', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'assets', 'cosmetics', 'cards', 'faces', 'classic', 'ace_of_spades.png'));
+});
+
+// AI Admin Dashboard
+app.get('/admin-dashboard', auth.requireAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin-dashboard.html'));
+});
+
+// Admin Dev Panel
+app.get('/admin-dev', auth.requireAdminOrRole(['admin', 'dev', 'owner']), (req, res) => {
+  res.redirect('/admin-enhanced.html');
+});
+
+// Login Test Page
+app.get('/test-login.html', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'test-login.html'));
+});
+
+// OAuth Debug Page
+app.get('/debug-oauth.html', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'debug-oauth.html'));
+});
+
+// Manual OAuth Test Page
+app.get('/manual-oauth-test.html', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'manual-oauth-test.html'));
+});
+
+// Admin-only bot chat page
+app.get('/admin-chat.html', auth.requireAdminOrRole(['admin', 'dev', 'owner', 'streamer']), (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin-chat.html'));
+});
+
+app.get('/admin-chat', auth.requireAdmin, (_req, res) => {
+  res.redirect('/admin-chat.html');
+});
+
+app.get('/admin-code.html', auth.requireAdmin, (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin-code.html'));
+});
+
+app.get('/admin-code', auth.requireAdmin, (_req, res) => {
+  res.redirect('/admin-code.html');
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  const health = startup.getHealth();
+  res.json(health);
+});
+
+// Admin login endpoint
+app.post('/admin/login', rateLimit('admin-login', 60 * 1000, 5), (req, res) => {
+  try {
+    const { login, password } = req.body || {};
+    
+    if (!login || !password) {
+      return res.status(400).json({ error: 'missing_credentials' });
+    }
+    
+    const profile = db.getProfile(login.toLowerCase());
+    if (!profile || !profile.password_hash) {
+      return res.status(401).json({ error: 'invalid_credentials' });
+    }
+    
+    if (!auth.verifyPassword(password, profile.password_hash)) {
+      return res.status(401).json({ error: 'invalid_credentials' });
+    }
+    
+    const token = auth.signUserJWT(login.toLowerCase());
+    res.cookie('admin_jwt', token, { 
+      httpOnly: true, 
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    });
+    
+    res.json({ 
+      success: true, 
+      token,
+      user: { login: profile.login, role: profile.role }
+    });
+  } catch (error) {
+    logger.error('Admin login failed', { error: error.message });
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+// Admin logout endpoint
+app.post('/admin/logout', (req, res) => {
+  res.clearCookie('admin_jwt');
+  res.json({ success: true });
+});
+
+// Admin token endpoint
+app.post('/admin/token', rateLimit('admin-token', 60 * 1000, 5), auth.requireAdmin, (req, res) => {
+  const login = auth.extractUserLogin(req);
+  const token = auth.signUserJWT(login);
+  res.json({ token, login });
+});
+
+// Auth debug endpoint
+app.get('/auth/debug', auth.requireAdmin, (req, res) => {
+  try {
+    const login = auth.extractUserLogin(req);
+    const role = login ? db.getProfile(login)?.role : null;
+    const isAdmin = role && ['admin', 'dev', 'owner'].includes(role);
+    
+    const rawToken = (() => {
+      const h = auth.getHeader(req, 'authorization') || '';
+      if (h.toLowerCase().startsWith('bearer ')) return h.slice(7).trim();
+      const cookie = auth.getHeader(req, 'cookie') || '';
+      const m = cookie.match(/\badmin_jwt=([^;]+)/);
+      if (m) return m[1];
+      return null;
+    })();
+
+    let ttlSeconds = null;
+    if (rawToken) {
+      try {
+        const payload = jwt.verify(rawToken, config.JWT_SECRET);
+        if (payload?.exp) {
+          ttlSeconds = payload.exp - Math.floor(Date.now() / 1000);
+        }
+      } catch (err) {
+        logger.warn('auth debug token verify failed', { error: err.message });
+      }
+    }
+
+    return res.json({
+      ok: true,
+      login: login || null,
+      role,
+      admin: !!isAdmin,
+      ttlSeconds,
+    });
+  } catch (err) {
+    logger.error('auth debug failed', { error: err.message });
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+// Partner payouts endpoint
+app.get('/partner/payouts', async (req, res) => {
+  try {
+    // Simple implementation for now
+    res.json({ payouts: [] });
+  } catch (error) {
+    logger.error('Partner payouts failed', { error: error.message });
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+// Public cosmetic catalog
+app.get('/catalog', (_req, res) => {
+  res.json(db.getCatalog());
+});
+
+// Initialize Acey services
+const { AceyWebSocket } = require('./server/acey-websocket');
+const aceyTTSRouter = require('./server/acey-tts');
+
+// Start Acey WebSocket server
+const aceyWebSocket = new AceyWebSocket({ port: 8081 });
+aceyWebSocket.start();
+
+// Mount Acey TTS routes
+app.use('/acey', aceyTTSRouter);
+
+// Graceful shutdown for Acey services
+process.on('SIGTERM', () => {
+  logger.info('Shutting down Acey services...');
+  aceyWebSocket.stop();
+});
+
+process.on('SIGINT', () => {
+  logger.info('Shutting down Acey services...');
+  aceyWebSocket.stop();
+});
+
+// Start server
+const PORT = process.env.PORT || 8080;
+const HOST = process.env.HOST || '0.0.0.0';
+
+server.listen(PORT, HOST, () => {
+  logger.info(`Server running on ${HOST}:${PORT}`);
+  logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  
+  // Initialize connection hardener after server starts
+  connectionHardener.startMonitoring();
+});
+
+
+
