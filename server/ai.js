@@ -1,8 +1,8 @@
 const Logger = require('./logger');
 const logger = new Logger('AI');
 const config = require('./config');
-const tunnelOptimizer = require('./tunnel-optimizer');
-const freeAI = require('./free-ai-manager');
+const TunnelOptimizer = require('./tunnel-optimizer');
+const FreeAIManager = require('./free-ai-manager');
 const AICache = require('./ai-cache');
 const AIPerformanceMonitor = require('./ai-performance-monitor');
 const resilienceManager = require('./resilience-manager');
@@ -12,14 +12,14 @@ const aiCache = new AICache({ maxSize: 500, ttl: 300000 });
 const performanceMonitor = new AIPerformanceMonitor();
 
 // Initialize AI manager
-const aiManager = new freeAI.FreeAIManager({
+const aiManager = new FreeAIManager({
   preferredProvider: config.AI_PROVIDER || 'ollama',
   fallbackToRules: true,
   enableLocalModels: false
 });
 
 // Initialize tunnel optimizer
-const optimizer = new tunnelOptimizer.TunnelOptimizer();
+const optimizer = new TunnelOptimizer();
 
 // Model selection function
 function selectModelForContext(messages = [], options = {}) {
