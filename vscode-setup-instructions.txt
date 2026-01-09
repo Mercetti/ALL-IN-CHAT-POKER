@@ -1,0 +1,51 @@
+VS Code Settings Setup Instructions
+==================================
+
+1. Open VS Code
+2. Press Ctrl+Shift+P (or Cmd+Shift+P on Mac)
+3. Type "Open Settings (JSON)" and press Enter
+4. Add the following settings to your settings.json:
+
+{
+  "liveServer.settings.port": 5173,
+  "liveServer.settings.root": "/apps/ai-control-center",
+  "liveServer.settings.wait": 1000,
+  "liveServer.settings.customBrowser": "chrome",
+  "liveServer.settings.ignoreFiles": [
+    ".git/**",
+    "node_modules/**", 
+    "dist/**",
+    ".vite/**"
+  ],
+  "emmet.includeLanguages": {
+    "javascript": "javascriptreact"
+  },
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.vite": true
+  },
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.env.windows": {
+    "NODE_ENV": "development"
+  }
+}
+
+5. Save the file (Ctrl+S)
+6. Restart VS Code
+
+Alternative: Create the file manually at:
+C:\Users\merce\Documents\poker-game\.vscode\settings.json
+
+Copy and paste the JSON content above into that file.
