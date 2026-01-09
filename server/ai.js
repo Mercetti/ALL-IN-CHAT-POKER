@@ -1,6 +1,7 @@
 const Logger = require('./logger');
 const config = require('./config');
 const FreeAIManager = require('./free-ai-manager');
+const TunnelOptimizer = require('./tunnel-optimizer');
 const fetch = global.fetch;
 
 const logger = new Logger('ai');
@@ -12,6 +13,9 @@ const freeAI = new FreeAIManager({
   enableLocalModels: false
 });
 
+// Initialize tunnel optimizer
+const tunnelOptimizer = new TunnelOptimizer();
+
 function assertProvider() {
   // Always available with free AI manager
   return freeAI.currentProvider?.name || 'rules';
@@ -21,13 +25,14 @@ async function chat(messages = [], options = {}) {
   // Context-aware model selection
   const selectedModel = selectModelForContext(messages, options);
   
-  // Use free AI manager with selected model
-  const aiOptions = {
+  // Optimize options for tunnel if needed
+  const optimizedOptions = tunnelOptimizer.optimizeAIRequest({
     ...options,
     model: selectedModel
-  };
+  });
   
-  return await freeAI.chat(messages, aiOptions);
+  // Use free AI manager with optimized options
+  return await freeAI.chat(messages, optimizedOptions);
 }
 
 function selectModelForContext(messages = [], options = {}) {

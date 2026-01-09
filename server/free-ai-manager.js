@@ -166,9 +166,12 @@ class OllamaProvider {
 
   async checkOllamaStatus() {
     try {
+      // Use shorter timeout for tunnel requests
+      const timeout = this.host.includes('trycloudflare.com') ? 3000 : 5000;
+      
       const response = await fetch(`${this.host}/api/tags`, {
-        method: 'GET',
-        timeout: 5000
+        timeout,
+        signal: AbortSignal.timeout(timeout)
       });
       return response.ok;
     } catch (error) {

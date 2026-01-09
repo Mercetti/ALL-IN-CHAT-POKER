@@ -209,7 +209,7 @@ class AceyEngine extends EventEmitter {
       const response = await this.ai.generateResponse(userPrompt, {
         systemPrompt,
         model: modelForContext,
-        maxTokens: 50,
+        maxTokens: 30, // Reduced from 50 for faster responses
         temperature: 0.8
       });
       
