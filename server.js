@@ -6111,7 +6111,7 @@ app.post('/admin/premier/revert', auth.requireAdmin, (req, res) => {
 
   }
 
-};
+});
 
 
 
