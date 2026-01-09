@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import PanelCard from './components/PanelCard';
 import RuntimePanel from './components/RuntimePanel';
 import ChatPanel from './components/ChatPanel';
+import ServiceManagementPanel from './components/ServiceManagementPanel';
 import useDashboardStore from './store/useDashboardStore';
 import { controlCenterLogin } from './services/api';
 import type { PanelKey } from './types/panels';
@@ -21,6 +22,7 @@ function App() {
   const [password, setPassword] = useState('');
   const [loginPending, setLoginPending] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'overview' | 'services'>('overview');
 
   useEffect(() => {
     fetchAll();
@@ -69,23 +71,36 @@ function App() {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <div>
-          <p className="eyebrow">All-In Chat Poker</p>
-          <h1>AI Control Center</h1>
-          <p className="subtitle">
-            Unified cockpit for every autonomous system — stay informed even if the main site goes down.
-          </p>
+        <div className="header-top">
+          <h1 className="app-title">AI Control Center</h1>
+          <div className="header-actions">
+            <span className="sync-pill">
+              {isLoading ? 'Refreshing…' : lastSync ? `Last sync · ${new Date(lastSync).toLocaleTimeString()}` : 'Sync pending'}
+            </span>
+            <button className="ghost-btn" onClick={fetchAll} disabled={isLoading}>
+              {isLoading ? 'Syncing' : 'Manual Sync'}
+            </button>
+            {/* Debug button to force login */}
+            <button className="ghost-btn" onClick={() => setAuthRequired(true)}>Force Login</button>
+          </div>
         </div>
-        <div className="header-meta">
-          <span className="sync-pill">
-            {isLoading ? 'Refreshing…' : lastSync ? `Last sync · ${new Date(lastSync).toLocaleTimeString()}` : 'Sync pending'}
-          </span>
-          <button className="ghost-btn" onClick={fetchAll} disabled={isLoading}>
-            {isLoading ? 'Syncing' : 'Manual Sync'}
+        
+        {/* Navigation Tabs */}
+        <div className="nav-tabs">
+          <button 
+            className={`nav-tab ${activeTab === 'overview' ? 'active' : ''}`}
+            onClick={() => setActiveTab('overview')}
+          >
+            Overview
           </button>
-          {/* Debug button to force login */}
-          <button className="ghost-btn" onClick={() => setAuthRequired(true)}>Force Login</button>
+          <button 
+            className={`nav-tab ${activeTab === 'services' ? 'active' : ''}`}
+            onClick={() => setActiveTab('services')}
+          >
+            Service Management
+          </button>
         </div>
+        
         {showAuthPanel && (
           <div className="auth-panel">
             <h3>Admin Login Required</h3>
@@ -108,19 +123,25 @@ function App() {
       </header>
 
       <div className="content-layout">
-        <section className="rail left-rail">
-          <RuntimePanel />
-        </section>
+        {activeTab === 'overview' ? (
+          <>
+            <section className="rail left-rail">
+              <RuntimePanel />
+            </section>
 
-        <main className="panel-grid">
-          {panelOrder.map((key) => (
-            <PanelCard key={key} status={statuses[key]} onRefresh={fetchAll} />
-          ))}
-        </main>
+            <main className="panel-grid">
+              {panelOrder.map((key) => (
+                <PanelCard key={key} status={statuses[key]} onRefresh={fetchAll} />
+              ))}
+            </main>
 
-        <section className="rail right-rail">
-          <ChatPanel />
-        </section>
+            <section className="rail right-rail">
+              <ChatPanel />
+            </section>
+          </>
+        ) : (
+          <ServiceManagementPanel />
+        )}
       </div>
     </div>
   );

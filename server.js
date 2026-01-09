@@ -426,6 +426,7 @@ process.on('SIGINT', () => {
 // Timer manager for centralized timer management
 const { timerManager, performance: perfUtils, dbOptimizer, memoryMonitor, performanceMonitor } = utils;
 const { registerAdminAiControlRoutes } = require('./server/routes/admin-ai-control');
+const adminServicesRoutes = require('./server/routes/admin-services');
 
 // Initialize unified AI system
 const unifiedAI = new UnifiedAISystem({
@@ -11551,9 +11552,10 @@ registerAdminAiControlRoutes(app, {
   performanceMonitor,
   collectAiOverviewPanels,
   unifiedAI,
-  sendMonitorAlert,
-  logger,
 });
+
+// Mount AI service management routes
+app.use('/admin/ai/services', adminServicesRoutes);
 
 /**
  * Get AI System Status (admin only)

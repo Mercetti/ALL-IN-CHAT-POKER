@@ -94,3 +94,6 @@ export async function controlCenterLogin(password: string): Promise<{ success: b
 
   return { success: result.success };
 }
+
+// Export apiFetch for use in other components
+export { apiFetch };
