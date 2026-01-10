@@ -9,6 +9,7 @@ import DeduplicationPanel from './components/DeduplicationPanel';
 import UpdatesPage from './components/UpdatesPage';
 import AceyDevHelper from './components/AceyDevHelper';
 import AceyFeedbackAnalyzer from './components/AceyFeedbackAnalyzer';
+import AceyTester from './components/AceyTester';
 import useDashboardStore from './store/useDashboardStore';
 import { controlCenterLogin } from './services/api';
 import type { PanelKey } from './types/panels';
@@ -28,7 +29,7 @@ function App() {
   const [password, setPassword] = useState('');
   const [loginPending, setLoginPending] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'services' | 'performance' | 'creation' | 'deduplication' | 'updates' | 'dev-helper' | 'feedback-analyzer'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'services' | 'performance' | 'creation' | 'deduplication' | 'updates' | 'dev-helper' | 'feedback-analyzer' | 'acey-tester'>('overview');
 
   useEffect(() => {
     fetchAll();
@@ -141,6 +142,12 @@ function App() {
           >
             💬 Feedback
           </button>
+          <button 
+            className={`nav-tab ${activeTab === 'acey-tester' ? 'active' : ''}`}
+            onClick={() => setActiveTab('acey-tester')}
+          >
+            🧪 Test Acey
+          </button>
         </div>
         
         {showAuthPanel && (
@@ -207,6 +214,10 @@ function App() {
 
         {activeTab === 'feedback-analyzer' && (
           <AceyFeedbackAnalyzer />
+        )}
+
+        {activeTab === 'acey-tester' && (
+          <AceyTester />
         )}
       </div>
     </div>
