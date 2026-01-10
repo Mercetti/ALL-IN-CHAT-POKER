@@ -460,7 +460,7 @@ function createSimpleAdminAiControlRouter() {
   // Get generated audio files
   router.get('/audio/files', (req, res) => {
     try {
-      // Mock audio files data
+      // Mock audio files data with approval and pricing
       res.json({
         success: true,
         data: {
@@ -473,7 +473,16 @@ function createSimpleAdminAiControlRouter() {
               duration: '2:30',
               size: '3.8MB',
               createdAt: '2026-01-09T18:45:00Z',
-              url: '/uploads/audio/poker_theme_energetic.mp3'
+              url: '/uploads/audio/poker_theme_energetic.mp3',
+              approvalStatus: 'approved',
+              price: {
+                basePrice: 25.00,
+                licenseType: 'standard',
+                usageFee: 0.10,
+                totalValue: 35.50
+              },
+              approvedBy: 'admin',
+              approvedAt: '2026-01-09T19:00:00Z'
             },
             {
               id: 'audio_002', 
@@ -483,7 +492,16 @@ function createSimpleAdminAiControlRouter() {
               duration: '0:03',
               size: '0.2MB',
               createdAt: '2026-01-09T18:47:00Z',
-              url: '/uploads/audio/chip_stack_sound.mp3'
+              url: '/uploads/audio/chip_stack_sound.mp3',
+              approvalStatus: 'pending',
+              price: {
+                basePrice: 5.00,
+                licenseType: 'basic',
+                usageFee: 0.02,
+                totalValue: 7.20
+              },
+              submittedBy: 'ai_generator',
+              qualityScore: 8.5
             },
             {
               id: 'audio_003',
@@ -493,11 +511,24 @@ function createSimpleAdminAiControlRouter() {
               duration: '0:05',
               size: '0.4MB',
               createdAt: '2026-01-09T18:50:00Z',
-              url: '/uploads/audio/victory_fanfare.mp3'
+              url: '/uploads/audio/victory_fanfare.mp3',
+              approvalStatus: 'rejected',
+              price: {
+                basePrice: 8.00,
+                licenseType: 'basic',
+                usageFee: 0.03,
+                totalValue: 11.40
+              },
+              rejectedBy: 'admin',
+              rejectedAt: '2026-01-09T19:15:00Z',
+              rejectionReason: 'Low quality audio, needs better mixing'
             }
           ],
           totalSize: '4.4MB',
-          totalCount: 3
+          totalCount: 3,
+          pendingApproval: 1,
+          approved: 1,
+          rejected: 1
         }
       });
     } catch (error) {
@@ -509,7 +540,7 @@ function createSimpleAdminAiControlRouter() {
   // Get cosmetic sets
   router.get('/cosmetics/sets', (req, res) => {
     try {
-      // Mock cosmetic sets data
+      // Mock cosmetic sets data with approval and pricing
       res.json({
         success: true,
         data: {
@@ -527,7 +558,18 @@ function createSimpleAdminAiControlRouter() {
                 table: '/uploads/cosmetics/neon_dreams_table.png'
               },
               style: 'detailed',
-              palette: ['#FF00FF', '#00FFFF', '#FFFF00']
+              palette: ['#FF00FF', '#00FFFF', '#FFFF00'],
+              approvalStatus: 'approved',
+              price: {
+                basePrice: 45.00,
+                licenseType: 'premium',
+                usageFee: 0.15,
+                totalValue: 67.50
+              },
+              approvedBy: 'admin',
+              approvedAt: '2026-01-09T19:30:00Z',
+              rarity: 'epic',
+              demand: 'high'
             },
             {
               id: 'cosmetic_002',
@@ -543,10 +585,24 @@ function createSimpleAdminAiControlRouter() {
                 chips: '/uploads/cosmetics/royal_flush_chips.png'
               },
               style: 'realistic',
-              palette: ['#FFD700', '#FFFFFF', '#8B4513']
+              palette: ['#FFD700', '#FFFFFF', '#8B4513'],
+              approvalStatus: 'pending',
+              price: {
+                basePrice: 120.00,
+                licenseType: 'exclusive',
+                usageFee: 0.25,
+                totalValue: 185.00
+              },
+              submittedBy: 'ai_generator',
+              qualityScore: 9.2,
+              rarity: 'legendary',
+              demand: 'very_high'
             }
           ],
-          totalCount: 2
+          totalCount: 2,
+          pendingApproval: 1,
+          approved: 1,
+          rejected: 0
         }
       });
     } catch (error) {
@@ -601,7 +657,16 @@ function createSimpleAdminAiControlRouter() {
         assets: {},
         style: style || 'detailed',
         palette: palette || ['#FF0000', '#00FF00', '#0000FF'],
-        status: 'generating'
+        status: 'generating',
+        approvalStatus: 'pending',
+        price: {
+          basePrice: 25.00,
+          licenseType: 'standard',
+          usageFee: 0.10,
+          totalValue: 35.50
+        },
+        submittedBy: 'ai_generator',
+        qualityScore: Math.random() * 2 + 8 // 8-10 range
       };
       
       res.json({
@@ -612,6 +677,312 @@ function createSimpleAdminAiControlRouter() {
     } catch (error) {
       console.error('Generate cosmetic error:', error);
       res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // Approval endpoints
+  
+  // Approve audio
+  router.post('/audio/:id/approve', (req, res) => {
+    try {
+      const { id } = req.params;
+      const { approvedBy, notes } = req.body;
+      
+      res.json({
+        success: true,
+        message: 'Audio approved successfully',
+        data: {
+          id,
+          approvalStatus: 'approved',
+          approvedBy: approvedBy || 'admin',
+          approvedAt: new Date().toISOString(),
+          notes
+        }
+      });
+    } catch (error) {
+      console.error('Approve audio error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // Reject audio
+  router.post('/audio/:id/reject', (req, res) => {
+    try {
+      const { id } = req.params;
+      const { rejectedBy, rejectionReason } = req.body;
+      
+      res.json({
+        success: true,
+        message: 'Audio rejected successfully',
+        data: {
+          id,
+          approvalStatus: 'rejected',
+          rejectedBy: rejectedBy || 'admin',
+          rejectedAt: new Date().toISOString(),
+          rejectionReason
+        }
+      });
+    } catch (error) {
+      console.error('Reject audio error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // Approve cosmetic
+  router.post('/cosmetics/:id/approve', (req, res) => {
+    try {
+      const { id } = req.params;
+      const { approvedBy, notes, priceAdjustment } = req.body;
+      
+      res.json({
+        success: true,
+        message: 'Cosmetic approved successfully',
+        data: {
+          id,
+          approvalStatus: 'approved',
+          approvedBy: approvedBy || 'admin',
+          approvedAt: new Date().toISOString(),
+          notes,
+          priceAdjustment
+        }
+      });
+    } catch (error) {
+      console.error('Approve cosmetic error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // Reject cosmetic
+  router.post('/cosmetics/:id/reject', (req, res) => {
+    try {
+      const { id } = req.params;
+      const { rejectedBy, rejectionReason } = req.body;
+      
+      res.json({
+        success: true,
+        message: 'Cosmetic rejected successfully',
+        data: {
+          id,
+          approvalStatus: 'rejected',
+          rejectedBy: rejectedBy || 'admin',
+          rejectedAt: new Date().toISOString(),
+          rejectionReason
+        }
+      });
+    } catch (error) {
+      console.error('Reject cosmetic error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // Get pricing schema
+  router.get('/pricing/schema', (req, res) => {
+    try {
+      res.json({
+        success: true,
+        data: {
+          audio: {
+            background_music: {
+              basic: { basePrice: 15.00, usageFee: 0.08, licenseType: 'basic' },
+              standard: { basePrice: 25.00, usageFee: 0.10, licenseType: 'standard' },
+              premium: { basePrice: 45.00, usageFee: 0.15, licenseType: 'premium' }
+            },
+            game_sound: {
+              basic: { basePrice: 5.00, usageFee: 0.02, licenseType: 'basic' },
+              standard: { basePrice: 8.00, usageFee: 0.03, licenseType: 'standard' },
+              premium: { basePrice: 15.00, usageFee: 0.05, licenseType: 'premium' }
+            },
+            voice_line: {
+              basic: { basePrice: 10.00, usageFee: 0.05, licenseType: 'basic' },
+              standard: { basePrice: 20.00, usageFee: 0.08, licenseType: 'standard' },
+              premium: { basePrice: 35.00, usageFee: 0.12, licenseType: 'premium' }
+            }
+          },
+          cosmetics: {
+            cardBack: {
+              basic: { basePrice: 15.00, usageFee: 0.05, licenseType: 'basic' },
+              standard: { basePrice: 30.00, usageFee: 0.10, licenseType: 'standard' },
+              premium: { basePrice: 45.00, usageFee: 0.15, licenseType: 'premium' }
+            },
+            table: {
+              basic: { basePrice: 25.00, usageFee: 0.08, licenseType: 'basic' },
+              standard: { basePrice: 50.00, usageFee: 0.12, licenseType: 'standard' },
+              premium: { basePrice: 85.00, usageFee: 0.20, licenseType: 'premium' }
+            },
+            chips: {
+              basic: { basePrice: 20.00, usageFee: 0.06, licenseType: 'basic' },
+              standard: { basePrice: 40.00, usageFee: 0.10, licenseType: 'standard' },
+              premium: { basePrice: 65.00, usageFee: 0.15, licenseType: 'premium' }
+            },
+            fullSet: {
+              basic: { basePrice: 60.00, usageFee: 0.15, licenseType: 'basic' },
+              standard: { basePrice: 120.00, usageFee: 0.25, licenseType: 'standard' },
+              exclusive: { basePrice: 200.00, usageFee: 0.35, licenseType: 'exclusive' }
+            }
+          },
+          pricingFactors: {
+            quality: {
+              excellent: 1.2,
+              good: 1.0,
+              fair: 0.8,
+              poor: 0.6
+            },
+            demand: {
+              very_high: 1.3,
+              high: 1.15,
+              medium: 1.0,
+              low: 0.85
+            },
+            rarity: {
+              common: 0.8,
+              uncommon: 1.0,
+              rare: 1.2,
+              epic: 1.4,
+              legendary: 1.8
+            }
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Get pricing schema error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // Cosmetics deduplication endpoints
+  router.post('/cosmetics/deduplicate', (req, res) => {
+    try {
+      const { action, cosmetics } = req.body;
+      
+      // Mock deduplication results
+      let result;
+      switch (action) {
+        case 'detect':
+          result = {
+            duplicates: [
+              {
+                group: 'neon_themes',
+                similarity: 0.92,
+                items: [
+                  { id: 'cosmetic_001', name: 'Neon Dreams', similarity: 0.95 },
+                  { id: 'cosmetic_003', name: 'Neon Nights', similarity: 0.89 }
+                ],
+                recommendation: 'review'
+              },
+              {
+                group: 'luxury_sets',
+                similarity: 0.87,
+                items: [
+                  { id: 'cosmetic_002', name: 'Royal Flush', similarity: 0.91 },
+                  { id: 'cosmetic_004', name: 'Royal Poker', similarity: 0.83 }
+                ],
+                recommendation: 'merge'
+              }
+            ],
+            totalGroups: 2,
+            totalDuplicates: 4,
+            potentialSavings: 85.00
+          };
+          break;
+        case 'remove':
+          result = {
+            removed: ['cosmetic_003', 'cosmetic_004'],
+            kept: ['cosmetic_001', 'cosmetic_002'],
+            spaceSaved: '245MB',
+            moneySaved: 85.00
+          };
+          break;
+        case 'merge':
+          result = {
+            merged: [
+              {
+                from: ['cosmetic_003'],
+                into: 'cosmetic_001',
+                newName: 'Neon Dreams Collection'
+              },
+              {
+                from: ['cosmetic_004'],
+                into: 'cosmetic_002',
+                newName: 'Royal Flush Enhanced'
+              }
+            ],
+            spaceSaved: '180MB',
+            moneySaved: 65.00
+          };
+          break;
+        case 'smart-cleanup':
+          result = {
+            original: cosmetics || [],
+            cleaned: cosmetics ? cosmetics.slice(0, Math.floor(cosmetics.length * 0.7)) : [],
+            duplicates: cosmetics ? cosmetics.slice(Math.floor(cosmetics.length * 0.7)) : [],
+            spaceSaved: '320MB',
+            moneySaved: 125.00,
+            qualityImproved: 15
+          };
+          break;
+        default:
+          throw new Error('Invalid action. Use: detect, remove, merge, or smart-cleanup');
+      }
+      
+      res.json({
+        success: true,
+        data: result
+      });
+    } catch (error) {
+      console.error('Cosmetic deduplication error:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  });
+
+  // AI-powered cosmetic cleanup
+  router.post('/cosmetics/ai-cleanup', (req, res) => {
+    try {
+      const { cosmetics } = req.body;
+      
+      // Mock AI cleanup results
+      const result = {
+        original: cosmetics || [],
+        cleaned: cosmetics ? cosmetics.slice(0, Math.floor(cosmetics.length * 0.8)) : [],
+        duplicates: cosmetics ? cosmetics.slice(Math.floor(cosmetics.length * 0.8)) : [],
+        improvements: {
+          quality: 12,
+          consistency: 18,
+          variety: 8
+        },
+        metrics: {
+          spaceSaved: '450MB',
+          moneySaved: 185.00,
+          processingTime: '2.3s'
+        }
+      };
+      
+      // Generate cleanup report
+      const report = {
+        summary: `AI cleanup completed successfully. Removed ${result.duplicates.length} duplicates, improved quality by ${result.improvements.quality}%, and saved $${result.metrics.moneySaved.toFixed(2)}.`,
+        recommendations: [
+          'Consider merging similar themes to reduce redundancy',
+          'Review low-performing cosmetics for removal',
+          'Optimize color palettes for better consistency'
+        ],
+        nextRun: '2026-01-16T01:30:00Z'
+      };
+      
+      res.json({
+        success: true,
+        data: {
+          result,
+          report
+        }
+      });
+    } catch (error) {
+      console.error('AI cosmetic cleanup error:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
     }
   });
 

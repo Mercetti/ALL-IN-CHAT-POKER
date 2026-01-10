@@ -130,5 +130,74 @@ export async function generateCosmetic(params: {
   });
 }
 
+// Approval API functions
+export async function approveAudio(id: string, approvedBy?: string, notes?: string) {
+  return await apiFetch<{ success: boolean; data: any; message: string }>(`/admin/ai/audio/${id}/approve`, {
+    method: 'POST',
+    body: JSON.stringify({ approvedBy, notes }),
+  });
+}
+
+export async function rejectAudio(id: string, rejectedBy?: string, rejectionReason?: string) {
+  return await apiFetch<{ success: boolean; data: any; message: string }>(`/admin/ai/audio/${id}/reject`, {
+    method: 'POST',
+    body: JSON.stringify({ rejectedBy, rejectionReason }),
+  });
+}
+
+export async function approveCosmetic(id: string, approvedBy?: string, notes?: string, priceAdjustment?: number) {
+  return await apiFetch<{ success: boolean; data: any; message: string }>(`/admin/ai/cosmetics/${id}/approve`, {
+    method: 'POST',
+    body: JSON.stringify({ approvedBy, notes, priceAdjustment }),
+  });
+}
+
+export async function rejectCosmetic(id: string, rejectedBy?: string, rejectionReason?: string) {
+  return await apiFetch<{ success: boolean; data: any; message: string }>(`/admin/ai/cosmetics/${id}/reject`, {
+    method: 'POST',
+    body: JSON.stringify({ rejectedBy, rejectionReason }),
+  });
+}
+
+export async function fetchPricingSchema() {
+  return await apiFetch<{ success: boolean; data: any }>('/admin/ai/pricing/schema');
+}
+
+// Cosmetics deduplication API functions
+export async function detectDuplicates(cosmetics: any[]) {
+  return await apiFetch<{ success: boolean; data: any }>('/admin/ai/cosmetics/deduplicate', {
+    method: 'POST',
+    body: JSON.stringify({ action: 'detect', cosmetics }),
+  });
+}
+
+export async function removeDuplicates(cosmetics: any[]) {
+  return await apiFetch<{ success: boolean; data: any }>('/admin/ai/cosmetics/deduplicate', {
+    method: 'POST',
+    body: JSON.stringify({ action: 'remove', cosmetics }),
+  });
+}
+
+export async function mergeDuplicates(cosmetics: any[]) {
+  return await apiFetch<{ success: boolean; data: any }>('/admin/ai/cosmetics/deduplicate', {
+    method: 'POST',
+    body: JSON.stringify({ action: 'merge', cosmetics }),
+  });
+}
+
+export async function smartCleanup(cosmetics: any[]) {
+  return await apiFetch<{ success: boolean; data: any }>('/admin/ai/cosmetics/deduplicate', {
+    method: 'POST',
+    body: JSON.stringify({ action: 'smart-cleanup', cosmetics }),
+  });
+}
+
+export async function aiCleanup(cosmetics: any[]) {
+  return await apiFetch<{ success: boolean; data: any }>('/admin/ai/cosmetics/ai-cleanup', {
+    method: 'POST',
+    body: JSON.stringify({ cosmetics }),
+  });
+}
+
 // Export apiFetch for use in other components
 export { apiFetch };

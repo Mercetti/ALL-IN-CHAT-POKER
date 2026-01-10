@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { fetchAudioFiles, fetchCosmeticSets, generateAudio, generateCosmetic } from '../services/api';
+import { 
+  fetchAudioFiles, 
+  fetchCosmeticSets, 
+  generateAudio, 
+  generateCosmetic,
+  approveAudio,
+  rejectAudio,
+  approveCosmetic,
+  rejectCosmetic,
+  fetchPricingSchema
+} from '../services/api';
 import './CreationReviewPanel.css';
 
 interface AudioFile {
@@ -12,6 +22,19 @@ interface AudioFile {
   size: string;
   createdAt: string;
   url: string;
+  approvalStatus: 'pending' | 'approved' | 'rejected';
+  price: {
+    basePrice: number;
+    licenseType: string;
+    usageFee: number;
+    totalValue: number;
+  };
+  approvedBy?: string;
+  approvedAt?: string;
+  rejectedBy?: string;
+  rejectedAt?: string;
+  rejectionReason?: string;
+  qualityScore?: number;
 }
 
 interface CosmeticSet {
@@ -25,6 +48,21 @@ interface CosmeticSet {
   assets: any;
   style: string;
   palette: string[];
+  approvalStatus: 'pending' | 'approved' | 'rejected';
+  price: {
+    basePrice: number;
+    licenseType: string;
+    usageFee: number;
+    totalValue: number;
+  };
+  approvedBy?: string;
+  approvedAt?: string;
+  rejectedBy?: string;
+  rejectedAt?: string;
+  rejectionReason?: string;
+  qualityScore?: number;
+  rarity?: string;
+  demand?: string;
 }
 
 export default function CreationReviewPanel() {
@@ -33,6 +71,12 @@ export default function CreationReviewPanel() {
   const [cosmeticSets, setCosmeticSets] = useState<CosmeticSet[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pricingSchema, setPricingSchema] = useState<any>(null);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [approvalItem, setApprovalItem] = useState<any>(null);
+  const [approvalAction, setApprovalAction] = useState<'approve' | 'reject'>('approve');
+  const [approvalNotes, setApprovalNotes] = useState('');
+  const [priceAdjustment, setPriceAdjustment] = useState(0);
   
   // Audio generation form
   const [audioForm, setAudioForm] = useState({
@@ -54,7 +98,19 @@ export default function CreationReviewPanel() {
 
   useEffect(() => {
     loadData();
+    loadPricingSchema();
   }, [activeTab]);
+
+  const loadPricingSchema = async () => {
+    try {
+      const schema = await fetchPricingSchema();
+      if (schema.success) {
+        setPricingSchema(schema.data);
+      }
+    } catch (err) {
+      console.error('Failed to load pricing schema:', err);
+    }
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -128,6 +184,101 @@ export default function CreationReviewPanel() {
       setError(err instanceof Error ? err.message : 'Failed to generate cosmetic');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleApproveAudio = async (audioId: string) => {
+    try {
+      const result = await approveAudio(audioId, 'admin', approvalNotes);
+      if (result.success) {
+        await loadData();
+        setShowApprovalModal(false);
+        setApprovalNotes('');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to approve audio');
+    }
+  };
+
+  const handleRejectAudio = async (audioId: string) => {
+    try {
+      const result = await rejectAudio(audioId, 'admin', approvalNotes);
+      if (result.success) {
+        await loadData();
+        setShowApprovalModal(false);
+        setApprovalNotes('');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to reject audio');
+    }
+  };
+
+  const handleApproveCosmetic = async (cosmeticId: string) => {
+    try {
+      const result = await approveCosmetic(cosmeticId, 'admin', approvalNotes, priceAdjustment);
+      if (result.success) {
+        await loadData();
+        setShowApprovalModal(false);
+        setApprovalNotes('');
+        setPriceAdjustment(0);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to approve cosmetic');
+    }
+  };
+
+  const handleRejectCosmetic = async (cosmeticId: string) => {
+    try {
+      const result = await rejectCosmetic(cosmeticId, 'admin', approvalNotes);
+      if (result.success) {
+        await loadData();
+        setShowApprovalModal(false);
+        setApprovalNotes('');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to reject cosmetic');
+    }
+  };
+
+  const openApprovalModal = (item: any, action: 'approve' | 'reject') => {
+    setApprovalItem(item);
+    setApprovalAction(action);
+    setShowApprovalModal(true);
+  };
+
+  const handleApprovalSubmit = () => {
+    if (!approvalItem) return;
+    
+    if (activeTab === 'audio') {
+      if (approvalAction === 'approve') {
+        handleApproveAudio(approvalItem.id);
+      } else {
+        handleRejectAudio(approvalItem.id);
+      }
+    } else {
+      if (approvalAction === 'approve') {
+        handleApproveCosmetic(approvalItem.id);
+      } else {
+        handleRejectCosmetic(approvalItem.id);
+      }
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'approved': return '#00ff88';
+      case 'pending': return '#ffaa00';
+      case 'rejected': return '#ff4444';
+      default: return '#888';
+    }
+  };
+
+  const getApprovalBadge = (status: string) => {
+    switch (status) {
+      case 'approved': return '✅ Approved';
+      case 'pending': return '⏳ Pending';
+      case 'rejected': return '❌ Rejected';
+      default: return status;
     }
   };
 
@@ -233,19 +384,75 @@ export default function CreationReviewPanel() {
                   {audioFiles.map((file) => (
                     <div key={file.id} className="audio-item">
                       <div className="audio-info">
-                        <h3>{file.name}</h3>
+                        <div className="item-header">
+                          <h3>{file.name}</h3>
+                          <span 
+                            className="approval-badge" 
+                            style={{ color: getStatusColor(file.approvalStatus) }}
+                          >
+                            {getApprovalBadge(file.approvalStatus)}
+                          </span>
+                        </div>
                         <p>Type: {file.type}</p>
                         <p>Mood: {file.mood || file.effectType}</p>
                         <p>Duration: {file.duration}</p>
                         <p>Size: {file.size}</p>
                         <p>Created: {new Date(file.createdAt).toLocaleDateString()}</p>
+                        
+                        {/* Pricing Information */}
+                        <div className="pricing-info">
+                          <h4>💰 Pricing</h4>
+                          <p>Base: ${file.price.basePrice.toFixed(2)}</p>
+                          <p>License: {file.price.licenseType}</p>
+                          <p>Usage Fee: ${file.price.usageFee.toFixed(2)}</p>
+                          <p><strong>Total Value: ${file.price.totalValue.toFixed(2)}</strong></p>
+                        </div>
+                        
+                        {/* Quality Score */}
+                        {file.qualityScore && (
+                          <div className="quality-score">
+                            <p>⭐ Quality: {file.qualityScore.toFixed(1)}/10</p>
+                          </div>
+                        )}
+                        
+                        {/* Approval Info */}
+                        {file.approvedBy && (
+                          <p className="approval-info">
+                            ✅ Approved by {file.approvedBy} on {new Date(file.approvedAt!).toLocaleDateString()}
+                          </p>
+                        )}
+                        
+                        {file.rejectedBy && (
+                          <div className="rejection-info">
+                            <p>❌ Rejected by {file.rejectedBy}</p>
+                            <p>Reason: {file.rejectionReason}</p>
+                          </div>
+                        )}
                       </div>
                       <div className="audio-controls">
                         <audio controls>
                           <source src={file.url} type="audio/mpeg" />
                           Your browser does not support the audio element.
                         </audio>
-                        <button className="ghost-btn">🗑️ Delete</button>
+                        <div className="action-buttons">
+                          {file.approvalStatus === 'pending' && (
+                            <>
+                              <button 
+                                className="approve-btn" 
+                                onClick={() => openApprovalModal(file, 'approve')}
+                              >
+                                ✅ Approve
+                              </button>
+                              <button 
+                                className="reject-btn" 
+                                onClick={() => openApprovalModal(file, 'reject')}
+                              >
+                                ❌ Reject
+                              </button>
+                            </>
+                          )}
+                          <button className="ghost-btn">🗑️ Delete</button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -352,6 +559,74 @@ export default function CreationReviewPanel() {
           </div>
         )}
       </div>
+
+      {/* Approval Modal */}
+      {showApprovalModal && approvalItem && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2>
+              {approvalAction === 'approve' ? '✅ Approve' : '❌ Reject'} {activeTab === 'audio' ? 'Audio' : 'Cosmetic'}
+            </h2>
+            <div className="modal-item-info">
+              <h3>{approvalItem.name}</h3>
+              <p>{approvalItem.description || approvalItem.type}</p>
+              {approvalItem.price && (
+                <div className="modal-pricing">
+                  <p><strong>Base Price:</strong> ${approvalItem.price.basePrice.toFixed(2)}</p>
+                  <p><strong>Total Value:</strong> ${approvalItem.price.totalValue.toFixed(2)}</p>
+                </div>
+              )}
+            </div>
+            
+            <div className="modal-form">
+              <div className="form-group">
+                <label>
+                  {approvalAction === 'approve' ? 'Approval Notes:' : 'Rejection Reason:'}
+                </label>
+                <textarea
+                  value={approvalNotes}
+                  onChange={(e) => setApprovalNotes(e.target.value)}
+                  placeholder={approvalAction === 'approve' ? 'Add any approval notes...' : 'Provide a reason for rejection...'}
+                  rows={3}
+                />
+              </div>
+              
+              {approvalAction === 'approve' && activeTab === 'cosmetics' && (
+                <div className="form-group">
+                  <label>Price Adjustment ($):</label>
+                  <input
+                    type="number"
+                    value={priceAdjustment}
+                    onChange={(e) => setPriceAdjustment(Number(e.target.value))}
+                    placeholder="0.00"
+                    step="0.01"
+                  />
+                </div>
+              )}
+            </div>
+            
+            <div className="modal-actions">
+              <button 
+                className="ghost-btn" 
+                onClick={() => {
+                  setShowApprovalModal(false);
+                  setApprovalNotes('');
+                  setPriceAdjustment(0);
+                }}
+              >
+                Cancel
+              </button>
+              <button 
+                className={`${approvalAction === 'approve' ? 'primary-btn' : 'reject-btn'}`}
+                onClick={handleApprovalSubmit}
+                disabled={loading || !approvalNotes.trim()}
+              >
+                {loading ? 'Processing...' : `${approvalAction === 'approve' ? '✅ Approve' : '❌ Reject'}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
