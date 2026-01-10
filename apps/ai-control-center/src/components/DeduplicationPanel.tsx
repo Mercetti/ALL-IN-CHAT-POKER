@@ -89,6 +89,7 @@ export default function DeduplicationPanel() {
     try {
       const result = await removeDuplicates(cosmetics);
       if (result.success) {
+        console.log('Remove duplicates result:', result.data);
         setDeduplicationResult(result.data);
         await loadCosmetics(); // Refresh the list
       }
@@ -108,6 +109,7 @@ export default function DeduplicationPanel() {
     try {
       const result = await mergeDuplicates(cosmetics);
       if (result.success) {
+        console.log('Merge duplicates result:', result.data);
         setDeduplicationResult(result.data);
         await loadCosmetics(); // Refresh the list
       }
@@ -125,6 +127,7 @@ export default function DeduplicationPanel() {
     try {
       const result = await smartCleanup(cosmetics);
       if (result.success) {
+        console.log('Smart cleanup result:', result.data);
         setDeduplicationResult(result.data);
         await loadCosmetics(); // Refresh the list
       }
@@ -339,6 +342,17 @@ export default function DeduplicationPanel() {
             {deduplicationResult && (
               <div className="action-results">
                 <h3>📈 Last Action Results</h3>
+                
+                {/* Debug info - remove in production */}
+                {process.env.NODE_ENV === 'development' && (
+                  <details style={{ marginBottom: '1rem', fontSize: '0.8rem', color: '#888' }}>
+                    <summary>Debug Info</summary>
+                    <pre style={{ background: '#2a2a2a', padding: '0.5rem', borderRadius: '4px', overflow: 'auto' }}>
+                      {JSON.stringify(deduplicationResult, null, 2)}
+                    </pre>
+                  </details>
+                )}
+                
                 <div className="results-grid">
                   {deduplicationResult.spaceSaved && (
                     <div className="result-item">
@@ -358,7 +372,58 @@ export default function DeduplicationPanel() {
                       <span className="result-value">+{deduplicationResult.qualityImproved}%</span>
                     </div>
                   )}
+                  {deduplicationResult.removed && (
+                    <div className="result-item">
+                      <span className="result-label">Items Removed:</span>
+                      <span className="result-value">{deduplicationResult.removed.length}</span>
+                    </div>
+                  )}
+                  {deduplicationResult.kept && (
+                    <div className="result-item">
+                      <span className="result-label">Items Kept:</span>
+                      <span className="result-value">{deduplicationResult.kept.length}</span>
+                    </div>
+                  )}
+                  {deduplicationResult.merged && (
+                    <div className="result-item">
+                      <span className="result-label">Items Merged:</span>
+                      <span className="result-value">{deduplicationResult.merged.length}</span>
+                    </div>
+                  )}
+                  {deduplicationResult.totalGroups && (
+                    <div className="result-item">
+                      <span className="result-label">Duplicate Groups:</span>
+                      <span className="result-value">{deduplicationResult.totalGroups}</span>
+                    </div>
+                  )}
+                  {deduplicationResult.totalDuplicates && (
+                    <div className="result-item">
+                      <span className="result-label">Total Duplicates:</span>
+                      <span className="result-value">{deduplicationResult.totalDuplicates}</span>
+                    </div>
+                  )}
+                  {deduplicationResult.potentialSavings && (
+                    <div className="result-item">
+                      <span className="result-label">Potential Savings:</span>
+                      <span className="result-value">${deduplicationResult.potentialSavings.toFixed(2)}</span>
+                    </div>
+                  )}
                 </div>
+                
+                {/* Show message if no result properties match */}
+                {!deduplicationResult.spaceSaved && 
+                 !deduplicationResult.moneySaved && 
+                 !deduplicationResult.qualityImproved && 
+                 !deduplicationResult.removed && 
+                 !deduplicationResult.kept && 
+                 !deduplicationResult.merged && 
+                 !deduplicationResult.totalGroups && 
+                 !deduplicationResult.totalDuplicates && 
+                 !deduplicationResult.potentialSavings && (
+                  <div className="result-item" style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#888' }}>
+                    <span>Action completed, but no result metrics available</span>
+                  </div>
+                )}
               </div>
             )}
           </div>

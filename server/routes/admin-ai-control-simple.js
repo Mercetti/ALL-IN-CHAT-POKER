@@ -986,13 +986,66 @@ function createSimpleAdminAiControlRouter() {
     }
   });
 
-  // Placeholder image endpoint
+  // Placeholder image endpoint for missing assets
   router.get('/assets/placeholder.png', (req, res) => {
     // Return a simple 1x1 transparent PNG as base64
     const transparentPixel = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
     res.setHeader('Content-Type', 'image/png');
     res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 1 day
     res.send(transparentPixel);
+  });
+
+  // Dynamic cosmetic preview image generation
+  router.get('/uploads/cosmetics/:filename', (req, res) => {
+    try {
+      const { filename } = req.params;
+      
+      // Extract cosmetic ID from filename
+      const cosmeticId = filename.replace('_preview.png', '');
+      
+      // Generate different colored placeholders based on cosmetic ID
+      let color = '#888888'; // Default gray
+      
+      switch (cosmeticId) {
+        case 'cosmetic_001':
+          color = '#FF00FF'; // Neon purple
+          break;
+        case 'cosmetic_002':
+          color = '#FFD700'; // Gold
+          break;
+        case 'cosmetic_003':
+          color = '#00FFFF'; // Cyan
+          break;
+        case 'cosmetic_004':
+          color = '#FF8800'; // Orange
+          break;
+        default:
+          color = '#888888';
+      }
+      
+      // Create a simple 200x200 PNG with the color
+      const canvas = `
+        <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+          <rect width="200" height="200" fill="${color}"/>
+          <text x="100" y="100" font-family="Arial" font-size="14" fill="white" text-anchor="middle" dominant-baseline="middle">
+            ${cosmeticId.toUpperCase()}
+          </text>
+        </svg>
+      `;
+      
+      // Convert SVG to PNG (simplified - in production you'd use a proper image library)
+      const svgBuffer = Buffer.from(canvas);
+      
+      res.setHeader('Content-Type', 'image/svg+xml');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      res.send(svgBuffer);
+    } catch (error) {
+      console.error('Preview image error:', error);
+      // Fallback to transparent pixel
+      const transparentPixel = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
+      res.setHeader('Content-Type', 'image/png');
+      res.send(transparentPixel);
+    }
   });
 
   return router;
