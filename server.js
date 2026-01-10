@@ -205,6 +205,87 @@ app.get('/assets/placeholder.png', (req, res) => {
   res.send(transparentPixel);
 });
 
+// Dynamic cosmetic preview image generation
+app.get('/uploads/cosmetics/:filename', (req, res) => {
+  try {
+    const { filename } = req.params;
+    
+    // Extract cosmetic ID from filename
+    const cosmeticId = filename.replace('_preview.png', '').replace('_cardback.png', '').replace('_table.png', '').replace('_chips.png', '');
+    
+    // Generate different colored placeholders based on cosmetic ID
+    let color = '#888888'; // Default gray
+    
+    switch (cosmeticId) {
+      case 'cosmetic_001':
+        color = '#FF00FF'; // Neon purple
+        break;
+      case 'cosmetic_002':
+        color = '#FFD700'; // Gold
+        break;
+      case 'cosmetic_003':
+        color = '#00FFFF'; // Cyan
+        break;
+      case 'cosmetic_004':
+        color = '#FF8800'; // Orange
+        break;
+      default:
+        color = '#888888';
+    }
+    
+    // Create a simple 200x200 SVG with the color
+    const svg = `
+      <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+        <rect width="200" height="200" fill="${color}"/>
+        <text x="100" y="100" font-family="Arial" font-size="14" fill="white" text-anchor="middle" dominant-baseline="middle">
+          ${cosmeticId.toUpperCase()}
+        </text>
+      </svg>
+    `;
+    
+    const svgBuffer = Buffer.from(svg);
+    
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.send(svgBuffer);
+  } catch (error) {
+    console.error('Preview image error:', error);
+    // Fallback to transparent pixel
+    const transparentPixel = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
+    res.setHeader('Content-Type', 'image/png');
+    res.send(transparentPixel);
+  }
+});
+
+// Audio file endpoints - return mock audio data or placeholder
+app.get('/uploads/audio/:filename', (req, res) => {
+  try {
+    const { filename } = req.params;
+    
+    // Extract audio ID from filename
+    const audioId = filename.replace('.mp3', '');
+    
+    // Generate a simple audio placeholder response
+    const audioInfo = {
+      id: audioId,
+      name: filename,
+      type: 'placeholder',
+      message: 'Audio file placeholder - actual audio would be served here'
+    };
+    
+    // For now, return a 404 with info about the missing file
+    // In production, you'd serve actual audio files
+    res.status(404).json({
+      error: 'Audio file not found',
+      info: audioInfo,
+      message: 'This is a placeholder endpoint. Actual audio files would be stored and served from here.'
+    });
+  } catch (error) {
+    console.error('Audio file error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Start server
 const PORT = process.env.PORT || 8080;
 const HOST = process.env.HOST || '0.0.0.0';

@@ -53,6 +53,10 @@ export default function DeduplicationPanel() {
     loadCosmetics();
   }, []);
 
+  useEffect(() => {
+    console.log('deduplicationResult changed:', deduplicationResult);
+  }, [deduplicationResult]);
+
   const loadCosmetics = async () => {
     try {
       const data = await fetchCosmeticSets();
@@ -70,7 +74,9 @@ export default function DeduplicationPanel() {
     
     try {
       const result = await detectDuplicates(cosmetics);
+      console.log('Detect duplicates result:', result);
       if (result.success) {
+        console.log('Setting deduplicationResult to:', result.data);
         setDeduplicationResult(result.data);
       }
     } catch (err) {
