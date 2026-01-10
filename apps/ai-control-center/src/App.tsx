@@ -4,6 +4,7 @@ import RuntimePanel from './components/RuntimePanel';
 import ChatPanel from './components/ChatPanel';
 import ServiceManagementPanel from './components/ServiceManagementPanel';
 import AIPerformancePanel from './components/AIPerformancePanel';
+import CreationReviewPanel from './components/CreationReviewPanel';
 import useDashboardStore from './store/useDashboardStore';
 import { controlCenterLogin } from './services/api';
 import type { PanelKey } from './types/panels';
@@ -23,7 +24,7 @@ function App() {
   const [password, setPassword] = useState('');
   const [loginPending, setLoginPending] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'services' | 'performance'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'services' | 'performance' | 'creation'>('overview');
 
   useEffect(() => {
     fetchAll();
@@ -106,6 +107,12 @@ function App() {
           >
             AI Performance
           </button>
+          <button 
+            className={`nav-tab ${activeTab === 'creation' ? 'active' : ''}`}
+            onClick={() => setActiveTab('creation')}
+          >
+            🎨 Creation Studio
+          </button>
         </div>
         
         {showAuthPanel && (
@@ -152,6 +159,10 @@ function App() {
 
         {activeTab === 'performance' && (
           <AIPerformancePanel />
+        )}
+
+        {activeTab === 'creation' && (
+          <CreationReviewPanel />
         )}
       </div>
     </div>

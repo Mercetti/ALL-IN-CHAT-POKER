@@ -95,5 +95,40 @@ export async function controlCenterLogin(password: string): Promise<{ success: b
   return { success: result.success };
 }
 
+// Audio and Cosmetics API functions
+export async function fetchAudioFiles() {
+  return await apiFetch<{ success: boolean; data: { files: any[], totalSize: string, totalCount: number } }>('/admin/ai/audio/files');
+}
+
+export async function fetchCosmeticSets() {
+  return await apiFetch<{ success: boolean; data: { sets: any[], totalCount: number } }>('/admin/ai/cosmetics/sets');
+}
+
+export async function generateAudio(params: {
+  type: string;
+  mood?: string;
+  duration?: string;
+  effectType?: string;
+  description?: string;
+}) {
+  return await apiFetch<{ success: boolean; data: any; message: string }>('/admin/ai/audio/generate', {
+    method: 'POST',
+    body: JSON.stringify(params),
+  });
+}
+
+export async function generateCosmetic(params: {
+  prompt: string;
+  preset?: string;
+  cosmeticTypes?: string[];
+  style?: string;
+  palette?: string[];
+}) {
+  return await apiFetch<{ success: boolean; data: any; message: string }>('/admin/ai/cosmetics/generate', {
+    method: 'POST',
+    body: JSON.stringify(params),
+  });
+}
+
 // Export apiFetch for use in other components
 export { apiFetch };

@@ -455,6 +455,166 @@ function createSimpleAdminAiControlRouter() {
     }
   });
 
+  // Audio and Cosmetics review endpoints
+  
+  // Get generated audio files
+  router.get('/audio/files', (req, res) => {
+    try {
+      // Mock audio files data
+      res.json({
+        success: true,
+        data: {
+          files: [
+            {
+              id: 'audio_001',
+              name: 'poker_theme_energetic.mp3',
+              type: 'background_music',
+              mood: 'energetic',
+              duration: '2:30',
+              size: '3.8MB',
+              createdAt: '2026-01-09T18:45:00Z',
+              url: '/uploads/audio/poker_theme_energetic.mp3'
+            },
+            {
+              id: 'audio_002', 
+              name: 'chip_stack_sound.mp3',
+              type: 'game_sound',
+              effectType: 'chip_stack',
+              duration: '0:03',
+              size: '0.2MB',
+              createdAt: '2026-01-09T18:47:00Z',
+              url: '/uploads/audio/chip_stack_sound.mp3'
+            },
+            {
+              id: 'audio_003',
+              name: 'victory_fanfare.mp3',
+              type: 'game_sound',
+              effectType: 'victory',
+              duration: '0:05',
+              size: '0.4MB',
+              createdAt: '2026-01-09T18:50:00Z',
+              url: '/uploads/audio/victory_fanfare.mp3'
+            }
+          ],
+          totalSize: '4.4MB',
+          totalCount: 3
+        }
+      });
+    } catch (error) {
+      console.error('Get audio files error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // Get cosmetic sets
+  router.get('/cosmetics/sets', (req, res) => {
+    try {
+      // Mock cosmetic sets data
+      res.json({
+        success: true,
+        data: {
+          sets: [
+            {
+              id: 'cosmetic_001',
+              name: 'Neon Dreams',
+              theme: 'neon',
+              type: 'cardBack',
+              description: 'Vibrant neon card back with glowing effects',
+              createdAt: '2026-01-09T19:00:00Z',
+              preview: '/uploads/cosmetics/neon_dreams_preview.png',
+              assets: {
+                cardBack: '/uploads/cosmetics/neon_dreams_cardback.png',
+                table: '/uploads/cosmetics/neon_dreams_table.png'
+              },
+              style: 'detailed',
+              palette: ['#FF00FF', '#00FFFF', '#FFFF00']
+            },
+            {
+              id: 'cosmetic_002',
+              name: 'Royal Flush',
+              theme: 'luxury',
+              type: 'fullSet',
+              description: 'Elegant gold and marble themed poker set',
+              createdAt: '2026-01-09T19:15:00Z',
+              preview: '/uploads/cosmetics/royal_flush_preview.png',
+              assets: {
+                cardBack: '/uploads/cosmetics/royal_flush_cardback.png',
+                table: '/uploads/cosmetics/royal_flush_table.png',
+                chips: '/uploads/cosmetics/royal_flush_chips.png'
+              },
+              style: 'realistic',
+              palette: ['#FFD700', '#FFFFFF', '#8B4513']
+            }
+          ],
+          totalCount: 2
+        }
+      });
+    } catch (error) {
+      console.error('Get cosmetic sets error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // Generate new audio
+  router.post('/audio/generate', (req, res) => {
+    try {
+      const { type, mood, duration, effectType, description } = req.body;
+      
+      // Mock generation response
+      const newAudio = {
+        id: `audio_${Date.now()}`,
+        name: `${type}_${mood || effectType}_${Date.now()}.mp3`,
+        type,
+        mood: mood || effectType,
+        duration: duration || '0:05',
+        size: '2.1MB',
+        createdAt: new Date().toISOString(),
+        url: `/uploads/audio/${type}_${mood || effectType}_${Date.now()}.mp3`,
+        status: 'generating'
+      };
+      
+      res.json({
+        success: true,
+        data: newAudio,
+        message: 'Audio generation started'
+      });
+    } catch (error) {
+      console.error('Generate audio error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // Generate new cosmetic
+  router.post('/cosmetics/generate', (req, res) => {
+    try {
+      const { prompt, preset, cosmeticTypes, style, palette } = req.body;
+      
+      // Mock generation response
+      const newCosmetic = {
+        id: `cosmetic_${Date.now()}`,
+        name: `${preset || 'custom'}_${Date.now()}`,
+        theme: prompt || 'custom',
+        type: cosmeticTypes?.[0] || 'cardBack',
+        description: `AI-generated cosmetic based on: ${prompt}`,
+        createdAt: new Date().toISOString(),
+        preview: `/uploads/cosmetics/${preset || 'custom'}_preview.png`,
+        assets: {},
+        style: style || 'detailed',
+        palette: palette || ['#FF0000', '#00FF00', '#0000FF'],
+        status: 'generating'
+      };
+      
+      res.json({
+        success: true,
+        data: newCosmetic,
+        message: 'Cosmetic generation started'
+      });
+    } catch (error) {
+      console.error('Generate cosmetic error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
   return router;
 }
 
