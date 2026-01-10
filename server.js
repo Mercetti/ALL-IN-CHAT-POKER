@@ -233,92 +233,19 @@ app.get('/uploads/cosmetics/:filename', (req, res) => {
         color = '#888888';
     }
     
-    // Convert hex color to RGB
-    const r = parseInt(color.slice(1, 3), 16);
-    const g = parseInt(color.slice(3, 5), 16);
-    const b = parseInt(color.slice(5, 7), 16);
+    // Create a simple SVG image (browsers can handle SVG in img tags)
+    const svg = `
+      <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+        <rect width="200" height="200" fill="${color}"/>
+        <text x="100" y="100" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle" dominant-baseline="middle">
+          ${cosmeticId.toUpperCase()}
+        </text>
+      </svg>
+    `;
     
-    // Create a simple 200x200 PNG with the color
-    // PNG header
-    const pngHeader = Buffer.from([
-      0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A // PNG signature
-    ]);
-    
-    // IHDR chunk (image header)
-    const width = 200;
-    const height = 200;
-    const ihdrData = Buffer.concat([
-      Buffer.from([width >> 24, width >> 16, width >> 8, width]), // width
-      Buffer.from([height >> 24, height >> 16, height >> 8, height]), // height
-      Buffer.from([8, 2, 0, 0, 0]) // bit depth, color type, compression, filter, interlace
-    ]);
-    
-    const ihdrCrc = Buffer.from([0x73, 0x65, 0x52, 0x07]); // Pre-calculated CRC for this IHDR
-    
-    const ihdrChunk = Buffer.concat([
-      Buffer.from([0x00, 0x00, 0x00, 0x0D]), // Chunk length (13)
-      Buffer.from('IHDR'), // Chunk type
-      ihdrData,
-      ihdrCrc
-    ]);
-    
-    // Create simple image data (solid color)
-    const pixelData = Buffer.alloc(width * height * 3); // RGB for each pixel
-    for (let i = 0; i < pixelData.length; i += 3) {
-      pixelData[i] = r;     // Red
-      pixelData[i + 1] = g; // Green
-      pixelData[i + 2] = b; // Blue
-    }
-    
-    // Add text overlay (cosmetic ID)
-    const text = cosmeticId.toUpperCase();
-    const textX = Math.floor((width - text.length * 8) / 2);
-    const textY = Math.floor(height / 2);
-    
-    // Simple text rendering (just draw some pixels for demo)
-    for (let i = 0; i < text.length; i++) {
-      const charX = textX + i * 10;
-      const charY = textY;
-      // Draw a simple rectangle for each character
-      for (let y = charY - 8; y < charY + 8; y++) {
-        for (let x = charX; x < charX + 8; x++) {
-          if (x >= 0 && x < width && y >= 0 && y < height) {
-            const idx = (y * width + x) * 3;
-            pixelData[idx] = 255;     // White text
-            pixelData[idx + 1] = 255;
-            pixelData[idx + 2] = 255;
-          }
-        }
-      }
-    }
-    
-    // Compress the pixel data (simplified - just use raw data)
-    const idatData = Buffer.concat([
-      Buffer.from([0x78, 0x9C]), // zlib header
-      Buffer.from([0x01]), // compression method
-      pixelData, // raw data
-      Buffer.from([0x00, 0x00, 0x00, 0x00]) // CRC
-    ]);
-    
-    const idatChunk = Buffer.concat([
-      Buffer.from([idatData.length >> 24, idatData.length >> 16, idatData.length >> 8, idatData.length]),
-      Buffer.from('IDAT'),
-      idatData
-    ]);
-    
-    // IEND chunk
-    const iendChunk = Buffer.from([
-      0x00, 0x00, 0x00, 0x00, // Length
-      0x49, 0x45, 0x4E, 0x44, // "IEND"
-      0xAE, 0x42, 0x60, 0x82  // CRC
-    ]);
-    
-    // Combine all chunks
-    const fullPng = Buffer.concat([pngHeader, ihdrChunk, idatChunk, iendChunk]);
-    
-    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Content-Type', 'image/svg+xml');
     res.setHeader('Cache-Control', 'public, max-age=86400');
-    res.send(fullPng);
+    res.send(svg);
   } catch (error) {
     console.error('Preview image error:', error);
     // Fallback to transparent pixel
@@ -336,42 +263,58 @@ app.get('/uploads/audio/:filename', (req, res) => {
     // Extract audio ID from filename
     const audioId = filename.replace('.mp3', '');
     
-    // Return a minimal but valid WAV file
-    // Using a very simple approach that browsers can handle
+    // Return a minimal but valid WAV file with proper duration
     const sampleRate = 44100;
-    const duration = 1; // 1 second
+    const duration = 2; // 2 seconds for better visibility
     const numSamples = sampleRate * duration;
+    const channels = 1;
+    const bitsPerSample = 16;
+    const byteRate = sampleRate * channels * bitsPerSample / 8;
+    const blockAlign = channels * bitsPerSample / 8;
+    const dataSize = numSamples * blockAlign;
+    const fileSize = 36 + dataSize;
     
-    // WAV header (44 bytes)
+    // Create WAV header with proper metadata
     const header = Buffer.alloc(44);
     
-    // RIFF chunk
-    header.write('RIFF', 0);
-    header.writeUInt32LE(36 + numSamples * 2, 4); // File size
-    header.write('WAVE', 8);
+    // RIFF chunk descriptor
+    header.write('RIFF', 0);                    // ChunkID
+    header.writeUInt32LE(fileSize, 4);            // ChunkSize
+    header.write('WAVE', 8);                    // Format
     
-    // fmt chunk
-    header.write('fmt ', 12);
-    header.writeUInt32LE(16, 16); // Chunk size
-    header.writeUInt16LE(1, 20); // Audio format (PCM)
-    header.writeUInt16LE(1, 22); // Number of channels
-    header.writeUInt32LE(sampleRate, 24); // Sample rate
-    header.writeUInt32LE(sampleRate * 2, 28); // Byte rate
-    header.writeUInt16LE(2, 32); // Block align
-    header.writeUInt16LE(16, 34); // Bits per sample
+    // fmt subchunk
+    header.write('fmt ', 12);                    // Subchunk1ID
+    header.writeUInt32LE(16, 16);               // Subchunk1Size (16 for PCM)
+    header.writeUInt16LE(1, 20);                // AudioFormat (1 for PCM)
+    header.writeUInt16LE(channels, 22);         // NumChannels
+    header.writeUInt32LE(sampleRate, 24);       // SampleRate
+    header.writeUInt32LE(byteRate, 28);         // ByteRate
+    header.writeUInt16LE(blockAlign, 32);       // BlockAlign
+    header.writeUInt16LE(bitsPerSample, 34);    // BitsPerSample
     
-    // data chunk
-    header.write('data', 36);
-    header.writeUInt32LE(numSamples * 2, 40); // Data size
+    // data subchunk
+    header.write('data', 36);                   // Subchunk2ID
+    header.writeUInt32LE(dataSize, 40);         // Subchunk2Size
     
-    // Create silence data (all zeros)
-    const silenceData = Buffer.alloc(numSamples * 2);
+    // Create audio data with a simple tone (not just silence)
+    const audioData = Buffer.alloc(dataSize);
+    const frequency = 440; // A4 note
+    const amplitude = 0.1; // Low amplitude for background audio
+    
+    for (let i = 0; i < numSamples; i++) {
+      const sample = Math.sin(2 * Math.PI * frequency * i / sampleRate) * amplitude * 32767;
+      const sampleInt = Math.round(sample);
+      
+      // Write 16-bit sample (little-endian)
+      audioData.writeInt16LE(sampleInt, i * 2);
+    }
     
     res.setHeader('Content-Type', 'audio/wav');
     res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
     res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.setHeader('Content-Length', header.length + audioData.length);
     
-    res.send(Buffer.concat([header, silenceData]));
+    res.send(Buffer.concat([header, audioData]));
   } catch (error) {
     console.error('Audio file error:', error);
     res.status(500).json({ error: 'Internal server error' });

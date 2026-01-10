@@ -451,7 +451,36 @@ export default function CreationReviewPanel() {
                         )}
                       </div>
                       <div className="audio-controls">
-                        <audio controls>
+                        <audio 
+                          controls
+                          preload="metadata"
+                          onLoadedMetadata={(e) => {
+                            const audio = e.target as HTMLAudioElement;
+                            console.log('Audio metadata loaded:', audio.duration);
+                          }}
+                          onPlay={(e) => {
+                            const audio = e.target as HTMLAudioElement;
+                            console.log('Audio playing:', file.name, 'Duration:', audio.duration);
+                          }}
+                          onError={(e) => {
+                            console.error('Audio error:', e);
+                            const target = e.target as HTMLAudioElement;
+                            // Show error state
+                            target.style.display = 'none';
+                            const parent = target.parentElement;
+                            if (parent) {
+                              const errorDiv = document.createElement('div');
+                              errorDiv.className = 'audio-error';
+                              errorDiv.innerHTML = `
+                                <div style="padding: 1rem; background: #ff4444; border-radius: 6px; text-align: center; color: white;">
+                                  <div style="font-size: 1rem; margin-bottom: 0.5rem;">🔇 Audio Error</div>
+                                  <div style="font-size: 0.8rem;">Unable to load audio</div>
+                                </div>
+                              `;
+                              parent.insertBefore(errorDiv, target);
+                            }
+                          }}
+                        >
                           <source src={`${API_BASE}${file.url}`} type="audio/wav" />
                           Your browser does not support the audio element.
                         </audio>
