@@ -14,6 +14,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, name, duration, classNam
   const [duration_, setDuration] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
@@ -24,6 +25,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, name, duration, classNam
       setDuration(audio.duration);
       setError(null);
       setIsLoading(false);
+      setIsLoaded(true);
+      console.log('Audio metadata loaded:', audio.duration);
     };
 
     const handleTimeUpdate = () => {
@@ -36,6 +39,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, name, duration, classNam
     };
 
     const handleError = (event: any) => {
+      console.error('Audio error:', event);
       if (event.target.error.code === event.target.error.MEDIA_ERR_NOT_SUPPORTED) {
         setError('Audio format not supported');
       } else {
@@ -43,16 +47,27 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, name, duration, classNam
       }
       setIsPlaying(false);
       setIsLoading(false);
+      setIsLoaded(false);
     };
 
     const handleLoadStart = () => {
       setIsLoading(true);
       setError(null);
+      setIsLoaded(false);
     };
 
     const handleCanPlay = () => {
       setIsLoading(false);
       setError(null);
+      setIsLoaded(true);
+    };
+
+    const handleStalled = () => {
+      console.log('Audio stalled - trying to reload');
+      // Try to reload if stalled
+      if (audio.src) {
+        audio.load();
+      }
     };
 
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
@@ -61,6 +76,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, name, duration, classNam
     audio.addEventListener('error', handleError);
     audio.addEventListener('loadstart', handleLoadStart);
     audio.addEventListener('canplay', handleCanPlay);
+    audio.addEventListener('stalled', handleStalled);
 
     return () => {
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
@@ -69,6 +85,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, name, duration, classNam
       audio.removeEventListener('error', handleError);
       audio.removeEventListener('loadstart', handleLoadStart);
       audio.removeEventListener('canplay', handleCanPlay);
+      audio.removeEventListener('stalled', handleStalled);
     };
   }, [src]);
 
@@ -86,6 +103,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, name, duration, classNam
         setIsPlaying(true);
         setIsLoading(false);
       } catch (err) {
+        console.error('Failed to play audio:', err);
         setError('Failed to play audio');
         setIsLoading(false);
       }
@@ -108,6 +126,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, name, duration, classNam
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  // Convert regular audio URL to streaming URL
+  const streamingSrc = src.replace('/uploads/audio/', '/uploads/audio/stream/');
+
   if (error) {
     return (
       <div className={`audio-player error ${className}`}>
@@ -116,7 +137,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, name, duration, classNam
           <div className="audio-info">
             <div className="audio-name">{name}</div>
             <div className="audio-duration">{duration || 'Unknown duration'}</div>
-            <div className="audio-error">Audio unavailable</div>
+            <div className="audio-error">{error}</div>
           </div>
         </div>
       </div>
@@ -130,6 +151,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, name, duration, classNam
         preload="metadata"
         style={{ display: 'none' }}
       >
+        <source src={streamingSrc} type="audio/wav" />
         <source src={src} type="audio/mpeg" />
         <source src={src} type="audio/wav" />
         <source src={src} type="audio/mp3" />
@@ -157,6 +179,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, name, duration, classNam
             <div className="audio-time">
               {formatTime(currentTime)} / {formatTime(duration_)}
             </div>
+            {isLoading && <div className="loading-status">Loading...</div>}
+            {!isLoaded && !isLoading && <div className="loading-status">Ready</div>}
           </div>
         </div>
         
