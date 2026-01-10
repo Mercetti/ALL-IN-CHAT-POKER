@@ -184,8 +184,14 @@
   align-items: center;
 }
 
+.audio-placeholder {
+  width: 100%;
+  max-width: 200px;
+}
+
 .audio-controls audio {
-  width: 200px;
+  width: 100%;
+  max-width: 200px;
 }
 
 .cosmetics-grid {
