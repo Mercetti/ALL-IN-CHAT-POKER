@@ -13,6 +13,9 @@ const { createSimpleAuthRouter } = require('./server/routes/auth-simple');
 const { createSimpleAdminServicesRouter } = require('./server/routes/admin-services-simple');
 const { createSimpleAdminAiControlRouter } = require('./server/routes/admin-ai-control-simple');
 
+// Import Poker Audio System
+const PokerAudioSystem = require('./server/poker-audio-system');
+
 // Create Express app
 const app = express();
 const server = http.createServer(app);
@@ -59,6 +62,28 @@ app.use('/admin/services', adminServicesRoutes);
 const adminAiControlRoutes = createSimpleAdminAiControlRouter();
 app.use('/admin/ai', adminAiControlRoutes);
 app.use('/admin/ai-tools', adminAiControlRoutes); // Add alias for ai-tools endpoints
+
+// Initialize Poker Audio System
+let pokerAudioSystem;
+try {
+  pokerAudioSystem = new PokerAudioSystem({
+    outputDir: path.join(__dirname, 'public/assets/audio'),
+    enableGeneration: true,
+    dmcaSafe: true,
+    defaultMusicOff: true,
+    maxDuration: 90,
+    sampleRate: 44100
+  });
+  
+  // Initialize the audio system
+  pokerAudioSystem.initialize().then(() => {
+    console.log('🎵 Poker Audio System initialized successfully');
+  }).catch((error) => {
+    console.error('❌ Failed to initialize Poker Audio System:', error.message);
+  });
+} catch (error) {
+  console.error('❌ Failed to create Poker Audio System:', error.message);
+}
 
 // Health check endpoint
 app.get('/health', (req, res) => {

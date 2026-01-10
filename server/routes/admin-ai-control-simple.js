@@ -80,6 +80,18 @@ function createSimpleAdminAiControlRouter() {
               { label: 'Issues Found', value: '3' },
               { label: 'Code Coverage', value: '87%' }
             ]
+          },
+          {
+            key: 'pokerAudio',
+            category: 'Media',
+            title: 'Poker Audio System',
+            description: 'Keeps broadcast-quality soundscapes running.',
+            state: 'online',
+            metrics: [
+              { label: 'Active Tracks', value: '12' },
+              { label: 'Audio Quality', value: 'HD' },
+              { label: 'Stream Status', value: 'Active' }
+            ]
           }
         ]
       });
