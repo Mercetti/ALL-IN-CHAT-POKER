@@ -195,13 +195,34 @@ function getCriticalHashes() {
 // ======================
 // Acey Engine Integration
 // ======================
-const AceyEngine = require('./server/aceyEngine').AceyEngine;
+const AceyEngine = require('./server/AceyEngine');
+const FallbackDealer = require('./server/fallbackDealer');
 
-// Initialize Acey Engine
-const aceyEngine = new AceyEngine({
-  logger: console,
-  useAI: true
-});
+let aceyEngine;
+try {
+  aceyEngine = new AceyEngine({
+    logger: console,
+    useAI: true
+  });
+} catch (error) {
+  console.error('Failed to initialize AceyEngine, using fallback dealer', error);
+  aceyEngine = {
+    addChatMessage: () => {},
+    addGameEvent: (sessionId, event) => {
+      const { type, player, card } = event;
+      const message = FallbackDealer.formatDealerLine(type, player, card);
+      if (message) {
+        // Emit the message to the overlay
+        io.to(sessionId).emit('overlay', {
+          source: 'fallback',
+          text: message,
+          tone: 'playful',
+          type: 'message'
+        });
+      }
+    }
+  };
+}
 console.log('AceyEngine created successfully');
 
 // Socket.IO connection handling
@@ -214,21 +235,11 @@ io.on('connection', (socket) => {
   
   // Forward chat/game events to Acey Engine
   socket.on('chatMessage', (data) => {
-    aceyEngine.processEvent({
-      type: 'chat',
-      user: data.user,
-      message: data.message,
-      channel: data.channel
-    });
+    aceyEngine.addChatMessage(data);
   });
   
   socket.on('gameEvent', (data) => {
-    aceyEngine.processEvent({
-      type: 'game',
-      event: data.event,
-      details: data.details,
-      channel: data.channel
-    });
+    aceyEngine.addGameEvent(socket.id, data);
   });
 });
 
@@ -263,11 +274,12 @@ console.log('🎤 Acey WebSocket server initialized');
 const PORT = process.env.PORT || 8080;
 const HOST = '0.0.0.0';
 
+console.log(`Starting server on ${HOST}:${PORT}`);
 server.listen(PORT, HOST, () => {
-  console.log(`Server running on ${HOST}:${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log('🎤 Acey Engine initialized');
-  console.log('Simple server initialization complete');
+  console.log(`Server running at http://${HOST}:${PORT}`);
+}).on('error', (err) => {
+  console.error('Server startup failed:', err);
+  process.exit(1);
 });
 
 // Handle graceful shutdown

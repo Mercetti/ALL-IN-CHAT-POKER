@@ -190,28 +190,25 @@
 
 .panel-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 12px;
   align-items: stretch;
 }
 
 @media (min-width: 1024px) {
   .panel-grid {
-    grid-template-columns: repeat(4, 1fr);
     gap: 14px;
   }
 }
 
 @media (min-width: 1400px) {
   .panel-grid {
-    grid-template-columns: repeat(5, 1fr);
     gap: 16px;
   }
 }
 
 @media (min-width: 1800px) {
   .panel-grid {
-    grid-template-columns: repeat(6, 1fr);
     gap: 18px;
   }
 }
@@ -247,6 +244,8 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-width: 0; /* Prevent overflow */
+  flex: 1; /* Take available space */
 }
 
 .panel-card {
