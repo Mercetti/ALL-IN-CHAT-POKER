@@ -12,6 +12,9 @@ import {
 } from '../services/api';
 import './CreationReviewPanel.css';
 
+// Get the backend URL for image loading
+const API_BASE = import.meta.env.VITE_BACKEND_BASE || 'https://all-in-chat-poker.fly.dev';
+
 interface AudioFile {
   id: string;
   name: string;
@@ -431,7 +434,7 @@ export default function CreationReviewPanel() {
                       </div>
                       <div className="audio-controls">
                         <audio controls>
-                          <source src={file.url} type="audio/mpeg" />
+                          <source src={`${API_BASE}${file.url}`} type="audio/mpeg" />
                           Your browser does not support the audio element.
                         </audio>
                         <div className="action-buttons">
@@ -532,7 +535,13 @@ export default function CreationReviewPanel() {
                   {cosmeticSets.map((set) => (
                     <div key={set.id} className="cosmetic-item">
                       <div className="cosmetic-preview">
-                        <img src={set.preview} alt={set.name} />
+                        <img 
+                          src={`${API_BASE}${set.preview}`}
+                          alt={set.name}
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = `${API_BASE}/assets/placeholder.png`;
+                          }}
+                        />
                       </div>
                       <div className="cosmetic-info">
                         <h3>{set.name}</h3>

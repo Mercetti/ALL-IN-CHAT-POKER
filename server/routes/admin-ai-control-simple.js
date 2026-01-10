@@ -986,6 +986,15 @@ function createSimpleAdminAiControlRouter() {
     }
   });
 
+  // Placeholder image endpoint
+  router.get('/assets/placeholder.png', (req, res) => {
+    // Return a simple 1x1 transparent PNG as base64
+    const transparentPixel = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 1 day
+    res.send(transparentPixel);
+  });
+
   return router;
 }
 

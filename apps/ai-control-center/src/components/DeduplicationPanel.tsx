@@ -9,6 +9,9 @@ import {
 } from '../services/api';
 import './DeduplicationPanel.css';
 
+// Get the backend URL for image loading
+const API_BASE = import.meta.env.VITE_BACKEND_BASE || 'https://all-in-chat-poker.fly.dev';
+
 interface DuplicateGroup {
   group: string;
   similarity: number;
@@ -263,10 +266,10 @@ export default function DeduplicationPanel() {
                           </div>
                           <div className="item-preview">
                             <img 
-                              src={`/uploads/cosmetics/${item.id}_preview.png`}
+                              src={`${API_BASE}/uploads/cosmetics/${item.id}_preview.png`}
                               alt={item.name}
                               onError={(e) => {
-                                (e.target as HTMLImageElement).src = '/assets/placeholder.png';
+                                (e.target as HTMLImageElement).src = `${API_BASE}/assets/placeholder.png`;
                               }}
                             />
                           </div>
