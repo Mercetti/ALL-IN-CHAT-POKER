@@ -76,11 +76,8 @@ try {
   });
   
   // Initialize the audio system
-  pokerAudioSystem.initialize().then(() => {
-    console.log('🎵 Poker Audio System initialized successfully');
-  }).catch((error) => {
-    console.error('❌ Failed to initialize Poker Audio System:', error.message);
-  });
+  pokerAudioSystem.init();
+  console.log('🎵 Poker Audio System initialized successfully');
 } catch (error) {
   console.error('❌ Failed to create Poker Audio System:', error.message);
 }

@@ -320,6 +320,34 @@ class PokerAudioSystem {
   }
 
   /**
+   * Apply ADSR envelope to audio signal
+   */
+  envelope(t, envelopeSpec) {
+    const { attack = 0.1, decay = 0.2, sustain = 0.7, release = 0.3 } = envelopeSpec;
+    const totalDuration = attack + decay + sustain + release;
+    
+    if (t >= totalDuration) {
+      return 0;
+    }
+    
+    if (t < attack) {
+      // Attack phase - linear rise from 0 to 1
+      return t / attack;
+    } else if (t < attack + decay) {
+      // Decay phase - linear fall from 1 to sustain
+      const decayProgress = (t - attack) / decay;
+      return 1 - decayProgress * (1 - sustain);
+    } else if (t < attack + decay + sustain) {
+      // Sustain phase - constant level
+      return sustain;
+    } else {
+      // Release phase - linear fall from sustain to 0
+      const releaseProgress = (t - attack - decay - sustain) / release;
+      return sustain * (1 - releaseProgress);
+    }
+  }
+
+  /**
    * Create organized audio directories
    */
   ensureAudioDirectories() {

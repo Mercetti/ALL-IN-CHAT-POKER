@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react';
 import PanelCard from './components/PanelCard';
 import RuntimePanel from './components/RuntimePanel';
 import ChatPanel from './components/ChatPanel';
-import ServiceManagementPanel from './components/ServiceManagementPanel';
-import AIPerformancePanel from './components/AIPerformancePanel';
+import AIServicesPerformancePanel from './components/AIServicesPerformancePanel';
 import CreationReviewPanel from './components/CreationReviewPanel';
 import DeduplicationPanel from './components/DeduplicationPanel';
 import UpdatesPage from './components/UpdatesPage';
@@ -29,7 +28,7 @@ function App() {
   const [password, setPassword] = useState('');
   const [loginPending, setLoginPending] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'services' | 'performance' | 'creation' | 'deduplication' | 'updates' | 'dev-helper' | 'feedback-analyzer' | 'acey-tester'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'services-performance' | 'creation' | 'deduplication' | 'updates' | 'dev-helper' | 'feedback-analyzer' | 'acey-tester'>('overview');
 
   useEffect(() => {
     fetchAll();
@@ -101,16 +100,10 @@ function App() {
             Overview
           </button>
           <button 
-            className={`nav-tab ${activeTab === 'services' ? 'active' : ''}`}
-            onClick={() => setActiveTab('services')}
+            className={`nav-tab ${activeTab === 'services-performance' ? 'active' : ''}`}
+            onClick={() => setActiveTab('services-performance')}
           >
-            Service Management
-          </button>
-          <button 
-            className={`nav-tab ${activeTab === 'performance' ? 'active' : ''}`}
-            onClick={() => setActiveTab('performance')}
-          >
-            AI Performance
+            🤖 AI Services & Performance
           </button>
           <button 
             className={`nav-tab ${activeTab === 'creation' ? 'active' : ''}`}
@@ -188,13 +181,9 @@ function App() {
               <ChatPanel />
             </section>
           </>
-        ) : activeTab === 'services' ? (
-          <ServiceManagementPanel />
+        ) : activeTab === 'services-performance' ? (
+          <AIServicesPerformancePanel />
         ) : null}
-
-        {activeTab === 'performance' && (
-          <AIPerformancePanel />
-        )}
 
         {activeTab === 'creation' && (
           <CreationReviewPanel />

@@ -1,5 +1,5 @@
 .app-shell {
-  padding: 16px clamp(16px, 2vw, 40px);
+  padding: 8px clamp(8px, 1.5vw, 24px);
   width: 100%;
   max-width: none;
   height: 100vh;
@@ -14,10 +14,10 @@
 }
 
 .content-layout {
-  margin-top: 12px;
+  margin-top: 8px;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
+  gap: 12px;
   align-items: stretch;
   flex: 1;
   min-height: 0;
@@ -31,13 +31,19 @@
 
 @media (min-width: 1200px) {
   .content-layout {
-    grid-template-columns: minmax(280px, 360px) minmax(0, 1fr) minmax(280px, 360px);
+    grid-template-columns: minmax(240px, 320px) minmax(0, 1fr) minmax(240px, 320px);
   }
 }
 
 @media (min-width: 1500px) {
   .content-layout {
-    grid-template-columns: minmax(320px, 420px) minmax(0, 1fr) minmax(320px, 420px);
+    grid-template-columns: minmax(280px, 380px) minmax(0, 1fr) minmax(280px, 380px);
+  }
+}
+
+@media (min-width: 1800px) {
+  .content-layout {
+    grid-template-columns: minmax(300px, 400px) minmax(0, 1fr) minmax(300px, 400px);
   }
 }
 
@@ -172,9 +178,23 @@
 
 .panel-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
   align-items: stretch;
+}
+
+@media (min-width: 1200px) {
+  .panel-grid {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 18px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .panel-grid {
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 20px;
+  }
 }
 
 .panel-card {
@@ -309,20 +329,22 @@
 
 .nav-tabs {
   display: flex;
-  gap: 8px;
+  gap: 4px;
   border-bottom: 1px solid var(--color-border);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
 }
 
 .nav-tab {
-  padding: 8px 16px;
+  padding: 6px 12px;
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
   color: var(--color-text-dim);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .nav-tab:hover {
