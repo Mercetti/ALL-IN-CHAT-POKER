@@ -75,7 +75,7 @@ function App() {
   const showAuthPanel = authRequired;
 
   return (
-    <div className={`app-shell ${activeTab === 'creation' || activeTab === 'deduplication' || activeTab === 'updates' || activeTab === 'dev-helper' || activeTab === 'feedback-analyzer' || activeTab === 'acey-tester' ? 'full-width' : ''}`}>
+    <div className={`app-shell ${activeTab === 'overview' || activeTab === 'services-performance' || activeTab === 'creation' || activeTab === 'deduplication' || activeTab === 'updates' || activeTab === 'dev-helper' || activeTab === 'feedback-analyzer' || activeTab === 'acey-tester' ? 'full-width' : ''}`}>
       <header className="app-header">
         <div className="header-top">
           <h1 className="app-title">AI Control Center</h1>
@@ -164,23 +164,23 @@ function App() {
         )}
       </header>
 
-      <div className={`content-layout ${activeTab === 'creation' || activeTab === 'deduplication' || activeTab === 'updates' || activeTab === 'dev-helper' || activeTab === 'feedback-analyzer' || activeTab === 'acey-tester' ? 'full-width' : ''}`}>
+      <div className={`content-layout ${activeTab === 'overview' || activeTab === 'services-performance' || activeTab === 'creation' || activeTab === 'deduplication' || activeTab === 'updates' || activeTab === 'dev-helper' || activeTab === 'feedback-analyzer' || activeTab === 'acey-tester' ? 'full-width' : ''}`}>
         {activeTab === 'overview' ? (
-          <>
-            <section className="rail left-rail">
+          <div className="overview-grid">
+            <div className="overview-section">
               <RuntimePanel />
-            </section>
-
-            <main className="panel-grid">
-              {panelOrder.map((key) => (
-                <PanelCard key={key} status={statuses[key]} onRefresh={fetchAll} />
-              ))}
+            </div>
+            <main className="overview-main">
+              <div className="panel-grid">
+                {panelOrder.map((key) => (
+                  <PanelCard key={key} status={statuses[key]} onRefresh={fetchAll} />
+                ))}
+              </div>
             </main>
-
-            <section className="rail right-rail">
+            <div className="overview-section">
               <ChatPanel />
-            </section>
-          </>
+            </div>
+          </div>
         ) : activeTab === 'services-performance' ? (
           <AIServicesPerformancePanel />
         ) : null}

@@ -37,7 +37,7 @@ const AIPerformanceMonitor = require('./ai-performance-monitor');
 const resilienceManager = require('./resilience-manager');
 
 // Initialize AI systems
-const aiCache = new AICache({ maxSize: 500, ttl: 300000 });
+const aiCache = new AICache({ maxSize: 1000, ttl: 1800000 });
 const performanceMonitor = new AIPerformanceMonitor();
 
 // Initialize AI manager
