@@ -8,6 +8,11 @@
   box-sizing: border-box;
 }
 
+.app-shell.full-width {
+  padding: 0;
+  height: 100vh;
+}
+
 .content-layout {
   margin-top: 12px;
   display: grid;
@@ -16,6 +21,12 @@
   align-items: stretch;
   flex: 1;
   min-height: 0;
+}
+
+.content-layout.full-width {
+  grid-template-columns: 1fr;
+  margin-top: 0;
+  gap: 0;
 }
 
 @media (min-width: 1200px) {

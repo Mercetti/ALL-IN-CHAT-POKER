@@ -280,7 +280,7 @@ app.get('/uploads/cosmetics/:filename', (req, res) => {
   }
 });
 
-// Audio file endpoints - stream generated audio on the fly
+// Audio file endpoints - stream generated audio on the fly with type-specific sounds
 app.get('/uploads/audio/:filename', (req, res) => {
   try {
     const { filename } = req.params;
@@ -288,47 +288,118 @@ app.get('/uploads/audio/:filename', (req, res) => {
     // Extract audio ID from filename
     const audioId = filename.replace('.mp3', '');
     
-    // Create a proper streaming MP3 with valid headers and audio data
-    const sampleRate = 44100;
-    const duration = 2; // 2 seconds
-    const frequency = 440; // A4 note
+    // Determine audio type based on filename
+    let audioType = 'background_music';
+    let effectType = null;
+    let frequency = 440; // Default A4 note
+    let duration = 2; // Default duration
     
-    // Generate a simple sine wave audio buffer
+    if (filename.includes('chip_stack')) {
+      audioType = 'game_sound';
+      effectType = 'chip_stack';
+      frequency = 800; // Higher frequency for chip sounds
+      duration = 0.1; // Short duration for sound effects
+    } else if (filename.includes('victory')) {
+      audioType = 'game_sound';
+      effectType = 'victory';
+      frequency = 600; // Victory fanfare frequency
+      duration = 0.5; // Medium duration
+    } else if (filename.includes('card')) {
+      audioType = 'game_sound';
+      effectType = 'card';
+      frequency = 1000; // Card flip sound
+      duration = 0.05; // Very short duration
+    } else if (filename.includes('theme')) {
+      audioType = 'background_music';
+      frequency = 220; // Lower frequency for background music
+      duration = 3; // Longer duration for music
+    }
+    
+    // Generate appropriate audio based on type
+    const sampleRate = 44100;
     const samples = sampleRate * duration;
     const audioBuffer = Buffer.alloc(samples * 2); // 16-bit samples
     
-    for (let i = 0; i < samples; i++) {
-      const sample = Math.sin(2 * Math.PI * frequency * i / sampleRate) * 0.3 * 32767;
-      const sampleInt = Math.round(sample);
-      audioBuffer.writeInt16LE(sampleInt, i * 2);
+    if (audioType === 'game_sound') {
+      // Generate game sound effects
+      if (effectType === 'chip_stack') {
+        // Chip stack sound - quick descending tones
+        for (let i = 0; i < samples; i++) {
+          const t = i / sampleRate;
+          const envelope = Math.exp(-t * 20); // Quick decay
+          const freq = frequency * (1 - t * 0.5); // Descending frequency
+          const sample = Math.sin(2 * Math.PI * freq * t) * envelope * 0.5 * 32767;
+          audioBuffer.writeInt16LE(Math.round(sample), i * 2);
+        }
+      } else if (effectType === 'victory') {
+        // Victory sound - ascending arpeggio
+        for (let i = 0; i < samples; i++) {
+          const t = i / sampleRate;
+          const envelope = Math.sin(Math.PI * t / duration); // Smooth envelope
+          const freq = frequency * (1 + t * 0.5); // Ascending frequency
+          const sample = Math.sin(2 * Math.PI * freq * t) * envelope * 0.6 * 32767;
+          audioBuffer.writeInt16LE(Math.round(sample), i * 2);
+        }
+      } else if (effectType === 'card') {
+        // Card flip sound - quick click
+        for (let i = 0; i < samples; i++) {
+          const t = i / sampleRate;
+          const envelope = Math.exp(-t * 50); // Very quick decay
+          const noise = (Math.random() - 0.5) * 0.3; // Add some noise
+          const sample = (Math.sin(2 * Math.PI * frequency * t) + noise) * envelope * 32767;
+          audioBuffer.writeInt16LE(Math.round(sample), i * 2);
+        }
+      }
+    } else {
+      // Generate background music - more complex waveform
+      for (let i = 0; i < samples; i++) {
+        const t = i / sampleRate;
+        const envelope = 0.3 + 0.2 * Math.sin(2 * Math.PI * 0.5 * t); // Slow modulation
+        const sample = (
+          Math.sin(2 * Math.PI * frequency * t) * 0.3 +
+          Math.sin(2 * Math.PI * frequency * 1.5 * t) * 0.2 +
+          Math.sin(2 * Math.PI * frequency * 2 * t) * 0.1
+        ) * envelope * 32767;
+        audioBuffer.writeInt16LE(Math.round(sample), i * 2);
+      }
     }
     
-    // Create a minimal but valid MP3 frame
-    const mp3Header = Buffer.from([
-      // MP3 frame header
-      0xFF, 0xFB, 0x90, 0x00,
-      // Side information (minimal)
-      0x00, 0x00, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00
-    ]);
+    // Create a proper WAV file
+    const channels = 1;
+    const bitsPerSample = 16;
+    const byteRate = sampleRate * channels * bitsPerSample / 8;
+    const blockAlign = channels * bitsPerSample / 8;
+    const dataSize = audioBuffer.length;
+    const fileSize = 36 + dataSize;
     
-    // Create a simple MP3-like structure
-    const mp3Data = Buffer.concat([
-      Buffer.from('ID3\x04\x00\x00\x00\x00\x00\x00'), // ID3v2 header
-      mp3Header,
-      audioBuffer.slice(0, 1000) // Truncate to reasonable size
-    ]);
+    // WAV header
+    const header = Buffer.alloc(44);
+    header.write('RIFF', 0);
+    header.writeUInt32LE(fileSize, 4);
+    header.write('WAVE', 8);
+    header.write('fmt ', 12);
+    header.writeUInt32LE(16, 16);
+    header.writeUInt16LE(1, 20); // PCM
+    header.writeUInt16LE(channels, 22);
+    header.writeUInt32LE(sampleRate, 24);
+    header.writeUInt32LE(byteRate, 28);
+    header.writeUInt16LE(blockAlign, 32);
+    header.writeUInt16LE(bitsPerSample, 34);
+    header.write('data', 36);
+    header.writeUInt32LE(dataSize, 40);
     
-    // Set proper streaming headers
-    res.setHeader('Content-Type', 'audio/mpeg');
+    // Combine header and audio data
+    const wavData = Buffer.concat([header, audioBuffer]);
+    
+    // Set proper headers
+    res.setHeader('Content-Type', 'audio/wav');
     res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
     res.setHeader('Cache-Control', 'public, max-age=86400');
-    res.setHeader('Content-Length', mp3Data.length);
+    res.setHeader('Content-Length', wavData.length);
     res.setHeader('Accept-Ranges', 'bytes');
     
-    // Stream the audio data
-    res.send(mp3Data);
+    // Send the audio
+    res.send(wavData);
   } catch (error) {
     console.error('Audio file error:', error);
     res.status(500).json({ error: 'Internal server error' });

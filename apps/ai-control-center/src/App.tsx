@@ -72,7 +72,7 @@ function App() {
   const showAuthPanel = authRequired;
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${activeTab === 'creation' || activeTab === 'deduplication' ? 'full-width' : ''}`}>
       <header className="app-header">
         <div className="header-top">
           <h1 className="app-title">AI Control Center</h1>
@@ -143,7 +143,7 @@ function App() {
         )}
       </header>
 
-      <div className="content-layout">
+      <div className={`content-layout ${activeTab === 'creation' || activeTab === 'deduplication' ? 'full-width' : ''}`}>
         {activeTab === 'overview' ? (
           <>
             <section className="rail left-rail">
