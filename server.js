@@ -263,9 +263,9 @@ app.get('/uploads/audio/:filename', (req, res) => {
     // Extract audio ID from filename
     const audioId = filename.replace('.mp3', '');
     
-    // Return a minimal but valid WAV file with proper duration
-    const sampleRate = 44100;
-    const duration = 2; // 2 seconds for better visibility
+    // Create a simple, minimal WAV file that browsers can definitely handle
+    const sampleRate = 22050; // Lower sample rate for better compatibility
+    const duration = 1; // 1 second
     const numSamples = sampleRate * duration;
     const channels = 1;
     const bitsPerSample = 16;
@@ -274,40 +274,30 @@ app.get('/uploads/audio/:filename', (req, res) => {
     const dataSize = numSamples * blockAlign;
     const fileSize = 36 + dataSize;
     
-    // Create WAV header with proper metadata
+    // Create WAV header
     const header = Buffer.alloc(44);
     
     // RIFF chunk descriptor
-    header.write('RIFF', 0);                    // ChunkID
-    header.writeUInt32LE(fileSize, 4);            // ChunkSize
-    header.write('WAVE', 8);                    // Format
+    header.write('RIFF', 0);
+    header.writeUInt32LE(fileSize, 4);
+    header.write('WAVE', 8);
     
     // fmt subchunk
-    header.write('fmt ', 12);                    // Subchunk1ID
-    header.writeUInt32LE(16, 16);               // Subchunk1Size (16 for PCM)
-    header.writeUInt16LE(1, 20);                // AudioFormat (1 for PCM)
-    header.writeUInt16LE(channels, 22);         // NumChannels
-    header.writeUInt32LE(sampleRate, 24);       // SampleRate
-    header.writeUInt32LE(byteRate, 28);         // ByteRate
-    header.writeUInt16LE(blockAlign, 32);       // BlockAlign
-    header.writeUInt16LE(bitsPerSample, 34);    // BitsPerSample
+    header.write('fmt ', 12);
+    header.writeUInt32LE(16, 16);
+    header.writeUInt16LE(1, 20); // PCM
+    header.writeUInt16LE(channels, 22);
+    header.writeUInt32LE(sampleRate, 24);
+    header.writeUInt32LE(byteRate, 28);
+    header.writeUInt16LE(blockAlign, 32);
+    header.writeUInt16LE(bitsPerSample, 34);
     
     // data subchunk
-    header.write('data', 36);                   // Subchunk2ID
-    header.writeUInt32LE(dataSize, 40);         // Subchunk2Size
+    header.write('data', 36);
+    header.writeUInt32LE(dataSize, 40);
     
-    // Create audio data with a simple tone (not just silence)
+    // Create simple silence data (all zeros)
     const audioData = Buffer.alloc(dataSize);
-    const frequency = 440; // A4 note
-    const amplitude = 0.1; // Low amplitude for background audio
-    
-    for (let i = 0; i < numSamples; i++) {
-      const sample = Math.sin(2 * Math.PI * frequency * i / sampleRate) * amplitude * 32767;
-      const sampleInt = Math.round(sample);
-      
-      // Write 16-bit sample (little-endian)
-      audioData.writeInt16LE(sampleInt, i * 2);
-    }
     
     res.setHeader('Content-Type', 'audio/wav');
     res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
