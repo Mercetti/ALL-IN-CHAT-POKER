@@ -233,26 +233,92 @@ app.get('/uploads/cosmetics/:filename', (req, res) => {
         color = '#888888';
     }
     
-    // Create a simple 200x200 PNG using Canvas API (simplified version)
-    // In production, you'd use a proper image library like sharp
-    const canvasHtml = `
-      <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
-        <rect width="200" height="200" fill="${color}"/>
-        <text x="100" y="100" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle" dominant-baseline="middle">
-          ${cosmeticId.toUpperCase()}
-        </text>
-      </svg>
-    `;
+    // Convert hex color to RGB
+    const r = parseInt(color.slice(1, 3), 16);
+    const g = parseInt(color.slice(3, 5), 16);
+    const b = parseInt(color.slice(5, 7), 16);
     
-    // Convert SVG to PNG base64 (this is a simplified approach)
-    // In production, you'd use a proper image conversion library
-    const svgData = Buffer.from(canvasHtml).toString('base64');
-    const pngBase64 = Buffer.from(`data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==`, 'base64');
+    // Create a simple 200x200 PNG with the color
+    // PNG header
+    const pngHeader = Buffer.from([
+      0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A // PNG signature
+    ]);
     
-    // For now, return the SVG as PNG content type (browsers can handle SVG in img tags)
-    res.setHeader('Content-Type', 'image/svg+xml');
+    // IHDR chunk (image header)
+    const width = 200;
+    const height = 200;
+    const ihdrData = Buffer.concat([
+      Buffer.from([width >> 24, width >> 16, width >> 8, width]), // width
+      Buffer.from([height >> 24, height >> 16, height >> 8, height]), // height
+      Buffer.from([8, 2, 0, 0, 0]) // bit depth, color type, compression, filter, interlace
+    ]);
+    
+    const ihdrCrc = Buffer.from([0x73, 0x65, 0x52, 0x07]); // Pre-calculated CRC for this IHDR
+    
+    const ihdrChunk = Buffer.concat([
+      Buffer.from([0x00, 0x00, 0x00, 0x0D]), // Chunk length (13)
+      Buffer.from('IHDR'), // Chunk type
+      ihdrData,
+      ihdrCrc
+    ]);
+    
+    // Create simple image data (solid color)
+    const pixelData = Buffer.alloc(width * height * 3); // RGB for each pixel
+    for (let i = 0; i < pixelData.length; i += 3) {
+      pixelData[i] = r;     // Red
+      pixelData[i + 1] = g; // Green
+      pixelData[i + 2] = b; // Blue
+    }
+    
+    // Add text overlay (cosmetic ID)
+    const text = cosmeticId.toUpperCase();
+    const textX = Math.floor((width - text.length * 8) / 2);
+    const textY = Math.floor(height / 2);
+    
+    // Simple text rendering (just draw some pixels for demo)
+    for (let i = 0; i < text.length; i++) {
+      const charX = textX + i * 10;
+      const charY = textY;
+      // Draw a simple rectangle for each character
+      for (let y = charY - 8; y < charY + 8; y++) {
+        for (let x = charX; x < charX + 8; x++) {
+          if (x >= 0 && x < width && y >= 0 && y < height) {
+            const idx = (y * width + x) * 3;
+            pixelData[idx] = 255;     // White text
+            pixelData[idx + 1] = 255;
+            pixelData[idx + 2] = 255;
+          }
+        }
+      }
+    }
+    
+    // Compress the pixel data (simplified - just use raw data)
+    const idatData = Buffer.concat([
+      Buffer.from([0x78, 0x9C]), // zlib header
+      Buffer.from([0x01]), // compression method
+      pixelData, // raw data
+      Buffer.from([0x00, 0x00, 0x00, 0x00]) // CRC
+    ]);
+    
+    const idatChunk = Buffer.concat([
+      Buffer.from([idatData.length >> 24, idatData.length >> 16, idatData.length >> 8, idatData.length]),
+      Buffer.from('IDAT'),
+      idatData
+    ]);
+    
+    // IEND chunk
+    const iendChunk = Buffer.from([
+      0x00, 0x00, 0x00, 0x00, // Length
+      0x49, 0x45, 0x4E, 0x44, // "IEND"
+      0xAE, 0x42, 0x60, 0x82  // CRC
+    ]);
+    
+    // Combine all chunks
+    const fullPng = Buffer.concat([pngHeader, ihdrChunk, idatChunk, iendChunk]);
+    
+    res.setHeader('Content-Type', 'image/png');
     res.setHeader('Cache-Control', 'public, max-age=86400');
-    res.send(Buffer.from(canvasHtml));
+    res.send(fullPng);
   } catch (error) {
     console.error('Preview image error:', error);
     // Fallback to transparent pixel
@@ -269,10 +335,6 @@ app.get('/uploads/audio/:filename', (req, res) => {
     
     // Extract audio ID from filename
     const audioId = filename.replace('.mp3', '');
-    
-    // Generate a simple audio placeholder as base64 (1 second of silence)
-    // In production, you'd serve actual audio files
-    const silentAudioBase64 = 'UklGRigAAABXQV0ZmBEAyAYAAACQAAABAAAYP///////////////8AAAAA';
     
     // Create different audio placeholders based on the audio ID
     let audioType = 'silence';
@@ -296,43 +358,32 @@ app.get('/uploads/audio/:filename', (req, res) => {
         duration = '1.0';
     }
     
-    // Return a simple audio placeholder response
-    const audioInfo = {
-      id: audioId,
-      name: filename,
-      type: audioType,
-      duration: duration,
-      message: 'Audio placeholder - actual audio would be served here'
-    };
+    // Return a simple WAV file (much simpler than MP3)
+    // WAV header + silence data
+    const wavHeader = Buffer.from([
+      0x52, 0x49, 0x46, 0x46, // "RIFF"
+      0x24, 0x08, 0x00, 0x00, // File size - 8
+      0x57, 0x41, 0x56, 0x45, // "WAVE"
+      0x66, 0x6D, 0x74, 0x20, // "fmt "
+      0x10, 0x00, 0x00, 0x00, // Chunk size
+      0x01, 0x00,             // Audio format (PCM)
+      0x01, 0x00,             // Number of channels (mono)
+      0x44, 0xAC, 0x00, 0x00, // Sample rate (44100)
+      0x88, 0x58, 0x01, 0x00, // Byte rate
+      0x02, 0x00,             // Block align
+      0x10, 0x00,             // Bits per sample
+      0x64, 0x61, 0x74, 0x61, // "data"
+      0x00, 0x08, 0x00, 0x00  // Data size
+    ]);
     
-    // Return the silent audio as base64
-    res.setHeader('Content-Type', 'audio/mpeg');
+    // Create silence data (44100 samples of silence for 1 second)
+    const silenceData = Buffer.alloc(44100 * 2); // 2 bytes per sample for 16-bit
+    
+    res.setHeader('Content-Type', 'audio/wav');
     res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
     res.setHeader('Cache-Control', 'public, max-age=86400');
     
-    // Create a minimal MP3 header with silence
-    const mp3Header = Buffer.from([
-      0xFF, 0xFB, 0x90, 0x44, 0x33, 0x4D, 0x50, 0x34, // ID3 header
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Version
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Flags
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Size placeholder
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Size placeholder
-      0x54, 0x41, 0x47, 0x00, // TAG header
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Size
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Size
-      0x57, 0x41, 0x56, 0x45, 0x54, 0x31, 0x36, 0x2F, 0x45, // "TITLE"
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Size
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Size
-      0x41, 0x72, 0x74, 0x65, 0x6D, 0x69, 0x73, 0x20, 0x50, // "Artemis P"
-      0x6C, 0x61, 0x63, 0x65, 0x68, 0x6F, 0x6C, 0x64, 0x65, // "laceholder"
-      0x72, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Size
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Size
-    ]);
-    
-    // Add silence data (simplified - just return the header)
-    const fullAudio = Buffer.concat([mp3Header, Buffer.from(silentAudioBase64, 'base64')]);
-    
-    res.send(fullAudio);
+    res.send(Buffer.concat([wavHeader, silenceData]));
   } catch (error) {
     console.error('Audio file error:', error);
     res.status(500).json({ error: 'Internal server error' });

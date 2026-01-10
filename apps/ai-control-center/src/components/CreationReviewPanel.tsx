@@ -438,7 +438,7 @@ export default function CreationReviewPanel() {
                       </div>
                       <div className="audio-controls">
                         <audio controls>
-                          <source src={`${API_BASE}${file.url}`} type="audio/mpeg" />
+                          <source src={`${API_BASE}${file.url}`} type="audio/wav" />
                           Your browser does not support the audio element.
                         </audio>
                         <div className="action-buttons">
