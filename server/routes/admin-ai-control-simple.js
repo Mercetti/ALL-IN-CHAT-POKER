@@ -1,4 +1,5 @@
 const express = require('express');
+const crypto = require('crypto');
 
 function createSimpleAdminAiControlRouter() {
   const router = express.Router();
@@ -34,25 +35,28 @@ function createSimpleAdminAiControlRouter() {
   router.get('/services/status', (req, res) => {
     try {
       res.json({
-        status: 'OK',
-        services: {
-          ollama: {
-            status: 'running',
-            models: ['llama2', 'codellama'],
-            endpoint: 'http://localhost:11434'
+        success: true,
+        data: {
+          services: {
+            ollama: {
+              status: 'running',
+              pid: 1234,
+              port: 11434,
+              lastCheck: new Date().toISOString()
+            },
+            tunnel: {
+              status: 'running',
+              pid: 5678,
+              url: 'https://tunnel.all-in-chat-poker.fly.dev',
+              lastCheck: new Date().toISOString()
+            }
           },
-          ai_error_manager: {
-            status: 'active',
-            errors_handled: 0,
-            last_error: null
-          },
-          ai_performance_monitor: {
-            status: 'active',
-            cache_hit_rate: '85%',
-            response_time_avg: '250ms'
+          config: {
+            aiProvider: 'ollama',
+            ollamaHost: 'localhost',
+            ollamaModel: 'llama2-7b'
           }
-        },
-        timestamp: new Date().toISOString()
+        }
       });
     } catch (error) {
       console.error('Service status error:', error);
@@ -64,36 +68,41 @@ function createSimpleAdminAiControlRouter() {
   router.get('/services/ollama/models', (req, res) => {
     try {
       res.json({
-        status: 'OK',
-        models: [
-          {
-            name: 'llama2',
-            size: '3.8GB',
-            modified_at: new Date().toISOString(),
-            digest: 'sha256:abc123',
-            details: {
-              format: 'gguf',
-              family: 'llama',
-              families: null,
-              parameter_size: '7B',
-              quantization_level: 'q4_0'
+        success: true,
+        data: {
+          models: [
+            {
+              name: 'deepseek-coder:1.3b',
+              model: 'deepseek-coder:1.3b',
+              size: 770000000,
+              digest: 'sha256:abc123'
+            },
+            {
+              name: 'qwen:0.5b',
+              model: 'qwen:0.5b',
+              size: 390000000,
+              digest: 'sha256:def456'
+            },
+            {
+              name: 'llama3.2:1b',
+              model: 'llama3.2:1b',
+              size: 780000000,
+              digest: 'sha256:ghi789'
+            },
+            {
+              name: 'tinyllama:latest',
+              model: 'tinyllama:latest',
+              size: 450000000,
+              digest: 'sha256:jkl012'
+            },
+            {
+              name: 'llama3.2:latest',
+              model: 'llama3.2:latest',
+              size: 2000000000,
+              digest: 'sha256:mno345'
             }
-          },
-          {
-            name: 'codellama',
-            size: '3.8GB',
-            modified_at: new Date().toISOString(),
-            digest: 'sha256:def456',
-            details: {
-              format: 'gguf',
-              family: 'codellama',
-              families: null,
-              parameter_size: '7B',
-              quantization_level: 'q4_0'
-            }
-          }
-        ],
-        timestamp: new Date().toISOString()
+          ]
+        }
       });
     } catch (error) {
       console.error('Ollama models error:', error);
@@ -377,15 +386,10 @@ function createSimpleAdminAiControlRouter() {
       
       const randomResponse = responses[Math.floor(Math.random() * responses.length)];
       
+      // Return the format the frontend expects: { id: string, content: string }
       res.json({
-        status: 'OK',
-        response: {
-          message: randomResponse,
-          model,
-          timestamp: new Date().toISOString(),
-          tokens_used: Math.floor(Math.random() * 100) + 50,
-          response_time: Math.floor(Math.random() * 500) + 200
-        }
+        id: crypto.randomBytes(16).toString('hex'),
+        content: randomResponse
       });
     } catch (error) {
       console.error('Chat error:', error);
