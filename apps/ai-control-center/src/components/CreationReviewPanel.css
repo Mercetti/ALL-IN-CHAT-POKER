@@ -1,15 +1,17 @@
 .creation-review-panel {
   padding: 1rem;
-  max-width: 100%;
+  width: 100%;
   height: 100vh;
   display: flex;
   flex-direction: column;
   margin: 0;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .panel-header {
   margin-bottom: 1rem;
+  flex-shrink: 0;
 }
 
 .panel-header h1 {
@@ -22,6 +24,7 @@
   display: flex;
   gap: 1rem;
   margin-bottom: 1rem;
+  flex-shrink: 0;
 }
 
 .tab-btn {
@@ -49,6 +52,7 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
 .audio-section, .cosmetics-section {
@@ -123,6 +127,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 1.5rem;
+  flex: 1;
+  align-content: start;
 }
 
 .audio-item {
@@ -305,6 +311,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
+  flex: 1;
+  align-content: start;
 }
 
 .cosmetic-item {

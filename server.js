@@ -288,48 +288,23 @@ app.get('/uploads/audio/:filename', (req, res) => {
     // Extract audio ID from filename
     const audioId = filename.replace('.mp3', '');
     
-    // Create a simple, minimal WAV file that browsers can definitely handle
-    const sampleRate = 22050; // Lower sample rate for better compatibility
-    const duration = 1; // 1 second
-    const numSamples = sampleRate * duration;
-    const channels = 1;
-    const bitsPerSample = 16;
-    const byteRate = sampleRate * channels * bitsPerSample / 8;
-    const blockAlign = channels * bitsPerSample / 8;
-    const dataSize = numSamples * blockAlign;
-    const fileSize = 36 + dataSize;
+    // Create a minimal MP3-like file that browsers can handle
+    // Using a simple MP3 header with silence data
+    const mp3Data = Buffer.from([
+      // ID3v2 header
+      0x49, 0x44, 0x33, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      // Minimal MP3 frame header
+      0xFF, 0xFB, 0x90, 0x00,
+      // Silence data (repeated pattern)
+      ...Array(1000).fill(0x00)
+    ]);
     
-    // Create WAV header
-    const header = Buffer.alloc(44);
-    
-    // RIFF chunk descriptor
-    header.write('RIFF', 0);
-    header.writeUInt32LE(fileSize, 4);
-    header.write('WAVE', 8);
-    
-    // fmt subchunk
-    header.write('fmt ', 12);
-    header.writeUInt32LE(16, 16);
-    header.writeUInt16LE(1, 20); // PCM
-    header.writeUInt16LE(channels, 22);
-    header.writeUInt32LE(sampleRate, 24);
-    header.writeUInt32LE(byteRate, 28);
-    header.writeUInt16LE(blockAlign, 32);
-    header.writeUInt16LE(bitsPerSample, 34);
-    
-    // data subchunk
-    header.write('data', 36);
-    header.writeUInt32LE(dataSize, 40);
-    
-    // Create simple silence data (all zeros)
-    const audioData = Buffer.alloc(dataSize);
-    
-    res.setHeader('Content-Type', 'audio/wav');
+    res.setHeader('Content-Type', 'audio/mpeg');
     res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
     res.setHeader('Cache-Control', 'public, max-age=86400');
-    res.setHeader('Content-Length', header.length + audioData.length);
+    res.setHeader('Content-Length', mp3Data.length);
     
-    res.send(Buffer.concat([header, audioData]));
+    res.send(mp3Data);
   } catch (error) {
     console.error('Audio file error:', error);
     res.status(500).json({ error: 'Internal server error' });

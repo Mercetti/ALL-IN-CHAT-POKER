@@ -35,8 +35,12 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, name, duration, classNam
       setCurrentTime(0);
     };
 
-    const handleError = () => {
-      setError('Audio unavailable');
+    const handleError = (event: any) => {
+      if (event.target.error.code === event.target.error.MEDIA_ERR_NOT_SUPPORTED) {
+        setError('Audio format not supported');
+      } else {
+        setError('Audio unavailable');
+      }
       setIsPlaying(false);
       setIsLoading(false);
     };
@@ -123,10 +127,14 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, name, duration, classNam
     <div className={`audio-player ${className}`}>
       <audio
         ref={audioRef}
-        src={src}
         preload="metadata"
         style={{ display: 'none' }}
-      />
+      >
+        <source src={src} type="audio/mpeg" />
+        <source src={src} type="audio/wav" />
+        <source src={src} type="audio/mp3" />
+        Your browser does not support the audio element.
+      </audio>
       
       <div className="audio-preview-card">
         <div className="audio-controls">
