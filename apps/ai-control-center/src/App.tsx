@@ -164,7 +164,7 @@ function App() {
         )}
       </header>
 
-      <div className={`content-layout ${activeTab === 'creation' || activeTab === 'deduplication' ? 'full-width' : ''}`}>
+      <div className={`content-layout ${activeTab === 'creation' || activeTab === 'deduplication' || activeTab === 'updates' || activeTab === 'dev-helper' || activeTab === 'feedback-analyzer' || activeTab === 'acey-tester' ? 'full-width' : ''}`}>
         {activeTab === 'overview' ? (
           <>
             <section className="rail left-rail">

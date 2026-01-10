@@ -424,9 +424,7 @@
   color: #888;
   margin-bottom: 2rem;
   font-size: 1.1rem;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
+  width: 100%;
 }
 
 .ai-results {

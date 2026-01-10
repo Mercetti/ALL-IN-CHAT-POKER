@@ -33,17 +33,29 @@
   .content-layout {
     grid-template-columns: minmax(240px, 320px) minmax(0, 1fr) minmax(240px, 320px);
   }
+  
+  .content-layout.full-width {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (min-width: 1500px) {
   .content-layout {
     grid-template-columns: minmax(280px, 380px) minmax(0, 1fr) minmax(280px, 380px);
   }
+  
+  .content-layout.full-width {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (min-width: 1800px) {
   .content-layout {
     grid-template-columns: minmax(300px, 400px) minmax(0, 1fr) minmax(300px, 400px);
+  }
+  
+  .content-layout.full-width {
+    grid-template-columns: 1fr;
   }
 }
 
