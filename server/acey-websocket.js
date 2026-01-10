@@ -5,7 +5,7 @@
 
 const WebSocket = require('ws');
 const Logger = require('./logger');
-const { AceyEngine } = require('./aceyEngine');
+const AceyEngine = require('./aceyEngine');
 
 const logger = new Logger('acey-websocket');
 

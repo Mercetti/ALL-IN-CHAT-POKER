@@ -195,7 +195,7 @@ function getCriticalHashes() {
 // ======================
 // Acey Engine Integration
 // ======================
-const AceyEngine = require('./server/AceyEngine');
+const AceyEngine = require('./server/aceyEngine');
 const FallbackDealer = require('./server/fallbackDealer');
 
 let aceyEngine;
@@ -246,7 +246,7 @@ io.on('connection', (socket) => {
 // ======================
 // Acey WebSocket Integration
 // ======================
-const AceyWebSocket = require('./server/acey-websocket');
+const { AceyWebSocket } = require('./server/acey-websocket');
 const { extractUserLogin, getChannelFromSocket } = require('./server/auth');
 
 // Initialize Acey WebSocket server
@@ -276,14 +276,8 @@ const HOST = '0.0.0.0';
 
 console.log(`Starting server on ${HOST}:${PORT}`);
 
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-delay(10000).then(() => {
-  server.listen(PORT, HOST, () => {
-    console.log(`Server running on ${HOST}:${PORT}`);
-  });
+server.listen(PORT, HOST, () => {
+  console.log(`Server running on ${HOST}:${PORT}`);
 });
 
 // Handle graceful shutdown

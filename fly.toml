@@ -6,10 +6,6 @@
 app = "all-in-chat-poker"
 primary_region = "iad"
 
-[build]
-  builder = "heroku/buildpacks:20"
-  buildpacks = ["gcr.io/paketo-buildpacks/nodejs"]
-
 [env]
   DB_FILE = "/data/data.db"
   NODE_ENV = "production"
