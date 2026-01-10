@@ -160,9 +160,9 @@ function App() {
               <ChatPanel />
             </section>
           </>
-        ) : (
+        ) : activeTab === 'services' ? (
           <ServiceManagementPanel />
-        )}
+        ) : null}
 
         {activeTab === 'performance' && (
           <AIPerformancePanel />
