@@ -1,8 +1,10 @@
 .updates-page {
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 1rem;
+  width: 100%;
   color: #fff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .loading-spinner {
@@ -346,8 +348,22 @@
   padding-top: 2rem;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 2rem;
+}
+
+@media (min-width: 1400px) {
+  .updates-footer {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2.5rem;
+  }
+}
+
+@media (min-width: 1800px) {
+  .updates-footer {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 3rem;
+  }
 }
 
 .stats-summary h3 {
@@ -425,9 +441,21 @@
 
 .status-sections {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 2rem;
   margin-bottom: 2.5rem;
+}
+
+@media (min-width: 1400px) {
+  .status-sections {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1800px) {
+  .status-sections {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .status-section h4 {

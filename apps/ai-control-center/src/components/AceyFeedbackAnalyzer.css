@@ -1,9 +1,10 @@
 .acey-feedback-analyzer {
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 1rem;
+  width: 100%;
   color: #fff;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .loading {
@@ -89,8 +90,20 @@
 
 .suggestions-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
+}
+
+@media (min-width: 1200px) {
+  .suggestions-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1600px) {
+  .suggestions-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .suggestion-card {
@@ -427,8 +440,20 @@
 
 .context-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
+}
+
+@media (min-width: 1200px) {
+  .context-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1600px) {
+  .context-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .context-item {
