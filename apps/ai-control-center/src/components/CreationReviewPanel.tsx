@@ -271,6 +271,20 @@ export default function CreationReviewPanel() {
     }
   };
 
+  const handlePreviewCosmetic = (cosmetic: CosmeticSet) => {
+    // Create a preview modal or open in new tab
+    const previewUrl = `${API_BASE}${cosmetic.preview}`;
+    window.open(previewUrl, '_blank', 'width=400,height=400');
+  };
+
+  const handlePreviewAudio = (file: AudioFile) => {
+    // Play audio preview
+    const audio = new Audio(`${API_BASE}${file.url}`);
+    audio.play().catch(error => {
+      console.error('Audio preview failed:', error);
+    });
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'approved': return '#00ff88';
@@ -442,6 +456,13 @@ export default function CreationReviewPanel() {
                           Your browser does not support the audio element.
                         </audio>
                         <div className="action-buttons">
+                          <button 
+                            className="preview-btn" 
+                            onClick={() => handlePreviewAudio(file)}
+                            title="Preview Audio"
+                          >
+                            🔊 Preview
+                          </button>
                           {file.approvalStatus === 'pending' && (
                             <>
                               <button 
@@ -561,7 +582,12 @@ export default function CreationReviewPanel() {
                         <p>Created: {new Date(set.createdAt).toLocaleDateString()}</p>
                       </div>
                       <div className="cosmetic-actions">
-                        <button className="primary-btn">👁️ Preview</button>
+                        <button 
+                          className="primary-btn" 
+                          onClick={() => handlePreviewCosmetic(set)}
+                        >
+                          👁️ Preview
+                        </button>
                         <button className="ghost-btn">🗑️ Delete</button>
                       </div>
                     </div>

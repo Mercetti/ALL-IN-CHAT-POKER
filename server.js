@@ -336,54 +336,42 @@ app.get('/uploads/audio/:filename', (req, res) => {
     // Extract audio ID from filename
     const audioId = filename.replace('.mp3', '');
     
-    // Create different audio placeholders based on the audio ID
-    let audioType = 'silence';
-    let duration = '1.0';
+    // Return a minimal but valid WAV file
+    // Using a very simple approach that browsers can handle
+    const sampleRate = 44100;
+    const duration = 1; // 1 second
+    const numSamples = sampleRate * duration;
     
-    switch (audioId) {
-      case 'poker_theme_energetic':
-        audioType = 'energetic_theme';
-        duration = '2.5';
-        break;
-      case 'chip_stack_sound':
-        audioType = 'chip_stack';
-        duration = '0.1';
-        break;
-      case 'victory_fanfare':
-        audioType = 'victory';
-        duration = '0.5';
-        break;
-      default:
-        audioType = 'silence';
-        duration = '1.0';
-    }
+    // WAV header (44 bytes)
+    const header = Buffer.alloc(44);
     
-    // Return a simple WAV file (much simpler than MP3)
-    // WAV header + silence data
-    const wavHeader = Buffer.from([
-      0x52, 0x49, 0x46, 0x46, // "RIFF"
-      0x24, 0x08, 0x00, 0x00, // File size - 8
-      0x57, 0x41, 0x56, 0x45, // "WAVE"
-      0x66, 0x6D, 0x74, 0x20, // "fmt "
-      0x10, 0x00, 0x00, 0x00, // Chunk size
-      0x01, 0x00,             // Audio format (PCM)
-      0x01, 0x00,             // Number of channels (mono)
-      0x44, 0xAC, 0x00, 0x00, // Sample rate (44100)
-      0x88, 0x58, 0x01, 0x00, // Byte rate
-      0x02, 0x00,             // Block align
-      0x10, 0x00,             // Bits per sample
-      0x64, 0x61, 0x74, 0x61, // "data"
-      0x00, 0x08, 0x00, 0x00  // Data size
-    ]);
+    // RIFF chunk
+    header.write('RIFF', 0);
+    header.writeUInt32LE(36 + numSamples * 2, 4); // File size
+    header.write('WAVE', 8);
     
-    // Create silence data (44100 samples of silence for 1 second)
-    const silenceData = Buffer.alloc(44100 * 2); // 2 bytes per sample for 16-bit
+    // fmt chunk
+    header.write('fmt ', 12);
+    header.writeUInt32LE(16, 16); // Chunk size
+    header.writeUInt16LE(1, 20); // Audio format (PCM)
+    header.writeUInt16LE(1, 22); // Number of channels
+    header.writeUInt32LE(sampleRate, 24); // Sample rate
+    header.writeUInt32LE(sampleRate * 2, 28); // Byte rate
+    header.writeUInt16LE(2, 32); // Block align
+    header.writeUInt16LE(16, 34); // Bits per sample
+    
+    // data chunk
+    header.write('data', 36);
+    header.writeUInt32LE(numSamples * 2, 40); // Data size
+    
+    // Create silence data (all zeros)
+    const silenceData = Buffer.alloc(numSamples * 2);
     
     res.setHeader('Content-Type', 'audio/wav');
     res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
     res.setHeader('Cache-Control', 'public, max-age=86400');
     
-    res.send(Buffer.concat([wavHeader, silenceData]));
+    res.send(Buffer.concat([header, silenceData]));
   } catch (error) {
     console.error('Audio file error:', error);
     res.status(500).json({ error: 'Internal server error' });
