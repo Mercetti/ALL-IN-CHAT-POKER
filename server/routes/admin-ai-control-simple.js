@@ -358,7 +358,7 @@ function createSimpleAdminAiControlRouter() {
   });
 
   // AI Tools chat endpoint
-  router.post('/ai-tools/chat', (req, res) => {
+  router.post('/chat', (req, res) => {
     try {
       const { message, model = 'llama2-7b' } = req.body || {};
       

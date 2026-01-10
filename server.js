@@ -44,6 +44,7 @@ app.use('/admin/services', adminServicesRoutes);
 // Admin AI control routes
 const adminAiControlRoutes = createSimpleAdminAiControlRouter();
 app.use('/admin/ai', adminAiControlRoutes);
+app.use('/admin/ai-tools', adminAiControlRoutes); // Add alias for ai-tools endpoints
 
 // Health check endpoint
 app.get('/health', (req, res) => {
