@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Acey Interaction Test</title>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="/acey/aceyUI.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    button { padding: 10px; margin: 5px; cursor: pointer; }
+    #output { margin-top: 20px; padding: 10px; border: 1px solid #ccc; min-height: 100px; }
+  </style>
+</head>
+<body>
+  <h1>Acey Interaction Test</h1>
+  
+  <div>
+    <button onclick="sendChat('flirty')">Send Flirty Chat</button>
+    <button onclick="sendChat('savage')">Send Savage Chat</button>
+    <button onclick="simulateWin()">Simulate Win</button>
+    <button onclick="simulateLoss()">Simulate Loss</button>
+    <button onclick="testTTS()">Test TTS</button>
+  </div>
+  
+  <div id="output"></div>
+  
+  <script>
+    const socket = io();
+    
+    function log(message) {
+      const output = document.getElementById('output');
+      output.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+    }
+    
+    function sendChat(tone) {
+      const messages = {
+        flirty: "You're looking sharp today, Acey! 😉",
+        savage: "That was a terrible move, rookie! 😏"
+      };
+      
+      socket.emit('chatMessage', {
+        user: 'tester',
+        message: messages[tone],
+        channel: 'test-channel'
+      });
+      
+      log(`Sent ${tone} chat: ${messages[tone]}`);
+    }
+    
+    function simulateWin() {
+      socket.emit('gameEvent', {
+        event: 'win',
+        details: { player: 'tester', amount: 100 },
+        channel: 'test-channel'
+      });
+      log('Simulated win event');
+    }
+    
+    function simulateLoss() {
+      socket.emit('gameEvent', {
+        event: 'lose',
+        details: { player: 'tester', amount: 50 },
+        channel: 'test-channel'
+      });
+      log('Simulated loss event');
+    }
+    
+    function testTTS() {
+      // This will use the Acey UI's built-in TTS functionality
+      if (window.AceyConfig && window.playVoice) {
+        playVoice('Testing text to speech functionality', 'playful');
+        log('Triggered TTS: "Testing text to speech functionality"');
+      } else {
+        log('TTS system not available');
+      }
+    }
+    
+    // Listen for Acey responses
+    socket.on('overlay', (data) => {
+      if (data.source === 'acey' && data.text) {
+        log(`Acey: ${data.text}`);
+      }
+    });
+  </script>
+</body>
+</html>

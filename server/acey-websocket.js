@@ -16,10 +16,10 @@ class AceyWebSocket {
       logger: new Logger('acey-engine'),
       useAI: true 
     });
-    this.port = options.port || 8081;
+    this.path = options.path || '/acey';
     
-    // Only start WebSocket server if not on Fly.io
-    this.isLocal = process.env.NODE_ENV !== 'production' || !process.env.FLY_APP_NAME;
+    // Always attach to main HTTP server
+    this.server = options.server;
     
     // Forward Acey events to WebSocket clients
     this.aceyEngine.on('overlay', (data) => {
@@ -32,15 +32,13 @@ class AceyWebSocket {
   }
 
   start() {
-    // Don't start WebSocket server on Fly.io
-    if (!this.isLocal) {
-      Logger('acey-websocket').info('WebSocket server disabled on Fly.io');
-      return;
-    }
+    // Always create WebSocket server attached to main HTTP server
     this.wss = new WebSocket.Server({ 
-      port: this.port,
-      path: '/acey'
+      server: this.server,
+      path: this.path
     });
+
+    logger.info('Acey WebSocket server attached to main HTTP server', { path: this.path });
 
     this.wss.on('connection', (ws, req) => {
       logger.info('Acey WebSocket client connected', { 
@@ -74,8 +72,6 @@ class AceyWebSocket {
         logger.error('Acey WebSocket error', { error: error.message });
       });
     });
-
-    logger.info('Acey WebSocket server started', { port: this.port });
   }
 
   async handleMessage(ws, message) {

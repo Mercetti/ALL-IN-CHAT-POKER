@@ -818,8 +818,9 @@ class DBHelper {
    * @returns {Array}
    */
   getAllProfiles(limit = 100) {
+    const envFilter = config.IS_PRODUCTION ? "" : "WHERE created_at > DATE('now', '-3 days')";
     const stmt = this.db.prepare(
-      'SELECT id, login, display_name, created_at, updated_at FROM profiles LIMIT ?'
+      `SELECT id, login, display_name, created_at, updated_at FROM profiles ${envFilter} ORDER BY created_at DESC LIMIT ?`
     );
     return stmt.all(limit);
   }

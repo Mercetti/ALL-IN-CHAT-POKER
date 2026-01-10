@@ -197,6 +197,17 @@ function getCriticalHashes() {
   }
 }
 
+// ======================
+// Acey Engine Integration
+// ======================
+const AceyEngine = require('./server/aceyEngine');
+
+// Initialize Acey Engine
+const aceyEngine = new AceyEngine({ 
+  logger: console,
+  useAI: true
+});
+
 // Socket.IO connection handling
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
@@ -204,19 +215,140 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
   });
+  
+  // Forward chat/game events to Acey Engine
+  socket.on('chatMessage', (data) => {
+    aceyEngine.processEvent({
+      type: 'chat',
+      user: data.user,
+      message: data.message,
+      channel: data.channel
+    });
+  });
+  
+  socket.on('gameEvent', (data) => {
+    aceyEngine.processEvent({
+      type: 'game',
+      event: data.event,
+      details: data.details,
+      channel: data.channel
+    });
+  });
 });
 
-// Export critical functions for health monitoring
-module.exports = {
-  runSyntheticCheck,
-  runAssetCheck,
-  backupDb,
-  vacuumDb,
-  getCriticalHashes,
-  app,
-  server,
-  io
-};
+// ======================
+// Acey WebSocket Integration
+// ======================
+const AceyWebSocket = require('./server/acey-websocket');
+const { extractUserLogin, getChannelFromSocket } = require('./server/auth');
+
+// Initialize Acey WebSocket server
+const aceyWebSocket = new AceyWebSocket({ 
+  server: server, // Attach to main HTTP server
+  path: '/acey',
+  logger: console,
+  useAI: true,
+  // Add authentication handler
+  authenticate: (req) => {
+    const user = extractUserLogin(req);
+    const channel = getChannelFromSocket(req);
+    if (!user || !channel) {
+      return false;
+    }
+    return { user, channel };
+  }
+});
+
+// Start Acey WebSocket service
+aceyWebSocket.start();
+console.log('🎤 Acey WebSocket server initialized');
+
+// Start server
+const PORT = process.env.PORT || 8080;
+const HOST = process.env.HOST || '0.0.0.0';
+
+server.listen(PORT, HOST, () => {
+  console.log(`Server running on ${HOST}:${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log('🎤 Acey Engine initialized');
+  console.log('Simple server initialization complete');
+});
+
+// Handle graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully...');
+  aceyWebSocket.stop();  // Add Acey shutdown
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT received, shutting down gracefully...');
+  aceyWebSocket.stop();  // Add Acey shutdown
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+});
+
+// ======================
+// Ultra Status Helper
+// ======================
+async function checkUltraStatus(user) {
+  try {
+    // Get user profile from database
+    const db = require('./server/db');
+    const profile = db.getProfile(user);
+    
+    // Check subscription status
+    return profile?.subscription === 'ultra' || 
+           profile?.role === 'admin' || 
+           profile?.role === 'streamer';
+  } catch (error) {
+    console.error('Ultra status check failed', error);
+    return false;
+  }
+}
+
+// ======================
+// Acey TTS Endpoint
+// ======================
+app.get('/tts', async (req, res) => {
+  try {
+    const text = req.query.text;
+    const voice = req.query.voice || 'default';
+    
+    if (!text) {
+      return res.status(400).json({ error: 'Missing text parameter' });
+    }
+    
+    // Extract user session
+    const user = extractUserLogin(req);
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    // Check Ultra status
+    const isUltra = await checkUltraStatus(user);
+    if (!isUltra) {
+      return res.status(403).json({ error: 'Ultra subscription required' });
+    }
+    
+    // Generate TTS audio using AI audio generator
+    const audioGenerator = getAIAudioGenerator();
+    const audioBuffer = await audioGenerator.generateTTS(text, voice);
+    
+    // Return audio response
+    res.setHeader('Content-Type', 'audio/mpeg');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.send(audioBuffer);
+  } catch (error) {
+    console.error('TTS endpoint error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 // Placeholder image endpoint for missing assets
 app.get('/assets/placeholder.png', (req, res) => {
@@ -473,29 +605,14 @@ app.get('/uploads/audio/stream/:filename', async (req, res) => {
   }
 });
 
-// Start server
-const PORT = process.env.PORT || 8080;
-const HOST = process.env.HOST || '0.0.0.0';
-
-server.listen(PORT, HOST, () => {
-  console.log(`Server running on ${HOST}:${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log('Simple server initialization complete');
-});
-
-// Handle graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully...');
-  server.close(() => {
-    console.log('Server closed');
-    process.exit(0);
-  });
-});
-
-process.on('SIGINT', () => {
-  console.log('SIGINT received, shutting down gracefully...');
-  server.close(() => {
-    console.log('Server closed');
-    process.exit(0);
-  });
-});
+// Export critical functions for health monitoring
+module.exports = {
+  runSyntheticCheck,
+  runAssetCheck,
+  backupDb,
+  vacuumDb,
+  getCriticalHashes,
+  app,
+  server,
+  io
+};

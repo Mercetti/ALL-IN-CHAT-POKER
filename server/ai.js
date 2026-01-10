@@ -159,8 +159,31 @@ async function chat(messages = [], options = {}) {
   }
 }
 
+// ======================
+// Unified AI Interface
+// ======================
+function getUnifiedAI() {
+  return {
+    generateResponse: async (prompt, options) => {
+      const messages = [
+        { role: 'system', content: options.systemPrompt || '' },
+        { role: 'user', content: prompt }
+      ];
+      
+      const response = await chat(messages, {
+        model: options.model,
+        maxTokens: options.maxTokens,
+        temperature: options.temperature
+      });
+      
+      return response;
+    }
+  };
+}
+
 module.exports = {
   chat,
+  getUnifiedAI,
   getAICacheStats: () => aiCache.getStats(),
   getAIPerformanceReport: () => performanceMonitor.getReport(),
   getTunnelStatus: () => optimizer.getTunnelStatus(),

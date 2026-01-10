@@ -57,6 +57,28 @@ function createSimpleAuthRouter() {
     }
   });
 
+  // Registration endpoint
+  router.post('/register', (req, res) => {
+    try {
+      const { login, password } = req.body;
+      
+      // Bot protection
+      if (login.includes('bot') || login.includes('auto')) {
+        return res.status(403).json({ error: 'Bot registrations not allowed' });
+      }
+      
+      // For now, accept any registration for testing
+      // TODO: Implement proper registration logic
+      res.json({
+        success: true,
+        message: 'Registered successfully'
+      });
+    } catch (error) {
+      console.error('Registration error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
   // Logout endpoint
   router.post('/logout', (req, res) => {
     try {

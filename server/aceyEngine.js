@@ -338,20 +338,29 @@ class AceyEngine extends EventEmitter {
   async processEvent(sessionId = 'default', event) {
     const session = this.getSession(sessionId);
     
-    if (event.type === 'win' || event.type === 'lose' || event.type === 'specialCard') {
-      await this.handleGameEvent(session, event);
-    }
-    
-    if (event.type === 'chat') {
-      const tone = this.detectTone(event.text);
-      const learned = {
-        text: event.text,
-        tone,
-        source: 'chat',
-        user: event.user,
-        timestamp: Date.now(),
-      };
-      this.addDynamicPhrase(session, learned);
+    // Handle all event types
+    switch (event.type) {
+// Remove the async call for chat messages
+case 'chat':
+  this.addChatMessage(sessionId, event); // Removed async call
+  break;
+        
+      case 'win':
+      case 'lose':
+      case 'specialCard':
+        await this.handleGameEvent(session, event);
+        break;
+        
+      case 'join':
+      case 'leave':
+      case 'bet':
+        // Add to memory but no special handling
+        this.addMemory(session, event);
+        this.emit('memory', { sessionId, memory: event });
+        break;
+        
+      default:
+        this.logger.warn('Unhandled event type', { type: event.type });
     }
   }
 

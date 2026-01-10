@@ -1,5 +1,6 @@
 const game = require('../game');
 const db = require('../db');
+const { getAceyEngine } = require('../aceyEngine');
 
 /**
  * Initialize a poker round with shared deck/community and per-player hole cards.
@@ -109,6 +110,21 @@ function settleAndEmit(io, playerStates, communityCards, betAmounts, waitingQueu
   const chan = typeof channel === 'string' ? channel : undefined;
   io.emit('roundResult', { ...roundResult, channel: chan });
   io.emit('payouts', { ...payoutPayload, channel: chan });
+
+  // Forward game events to AceyEngine
+  const aceyEngine = getAceyEngine();
+  if (aceyEngine) {
+    roundResult.players.forEach(player => {
+      if (player.evaluation) {
+        aceyEngine.processEvent(chan || 'default', {
+          type: player.evaluation.payout > 0 ? 'win' : 'lose',
+          player: player.login,
+          amount: betAmounts[player.login] || 0,
+          winnings: payoutPayload.payouts[player.login] || 0
+        });
+      }
+    });
+  }
 
   const broke = [];
   Object.keys(playerStates).forEach(login => {

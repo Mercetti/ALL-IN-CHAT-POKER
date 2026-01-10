@@ -3,6 +3,7 @@ const Logger = require('../logger');
 const logger = new Logger('blackjack');
 const db = require('../db');
 const config = require('../config');
+const { getAceyEngine } = require('../aceyEngine');
 
 /**
  * Initialize a blackjack round with shared shoe and dealer hand.
@@ -182,6 +183,22 @@ function settleAndEmit(io, dealerState, playerStates, betAmounts, waitingQueue, 
   const chan = typeof channel === 'string' ? channel : undefined;
   io.emit('roundResult', { ...roundResult, channel: chan });
   io.emit('payouts', { ...payoutPayload, channel: chan });
+
+  // Forward game events to AceyEngine
+  const aceyEngine = getAceyEngine();
+  if (aceyEngine) {
+    roundResult.players.forEach(player => {
+      if (player.evaluation) {
+        aceyEngine.processEvent(chan || 'default', {
+          type: player.evaluation.payout > 0 ? 'win' : 'lose',
+          player: player.login,
+          amount: betAmounts[player.login] || 0,
+          winnings: payoutPayload.payouts[player.login] || 0
+        });
+      }
+    });
+  }
+
   // Push final balances/bet reset to overlay
   Object.keys(betAmounts || {}).forEach(login => {
     io.emit('playerUpdate', {

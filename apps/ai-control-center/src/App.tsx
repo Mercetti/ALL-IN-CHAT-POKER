@@ -75,7 +75,7 @@ function App() {
   const showAuthPanel = authRequired;
 
   return (
-    <div className={`app-shell ${activeTab === 'creation' || activeTab === 'deduplication' ? 'full-width' : ''}`}>
+    <div className={`app-shell ${activeTab === 'creation' || activeTab === 'deduplication' || activeTab === 'updates' || activeTab === 'dev-helper' || activeTab === 'feedback-analyzer' || activeTab === 'acey-tester' ? 'full-width' : ''}`}>
       <header className="app-header">
         <div className="header-top">
           <h1 className="app-title">AI Control Center</h1>

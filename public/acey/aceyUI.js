@@ -137,7 +137,21 @@ function connect() {
 
   ws.addEventListener('close', () => {
     setPrimaryText('Lost connection to Acey… reconnecting.', 'playful');
-    setTimeout(connect, 4000);
+    
+    // Improved reconnection with exponential backoff
+    let retryDelay = 1000;
+    const maxDelay = 30000;
+    
+    const reconnect = () => {
+      if (retryDelay < maxDelay) retryDelay *= 2;
+      setTimeout(() => {
+        if (!ws || ws.readyState === WebSocket.CLOSED) {
+          connect();
+        }
+      }, retryDelay);
+    };
+    
+    reconnect();
   });
 
   ws.addEventListener('error', (err) => {

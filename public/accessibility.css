@@ -15,7 +15,8 @@
 }
 
 .skip-links:focus-within {
-  top: 0;
+  top: 40px !important;
+  left: 20px !important;
 }
 
 .skip-link {

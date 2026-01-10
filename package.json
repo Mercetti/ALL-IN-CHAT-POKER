@@ -40,7 +40,8 @@
     "dev:watch": "node auto-watch.js",
     "dev:monitor": "node auto-deploy-monitor.js",
     "dev:all": "smart-start-dev-bg.bat",
-    "start:everything": "node startup-everything.js"
+    "start:everything": "node startup-everything.js",
+    "test-acey": "cross-env NODE_ENV=test jest server/aceyEngine.test.js server/acey-websocket.test.js"
   },
   "keywords": [
     "poker",
