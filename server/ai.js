@@ -44,7 +44,7 @@ const performanceMonitor = new AIPerformanceMonitor();
 const aiManager = new FreeAIManager({
   preferredProvider: config.AI_PROVIDER || 'ollama',
   fallbackToRules: true,
-  enableLocalModels: false
+  enableLocalModels: true
 });
 
 // Initialize tunnel optimizer

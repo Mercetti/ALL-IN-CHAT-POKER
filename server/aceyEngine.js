@@ -174,7 +174,9 @@ class AceyEngine extends EventEmitter {
   }
 
   async generateAIResponse(session, tone, context) {
+    console.log('[DEBUG] Attempting to generate AI response');
     if (!this.useAI || !this.ai) {
+      console.warn('[DEBUG] AI disabled or unavailable');
       // Fallback to static phrases
       return this.formatDealerLine(context.type, context.player, context.card);
     }
@@ -206,6 +208,7 @@ class AceyEngine extends EventEmitter {
     userPrompt += `\nKeep it short, punchy, and in character!`;
 
     try {
+      console.log('[DEBUG] Calling AI with prompt:', userPrompt);
       const response = await this.ai.generateResponse(userPrompt, {
         systemPrompt,
         model: modelForContext,
@@ -228,6 +231,7 @@ class AceyEngine extends EventEmitter {
       
       return cleanResponse || this.formatDealerLine(context.type, context.player, context.card);
     } catch (error) {
+      console.error('[DEBUG] AI generation failed:', error);
       this.logger.warn('AI response generation failed, falling back to static phrase', { error: error.message });
       return this.formatDealerLine(context.type, context.player, context.card);
     }
@@ -421,6 +425,4 @@ case 'chat':
   }
 }
 
-module.exports = {
-  AceyEngine,
-};
+module.exports = AceyEngine;

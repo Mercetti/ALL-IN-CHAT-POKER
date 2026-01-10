@@ -200,13 +200,14 @@ function getCriticalHashes() {
 // ======================
 // Acey Engine Integration
 // ======================
-const AceyEngine = require('./server/aceyEngine');
+const AceyEngine = require('./server/aceyEngine').AceyEngine;
 
 // Initialize Acey Engine
-const aceyEngine = new AceyEngine({ 
+const aceyEngine = new AceyEngine({
   logger: console,
   useAI: true
 });
+console.log('AceyEngine created successfully');
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {

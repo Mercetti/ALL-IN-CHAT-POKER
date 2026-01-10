@@ -1,7 +1,6 @@
 import {
   getSocketUrl,
   isEventForChannel,
-  CARD_FLIP_META,
 } from './js/overlay/overlay-config.js';
 import { createOverlayConnection } from './js/overlay/overlay-connection.js';
 import {
@@ -410,7 +409,6 @@ const CARD_FLIP_SPRITE = '/assets/cosmetics/effects/deals/face-up/card_flip_spri
 const DEFAULT_CARD_BACK = '/assets/card-back.png';
 let flipSprite = null;
 let flipMeta = null;
-const CARD_FLIP_META = '/assets/cosmetics/effects/deals/face-up/card_flip_animation.json';
 let effectsMeta = null;
 let effectsMetaPromise = null;
 let winSprite = null;
@@ -499,7 +497,7 @@ function scheduleOverlayAssetWarmup() {
 
 async function loadFlipSprite() {
   try {
-    const metaRes = await fetch(CARD_FLIP_META);
+    const metaRes = await fetch('/assets/cosmetics/effects/deals/face-up/card_flip_animation.json');
     const rawMeta = metaRes.ok ? await metaRes.json() : {};
     const merged = effectsMeta?.animations?.card_flip_24
       ? { ...effectsMeta.animations.card_flip_24, ...rawMeta }
@@ -1093,7 +1091,7 @@ window.addEventListener('message', (event) => {
 
 socket.on('queueUpdate', (data) => {
   if (!isEventForChannel(data)) return;
-  const validatedQueue = queueValidator.updateQueue(data.waiting || []);
+  const validatedQueue = queueValidator.updateQueue(data.waiting);
   renderQueue(validatedQueue.seated, validatedQueue.overflow);
   updateOverflowDisplay(validatedQueue.overflow);
 });

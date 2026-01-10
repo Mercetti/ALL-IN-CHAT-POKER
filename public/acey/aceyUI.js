@@ -106,8 +106,11 @@ function handleServerMessage(raw) {
 
 function connect() {
   try {
-    const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    ws = new WebSocket(`${proto}://${window.location.host}/acey`);
+    const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+    const wsUrl = isProduction 
+      ? `wss://${window.location.host}/acey` 
+      : `ws://localhost:8080/acey`;
+    ws = new WebSocket(wsUrl);
   } catch (err) {
     console.error('Failed to init Acey socket', err);
     return;
