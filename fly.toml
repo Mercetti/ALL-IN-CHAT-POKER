@@ -50,6 +50,14 @@ primary_region = "iad"
     grace_period = "60s"
     restart_limit = 0
 
+  [[services.http_checks]]
+    interval = "15s"
+    timeout = "10s"
+    grace_period = "5s"
+    method = "get"
+    path = "/health"
+    processes = ["app"]
+
 # Audio service (internal only)
 [[services]]
   internal_port = 8080

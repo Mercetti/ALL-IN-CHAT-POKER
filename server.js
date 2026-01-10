@@ -84,12 +84,7 @@ try {
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    memory: process.memoryUsage()
-  });
+  res.status(200).send('OK');
 });
 
 // Basic routes
