@@ -8,22 +8,80 @@ function createSimpleAdminAiControlRouter() {
   router.get('/overview', (req, res) => {
     try {
       res.json({
-        status: 'OK',
-        overview: {
-          total_models: 2,
-          active_models: 2,
-          total_requests_today: 1250,
-          success_rate: 0.94,
-          avg_response_time: 250,
-          services: {
-            ollama: { status: 'healthy', uptime: '99.9%' },
-            ai_error_manager: { status: 'active', errors_handled: 0 },
-            ai_performance_monitor: { status: 'active', cache_hit_rate: '87%' },
-            code_quality_guardian: { status: 'active', checks_passed: 145 },
-            coding_assistant: { status: 'active', suggestions_made: 89 }
+        panels: [
+          {
+            key: 'errorManager',
+            category: 'Stability',
+            title: 'Error Manager',
+            description: 'Auto-detects regressions & suggests patches.',
+            state: 'online',
+            metrics: [
+              { label: 'Errors Handled', value: '0' },
+              { label: 'Last Error', value: 'None' },
+              { label: 'Uptime', value: '99.9%' }
+            ]
+          },
+          {
+            key: 'performanceOptimizer',
+            category: 'Performance',
+            title: 'Performance Optimizer',
+            description: 'Monitors CPU/memory & applies live tuning.',
+            state: 'online',
+            metrics: [
+              { label: 'CPU Usage', value: '45%' },
+              { label: 'Memory Usage', value: '62%' },
+              { label: 'Cache Hit Rate', value: '87%' }
+            ]
+          },
+          {
+            key: 'uxMonitor',
+            category: 'Experience',
+            title: 'UX Monitor',
+            description: 'Tracks funnel health and friction events.',
+            state: 'online',
+            metrics: [
+              { label: 'Active Users', value: '1250' },
+              { label: 'Avg Session Time', value: '4m 23s' },
+              { label: 'Conversion Rate', value: '94%' }
+            ]
+          },
+          {
+            key: 'audioGenerator',
+            category: 'Media',
+            title: 'AI Audio Generator',
+            description: 'Builds music beds and FX packs on demand.',
+            state: 'online',
+            metrics: [
+              { label: 'Tracks Generated', value: '89' },
+              { label: 'Avg Generation Time', value: '2.1s' },
+              { label: 'Storage Used', value: '245MB' }
+            ]
+          },
+          {
+            key: 'selfHealing',
+            category: 'Reliability',
+            title: 'Self-Healing System',
+            description: 'Auto-recovers from failures and restarts services.',
+            state: 'online',
+            metrics: [
+              { label: 'Healing Events', value: '12' },
+              { label: 'Avg Recovery Time', value: '1.8s' },
+              { label: 'Uptime', value: '99.9%' }
+            ]
+          },
+          {
+            key: 'codeQuality',
+            category: 'Development',
+            title: 'Code Quality Guardian',
+            description: 'Ensures code quality and best practices.',
+            state: 'online',
+            metrics: [
+              { label: 'Checks Passed', value: '145' },
+              { label: 'Issues Found', value: '3' },
+              { label: 'Code Coverage', value: '87%' }
+            ]
           }
-        },
-        timestamp: new Date().toISOString()
+        ]
       });
     } catch (error) {
       console.error('AI Control overview error:', error);
