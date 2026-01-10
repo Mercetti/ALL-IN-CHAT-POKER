@@ -6,6 +6,8 @@ import ServiceManagementPanel from './components/ServiceManagementPanel';
 import AIPerformancePanel from './components/AIPerformancePanel';
 import CreationReviewPanel from './components/CreationReviewPanel';
 import DeduplicationPanel from './components/DeduplicationPanel';
+import UpdatesPage from './components/UpdatesPage';
+import AceyDevHelper from './components/AceyDevHelper';
 import useDashboardStore from './store/useDashboardStore';
 import { controlCenterLogin } from './services/api';
 import type { PanelKey } from './types/panels';
@@ -25,7 +27,7 @@ function App() {
   const [password, setPassword] = useState('');
   const [loginPending, setLoginPending] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'services' | 'performance' | 'creation' | 'deduplication'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'services' | 'performance' | 'creation' | 'deduplication' | 'updates' | 'dev-helper'>('overview');
 
   useEffect(() => {
     fetchAll();
@@ -120,6 +122,18 @@ function App() {
           >
             🔄 Deduplication
           </button>
+          <button 
+            className={`nav-tab ${activeTab === 'updates' ? 'active' : ''}`}
+            onClick={() => setActiveTab('updates')}
+          >
+            📰 Updates
+          </button>
+          <button 
+            className={`nav-tab ${activeTab === 'dev-helper' ? 'active' : ''}`}
+            onClick={() => setActiveTab('dev-helper')}
+          >
+            🤖 Acey Dev
+          </button>
         </div>
         
         {showAuthPanel && (
@@ -174,6 +188,14 @@ function App() {
 
         {activeTab === 'deduplication' && (
           <DeduplicationPanel />
+        )}
+
+        {activeTab === 'updates' && (
+          <UpdatesPage />
+        )}
+
+        {activeTab === 'dev-helper' && (
+          <AceyDevHelper />
         )}
       </div>
     </div>
