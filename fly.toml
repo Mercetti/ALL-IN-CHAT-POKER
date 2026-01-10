@@ -7,8 +7,8 @@ app = "all-in-chat-poker"
 primary_region = "iad"
 
 [build]
-  builder = "node"
-  buildpacks = ["nodejs"]
+  builder = "heroku/buildpacks:20"
+  buildpacks = ["gcr.io/paketo-buildpacks/nodejs"]
 
 [env]
   DB_FILE = "/data/data.db"
@@ -30,6 +30,7 @@ primary_region = "iad"
   auto_stop_machines = false
   auto_start_machines = true
   min_started = 1
+  processes = ["app", "bot"]
 
   [[http_service.ports]]
     port = 80
@@ -49,6 +50,10 @@ primary_region = "iad"
   processes = ["audio"]
   protocol = "tcp"
   auto_https = false
+
+  [[services.ports]]
+    port = 8000
+    handlers = ["tcp"]
 
   [[services.tcp_checks]]
     interval = "60s"
