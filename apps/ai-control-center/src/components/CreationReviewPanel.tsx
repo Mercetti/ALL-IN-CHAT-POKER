@@ -433,7 +433,29 @@ export default function CreationReviewPanel() {
                         )}
                       </div>
                       <div className="audio-controls">
-                        <audio controls>
+                        <audio 
+                          controls
+                          onError={(e) => {
+                            const target = e.target as HTMLAudioElement;
+                            console.log('Audio loading error for:', file.url);
+                            // Hide the audio element and show a placeholder
+                            target.style.display = 'none';
+                            const parent = target.parentElement;
+                            if (parent) {
+                              // Create a placeholder div
+                              const placeholder = document.createElement('div');
+                              placeholder.className = 'audio-placeholder';
+                              placeholder.innerHTML = `
+                                <div style="padding: 1rem; background: #2a2a2a; border-radius: 6px; text-align: center; color: #888;">
+                                  <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎵</div>
+                                  <div style="font-size: 0.9rem;">Audio Preview Unavailable</div>
+                                  <div style="font-size: 0.8rem; margin-top: 0.5rem;">${file.name}</div>
+                                </div>
+                              `;
+                              parent.insertBefore(placeholder, target);
+                            }
+                          }}
+                        >
                           <source src={`${API_BASE}${file.url}`} type="audio/mpeg" />
                           Your browser does not support the audio element.
                         </audio>
