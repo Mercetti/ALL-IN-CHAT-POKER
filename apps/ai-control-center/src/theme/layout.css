@@ -2,7 +2,9 @@
   padding: 16px clamp(16px, 2vw, 40px);
   width: 100%;
   max-width: none;
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
   box-sizing: border-box;
 }
 
@@ -12,6 +14,8 @@
   grid-template-columns: minmax(0, 1fr);
   gap: 16px;
   align-items: stretch;
+  flex: 1;
+  min-height: 0;
 }
 
 @media (min-width: 1200px) {
