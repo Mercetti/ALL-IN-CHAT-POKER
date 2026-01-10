@@ -275,11 +275,15 @@ const PORT = process.env.PORT || 8080;
 const HOST = '0.0.0.0';
 
 console.log(`Starting server on ${HOST}:${PORT}`);
-server.listen(PORT, HOST, () => {
-  console.log(`Server running at http://${HOST}:${PORT}`);
-}).on('error', (err) => {
-  console.error('Server startup failed:', err);
-  process.exit(1);
+
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+delay(10000).then(() => {
+  server.listen(PORT, HOST, () => {
+    console.log(`Server running on ${HOST}:${PORT}`);
+  });
 });
 
 // Handle graceful shutdown
