@@ -279,11 +279,36 @@ export default function CreationReviewPanel() {
   };
 
   const handlePreviewAudio = (file: AudioFile) => {
-    // Play audio preview
-    const audio = new Audio(`${API_BASE}${file.url}`);
-    audio.play().catch(error => {
-      console.error('Audio preview failed:', error);
-    });
+    // Play audio preview with better error handling
+    try {
+      const audio = new Audio();
+      
+      // Add multiple source types for better compatibility
+      audio.innerHTML = `
+        <source src="${API_BASE}${file.url}" type="audio/mpeg">
+        <source src="${API_BASE}${file.url}" type="audio/wav">
+        <source src="${API_BASE}${file.url}" type="audio/mp3">
+      `;
+      
+      audio.addEventListener('error', (e) => {
+        console.error('Audio preview failed - showing fallback');
+        // Show a nice notification instead of error
+        alert(`🎵 Audio Preview: ${file.name}\n\nDuration: ${file.duration}\n\nAudio preview is not available in this browser, but you can see the audio details above.`);
+      });
+      
+      audio.addEventListener('canplay', () => {
+        audio.play().catch(error => {
+          console.error('Audio play failed:', error);
+          alert(`🎵 Audio Preview: ${file.name}\n\nDuration: ${file.duration}\n\nAudio playback failed. The audio file may not be supported in this browser.`);
+        });
+      });
+      
+      // Start loading
+      audio.load();
+    } catch (error) {
+      console.error('Audio preview error:', error);
+      alert(`🎵 Audio Preview: ${file.name}\n\nDuration: ${file.duration}\n\nAudio preview is not available.`);
+    }
   };
 
   const getStatusColor = (status: string) => {
