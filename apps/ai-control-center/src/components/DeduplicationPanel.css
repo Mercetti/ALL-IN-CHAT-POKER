@@ -119,8 +119,20 @@
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
+}
+
+@media (min-width: 1200px) {
+  .summary-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 1600px) {
+  .summary-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
 }
 
 .summary-card {
@@ -196,8 +208,20 @@
 
 .group-items {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
+}
+
+@media (min-width: 1200px) {
+  .group-items {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1600px) {
+  .group-items {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .duplicate-item {
@@ -253,8 +277,20 @@
 
 .action-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
+}
+
+@media (min-width: 1200px) {
+  .action-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1600px) {
+  .action-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .action-card {
@@ -328,8 +364,20 @@
 
 .results-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
+}
+
+@media (min-width: 1200px) {
+  .results-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1600px) {
+  .results-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .result-item {
@@ -418,8 +466,20 @@
 
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
+}
+
+@media (min-width: 1200px) {
+  .metrics-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 1600px) {
+  .metrics-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
 }
 
 .metric-card {
