@@ -437,26 +437,10 @@ export default function CreationReviewPanel() {
                         )}
                       </div>
                       <div className="audio-controls">
-                        {failedAudioLoads.has(file.url) ? (
-                          <div className="audio-placeholder">
-                            <div style={{padding: '1rem', background: '#2a2a2a', borderRadius: '6px', textAlign: 'center', color: '#888'}}>
-                              <div style={{fontSize: '2rem', marginBottom: '0.5rem'}}>🎵</div>
-                              <div style={{fontSize: '0.9rem'}}>Audio Preview Unavailable</div>
-                              <div style={{fontSize: '0.8rem', marginTop: '0.5rem'}}>{file.name}</div>
-                            </div>
-                          </div>
-                        ) : (
-                          <audio 
-                            controls
-                            onError={(e) => {
-                              console.log('Audio loading error for:', file.url);
-                              setFailedAudioLoads(prev => new Set(prev).add(file.url));
-                            }}
-                          >
-                            <source src={`${API_BASE}${file.url}`} type="audio/mpeg" />
-                            Your browser does not support the audio element.
-                          </audio>
-                        )}
+                        <audio controls>
+                          <source src={`${API_BASE}${file.url}`} type="audio/mpeg" />
+                          Your browser does not support the audio element.
+                        </audio>
                         <div className="action-buttons">
                           {file.approvalStatus === 'pending' && (
                             <>
