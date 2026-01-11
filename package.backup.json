@@ -5,10 +5,9 @@
   "type": "commonjs",
   "main": "server.js",
   "scripts": {
-    "start": "cross-env PM2_DISABLE_INTERACTION=1 PM2_NO_INTERACTION=1 PM2_NO_PM2_UPDATE_NOTIFICATION=1 pm2 start server.js --no-daemon",
+    "start": "pm2 start server.js --no-daemon",
     "dev": "cross-env NODE_ENV=development node server.js",
     "prod": "cross-env NODE_ENV=production node server.js",
-    "acey:dev": "npm-run-all --parallel dev test:watch",
     "test": "cross-env NODE_ENV=test jest --runInBand",
     "test:watch": "cross-env NODE_ENV=test jest --watch",
     "lint": "eslint .",
@@ -55,6 +54,7 @@
   "license": "MIT",
   "dependencies": {
     "better-sqlite3": "^9.0.0",
+    "csurf": "^1.11.0",
     "diff": "^5.2.0",
     "discord.js": "^14.25.1",
     "dotenv": "^16.4.7",

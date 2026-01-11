@@ -6,6 +6,7 @@
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const { createHash } = require('crypto');
+const middleware = require('./middleware');
 
 class SecurityManager {
   constructor(app, config) {
@@ -130,23 +131,19 @@ class SecurityManager {
   }
 
   setupCSRFProtection() {
-    if (this.config.ENFORCE_ADMIN_CSRF) {
-      const csrf = require('csurf');
-      const csrfProtection = csrf({
-        cookie: {
-          httpOnly: true,
-          secure: this.config.IS_PRODUCTION,
-          sameSite: 'strict'
-        }
-      });
-      
-      this.app.use(csrfProtection);
-      
-      // CSRF token endpoint
-      this.app.get('/api/csrf-token', (req, res) => {
-        res.json({ csrfToken: req.csrfToken() });
-      });
+    if (!this.config.ENFORCE_ADMIN_CSRF) {
+      return;
     }
+
+    this.app.use(middleware.createCsrfMiddleware({ config: this.config }));
+
+    this.app.get('/api/csrf-token', (req, res) => {
+      const token = middleware.issueCsrfCookie(res, {
+        auth: this.config.auth,
+        config: this.config,
+      });
+      res.json({ csrfToken: token });
+    });
   }
 
   setupContentSecurityPolicy() {

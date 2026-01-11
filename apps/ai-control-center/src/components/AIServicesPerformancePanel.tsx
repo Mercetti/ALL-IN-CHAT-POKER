@@ -87,7 +87,7 @@ const AIServicesPerformancePanel: React.FC = () => {
       }
     ]);
 
-    // Mock models data
+    // Mock models data (update to reflect three active models)
     setModels([
       {
         id: 'deepseek-coder:1.3b',
@@ -113,6 +113,19 @@ const AIServicesPerformancePanel: React.FC = () => {
           avg_response_time: '180ms',
           success_rate: 0.92,
           requests_per_minute: 38
+        }
+      },
+      {
+        id: 'qwen:0.5b',
+        name: 'Qwen 0.5B',
+        type: 'creative-assistant',
+        status: 'active',
+        provider: 'ollama',
+        capabilities: ['audio', 'creative-writing', 'persona'],
+        performance: {
+          avg_response_time: '210ms',
+          success_rate: 0.9,
+          requests_per_minute: 32
         }
       }
     ]);

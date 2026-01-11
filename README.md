@@ -164,6 +164,23 @@ Players can use chat commands to interact:
 
 For issues or feature requests, please create an issue or PR.
 
+## Operational Notes
+
+### PM2 Hardening
+- PM2 now runs with interactive features disabled (`PM2_DISABLE_INTERACTION`, `PM2_NO_INTERACTION`, `PM2_NO_PM2_UPDATE_NOTIFICATION`) so it never opens remote dashboards or prompts in production.
+- Keep PM2 bound to `localhost`/Fly's internal network only. Do **not** expose the PM2 HTTP API or dashboard publicly; the web app and AI Control Center already talk to the server through Express/Socket.IO.
+- If you must inspect PM2 remotely, tunnel through SSH/Fly WireGuard rather than opening ports.
+
+### Security Monitoring
+- Run `npm audit` (or `npm run security:audit`) regularly or in CI to detect when PM2 publishes a patched version. The remaining advisory is low severity, so upgrade as soon as a fixed build is available.
+- Keep Fly.io logs (`fly logs -a all-in-chat-poker`) open during deploys to ensure no unexpected PM2 output appears.
+
+### Acey Development Workflow
+1. Run `npm run acey:dev` before starting work. This launches the backend (`npm run dev`) and Jest in watch mode simultaneously so test results update as files change.
+2. Fix any failures the watch window reports before committing. Husky will still run `npm test` on each commit as a safety net.
+3. For one-off checks, run `npm test` or the individual scripts (`npm run test:db`, `npm run test:ai`, etc.).
+4. Keep `npm run security:audit` in CI/pull requests so dependency advisories are caught early.
+
 ## License
 
 MIT

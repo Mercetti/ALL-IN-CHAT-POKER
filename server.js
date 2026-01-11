@@ -7,14 +7,88 @@ const socketIo = require('socket.io');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const fetch = global.fetch || require('node-fetch');
 
 // Import simple auth routes
 const { createSimpleAuthRouter } = require('./server/routes/auth-simple');
 const { createSimpleAdminServicesRouter } = require('./server/routes/admin-services-simple');
-const { createSimpleAdminAiControlRouter } = require('./server/routes/admin-ai-control-simple');
 
 // Import Poker Audio System
 const PokerAudioSystem = require('./server/poker-audio-system');
+const auth = require('./server/auth');
+const config = require('./server/config');
+const PerformanceMonitor = require('./server/utils/performance-monitor');
+const registerAdminAiControlRoutes = require('./server/routes/admin-ai-control');
+const UnifiedAISystem = require('./server/unified-ai');
+
+const logger = console;
+const performanceMonitor = new PerformanceMonitor({ enabled: true });
+const unifiedAI = new UnifiedAISystem({
+  enableChatBot: true,
+  enableCosmeticAI: true,
+});
+
+async function sendMonitorAlert(message, options = {}) {
+  if (!config.MONITOR_WEBHOOK_URL) return false;
+
+  try {
+    await fetch(config.MONITOR_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        content: message || 'AI Control Center alert',
+        embeds: options.description || options.fields ? [{
+          title: options.title || 'AI Control Center',
+          description: options.description,
+          fields: options.fields,
+          timestamp: new Date().toISOString(),
+        }] : undefined,
+      }),
+    });
+    return true;
+  } catch (error) {
+    logger.warn?.('Monitor alert dispatch failed', { error: error.message });
+    return false;
+  }
+}
+
+function collectAiOverviewPanels() {
+  return [
+    {
+      key: 'errorManager',
+      category: 'Stability',
+      title: 'Error Manager',
+      description: 'Auto-detects regressions & suggests patches.',
+      state: 'online',
+      metrics: [
+        { label: 'Errors Handled', value: '0' },
+        { label: 'Last Error', value: 'None' },
+      ],
+    },
+    {
+      key: 'performanceOptimizer',
+      category: 'Performance',
+      title: 'Performance Optimizer',
+      description: 'Monitors CPU/memory & applies live tuning.',
+      state: 'online',
+      metrics: [
+        { label: 'CPU Usage', value: '45%' },
+        { label: 'Memory Usage', value: '62%' },
+      ],
+    },
+    {
+      key: 'audioGenerator',
+      category: 'Media',
+      title: 'AI Audio Generator',
+      description: 'Builds music beds and FX packs on demand.',
+      state: 'online',
+      metrics: [
+        { label: 'Tracks Generated', value: '89' },
+        { label: 'Avg Time', value: '2.1s' },
+      ],
+    },
+  ];
+}
 
 // Create Express app
 const app = express();
@@ -277,7 +351,14 @@ const HOST = '0.0.0.0';
 console.log(`Starting server on ${HOST}:${PORT}`);
 
 server.listen(PORT, HOST, () => {
-  console.log(`Server running on ${HOST}:${PORT}`);
+  console.log(`Server running at http://${HOST}:${PORT}`);
+}).on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use.`);
+  } else {
+    console.error('Server startup failed:', err);
+  }
+  process.exit(1);
 });
 
 // Handle graceful shutdown

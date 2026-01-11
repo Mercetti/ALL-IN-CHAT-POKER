@@ -346,50 +346,79 @@ function createSimpleAdminAiControlRouter() {
   // AI Performance endpoint
   router.get('/performance', (req, res) => {
     try {
-      res.json({
-        status: 'OK',
-        performance: {
-          overall: {
-            cpu_usage: '45%',
-            memory_usage: '62%',
-            disk_usage: '38%',
-            network_io: '125 MB/s',
-            uptime: '99.9%'
+      const performance = {
+        overall: {
+          cpu_usage: '45%',
+          memory_usage: '62%',
+          disk_usage: '38%',
+          network_io: '125 MB/s',
+          uptime: '99.9%'
+        },
+        models: {
+          'deepseek-coder:1.3b': {
+            avg_response_time: 220,
+            requests_per_minute: 45,
+            success_rate: 0.95,
+            memory_usage: '2.1GB'
           },
-          models: {
-            'llama2-7b': {
-              avg_response_time: 220,
-              requests_per_minute: 45,
-              success_rate: 0.95,
-              memory_usage: '2.1GB'
-            },
-            'codellama-7b': {
-              avg_response_time: 280,
-              requests_per_minute: 30,
-              success_rate: 0.92,
-              memory_usage: '2.3GB'
-            }
+          'llama3.2:1b': {
+            avg_response_time: 180,
+            requests_per_minute: 38,
+            success_rate: 0.92,
+            memory_usage: '1.6GB'
           },
-          cache: {
-            hit_rate: 0.87,
-            size: '100MB',
-            evictions: 12,
-            ttl: 3600
-          },
-          errors: {
-            total_errors: 63,
-            error_rate: 0.05,
-            last_error: null,
-            critical_errors: 0
-          },
-          optimizations: {
-            auto_scaling_enabled: true,
-            query_optimization: true,
-            cache_optimization: true,
-            model_quantization: false
+          'qwen:0.5b': {
+            avg_response_time: 210,
+            requests_per_minute: 32,
+            success_rate: 0.9,
+            memory_usage: '1.2GB'
           }
         },
-        timestamp: new Date().toISOString()
+        cache: {
+          hit_rate: 0.87,
+          size: '100MB',
+          evictions: 12,
+          ttl: 3600
+        },
+        errors: {
+          total_errors: 63,
+          error_rate: 0.05,
+          last_error: null,
+          critical_errors: 0
+        },
+        optimizations: {
+          auto_scaling_enabled: true,
+          query_optimization: true,
+          cache_optimization: true,
+          model_quantization: false
+        }
+      };
+
+      const cacheStats = {
+        hits: 870,
+        misses: 130,
+        hitRate: '87%',
+        size: '100MB',
+        maxSize: '256MB',
+        evictions: 12
+      };
+
+      const tunnel = {
+        isTunnel: true,
+        health: 'healthy',
+        lastCheck: Date.now(),
+        timeout: 5000,
+        retryAttempts: 1
+      };
+
+      res.json({
+        success: true,
+        data: {
+          performance,
+          cache: cacheStats,
+          tunnel,
+          timestamp: Date.now()
+        }
       });
     } catch (error) {
       console.error('Performance data error:', error);
