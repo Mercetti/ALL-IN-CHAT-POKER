@@ -45,7 +45,9 @@ module.exports = {
 
   // Authentication
   JWT_SECRET: process.env.JWT_SECRET || (ALLOW_INSECURE_DEFAULTS ? 'your-secret-key-change-in-production' : ''),
-  ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || (ALLOW_INSECURE_DEFAULTS ? 'admin123' : ''),
+  ADMIN_USERNAME: process.env.ADMIN_USERNAME || process.env.OWNER_LOGIN || 'mercetti',
+  ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || process.env.OWNER_BOOT_PASSWORD || (ALLOW_INSECURE_DEFAULTS ? 'admin123' : ''),
+  ADMIN_PASSWORD_HASH: process.env.ADMIN_PASSWORD_HASH || '',
   ADMIN_TOKEN: process.env.ADMIN_TOKEN || '',
   ADMIN_ALLOW_LOGINS: process.env.ADMIN_ALLOW_LOGINS || 'mercetti,allinchatpokerbot',
   OWNER_LOGIN: process.env.OWNER_LOGIN || 'mercetti',

@@ -133,10 +133,20 @@ app.use('/auth', authRoutes);
 const adminServicesRoutes = createSimpleAdminServicesRouter();
 app.use('/admin/services', adminServicesRoutes);
 
-// Admin AI control routes
+// Admin AI control routes (simple router for demo/fallback)
 const adminAiControlRoutes = createSimpleAdminAiControlRouter();
 app.use('/admin/ai', adminAiControlRoutes);
-app.use('/admin/ai-tools', adminAiControlRoutes); // Add alias for ai-tools endpoints
+app.use('/admin/ai-tools', adminAiControlRoutes); // Alias for simple endpoints
+
+// Register full AI Control Center routes (authenticated, feature-complete)
+registerAdminAiControlRoutes(app, {
+  auth,
+  performanceMonitor,
+  collectAiOverviewPanels,
+  unifiedAI,
+  sendMonitorAlert,
+  logger,
+});
 
 // Initialize Poker Audio System
 let pokerAudioSystem;

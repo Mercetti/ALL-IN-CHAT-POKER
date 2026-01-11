@@ -1,28 +1,59 @@
 const express = require('express');
-const crypto = require('crypto');
+const config = require('../config');
+const {
+  createAdminJWT,
+  getAdminCookieOptions,
+  verifyPassword,
+} = require('../auth');
+
+const ADMIN_LOGIN = (config.ADMIN_USERNAME || config.OWNER_LOGIN || 'admin').toLowerCase();
+const ADMIN_PASSWORD = config.ADMIN_PASSWORD;
+const ADMIN_HASH = config.ADMIN_PASSWORD_HASH;
+const ENABLE_OWNER_BOOTSTRAP = config.ENABLE_OWNER_BOOTSTRAP !== false;
+
+function isPasswordValid(password) {
+  if (!password) return false;
+  if (ADMIN_HASH) {
+    return verifyPassword(password, ADMIN_HASH);
+  }
+  if (ADMIN_PASSWORD) {
+    return password === ADMIN_PASSWORD;
+  }
+  return false;
+}
 
 function createSimpleAuthRouter() {
   const router = express.Router();
 
-  // Simple login endpoint for testing
+  // Owner/admin login endpoint
   router.post('/login', (req, res) => {
     try {
-      const { password } = req.body || {};
-      
-      if (!password) {
-        return res.status(400).json({ error: 'Password required' });
+      const { username, password } = req.body || {};
+
+      if (!username || username.toLowerCase() !== ADMIN_LOGIN) {
+        return res.status(403).json({ success: false, error: 'invalid_login' });
       }
       
-      // For now, accept any password for testing
-      // TODO: Implement proper authentication
-      const token = crypto.randomBytes(32).toString('hex');
-      
-      res.json({
+      if (!password) {
+        return res.status(400).json({ success: false, error: 'password_required' });
+      }
+
+      if (!isPasswordValid(password)) {
+        return res.status(403).json({ success: false, error: 'invalid_credentials' });
+      }
+
+      const session = createAdminJWT();
+      if (typeof res.cookie === 'function') {
+        res.cookie('admin_jwt', session.token, getAdminCookieOptions());
+      }
+
+      return res.json({
         success: true,
-        token,
+        token: session.token,
+        expiresIn: session.expiresIn,
         user: {
-          login: 'admin', // Default admin login
-          role: 'admin',
+          login: ADMIN_LOGIN,
+          role: 'owner',
           timestamp: new Date().toISOString()
         }
       });
@@ -57,26 +88,12 @@ function createSimpleAuthRouter() {
     }
   });
 
-  // Registration endpoint
+  // Disable open registration in secured mode
   router.post('/register', (req, res) => {
-    try {
-      const { login, password } = req.body;
-      
-      // Bot protection
-      if (login.includes('bot') || login.includes('auto')) {
-        return res.status(403).json({ error: 'Bot registrations not allowed' });
-      }
-      
-      // For now, accept any registration for testing
-      // TODO: Implement proper registration logic
-      res.json({
-        success: true,
-        message: 'Registered successfully'
-      });
-    } catch (error) {
-      console.error('Registration error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+    if (!ENABLE_OWNER_BOOTSTRAP) {
+      return res.status(403).json({ error: 'registration_disabled' });
     }
+    return res.status(400).json({ error: 'registration_not_available' });
   });
 
   // Logout endpoint
