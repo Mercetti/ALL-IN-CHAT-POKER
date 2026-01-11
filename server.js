@@ -12,6 +12,7 @@ const fetch = global.fetch || require('node-fetch');
 // Import simple auth routes
 const { createSimpleAuthRouter } = require('./server/routes/auth-simple');
 const { createSimpleAdminServicesRouter } = require('./server/routes/admin-services-simple');
+const { createSimpleAdminAiControlRouter } = require('./server/routes/admin-ai-control-simple');
 
 // Import Poker Audio System
 const PokerAudioSystem = require('./server/poker-audio-system');
