@@ -168,11 +168,11 @@ function renderPlayerHands(players) {
         if (isNew) {
           styleParts.push(`--deal-from-x:${seatOffset}px`, `--deal-from-y:${dealFromY}px`, `--deal-rot:${rotate.toFixed(1)}deg`, `animation-delay:${delay.toFixed(2)}s`);
         }
-        const tint = cosmetics.cardBackTint || overlayState.overlayTuning.cardBackTint || null;
+        const tint = overlayState.overlayTuning.cardBackTint || cosmetics.cardBackTint || null;
         if (tint) {
           styleParts.push(`--card-back-tint:${tint}`);
         }
-        const backImg = cosmetics.cardBackImage || overlayState.overlayTuning.cardBackImage || DEFAULT_CARD_BACK;
+        const backImg = overlayState.overlayTuning.cardBackImage || cosmetics.cardBackImage || DEFAULT_CARD_BACK;
         if (hidden && backImg) {
           styleParts.push(`--card-back-img:url('${backImg}')`);
         }
@@ -272,6 +272,8 @@ function updateTableSkinFromPlayers(players = []) {
     if (chosen.cosmetics.tableTexture) overlayState.overlayTuning.tableTexture = chosen.cosmetics.tableTexture;
     if (chosen.cosmetics.tableLogoColor) overlayState.overlayTuning.tableLogoColor = chosen.cosmetics.tableLogoColor;
     if (chosen.cosmetics.cardFaceBase) overlayState.overlayTuning.cardFaceBase = chosen.cosmetics.cardFaceBase;
+    if (chosen.cosmetics.cardBackImage) overlayState.overlayTuning.cardBackImage = chosen.cosmetics.cardBackImage;
+    if (chosen.cosmetics.cardBackTint) overlayState.overlayTuning.cardBackTint = chosen.cosmetics.cardBackTint;
     applyVisualSettings();
   }
 }

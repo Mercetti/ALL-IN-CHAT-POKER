@@ -17,7 +17,7 @@ const { createSimpleAdminServicesRouter } = require('./server/routes/admin-servi
 const PokerAudioSystem = require('./server/poker-audio-system');
 const auth = require('./server/auth');
 const config = require('./server/config');
-const PerformanceMonitor = require('./server/utils/performance-monitor');
+const { PerformanceMonitor } = require('./server/utils/performance-monitor');
 const registerAdminAiControlRoutes = require('./server/routes/admin-ai-control');
 const UnifiedAISystem = require('./server/unified-ai');
 
