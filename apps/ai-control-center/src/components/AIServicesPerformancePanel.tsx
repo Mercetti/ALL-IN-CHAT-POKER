@@ -98,7 +98,7 @@ const AIServicesPerformancePanel: React.FC = () => {
         capabilities: ['code-generation', 'text-generation', 'debugging'],
         performance: {
           avg_response_time: '220ms',
-          success_rate: 0.95,
+          success_rate: 0.98,
           requests_per_minute: 45
         }
       },
@@ -111,7 +111,7 @@ const AIServicesPerformancePanel: React.FC = () => {
         capabilities: ['text-generation', 'conversation', 'analysis'],
         performance: {
           avg_response_time: '180ms',
-          success_rate: 0.92,
+          success_rate: 0.96,
           requests_per_minute: 38
         }
       },
@@ -124,7 +124,7 @@ const AIServicesPerformancePanel: React.FC = () => {
         capabilities: ['audio', 'creative-writing', 'persona'],
         performance: {
           avg_response_time: '210ms',
-          success_rate: 0.9,
+          success_rate: 0.94,
           requests_per_minute: 32
         }
       }
