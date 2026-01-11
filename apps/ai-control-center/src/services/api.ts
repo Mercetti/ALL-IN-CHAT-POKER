@@ -4,6 +4,7 @@ const defaultBackend = 'https://all-in-chat-poker.fly.dev';
 // Use Fly backend when running in Electron (production-like environment)
 const isElectron = typeof window !== 'undefined' && !!(window as any).process?.versions?.electron;
 const API_BASE = `${import.meta.env.VITE_BACKEND_BASE ?? defaultBackend}`.replace(/\/$/, '');
+const HELPER_BASE = `${import.meta.env.VITE_ACEY_HELPER_BASE ?? 'http://127.0.0.1:7123'}`.replace(/\/$/, '');
 
 async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const target = path.startsWith('http') ? path : `${API_BASE || ''}${path}`;
@@ -197,6 +198,45 @@ export async function aiCleanup(cosmetics: any[]) {
     method: 'POST',
     body: JSON.stringify({ cosmetics }),
   });
+}
+
+async function helperFetch<T>(path: string, options: RequestInit = {}, tokenOverride?: string): Promise<T> {
+  if (typeof window === 'undefined') {
+    throw new Error('Helper commands are only available in the browser');
+  }
+
+  const token = tokenOverride || localStorage.getItem('acey_helper_token') || import.meta.env.VITE_ACEY_HELPER_TOKEN;
+  if (!token) {
+    throw new Error('Helper token required. Set ACEY_HELPER_TOKEN or enter a token in the UI.');
+  }
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'X-Acey-Token': token,
+    ...(options.headers as Record<string, string> | undefined),
+  };
+
+  const url = path.startsWith('http') ? path : `${HELPER_BASE}${path}`;
+  const res = await fetch(url, {
+    ...options,
+    headers,
+    credentials: 'include',
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `Helper error ${res.status}`);
+  }
+
+  return res.json();
+}
+
+export async function fetchAceyHelperStatus(token?: string) {
+  return helperFetch<{ success: boolean; status: { running: boolean; pid: number | null; startedAt: string | null } }>('/acey-dev/status', { method: 'GET' }, token);
+}
+
+export async function startAceyDevSuite(token?: string) {
+  return helperFetch<{ success: boolean; message: string; status: { running: boolean; pid: number | null; startedAt: string | null } }>('/acey-dev/start', { method: 'POST' }, token);
 }
 
 // Export apiFetch for use in other components

@@ -9,6 +9,7 @@
     "dev": "cross-env NODE_ENV=development node server.js",
     "prod": "cross-env NODE_ENV=production node server.js",
     "acey:dev": "npm-run-all --parallel dev test:watch",
+    "acey:helper": "node ./tools/acey-dev-helper.js",
     "test": "cross-env NODE_ENV=test jest --runInBand",
     "test:watch": "cross-env NODE_ENV=test jest --watch",
     "lint": "eslint .",

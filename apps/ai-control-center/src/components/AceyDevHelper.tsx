@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import './AceyDevHelper.css';
+import { fetchAceyHelperStatus, startAceyDevSuite } from '../services/api';
 
 interface WorkflowAnalysis {
   id: string;
@@ -46,15 +47,34 @@ interface DevStatus {
   timestamp: string;
 }
 
+type HelperStatus = {
+  running: boolean;
+  pid: number | null;
+  startedAt: string | null;
+};
+
 export default function AceyDevHelper() {
   const [workflowAnalysis, setWorkflowAnalysis] = useState<WorkflowAnalysis | null>(null);
   const [devStatus, setDevStatus] = useState<DevStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedAction, setSelectedAction] = useState<string>('');
+  const [helperToken, setHelperToken] = useState(() => localStorage.getItem('acey_helper_token') || '');
+  const [helperStatus, setHelperStatus] = useState<HelperStatus | null>(null);
+  const [helperMessage, setHelperMessage] = useState<string | null>(null);
+  const [helperLoading, setHelperLoading] = useState(false);
+  const [helperError, setHelperError] = useState<string | null>(null);
 
   useEffect(() => {
     loadDevStatus();
   }, []);
+
+  useEffect(() => {
+    if (!helperToken) {
+      setHelperStatus(null);
+      return;
+    }
+    refreshHelperStatus(helperToken);
+  }, [helperToken]);
 
   const loadDevStatus = async () => {
     try {
@@ -98,6 +118,45 @@ export default function AceyDevHelper() {
     }
   };
 
+  const refreshHelperStatus = async (token?: string) => {
+    if (!token) return;
+    try {
+      setHelperLoading(true);
+      setHelperError(null);
+      const result = await fetchAceyHelperStatus(token);
+      setHelperStatus(result.status);
+      setHelperMessage(null);
+    } catch (error) {
+      setHelperError(error instanceof Error ? error.message : 'Failed to reach local helper');
+      setHelperStatus(null);
+    } finally {
+      setHelperLoading(false);
+    }
+  };
+
+  const handleStartSuite = async () => {
+    if (!helperToken) {
+      setHelperError('Enter your helper token first');
+      return;
+    }
+    try {
+      setHelperLoading(true);
+      setHelperError(null);
+      const result = await startAceyDevSuite(helperToken);
+      setHelperStatus(result.status);
+      setHelperMessage(result.message);
+    } catch (error) {
+      setHelperError(error instanceof Error ? error.message : 'Failed to start acey:dev');
+    } finally {
+      setHelperLoading(false);
+    }
+  };
+
+  const handleTokenChange = (value: string) => {
+    setHelperToken(value);
+    localStorage.setItem('acey_helper_token', value);
+  };
+
   const getRiskColor = (risk: string) => {
     switch (risk.toLowerCase()) {
       case 'high': return '#ff4444';
@@ -138,6 +197,55 @@ export default function AceyDevHelper() {
           AI-powered development workflow analysis and recommendations
         </p>
       </header>
+
+      <section className="helper-panel">
+        <div className="helper-panel-header">
+          <div>
+            <h2>⚙️ Local Test Suite Helper</h2>
+            <p>Start <code>npm run acey:dev</code> via the helper service (`npm run acey:helper`) running on your PC.</p>
+          </div>
+          <div className={`helper-status-pill ${helperStatus?.running ? 'running' : 'stopped'}`}>
+            {helperStatus?.running ? 'Running' : 'Idle'}
+          </div>
+        </div>
+
+        <div className="helper-controls">
+          <label htmlFor="helper-token">
+            Helper Token
+            <input
+              id="helper-token"
+              type="password"
+              value={helperToken}
+              placeholder="Set ACEY_HELPER_TOKEN value"
+              onChange={(e) => handleTokenChange(e.target.value)}
+            />
+          </label>
+          <div className="helper-buttons">
+            <button className="ghost-btn" onClick={() => refreshHelperStatus(helperToken)} disabled={!helperToken || helperLoading}>
+              {helperLoading ? 'Checking…' : 'Refresh Status'}
+            </button>
+            <button className="primary-btn" onClick={handleStartSuite} disabled={!helperToken || helperLoading}>
+              {helperLoading ? 'Starting…' : 'Start acey:dev'}
+            </button>
+          </div>
+        </div>
+
+        {helperStatus && (
+          <div className="helper-status-details">
+            <div>
+              <span>PID:</span>
+              <strong>{helperStatus.pid ?? '—'}</strong>
+            </div>
+            <div>
+              <span>Started:</span>
+              <strong>{helperStatus.startedAt ? new Date(helperStatus.startedAt).toLocaleTimeString() : '—'}</strong>
+            </div>
+          </div>
+        )}
+
+        {helperMessage && <div className="helper-message success">{helperMessage}</div>}
+        {helperError && <div className="helper-message error">{helperError}</div>}
+      </section>
 
       {devStatus && (
         <div className="status-overview">
