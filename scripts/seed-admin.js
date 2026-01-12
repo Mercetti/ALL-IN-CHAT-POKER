@@ -17,7 +17,7 @@ const auth = require('../server/auth');
     const status = 'active';
 
     // TODO: replace this with the real secure password before running
-    const plainPassword = 'REPLACE_WITH_STRONG_PASSWORD';
+    const plainPassword = 'Hype420!Hype';
 
     if (!plainPassword || plainPassword === 'REPLACE_WITH_STRONG_PASSWORD') {
       throw new Error('Please set plainPassword to a secure value before running the seed.');
