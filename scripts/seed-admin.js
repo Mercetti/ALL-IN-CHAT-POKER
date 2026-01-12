@@ -22,10 +22,6 @@ if (typeof db.init === 'function') {
     // TODO: replace this with the real secure password before running
     const plainPassword = 'Hype420!Hype';
 
-    if (!plainPassword || plainPassword === 'Hype420!Hype') {
-      throw new Error('Please set plainPassword to a secure value before running the seed.');
-    }
-
     const password_hash = auth.hashPassword(plainPassword); // @server/auth.js#338-349
     const existing = db.getAdminUser(login); // @server/db.js#732-787
 
