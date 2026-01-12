@@ -75,6 +75,11 @@ function createPlayersRouter({ auth, db, logger, validateBody, fetch, config }) 
       if (!profile || !profile.password_hash) {
         return res.status(401).json({ error: 'invalid_credentials' });
       }
+      
+      // Check if player is banned
+      if (profile.role === 'banned') {
+        return res.status(401).json({ error: 'account_banned' });
+      }
 
       const passwordValid = auth.verifyPassword(password, profile.password_hash);
       if (!passwordValid) {

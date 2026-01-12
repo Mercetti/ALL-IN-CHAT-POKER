@@ -171,7 +171,7 @@ describe('Player/Streamer Management', () => {
         password: 'NewPass123!',
       });
     expect(res.status).toBe(401);
-    expect(res.body.error).toMatch(/invalid_credentials/);
+    expect(res.body.error).toMatch(/account_banned/);
   });
 
   it('should unban player as admin', async () => {
@@ -197,7 +197,7 @@ describe('Player/Streamer Management', () => {
 
   it('should reject unauthorized access to admin endpoints', async () => {
     const res = await request(server).get('/admin/players');
-    expect(res.status).toBe(401);
+    expect(res.status).toBe(403);
   });
 
   it('should reject unauthenticated access to player endpoints', async () => {

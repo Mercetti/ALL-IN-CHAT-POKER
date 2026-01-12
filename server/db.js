@@ -1723,6 +1723,62 @@ class DBHelper {
       return null;
     }
   }
+
+  // Player management methods
+  updateProfile(login, updates) {
+    if (!login) return null;
+    const normalized = login.trim().toLowerCase();
+    
+    const setParts = [];
+    const params = [];
+    
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value !== undefined) {
+        setParts.push(`${key} = ?`);
+        params.push(value);
+      }
+    });
+    
+    if (!setParts.length) return this.getProfile(normalized);
+    
+    setParts.push('updated_at = CURRENT_TIMESTAMP');
+    const query = `UPDATE profiles SET ${setParts.join(', ')} WHERE login = ?`;
+    
+    this.db.prepare(query).run(...params, normalized);
+    return this.getProfile(normalized);
+  }
+
+  banPlayer(login, reason = 'Banned by admin') {
+    if (!login) return null;
+    const normalized = login.trim().toLowerCase();
+    
+    const updated = this.updateProfile(normalized, { role: 'banned' });
+    if (!updated) return null;
+    
+    // Record ban in audit log
+    this.db.prepare(`
+      INSERT INTO admin_user_audit (actor_login, target_login, action, details, created_at)
+      VALUES (?, ?, 'ban', ?, CURRENT_TIMESTAMP)
+    `).run('system', normalized, reason);
+    
+    return updated;
+  }
+
+  unbanPlayer(login, reason = 'Unbanned by admin') {
+    if (!login) return null;
+    const normalized = login.trim().toLowerCase();
+    
+    const updated = this.updateProfile(normalized, { role: 'player' });
+    if (!updated) return null;
+    
+    // Record unban in audit log
+    this.db.prepare(`
+      INSERT INTO admin_user_audit (actor_login, target_login, action, details, created_at)
+      VALUES (?, ?, 'unban', ?, CURRENT_TIMESTAMP)
+    `).run('system', normalized, reason);
+    
+    return updated;
+  }
 }
 
 // Export singleton instance
