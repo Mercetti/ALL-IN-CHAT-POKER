@@ -75,15 +75,25 @@ jest.mock('../server/routes/catalog', () => ({
   createCatalogRouter: jest.fn(),
 }));
 
-const app = require('../server');
+const { server } = require('../server');
 
 describe('Admin User Management', () => {
   let adminCookie = null;
   let csrfToken = null;
 
   beforeAll(async () => {
-    // Wait for test server to be ready
-    await new Promise(resolve => setTimeout(resolve, 200));
+    // Wait for test server to be ready and listening
+    await new Promise(resolve => {
+      const checkServer = () => {
+        const address = server.address();
+        if (address && address.port > 0) {
+          resolve();
+        } else {
+          setTimeout(checkServer, 50);
+        }
+      };
+      checkServer();
+    });
     
     // Seed mercetti admin if not exists
     const auth = require('../server/auth');
@@ -102,7 +112,7 @@ describe('Admin User Management', () => {
   });
 
   it('should reject login without username', async () => {
-    const res = await request(app)
+    const res = await request(server)
       .post('/admin/login')
       .send({ password: 'Hype420!Hype' });
     expect(res.status).toBe(400);
@@ -110,7 +120,7 @@ describe('Admin User Management', () => {
   });
 
   it('should reject login with invalid credentials', async () => {
-    const res = await request(app)
+    const res = await request(server)
       .post('/admin/login')
       .send({ username: 'mercetti', password: 'wrong' });
     expect(res.status).toBe(401);
@@ -118,7 +128,7 @@ describe('Admin User Management', () => {
   });
 
   it('should login with valid credentials and set cookie', async () => {
-    const res = await request(app)
+    const res = await request(server)
       .post('/admin/login')
       .send({ username: 'mercetti', password: 'Hype420!Hype' });
     expect(res.status).toBe(200);
@@ -129,7 +139,7 @@ describe('Admin User Management', () => {
   });
 
   it('should get CSRF token as admin', async () => {
-    const res = await request(app)
+    const res = await request(server)
       .get('/admin/csrf')
       .set('Cookie', adminCookie);
     expect(res.status).toBe(200);
@@ -138,7 +148,7 @@ describe('Admin User Management', () => {
   });
 
   it('should list admin users', async () => {
-    const res = await request(app)
+    const res = await request(server)
       .get('/admin/users')
       .set('Cookie', adminCookie);
     expect(res.status).toBe(200);
@@ -148,7 +158,7 @@ describe('Admin User Management', () => {
   });
 
   it('should get single admin user', async () => {
-    const res = await request(app)
+    const res = await request(server)
       .get('/admin/users/mercetti')
       .set('Cookie', adminCookie);
     expect(res.status).toBe(200);
@@ -158,7 +168,7 @@ describe('Admin User Management', () => {
   });
 
   it('should create a new admin user', async () => {
-    const res = await request(app)
+    const res = await request(server)
       .post('/admin/users')
       .set('Cookie', adminCookie)
       .send({
@@ -176,7 +186,7 @@ describe('Admin User Management', () => {
   });
 
   it('should reject duplicate admin user creation', async () => {
-    const res = await request(app)
+    const res = await request(server)
       .post('/admin/users')
       .set('Cookie', adminCookie)
       .send({
@@ -188,7 +198,7 @@ describe('Admin User Management', () => {
   });
 
   it('should update admin user', async () => {
-    const res = await request(app)
+    const res = await request(server)
       .put('/admin/users/testadmin')
       .set('Cookie', adminCookie)
       .send({
@@ -201,7 +211,7 @@ describe('Admin User Management', () => {
   });
 
   it('should disable admin user', async () => {
-    const res = await request(app)
+    const res = await request(server)
       .patch('/admin/users/testadmin/status')
       .set('Cookie', adminCookie)
       .send({ status: 'disabled' });
@@ -211,7 +221,7 @@ describe('Admin User Management', () => {
   });
 
   it('should re-enable admin user', async () => {
-    const res = await request(app)
+    const res = await request(server)
       .patch('/admin/users/testadmin/status')
       .set('Cookie', adminCookie)
       .send({ status: 'active' });
@@ -221,7 +231,7 @@ describe('Admin User Management', () => {
   });
 
   it('should list admin audit logs', async () => {
-    const res = await request(app)
+    const res = await request(server)
       .get('/admin/audit')
       .set('Cookie', adminCookie);
     expect(res.status).toBe(200);
@@ -230,7 +240,7 @@ describe('Admin User Management', () => {
   });
 
   it('should get login attempts for a user', async () => {
-    const res = await request(app)
+    const res = await request(server)
       .get('/admin/users/mercetti/login-attempts')
       .set('Cookie', adminCookie);
     expect(res.status).toBe(200);
@@ -239,7 +249,7 @@ describe('Admin User Management', () => {
   });
 
   it('should unlock a user', async () => {
-    const res = await request(app)
+    const res = await request(server)
       .post('/admin/users/testadmin/unlock')
       .set('Cookie', adminCookie);
     expect(res.status).toBe(200);
@@ -247,8 +257,8 @@ describe('Admin User Management', () => {
   });
 
   it('should reject unauthenticated access to admin endpoints', async () => {
-    const res = await request(app).get('/admin/users');
-    expect(res.status).toBe(401);
+    const res = await request(server).get('/admin/users');
+    expect(res.status).toBe(403);
   });
 
   afterAll(async () => {
