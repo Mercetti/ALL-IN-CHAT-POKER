@@ -1,6 +1,10 @@
 const request = require('supertest');
 const express = require('express');
 
+// Initialize database before requiring server
+const db = require('../server/db');
+db.init();
+
 // Mock modules that start intervals to prevent Jest from hanging
 jest.mock('../server/ai-cache', () => {
   return jest.fn().mockImplementation(() => ({
@@ -78,10 +82,6 @@ describe('Admin User Management', () => {
   let csrfToken = null;
 
   beforeAll(async () => {
-    // Initialize database
-    const db = require('../server/db');
-    db.init();
-    
     // Seed mercetti admin if not exists
     const auth = require('../server/auth');
     const existing = db.getAdminUser('mercetti');

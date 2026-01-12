@@ -559,27 +559,33 @@ const aceyWebSocket = new AceyWebSocket({
 });
 
 // Start Acey WebSocket service
-aceyWebSocket.start();
-console.log('🎤 Acey WebSocket server initialized');
+if (process.env.NODE_ENV !== 'test') {
+  aceyWebSocket.start();
+  console.log('🎤 Acey WebSocket server initialized');
+}
 
 // Start server
+const PORT = process.env.NODE_ENV === 'test' ? 0 : (process.env.PORT || 8080);
+const HOST = '0.0.0.0';
+
 if (process.env.NODE_ENV !== 'test') {
-  const PORT = process.env.PORT || 8080;
-  const HOST = '0.0.0.0';
-
   console.log(`Starting server on ${HOST}:${PORT}`);
-
-  server.listen(PORT, HOST, () => {
-    console.log(`Server running at http://${HOST}:${PORT}`);
-  }).on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
-      console.error(`Port ${PORT} is already in use.`);
-    } else {
-      console.error('Server startup failed:', err);
-    }
-    process.exit(1);
-  });
 }
+
+server.listen(PORT, HOST, () => {
+  if (process.env.NODE_ENV !== 'test') {
+    console.log(`Server running at http://${HOST}:${PORT}`);
+  }
+}).on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use.`);
+  } else {
+    console.error('Server startup failed:', err);
+  }
+  if (process.env.NODE_ENV !== 'test') {
+    process.exit(1);
+  }
+});
 
 // Handle graceful shutdown
 process.on('SIGTERM', () => {
@@ -922,4 +928,9 @@ module.exports = {
   app,
   server,
   io
+};
+
+// Add address method for supertest compatibility
+app.address = function() {
+  return server.address();
 };
