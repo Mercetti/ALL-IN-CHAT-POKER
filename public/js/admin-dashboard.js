@@ -24,7 +24,20 @@ class AIDashboard {
       },
       alerts: [],
       recentActivity: [],
-      sessionStartTime: Date.now()
+      sessionStartTime: Date.now(),
+      adminUsers: [],
+      adminAudit: [],
+      selectedAdmin: null,
+      adminFilters: {
+        status: ''
+      },
+      adminAuditFilters: {
+        actor: '',
+        target: '',
+        action: ''
+      },
+      adminLoading: false,
+      adminAuditLoading: false
     };
     
     this.updateInterval = null;
@@ -36,6 +49,7 @@ class AIDashboard {
   init() {
     console.log('🚀 AI Admin Dashboard initializing...');
     this.setupEventListeners();
+    this.setupAdminUsersUI();
     this.startRealTimeUpdates();
     this.loadInitialData();
     this.initializeChat();
@@ -71,6 +85,9 @@ class AIDashboard {
         e.preventDefault();
         this.runHealthCheck();
       }
+      if (e.key === 'Escape') {
+        this.closeAllModals();
+      }
     });
 
     // Quick action buttons
@@ -83,11 +100,28 @@ class AIDashboard {
   }
 
   switchSection(section) {
+    let targetSection = document.getElementById(`${section}-section`);
+    if (!targetSection) {
+      console.warn(`⚠️ No section found for "${section}", falling back to overview.`);
+      section = 'overview';
+      targetSection = document.getElementById('overview-section');
+    }
+
     // Update active nav item
     document.querySelectorAll('.nav-item').forEach(item => {
-      item.classList.remove('active');
+      if (item.dataset.section === section) item.classList.add('active');
+      else item.classList.remove('active');
     });
-    document.querySelector(`[data-section="${section}"]`).classList.add('active');
+
+    document.querySelectorAll('.dashboard-section').forEach(sectionEl => {
+      sectionEl.classList.remove('active');
+      sectionEl.style.display = 'none';
+    });
+
+    if (targetSection) {
+      targetSection.style.display = 'block';
+      targetSection.classList.add('active');
+    }
 
     // Load section-specific content
     this.loadSectionContent(section);
@@ -115,7 +149,519 @@ class AIDashboard {
       case 'ux-monitor':
         await this.loadUXMonitor();
         break;
+      case 'admin-users':
+        await Promise.all([this.loadAdminUsers(), this.loadAdminAudit()]);
+        break;
     }
+  }
+
+  setupAdminUsersUI() {
+    this.adminUsersTableBody = document.getElementById('admin-users-tbody');
+    this.adminStatusFilter = document.getElementById('admin-status-filter');
+    this.auditListPreview = document.getElementById('audit-list-preview');
+    this.auditListFull = document.getElementById('audit-list-full');
+    this.createAdminModal = document.getElementById('create-admin-modal');
+    this.editAdminModal = document.getElementById('edit-admin-modal');
+    this.auditModal = document.getElementById('audit-modal');
+    this.createAdminForm = document.getElementById('create-admin-form');
+    this.editAdminForm = document.getElementById('edit-admin-form');
+
+    if (!this.adminUsersTableBody) return;
+
+    const refreshButton = document.getElementById('refresh-admin-users');
+    const openCreateButton = document.getElementById('open-create-admin');
+    const openAuditButton = document.getElementById('open-audit-modal');
+    const refreshAuditButton = document.getElementById('refresh-audit-log');
+
+    refreshButton?.addEventListener('click', () => this.loadAdminUsers(true));
+    openCreateButton?.addEventListener('click', () => this.toggleModal(this.createAdminModal, true));
+    openAuditButton?.addEventListener('click', () => {
+      this.toggleModal(this.auditModal, true);
+      this.loadAdminAudit({ full: true });
+    });
+    refreshAuditButton?.addEventListener('click', () => this.loadAdminAudit({ full: true }));
+
+    this.adminStatusFilter?.addEventListener('change', (event) => {
+      this.state.adminFilters.status = event.target.value;
+      this.loadAdminUsers(true);
+    });
+
+    const auditFilterFields = ['actor', 'target', 'action'];
+    auditFilterFields.forEach((field) => {
+      const input = document.getElementById(`audit-filter-${field}`);
+      if (!input) return;
+      input.addEventListener('input', (event) => {
+        this.state.adminAuditFilters[field] = event.target.value.trim();
+      });
+    });
+
+    document.querySelectorAll('[data-close-modal]').forEach((closeButton) => {
+      closeButton.addEventListener('click', () => {
+        const modal = closeButton.closest('.modal');
+        this.toggleModal(modal, false);
+      });
+    });
+
+    if (this.adminUsersTableBody) {
+      this.adminUsersTableBody.addEventListener('click', (event) => {
+        const actionButton = event.target.closest('[data-admin-action]');
+        if (!actionButton) return;
+        const action = actionButton.dataset.adminAction;
+        const login = actionButton.dataset.login;
+        this.handleAdminRowAction(action, login);
+      });
+    }
+
+    this.createAdminForm?.addEventListener('submit', (event) => this.submitCreateAdmin(event));
+    this.editAdminForm?.addEventListener('submit', (event) => this.submitEditAdmin(event));
+
+    // Prepare initial placeholders
+    this.renderAdminUsersPlaceholder('Select "Admin Users" to load the directory.');
+    this.renderAuditPreview([]);
+  }
+
+  toggleModal(modal, open = true) {
+    if (!modal) return;
+    if (open) {
+      modal.setAttribute('aria-hidden', 'false');
+      modal.classList.add('open');
+      document.body.classList.add('modal-open');
+    } else {
+      modal.setAttribute('aria-hidden', 'true');
+      modal.classList.remove('open');
+      if (!document.querySelector('.modal.open')) {
+        document.body.classList.remove('modal-open');
+      }
+    }
+  }
+
+  closeAllModals() {
+    document.querySelectorAll('.modal.open').forEach((modal) => this.toggleModal(modal, false));
+  }
+
+  async loadAdminUsers(showLoading = false) {
+    if (!this.adminUsersTableBody) return;
+
+    if (showLoading) {
+      this.renderAdminUsersPlaceholder('Loading admin users…');
+    }
+
+    this.state.adminLoading = true;
+    const params = new URLSearchParams();
+    if (this.state.adminFilters.status) {
+      params.set('status', this.state.adminFilters.status);
+    }
+
+    const query = params.toString() ? `?${params.toString()}` : '';
+    let users = [];
+
+    try {
+      const data = await this.requestAdminAPI(`/api/admin/users${query}`);
+      users = Array.isArray(data?.users) ? data.users : Array.isArray(data) ? data : [];
+    } catch (error) {
+      console.warn('⚠️ Failed to load admin users, falling back to mock data:', error.message);
+      users = this.getMockAdminUsers();
+      this.showNotification('Showing mock admin users (API unavailable).', 'warning');
+    }
+
+    this.state.adminUsers = users;
+    this.state.adminLoading = false;
+    this.renderAdminUsersTable();
+  }
+
+  renderAdminUsersPlaceholder(text) {
+    if (!this.adminUsersTableBody) return;
+    this.adminUsersTableBody.innerHTML = `
+      <tr>
+        <td colspan="9" class="no-data">${this.escapeHTML(text)}</td>
+      </tr>
+    `;
+  }
+
+  renderAdminUsersTable() {
+    if (!this.adminUsersTableBody) return;
+
+    if (this.state.adminUsers.length === 0) {
+      this.renderAdminUsersPlaceholder('No admin users found.');
+      return;
+    }
+
+    const rows = this.state.adminUsers.map((user) => {
+      const locked = user.status === 'locked';
+      return `
+        <tr data-login="${this.escapeHTML(user.login)}">
+          <td>${this.escapeHTML(user.login)}</td>
+          <td>${this.escapeHTML(user.display_name || user.displayName || '—')}</td>
+          <td>${this.escapeHTML(user.email || '—')}</td>
+          <td>${this.escapeHTML(user.role || 'admin')}</td>
+          <td>
+            <span class="status-chip status-${this.escapeHTML(user.status || 'active')}">
+              ${this.escapeHTML((user.status || 'active').replace('_', ' '))}
+            </span>
+          </td>
+          <td>${this.formatTimestamp(user.last_login_at || user.lastLoginAt)}</td>
+          <td>${user.failed_attempts ?? user.failedAttempts ?? 0}</td>
+          <td>${this.formatTimestamp(user.locked_until || user.lockedUntil)}</td>
+          <td class="admin-actions-cell">
+            <button class="btn btn-tertiary btn-xs" data-admin-action="reset" data-login="${this.escapeHTML(user.login)}">
+              Reset Password
+            </button>
+            <button class="btn btn-secondary btn-xs" data-admin-action="${locked ? 'unlock' : 'lock'}" data-login="${this.escapeHTML(user.login)}">
+              ${locked ? 'Unlock' : 'Lock'}
+            </button>
+            <button class="btn btn-primary btn-xs" data-admin-action="edit" data-login="${this.escapeHTML(user.login)}">
+              Edit
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    this.adminUsersTableBody.innerHTML = rows;
+  }
+
+  formatTimestamp(value) {
+    if (!value) return '—';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return this.escapeHTML(value);
+    return date.toLocaleString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  escapeHTML(text) {
+    if (text === undefined || text === null) return '';
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  handleAdminRowAction(action, login) {
+    if (!login) return;
+    const user = this.state.adminUsers.find((admin) => admin.login === login);
+    if (!user && action !== 'reset') return;
+
+    switch (action) {
+      case 'reset':
+        this.handleResetPassword(login);
+        break;
+      case 'lock':
+      case 'unlock':
+        this.handleLockToggle(login, action === 'unlock');
+        break;
+      case 'edit':
+        this.openEditAdminModal(user);
+        break;
+      default:
+        console.warn(`Unknown admin action: ${action}`);
+    }
+  }
+
+  async handleResetPassword(login) {
+    if (!window.confirm(`Reset password for ${login}?`)) return;
+    try {
+      await this.resetAdminPassword(login);
+      this.showNotification(`Password reset email sent for ${login}`, 'success');
+    } catch (error) {
+      this.showNotification(`Failed to reset password: ${error.message}`, 'error');
+    }
+  }
+
+  async handleLockToggle(login, unlocking) {
+    const action = unlocking ? 'unlock' : 'lock';
+    const confirmationText = unlocking
+      ? `Unlock account ${login}?`
+      : `Lock account ${login}? They will be unable to sign in.`;
+
+    if (!window.confirm(confirmationText)) return;
+
+    try {
+      await this.updateLockStatus(login, action);
+      this.showNotification(`Account ${unlocking ? 'unlocked' : 'locked'} for ${login}`, 'success');
+      this.loadAdminUsers(true);
+    } catch (error) {
+      this.showNotification(`Failed to ${action} account: ${error.message}`, 'error');
+    }
+  }
+
+  openEditAdminModal(user) {
+    if (!user || !this.editAdminForm) return;
+    this.state.selectedAdmin = user;
+    this.prefillEditForm(user);
+    this.toggleModal(this.editAdminModal, true);
+  }
+
+  prefillEditForm(user) {
+    if (!this.editAdminForm) return;
+    this.editAdminForm.elements.login.value = user.login || '';
+    this.editAdminForm.elements.display_name.value = user.display_name || user.displayName || '';
+    this.editAdminForm.elements.email.value = user.email || '';
+    this.editAdminForm.elements.role.value = user.role || 'admin';
+    this.editAdminForm.elements.status.value = user.status || 'active';
+    this.editAdminForm.elements.password.value = '';
+  }
+
+  async submitCreateAdmin(event) {
+    event.preventDefault();
+    if (!this.createAdminForm) return;
+
+    const payload = this.getFormValues(this.createAdminForm);
+
+    const submitButton = this.createAdminForm.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+
+    try {
+      await this.createAdminUser(payload);
+      this.showNotification(`Admin ${payload.login} created`, 'success');
+      this.createAdminForm.reset();
+      this.toggleModal(this.createAdminModal, false);
+      this.loadAdminUsers(true);
+    } catch (error) {
+      this.showNotification(`Failed to create admin: ${error.message}`, 'error');
+    } finally {
+      submitButton.disabled = false;
+    }
+  }
+
+  async submitEditAdmin(event) {
+    event.preventDefault();
+    if (!this.editAdminForm) return;
+
+    const values = this.getFormValues(this.editAdminForm);
+    const { login, password, ...rest } = values;
+    if (!login) return;
+    if (!password) delete rest.password;
+    else rest.password = password;
+
+    const submitButton = this.editAdminForm.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+
+    try {
+      await this.updateAdminUser(login, rest);
+      this.showNotification(`Admin ${login} updated`, 'success');
+      this.toggleModal(this.editAdminModal, false);
+      this.loadAdminUsers(true);
+    } catch (error) {
+      this.showNotification(`Failed to update admin: ${error.message}`, 'error');
+    } finally {
+      submitButton.disabled = false;
+    }
+  }
+
+  async loadAdminAudit({ full = false } = {}) {
+    if (!this.auditListPreview && !this.auditListFull) return;
+
+    const targetList = full ? this.auditListFull : this.auditListPreview;
+    if (targetList) {
+      targetList.innerHTML = `
+        <li class="audit-list-empty">
+          ${full ? 'Loading audit entries…' : 'Loading recent audit events…'}
+        </li>
+      `;
+    }
+
+    const params = new URLSearchParams();
+    Object.entries(this.state.adminAuditFilters).forEach(([key, value]) => {
+      if (value) params.set(key, value);
+    });
+    const query = params.toString() ? `?${params.toString()}` : '';
+
+    let entries = [];
+
+    try {
+      const data = await this.requestAdminAPI(`/api/admin/users/audit${query}`);
+      entries = Array.isArray(data?.logs) ? data.logs : Array.isArray(data) ? data : [];
+    } catch (error) {
+      console.warn('⚠️ Failed to load audit log, falling back to mock data:', error.message);
+      entries = this.getMockAuditEntries();
+    }
+
+    this.state.adminAudit = entries;
+
+    if (this.auditListPreview) {
+      this.renderAuditPreview(entries.slice(0, 5));
+    }
+    if (full && this.auditListFull) {
+      this.renderAuditList(entries);
+    }
+  }
+
+  renderAuditPreview(entries) {
+    if (!this.auditListPreview) return;
+    if (!entries || entries.length === 0) {
+      this.auditListPreview.innerHTML = '<li class="audit-list-empty">No audit events yet.</li>';
+      return;
+    }
+
+    this.auditListPreview.innerHTML = entries.map((entry) => `
+      <li class="audit-item">
+        <div class="audit-entry">
+          <strong>${this.escapeHTML(entry.action)}</strong>
+          <span>${this.formatTimestamp(entry.created_at || entry.timestamp)}</span>
+        </div>
+        <div class="audit-meta">
+          ${this.escapeHTML(entry.actor || 'system')} → ${this.escapeHTML(entry.target || 'n/a')}
+        </div>
+      </li>
+    `).join('');
+  }
+
+  renderAuditList(entries) {
+    if (!this.auditListFull) return;
+    if (!entries || entries.length === 0) {
+      this.auditListFull.innerHTML = '<li class="audit-list-empty">No audit events match these filters.</li>';
+      return;
+    }
+
+    this.auditListFull.innerHTML = entries.map((entry) => `
+      <li class="audit-item full">
+        <div class="audit-entry">
+          <div>
+            <strong>${this.escapeHTML(entry.action)}</strong>
+            <p class="audit-meta">
+              ${this.escapeHTML(entry.actor || 'system')} → ${this.escapeHTML(entry.target || 'n/a')}
+            </p>
+          </div>
+          <span>${this.formatTimestamp(entry.created_at || entry.timestamp)}</span>
+        </div>
+        ${entry.metadata ? `<div class="audit-details">${this.escapeHTML(entry.metadata.reason || entry.metadata.note || JSON.stringify(entry.metadata))}</div>` : ''}
+      </li>
+    `).join('');
+  }
+
+  async createAdminUser(payload) {
+    return this.requestAdminAPI('/api/admin/users', {
+      method: 'POST',
+      body: payload
+    });
+  }
+
+  async updateAdminUser(login, payload) {
+    return this.requestAdminAPI(`/api/admin/users/${encodeURIComponent(login)}`, {
+      method: 'PUT',
+      body: payload
+    });
+  }
+
+  async resetAdminPassword(login) {
+    return this.requestAdminAPI(`/api/admin/users/${encodeURIComponent(login)}/reset-password`, {
+      method: 'POST'
+    });
+  }
+
+  async updateLockStatus(login, action) {
+    return this.requestAdminAPI(`/api/admin/users/${encodeURIComponent(login)}/${action}`, {
+      method: 'POST'
+    });
+  }
+
+  async requestAdminAPI(path, { method = 'GET', body } = {}) {
+    const options = {
+      method,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include'
+    };
+
+    if (body) {
+      options.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(path, options);
+    if (!response.ok) {
+      let message = 'Request failed';
+      try {
+        const errorBody = await response.json();
+        message = errorBody?.error || errorBody?.message || message;
+      } catch {
+        message = response.statusText || message;
+      }
+      throw new Error(message);
+    }
+
+    if (response.status === 204) return null;
+    try {
+      return await response.json();
+    } catch {
+      return null;
+    }
+  }
+
+  getFormValues(form) {
+    const formData = new FormData(form);
+    return Object.fromEntries(formData.entries());
+  }
+
+  getMockAdminUsers() {
+    return [
+      {
+        login: 'mercetti',
+        display_name: 'Mercetti',
+        email: 'mercetti@example.com',
+        role: 'super_admin',
+        status: 'active',
+        last_login_at: Date.now() - 1000 * 60 * 60,
+        failed_attempts: 0,
+        locked_until: null
+      },
+      {
+        login: 'dealer_ops',
+        display_name: 'Dealer Ops',
+        email: 'dealer@example.com',
+        role: 'operator',
+        status: 'locked',
+        last_login_at: Date.now() - 1000 * 60 * 60 * 24,
+        failed_attempts: 6,
+        locked_until: Date.now() + 1000 * 60 * 30
+      },
+      {
+        login: 'support_ninja',
+        display_name: 'Support Ninja',
+        email: 'support@example.com',
+        role: 'support',
+        status: 'active',
+        last_login_at: Date.now() - 1000 * 60 * 5,
+        failed_attempts: 1,
+        locked_until: null
+      }
+    ];
+  }
+
+  getMockAuditEntries() {
+    const now = Date.now();
+    return [
+      {
+        id: 1,
+        actor: 'mercetti',
+        target: 'support_ninja',
+        action: 'updated_admin',
+        created_at: now - 1000 * 60 * 10,
+        metadata: { note: 'Granted support role' }
+      },
+      {
+        id: 2,
+        actor: 'mercetti',
+        target: 'dealer_ops',
+        action: 'locked_admin',
+        created_at: now - 1000 * 60 * 60,
+        metadata: { reason: 'Too many failed attempts' }
+      },
+      {
+        id: 3,
+        actor: 'support_ninja',
+        target: 'mercetti',
+        action: 'reset_password',
+        created_at: now - 1000 * 60 * 120,
+        metadata: { reason: 'Requested over chat' }
+      }
+    ];
   }
 
   startRealTimeUpdates() {

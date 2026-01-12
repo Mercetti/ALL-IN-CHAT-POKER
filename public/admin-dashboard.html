@@ -552,9 +552,9 @@
 
       <nav class="nav-section">
         <div class="nav-title">System</div>
-        <a href="#users" class="nav-item" data-section="users">
-          <span class="nav-icon">👤</span>
-          Users
+        <a href="#admin-users" class="nav-item" data-section="admin-users">
+          <span class="nav-icon">🛡️</span>
+          Admin Users
         </a>
         <a href="#games" class="nav-item" data-section="games">
           <span class="nav-icon">🎮</span>
@@ -570,7 +570,7 @@
     <!-- Main Content -->
     <main class="dashboard-main">
       <!-- Overview Dashboard -->
-      <section id="overview-section" class="dashboard-section">
+      <section id="overview-section" class="dashboard-section active">
         <div class="dashboard-grid">
           <!-- System Health Card -->
           <div class="card">
@@ -860,7 +860,203 @@
           </div>
         </div>
       </section>
+      <!-- Admin Users Section -->
+      <section id="admin-users-section" class="dashboard-section" style="display: none;">
+        <div class="section-header">
+          <div>
+            <h2>Admin Users</h2>
+            <p class="section-subhead">Manage access, roles, and audit logs</p>
+          </div>
+          <div class="section-actions">
+            <button class="btn btn-secondary" id="refresh-admin-users">
+              🔄 Refresh
+            </button>
+            <button class="btn btn-primary" id="open-create-admin">
+              ➕ Create Admin
+            </button>
+          </div>
+        </div>
+
+        <div class="admin-users-grid">
+          <div class="card admin-table-card">
+            <div class="card-header">
+              <h3 class="card-title">Directory</h3>
+              <div class="filter-group">
+                <label for="admin-status-filter">Status</label>
+                <select id="admin-status-filter">
+                  <option value="">All</option>
+                  <option value="active">Active</option>
+                  <option value="locked">Locked</option>
+                  <option value="disabled">Disabled</option>
+                </select>
+              </div>
+            </div>
+            <div class="table-wrapper">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Login</th>
+                    <th>Display Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Last Login</th>
+                    <th>Failed Attempts</th>
+                    <th>Locked Until</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-users-tbody">
+                  <tr>
+                    <td colspan="9" class="no-data">Loading admin users…</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card audit-card">
+            <div class="card-header">
+              <h3 class="card-title">Audit Log</h3>
+              <button class="btn btn-tertiary" id="open-audit-modal">View Full Log</button>
+            </div>
+            <ul class="audit-list" id="audit-list-preview">
+              <li class="audit-list-empty">Audit events will appear here.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
     </main>
+  </div>
+
+  <!-- Create Admin Modal -->
+  <div class="modal" id="create-admin-modal" aria-hidden="true">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-panel" role="dialog" aria-modal="true">
+      <header class="modal-header">
+        <h3>Create Admin</h3>
+        <button class="modal-close" data-close-modal>&times;</button>
+      </header>
+      <form id="create-admin-form" class="modal-body">
+        <div class="form-grid">
+          <label>
+            Login
+            <input type="text" name="login" required />
+          </label>
+          <label>
+            Display Name
+            <input type="text" name="display_name" required />
+          </label>
+          <label>
+            Email
+            <input type="email" name="email" />
+          </label>
+          <label>
+            Role
+            <select name="role" required>
+              <option value="admin">Admin</option>
+              <option value="moderator">Moderator</option>
+              <option value="support">Support</option>
+            </select>
+          </label>
+          <label>
+            Status
+            <select name="status" required>
+              <option value="active">Active</option>
+              <option value="locked">Locked</option>
+              <option value="disabled">Disabled</option>
+            </select>
+          </label>
+          <label>
+            Temporary Password
+            <input type="password" name="password" required />
+          </label>
+        </div>
+        <footer class="modal-footer">
+          <button type="button" class="btn btn-tertiary" data-close-modal>Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Admin</button>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Admin Modal -->
+  <div class="modal" id="edit-admin-modal" aria-hidden="true">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-panel" role="dialog" aria-modal="true">
+      <header class="modal-header">
+        <h3>Edit Admin</h3>
+        <button class="modal-close" data-close-modal>&times;</button>
+      </header>
+      <form id="edit-admin-form" class="modal-body">
+        <input type="hidden" name="login" />
+        <div class="form-grid">
+          <label>
+            Display Name
+            <input type="text" name="display_name" required />
+          </label>
+          <label>
+            Email
+            <input type="email" name="email" />
+          </label>
+          <label>
+            Role
+            <select name="role" required>
+              <option value="admin">Admin</option>
+              <option value="moderator">Moderator</option>
+              <option value="support">Support</option>
+            </select>
+          </label>
+          <label>
+            Status
+            <select name="status" required>
+              <option value="active">Active</option>
+              <option value="locked">Locked</option>
+              <option value="disabled">Disabled</option>
+            </select>
+          </label>
+          <label>
+            Reset Password (optional)
+            <input type="password" name="password" placeholder="Leave blank to keep current" />
+          </label>
+        </div>
+        <footer class="modal-footer">
+          <button type="button" class="btn btn-tertiary" data-close-modal>Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <!-- Audit Modal -->
+  <div class="modal" id="audit-modal" aria-hidden="true">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-panel audit-panel" role="dialog" aria-modal="true">
+      <header class="modal-header">
+        <h3>Admin Audit Log</h3>
+        <button class="modal-close" data-close-modal>&times;</button>
+      </header>
+      <div class="modal-body audit-body">
+        <div class="audit-filters">
+          <label>
+            Actor
+            <input type="text" id="audit-filter-actor" placeholder="any" />
+          </label>
+          <label>
+            Target
+            <input type="text" id="audit-filter-target" placeholder="any" />
+          </label>
+          <label>
+            Action
+            <input type="text" id="audit-filter-action" placeholder="created_admin" />
+          </label>
+          <button class="btn btn-secondary" id="refresh-audit-log">Refresh</button>
+        </div>
+        <ul class="audit-list" id="audit-list-full">
+          <li class="audit-list-empty">No audit events yet.</li>
+        </ul>
+      </div>
+    </div>
   </div>
 
   <!-- Dashboard JavaScript -->
