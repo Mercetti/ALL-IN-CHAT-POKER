@@ -36,13 +36,6 @@ function createSecurityHeadersMiddleware({ config }) {
     res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
     res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
 
-    let supabaseOrigin = '';
-    try {
-      if (config.SUPABASE_URL) supabaseOrigin = new URL(config.SUPABASE_URL).origin;
-    } catch {
-      supabaseOrigin = '';
-    }
-
     const scriptSrc = [
       "script-src 'self' 'unsafe-inline'",
       'https://pagead2.googlesyndication.com',
@@ -56,12 +49,7 @@ function createSecurityHeadersMiddleware({ config }) {
       'https://gql.twitch.tv',
       'https://www.twitch.tv',
       'https://cdn.jsdelivr.net',
-      'https://cdn.socket.io',
     ];
-    if (supabaseOrigin) {
-      scriptSrc.push(supabaseOrigin);
-      connectSrc.push(supabaseOrigin);
-    }
 
     const csp = [
       "default-src 'self'",

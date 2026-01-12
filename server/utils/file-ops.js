@@ -56,7 +56,6 @@ const isUrlAllowed = (url) => {
     'all-in-chat-poker.fly.dev',
     'localhost',
     '127.0.0.1',
-    'ertwjobuopcnrmdojeps.supabase.co',
   ];
   
   try {

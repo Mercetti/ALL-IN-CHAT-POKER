@@ -137,22 +137,11 @@ class HealthCheckManager {
   checkServices() {
     // Check external services
     const services = {
-      supabase: this.checkSupabase(),
       redis: this.checkRedis(),
       twitch: this.checkTwitch()
     };
     
     return Object.values(services).some(service => service); // At least one service working
-  }
-
-  checkSupabase() {
-    try {
-      if (!this.config.SUPABASE_URL) return false;
-      // Basic connectivity check would go here
-      return true;
-    } catch (error) {
-      return false;
-    }
   }
 
   checkRedis() {

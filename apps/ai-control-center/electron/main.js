@@ -7,6 +7,7 @@ const { spawn } = require('child_process');
 const { randomUUID } = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const { pathToFileURL } = require('url');
 
 const isDev = !app.isPackaged && process.env.NODE_ENV !== 'production';
 
@@ -22,6 +23,11 @@ const runtimeCwd = process.env.AI_RUNTIME_CWD
   || (app.isPackaged
     ? path.join(app.getPath('documents'), 'poker-game')
     : path.resolve(__dirname, '..', '..', '..'));
+const chatDataDir = path.join(app.getPath('userData'), 'acey-chat');
+const chatHistoryFile = path.join(chatDataDir, 'history.json');
+const chatAttachmentsDir = path.join(chatDataDir, 'attachments');
+const CHAT_HISTORY_LIMIT = 500;
+const CHAT_ATTACHMENT_LIMIT_BYTES = 25 * 1024 * 1024; // 25 MB
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -129,6 +135,78 @@ function appendRuntimeLog(message, level = 'info') {
   return entry;
 }
 
+function ensureChatStorageDirs() {
+  if (!fs.existsSync(chatDataDir)) {
+    fs.mkdirSync(chatDataDir, { recursive: true });
+  }
+  if (!fs.existsSync(chatAttachmentsDir)) {
+    fs.mkdirSync(chatAttachmentsDir, { recursive: true });
+  }
+}
+
+function readChatHistoryFromDisk() {
+  try {
+    ensureChatStorageDirs();
+    if (!fs.existsSync(chatHistoryFile)) {
+      return [];
+    }
+    const raw = fs.readFileSync(chatHistoryFile, 'utf8');
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed.slice(-CHAT_HISTORY_LIMIT);
+    }
+    return [];
+  } catch (err) {
+    appendRuntimeLog(`Failed to read chat history: ${err.message}`, 'warn');
+    return [];
+  }
+}
+
+function writeChatHistoryToDisk(history = []) {
+  try {
+    ensureChatStorageDirs();
+    const limited = Array.isArray(history) ? history.slice(-CHAT_HISTORY_LIMIT) : [];
+    fs.writeFileSync(chatHistoryFile, JSON.stringify(limited, null, 2), 'utf8');
+    return { success: true, count: limited.length };
+  } catch (err) {
+    appendRuntimeLog(`Failed to write chat history: ${err.message}`, 'error');
+    return { success: false, error: err.message };
+  }
+}
+
+async function saveChatAttachmentToDisk(payload = {}) {
+  if (!payload?.data || !payload?.name) {
+    throw new Error('Attachment payload missing required fields');
+  }
+  const buffer = Buffer.from(payload.data, 'base64');
+  if (!buffer.length) {
+    throw new Error('Attachment payload empty');
+  }
+  if (buffer.length > CHAT_ATTACHMENT_LIMIT_BYTES) {
+    throw new Error('Attachment exceeds 25MB limit');
+  }
+
+  ensureChatStorageDirs();
+  const id = randomUUID();
+  const safeName = path.basename(payload.name);
+  const ext = path.extname(safeName);
+  const targetPath = path.join(chatAttachmentsDir, `${id}${ext || ''}`);
+  await fs.promises.writeFile(targetPath, buffer);
+
+  return {
+    id,
+    name: safeName,
+    mimeType: payload.mimeType || 'application/octet-stream',
+    size: buffer.length,
+    localPath: targetPath,
+    savedAt: Date.now(),
+    previewUrl: pathToFileURL(targetPath).toString(),
+    type: payload.mimeType?.startsWith('image/') ? 'image'
+      : payload.mimeType?.startsWith('audio/') ? 'audio'
+        : 'file',
+  };
+}
+
 function getRuntimeStatus() {
   return {
     running: Boolean(runtimeProcess),
@@ -201,6 +279,33 @@ ipcMain.handle('runtime:start', async () => {
   });
 
   return { ...getRuntimeStatus(), logs: runtimeLogs.slice(-200) };
+});
+
+ipcMain.handle('chat-history:read', () => readChatHistoryFromDisk());
+
+ipcMain.handle('chat-history:write', (_event, history) => writeChatHistoryToDisk(history));
+
+ipcMain.handle('chat-attachments:save', async (_event, payload) => {
+  try {
+    const saved = await saveChatAttachmentToDisk(payload);
+    return { success: true, attachment: saved };
+  } catch (err) {
+    appendRuntimeLog(`Failed to save chat attachment: ${err.message}`, 'error');
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('chat-attachments:open', async (_event, targetPath) => {
+  if (!targetPath || typeof targetPath !== 'string') {
+    return { success: false, error: 'Target path required' };
+  }
+  try {
+    await shell.openPath(targetPath);
+    return { success: true };
+  } catch (err) {
+    appendRuntimeLog(`Failed to open attachment: ${err.message}`, 'error');
+    return { success: false, error: err.message };
+  }
 });
 
 ipcMain.handle('runtime:stop', () => {

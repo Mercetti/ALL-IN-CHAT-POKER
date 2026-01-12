@@ -1,4 +1,4 @@
-import type { PanelStatus } from '../types/panels';
+import type { PanelStatus, ChatAttachment } from '../types/panels';
 
 const defaultBackend = 'https://all-in-chat-poker.fly.dev';
 // Use Fly backend when running in Electron (production-like environment)
@@ -52,11 +52,17 @@ export async function fetchPanelSummaries(): Promise<PanelStatus[]> {
   }
 }
 
-export async function sendChatMessage(content: string): Promise<{ id: string; content: string }> {
+export async function sendChatMessage(
+  content: string,
+  attachments: ChatAttachment[] = [],
+): Promise<{ id: string; content: string; attachments?: ChatAttachment[] }> {
   try {
-    return await apiFetch<{ id: string; content: string }>('/admin/ai-tools/chat', {
+    return await apiFetch<{ id: string; content: string; attachments?: ChatAttachment[] }>('/admin/ai-tools/chat', {
       method: 'POST',
-      body: JSON.stringify({ message: content }),
+      body: JSON.stringify({
+        message: content,
+        attachments: attachments.length ? attachments : undefined,
+      }),
     });
   } catch (err) {
     console.warn('sendChatMessage failed, returning fallback', err);

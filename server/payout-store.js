@@ -1,6 +1,6 @@
 /**
  * Postgres-backed payout store (isolated from SQLite game state).
- * Requires process.env.DATABASE_URL to be set (e.g., Supabase/Postgres URI).
+ * Requires process.env.DATABASE_URL to be set (standard Postgres URI).
  */
 const { Pool } = require('pg');
 const { buildPayoutIdempotencyKey } = require('./payout-utils');

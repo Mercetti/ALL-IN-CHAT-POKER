@@ -124,6 +124,49 @@ class DBHelper {
       )
     `);
 
+    // Dedicated admin users store
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS admin_users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        login TEXT UNIQUE NOT NULL,
+        display_name TEXT,
+        email TEXT,
+        password_hash TEXT,
+        role TEXT DEFAULT 'admin',
+        status TEXT DEFAULT 'active',
+        created_by TEXT,
+        updated_by TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        last_login_at DATETIME,
+        failed_attempts INTEGER DEFAULT 0,
+        locked_until DATETIME
+      )
+    `);
+
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS admin_user_audit (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        actor_login TEXT,
+        target_login TEXT,
+        action TEXT,
+        details TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS admin_login_attempts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        login TEXT,
+        ip TEXT,
+        success INTEGER DEFAULT 0,
+        reason TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    this.db.exec(`CREATE INDEX IF NOT EXISTS idx_admin_login_attempts_login ON admin_login_attempts(login)`);
+
     // Add role column if missing (idempotent)
     try {
       this.db.exec(`ALTER TABLE profiles ADD COLUMN role TEXT DEFAULT 'player'`);
@@ -682,6 +725,224 @@ class DBHelper {
     const stmt = this.db.prepare(`UPDATE profiles SET password_hash=?, updated_at=CURRENT_TIMESTAMP WHERE login=?`);
     stmt.run(password_hash, login);
     return this.getProfile(login);
+  }
+
+  // ============ ADMIN USERS ============
+
+  getAdminUser(login) {
+    if (!login) return null;
+    const normalized = login.trim().toLowerCase();
+    const stmt = this.db.prepare('SELECT * FROM admin_users WHERE login = ?');
+    return stmt.get(normalized);
+  }
+
+  listAdminUsers({ status = null, limit = 200 } = {}) {
+    const baseQuery = [
+      'SELECT id, login, display_name, email, role, status, created_by, updated_by, created_at, updated_at, last_login_at, failed_attempts, locked_until',
+      'FROM admin_users',
+    ];
+
+    const params = [];
+    if (status) {
+      baseQuery.push('WHERE status = ?');
+      params.push(status);
+    }
+
+    baseQuery.push('ORDER BY login ASC LIMIT ?');
+    params.push(limit);
+
+    const stmt = this.db.prepare(baseQuery.join(' '));
+    return stmt.all(...params);
+  }
+
+  createAdminUser({
+    login,
+    display_name = null,
+    email = null,
+    password_hash,
+    role = 'admin',
+    status = 'active',
+    created_by = null,
+  }) {
+    if (!login) throw new Error('login_required');
+    if (!password_hash) throw new Error('password_hash_required');
+    const normalized = login.trim().toLowerCase();
+
+    const stmt = this.db.prepare(`
+      INSERT INTO admin_users (login, display_name, email, password_hash, role, status, created_by, updated_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    stmt.run(
+      normalized,
+      display_name || normalized,
+      email || null,
+      password_hash,
+      role || 'admin',
+      status || 'active',
+      created_by || 'system',
+      created_by || 'system'
+    );
+
+    return this.getAdminUser(normalized);
+  }
+
+  updateAdminUser(login, updates = {}) {
+    if (!login) return null;
+    const normalized = login.trim().toLowerCase();
+    const allowedFields = {
+      display_name: 'display_name = ?',
+      email: 'email = ?',
+      role: 'role = ?',
+      status: 'status = ?',
+      password_hash: 'password_hash = ?',
+      updated_by: 'updated_by = ?',
+      last_login_at: 'last_login_at = ?',
+      failed_attempts: 'failed_attempts = ?',
+      locked_until: 'locked_until = ?',
+    };
+
+    const setParts = [];
+    const params = [];
+
+    Object.entries(allowedFields).forEach(([key, clause]) => {
+      if (Object.prototype.hasOwnProperty.call(updates, key)) {
+        setParts.push(clause);
+        params.push(updates[key]);
+      }
+    });
+
+    if (!setParts.length) return this.getAdminUser(normalized);
+
+    setParts.push('updated_at = CURRENT_TIMESTAMP');
+    const query = `UPDATE admin_users SET ${setParts.join(', ')} WHERE login = ?`;
+
+    this.db.prepare(query).run(...params, normalized);
+    return this.getAdminUser(normalized);
+  }
+
+  incrementAdminFailedAttempts(login, amount = 1) {
+    if (!login) return;
+    const normalized = login.trim().toLowerCase();
+    this.db
+      .prepare(
+        `UPDATE admin_users
+         SET failed_attempts = failed_attempts + ?, updated_at = CURRENT_TIMESTAMP
+         WHERE login = ?`
+      )
+      .run(Math.max(1, amount || 1), normalized);
+  }
+
+  resetAdminFailedAttempts(login) {
+    if (!login) return;
+    const normalized = login.trim().toLowerCase();
+    this.db
+      .prepare(
+        `UPDATE admin_users
+         SET failed_attempts = 0, locked_until = NULL, updated_at = CURRENT_TIMESTAMP
+         WHERE login = ?`
+      )
+      .run(normalized);
+  }
+
+  setAdminLockedUntil(login, untilDate = null) {
+    if (!login) return;
+    const normalized = login.trim().toLowerCase();
+    const formatted = untilDate
+      ? new Date(untilDate).toISOString()
+      : null;
+
+    this.db
+      .prepare(
+        `UPDATE admin_users
+         SET locked_until = ?, updated_at = CURRENT_TIMESTAMP
+         WHERE login = ?`
+      )
+      .run(formatted, normalized);
+  }
+
+  markAdminLoginSuccess(login) {
+    if (!login) return;
+    const normalized = login.trim().toLowerCase();
+    this.db
+      .prepare(
+        `UPDATE admin_users
+         SET last_login_at = CURRENT_TIMESTAMP,
+             failed_attempts = 0,
+             locked_until = NULL,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE login = ?`
+      )
+      .run(normalized);
+  }
+
+  logAdminUserAction({ actor_login = null, target_login = null, action, details = null }) {
+    if (!action) return;
+    const stmt = this.db.prepare(`
+      INSERT INTO admin_user_audit (actor_login, target_login, action, details)
+      VALUES (?, ?, ?, ?)
+    `);
+
+    const serializedDetails =
+      typeof details === 'string' ? details : JSON.stringify(details || {});
+
+    stmt.run(
+      actor_login ? actor_login.trim().toLowerCase() : null,
+      target_login ? target_login.trim().toLowerCase() : null,
+      action,
+      serializedDetails
+    );
+  }
+
+  listAdminAuditLogs(limit = 200) {
+    const stmt = this.db.prepare(`
+      SELECT id, actor_login, target_login, action, details, created_at
+      FROM admin_user_audit
+      ORDER BY created_at DESC
+      LIMIT ?
+    `);
+    return stmt.all(limit);
+  }
+
+  recordAdminLoginAttempt({ login = null, ip = null, success = 0, reason = null }) {
+    const stmt = this.db.prepare(`
+      INSERT INTO admin_login_attempts (login, ip, success, reason)
+      VALUES (?, ?, ?, ?)
+    `);
+    stmt.run(
+      login ? login.trim().toLowerCase() : null,
+      ip || null,
+      success ? 1 : 0,
+      reason || null
+    );
+  }
+
+  countRecentAdminLoginFailures(login, windowSeconds = 900) {
+    if (!login) return 0;
+    const normalized = login.trim().toLowerCase();
+    const sinceIso = new Date(Date.now() - Math.max(60, windowSeconds) * 1000).toISOString();
+    const stmt = this.db.prepare(`
+      SELECT COUNT(*) as failures
+      FROM admin_login_attempts
+      WHERE login = ?
+        AND success = 0
+        AND created_at >= ?
+    `);
+    const row = stmt.get(normalized, sinceIso);
+    return row?.failures || 0;
+  }
+
+  getRecentAdminLoginAttempts(login, limit = 20) {
+    if (!login) return [];
+    const normalized = login.trim().toLowerCase();
+    const stmt = this.db.prepare(`
+      SELECT id, login, ip, success, reason, created_at
+      FROM admin_login_attempts
+      WHERE login = ?
+      ORDER BY created_at DESC
+      LIMIT ?
+    `);
+    return stmt.all(normalized, limit);
   }
 
   /**

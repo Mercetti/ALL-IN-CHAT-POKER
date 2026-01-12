@@ -1,4 +1,5 @@
 /* eslint-env node */
+/* global require */
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('aiBridge', {
@@ -18,5 +19,11 @@ contextBridge.exposeInMainWorld('aiBridge', {
       ipcRenderer.on('runtime:log', listener);
       return () => ipcRenderer.removeListener('runtime:log', listener);
     }
-  }
+  },
+  chat: {
+    readHistory: () => ipcRenderer.invoke('chat-history:read'),
+    writeHistory: (history) => ipcRenderer.invoke('chat-history:write', history),
+    saveAttachment: (payload) => ipcRenderer.invoke('chat-attachments:save', payload),
+    openAttachment: (targetPath) => ipcRenderer.invoke('chat-attachments:open', targetPath),
+  },
 });

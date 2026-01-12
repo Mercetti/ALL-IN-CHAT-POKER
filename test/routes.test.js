@@ -47,8 +47,6 @@ describe('routes utilities', () => {
       DEFAULT_CHANNEL: 'testchannel',
       normalizeChannelNameScoped: (name) => name,
       isUserBanned: () => false,
-      fetchSupabaseUser: async () => null,
-      deriveLoginFromSupabaseUser: (user) => user?.user_metadata?.login || user?.email?.split('@')[0],
       fetchTwitchUser: async () => null,
       validateBody: () => (req, res, next) => next(),
       validateLocalLogin: () => (req, res, next) => next(),

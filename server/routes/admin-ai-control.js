@@ -82,16 +82,36 @@ function registerAdminAiControlRoutes(app, deps) {
         return res.status(400).json({ error: 'message_required' });
       }
 
-      const response = await unifiedAI.processChatMessage(message, { login: actor }, null, null);
+      const attachments = Array.isArray(req.body?.attachments)
+        ? req.body.attachments.slice(0, 5).map((file, index) => ({
+            id: String(file.id || crypto.randomUUID()),
+            name: String(file.name || `file-${index + 1}`),
+            mimeType: file.mimeType ? String(file.mimeType) : undefined,
+            size: Number(file.size) || 0,
+            localPath: typeof file.localPath === 'string' ? file.localPath : undefined,
+            savedAt: file.savedAt ? Number(file.savedAt) : undefined,
+          }))
+        : [];
+
+      let finalMessage = message;
+      if (attachments.length) {
+        const attachmentSummary = attachments
+          .map((file, idx) => `${idx + 1}. ${file.name} (${file.mimeType || 'file'}, ${file.size} bytes)`)
+          .join('\n');
+        finalMessage = `${message}\n\n[Attachments Provided]\n${attachmentSummary}\n`;
+      }
+
+      const response = await unifiedAI.processChatMessage(finalMessage, { login: actor }, null, { attachments });
       const content = typeof response === 'string'
         ? response
         : response?.content || 'AI did not return a message.';
 
-      logger.info?.('Admin AI chat processed', { actor, length: message.length });
+      logger.info?.('Admin AI chat processed', { actor, length: message.length, attachments: attachments.length });
       stopTimer?.({ success: true });
       return res.json({
         id: crypto.randomUUID(),
         content,
+        attachments: attachments.length ? attachments : undefined,
       });
     } catch (error) {
       stopTimer?.({ success: false, error: error.message });

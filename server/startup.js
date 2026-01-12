@@ -76,11 +76,6 @@ function checkEnvironment() {
     insecure('OWNER_BOOT_PASSWORD', 'using known default');
   }
 
-  if (isProd) {
-    if (!process.env.SUPABASE_URL) missing('SUPABASE_URL');
-    if (!process.env.SUPABASE_ANON_KEY) missing('SUPABASE_ANON_KEY');
-  }
-
   return {
     missingEnv: Array.from(missingEnv),
     isProd,

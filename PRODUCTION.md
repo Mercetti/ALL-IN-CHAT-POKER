@@ -40,8 +40,6 @@ nano .env
 - `JWT_SECRET` - Generate a secure 32+ character string
 - `ADMIN_PASSWORD` - Set a strong admin password
 - `ADMIN_TOKEN` - Generate a secure admin token
-- `SUPABASE_URL` - Your Supabase project URL
-- `SUPABASE_ANON_KEY` - Your Supabase anonymous key
 
 #### 4. Generate Secure Secrets
 ```bash

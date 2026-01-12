@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { fetchPanelSummaries, sendChatMessage, requestCosmeticAsset } from '../services/api';
-import type { PanelKey, PanelStatus, ChatMessage } from '../types/panels';
+import type { PanelKey, PanelStatus, ChatMessage, ChatAttachment } from '../types/panels';
 
 export type DashboardStore = {
   statuses: Record<PanelKey, PanelStatus>;
@@ -13,7 +13,8 @@ export type DashboardStore = {
     isSending: boolean;
   };
   fetchAll: () => Promise<void>;
-  sendChat: (content: string) => Promise<void>;
+  hydrateChatHistory: () => Promise<void>;
+  sendChat: (content: string, attachments?: ChatAttachment[]) => Promise<void>;
   generateCosmetic: (prompt: string) => Promise<void>;
   markAuthenticated: () => void;
   setAuthRequired: (value: boolean) => void;
@@ -65,29 +66,50 @@ const defaultStatuses: Record<PanelKey, PanelStatus> = {
 };
 
 const CHAT_STORAGE_KEY = 'ai-control-center-chat-history';
+const LOCAL_HISTORY_LIMIT = 500;
 
-const loadStoredChat = (): ChatMessage[] => {
+const normalizeChatHistory = (history: unknown): ChatMessage[] => {
+  if (!Array.isArray(history)) return [];
+  return history
+    .filter(
+      (msg): msg is ChatMessage =>
+        !!msg &&
+        typeof msg === 'object' &&
+        typeof msg.id === 'string' &&
+        typeof msg.role === 'string' &&
+        typeof msg.content === 'string',
+    )
+    .map((msg) => ({
+      ...msg,
+      attachments: Array.isArray(msg.attachments) ? msg.attachments : undefined,
+    }))
+    .slice(-LOCAL_HISTORY_LIMIT);
+};
+
+const loadLocalStorageChat = (): ChatMessage[] => {
   if (typeof window === 'undefined') return [];
   try {
     const stored = window.localStorage.getItem(CHAT_STORAGE_KEY);
     if (!stored) return [];
-    const parsed = JSON.parse(stored);
-    if (Array.isArray(parsed)) {
-      return parsed
-        .filter((msg) => msg && typeof msg.id === 'string')
-        .slice(-100);
-    }
-    return [];
+    return normalizeChatHistory(JSON.parse(stored));
   } catch (err) {
     console.warn('Failed to load stored chat history', err);
     return [];
   }
 };
 
-const persistChat = (history: ChatMessage[]) => {
+const persistChatHistory = (history: ChatMessage[]) => {
   if (typeof window === 'undefined') return;
+  const payload = history.slice(-LOCAL_HISTORY_LIMIT);
+  if (window.aiBridge?.chat?.writeHistory) {
+    window.aiBridge.chat
+      .writeHistory(payload)
+      .catch((err: unknown) => console.warn('Failed to persist chat history to disk', err));
+    return;
+  }
+
   try {
-    window.localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(history.slice(-100)));
+    window.localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(payload));
   } catch (err) {
     console.warn('Failed to persist chat history', err);
   }
@@ -99,7 +121,7 @@ const useDashboardStore = create<DashboardStore>((set, get) => ({
   isLoading: false,
   authRequired: false,
   chat: {
-    history: loadStoredChat(),
+    history: typeof window !== 'undefined' && !window.aiBridge?.chat ? loadLocalStorageChat() : [],
     isSending: false,
   },
   markAuthenticated() {
@@ -133,17 +155,44 @@ const useDashboardStore = create<DashboardStore>((set, get) => ({
       });
     }
   },
-  async sendChat(content: string) {
-    if (!content.trim()) return;
+  async hydrateChatHistory() {
+    if (typeof window === 'undefined') return;
+    if (window.aiBridge?.chat?.readHistory) {
+      try {
+        const stored = await window.aiBridge.chat.readHistory();
+        if (stored) {
+          set((prev) => ({
+            chat: {
+              ...prev.chat,
+              history: normalizeChatHistory(stored),
+            },
+          }));
+        }
+      } catch (err) {
+        console.warn('Failed to hydrate chat history from disk', err);
+      }
+      return;
+    }
+
+    set((prev) => ({
+      chat: {
+        ...prev.chat,
+        history: loadLocalStorageChat(),
+      },
+    }));
+  },
+  async sendChat(content: string, attachments: ChatAttachment[] = []) {
+    if (!content.trim() && attachments.length === 0) return;
     const provisional: ChatMessage = {
       id: crypto.randomUUID(),
       role: 'user',
-      content,
+      content: content.trim(),
       timestamp: Date.now(),
+      attachments: attachments.length ? attachments : undefined,
     };
     set((prev) => {
       const nextHistory = [...prev.chat.history, provisional].slice(-100);
-      persistChat(nextHistory);
+      persistChatHistory(nextHistory);
       return {
         chat: {
           history: nextHistory,
@@ -153,16 +202,19 @@ const useDashboardStore = create<DashboardStore>((set, get) => ({
     });
 
     try {
-      const response = await sendChatMessage(content);
+      const response = await sendChatMessage(content, attachments);
       set((prev) => {
         const assistantMessage: ChatMessage = {
           id: response.id || crypto.randomUUID(),
           role: 'assistant',
           content: response.content,
           timestamp: Date.now(),
+          attachments: Array.isArray(response.attachments) && response.attachments.length
+            ? response.attachments
+            : undefined,
         };
         const nextHistory = [...prev.chat.history, assistantMessage].slice(-100);
-        persistChat(nextHistory);
+        persistChatHistory(nextHistory);
         return {
           chat: {
             history: nextHistory,
@@ -179,7 +231,7 @@ const useDashboardStore = create<DashboardStore>((set, get) => ({
           timestamp: Date.now(),
         };
         const nextHistory = [...prev.chat.history, failure].slice(-100);
-        persistChat(nextHistory);
+        persistChatHistory(nextHistory);
         return {
           chat: {
             history: nextHistory,
@@ -199,7 +251,7 @@ const useDashboardStore = create<DashboardStore>((set, get) => ({
     };
     set((prev) => {
       const nextHistory = [...prev.chat.history, userMessage].slice(-100);
-      persistChat(nextHistory);
+      persistChatHistory(nextHistory);
       return {
         chat: {
           history: nextHistory,
@@ -218,7 +270,7 @@ const useDashboardStore = create<DashboardStore>((set, get) => ({
           timestamp: Date.now(),
         };
         const nextHistory = [...prev.chat.history, assistantMessage].slice(-100);
-        persistChat(nextHistory);
+        persistChatHistory(nextHistory);
         return {
           chat: {
             history: nextHistory,
@@ -235,7 +287,7 @@ const useDashboardStore = create<DashboardStore>((set, get) => ({
           timestamp: Date.now(),
         };
         const nextHistory = [...prev.chat.history, failure].slice(-100);
-        persistChat(nextHistory);
+        persistChatHistory(nextHistory);
         return {
           chat: {
             history: nextHistory,

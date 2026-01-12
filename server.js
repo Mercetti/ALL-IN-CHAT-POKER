@@ -8,26 +8,41 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const fetch = global.fetch || require('node-fetch');
+const cookieParser = require('cookie-parser');
 
-// Import simple auth routes
-const { createSimpleAuthRouter } = require('./server/routes/auth-simple');
-const { createSimpleAdminServicesRouter } = require('./server/routes/admin-services-simple');
-const { createSimpleAdminAiControlRouter } = require('./server/routes/admin-ai-control-simple');
-
-// Import Poker Audio System
-const PokerAudioSystem = require('./server/poker-audio-system');
+const SecurityManager = require('./server/security');
+const middleware = require('./server/middleware');
+const startup = require('./server/startup');
+const ConnectionHardener = require('./server/connection-hardener');
+const db = require('./server/db');
 const auth = require('./server/auth');
 const config = require('./server/config');
+const Logger = require('./server/logger');
+const payoutStore = require('./server/payout-store');
 const { PerformanceMonitor } = require('./server/utils/performance-monitor');
-const registerAdminAiControlRoutes = require('./server/routes/admin-ai-control');
 const UnifiedAISystem = require('./server/unified-ai');
+const registerAdminAiControlRoutes = require('./server/routes/admin-ai-control');
+const createAdminRouter = require('./server/routes/admin');
+const createAuthRouter = require('./server/routes/auth');
+const createPublicRouter = require('./server/routes/public');
+const createPartnersRouter = require('./server/routes/partners');
+const createCatalogRouter = require('./server/routes/catalog');
+const createAdminServicesRouter = require('./server/routes/admin-services');
+const { getActorFromReq, recordLoginAttempt, getAdminActivitySummary, clearAdminLoginHistory } = require('./server/admin/ops');
+const { validateBody } = require('./server/utils/file-ops');
+const { validateLocalLogin } = require('./server/routes/auth-simple');
 
-const logger = console;
+const logger = new Logger('server');
 const performanceMonitor = new PerformanceMonitor({ enabled: true });
 const unifiedAI = new UnifiedAISystem({
   enableChatBot: true,
   enableCosmeticAI: true,
 });
+const connectionHardener = new ConnectionHardener();
+const recentErrors = [];
+const recentSlowRequests = [];
+const recentSocketDisconnects = [];
+let lastTmiReconnectAt = null;
 
 async function sendMonitorAlert(message, options = {}) {
   if (!config.MONITOR_WEBHOOK_URL) return false;
@@ -104,23 +119,15 @@ const io = socketIo(server, {
   },
 });
 
-// Basic middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Core middleware stack
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cookieParser());
+app.use(middleware.createRequestTrackingMiddleware({ recentErrors, recentSlowRequests }));
+app.use(middleware.createCorsMiddleware({ config }));
 
-// CORS middleware
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-  } else {
-    next();
-  }
-});
+// Security hardening layer
+const securityManager = new SecurityManager(app, config);
 
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));

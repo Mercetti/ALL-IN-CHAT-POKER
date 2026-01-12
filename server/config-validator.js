@@ -250,8 +250,6 @@ class ProductionConfigValidator {
       JWT_SECRET: this.generateSecureSecret(),
       ADMIN_PASSWORD: this.generateSecurePassword(),
       ADMIN_TOKEN: this.generateSecureSecret(32),
-      SUPABASE_URL: 'https://your-project.supabase.co',
-      SUPABASE_ANON_KEY: 'your-supabase-anon-key',
       TWITCH_CLIENT_ID: 'your-twitch-client-id',
       TWITCH_CLIENT_SECRET: 'your-twitch-client-secret',
       OPENAI_API_KEY: 'your-openai-api-key',
