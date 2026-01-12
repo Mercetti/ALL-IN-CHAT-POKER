@@ -263,7 +263,7 @@ app.use(playersRoutes);
 const { checkStartup: runStartupChecks, logStartupCheck: runLogStartupCheck, getHealth: getStartupHealth } = require('./server/startup');
 
 // Public, partners, and catalog routes
-const startupConfig = { checkStartup: doStartupChecks, logStartupCheck: doLogStartupCheck, getHealth: getStartupHealth } = require('./server/startup');
+const startupConfig = { checkStartup: doStartupChecks, logStartupCheck: doLogStartupCheck, getHealth } = require('./server/startup');
 const publicRoutes = createPublicRouter({ config, startup: startupConfig, defaultChannel: '' });
 app.use('/public', publicRoutes);
 
