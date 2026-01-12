@@ -587,6 +587,13 @@ server.listen(PORT, HOST, () => {
   }
 });
 
+// Wait a bit for server to be ready in test mode
+if (process.env.NODE_ENV === 'test') {
+  setTimeout(() => {
+    console.log('Test server ready');
+  }, 100);
+}
+
 // Handle graceful shutdown
 process.on('SIGTERM', () => {
   console.log('SIGTERM received, shutting down gracefully...');
@@ -919,24 +926,10 @@ app.get('/uploads/audio/stream/:filename', async (req, res) => {
 });
 
 // Export critical functions for health monitoring
-// Ensure app has all Express methods supertest expects
-app.set = app.set || function() { return app; };
-app.get = app.get || function() { return app; };
-app.post = app.post || function() { return app; };
-app.put = app.put || function() { return app; };
-app.patch = app.patch || function() { return app; };
-app.delete = app.delete || function() { return app; };
-app.use = app.use || function() { return app; };
-app.enable = app.enable || function() { return app; };
-app.disable = app.disable || function() { return app; };
-app.engine = app.engine || function() { return app; };
-app.param = app.param || function() { return app; };
-app.route = app.route || function() { return app; };
-
-// Add supertest compatibility methods to app before export
-app.address = function() {
-  return server.address() || { port: 0, family: 'IPv4', address: '127.0.0.1' };
-};
+// Direct supertest compatibility - assign server methods to app
+app.address = server.address.bind(server);
+app.listen = server.listen.bind(server);
+app.close = server.close.bind(server);
 
 module.exports = {
   runSyntheticCheck,

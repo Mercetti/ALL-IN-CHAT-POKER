@@ -82,6 +82,9 @@ describe('Admin User Management', () => {
   let csrfToken = null;
 
   beforeAll(async () => {
+    // Wait for test server to be ready
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
     // Seed mercetti admin if not exists
     const auth = require('../server/auth');
     const existing = db.getAdminUser('mercetti');
