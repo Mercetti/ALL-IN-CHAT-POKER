@@ -563,21 +563,23 @@ aceyWebSocket.start();
 console.log('🎤 Acey WebSocket server initialized');
 
 // Start server
-const PORT = process.env.PORT || 8080;
-const HOST = '0.0.0.0';
+if (process.env.NODE_ENV !== 'test') {
+  const PORT = process.env.PORT || 8080;
+  const HOST = '0.0.0.0';
 
-console.log(`Starting server on ${HOST}:${PORT}`);
+  console.log(`Starting server on ${HOST}:${PORT}`);
 
-server.listen(PORT, HOST, () => {
-  console.log(`Server running at http://${HOST}:${PORT}`);
-}).on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
-    console.error(`Port ${PORT} is already in use.`);
-  } else {
-    console.error('Server startup failed:', err);
-  }
-  process.exit(1);
-});
+  server.listen(PORT, HOST, () => {
+    console.log(`Server running at http://${HOST}:${PORT}`);
+  }).on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`Port ${PORT} is already in use.`);
+    } else {
+      console.error('Server startup failed:', err);
+    }
+    process.exit(1);
+  });
+}
 
 // Handle graceful shutdown
 process.on('SIGTERM', () => {
