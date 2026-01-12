@@ -19,8 +19,10 @@ class AICache {
       evictions: 0
     };
     
-    // Clean up expired entries periodically
-    setInterval(() => this.cleanup(), 60000);
+    // Clean up expired entries periodically (skip in test)
+    if (process.env.NODE_ENV !== 'test') {
+      setInterval(() => this.cleanup(), 60000);
+    }
   }
 
   /**

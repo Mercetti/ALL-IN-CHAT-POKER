@@ -21,8 +21,9 @@ const Logger = require('./server/logger');
 const payoutStore = require('./server/payout-store');
 const { PerformanceMonitor } = require('./server/utils/performance-monitor');
 const UnifiedAISystem = require('./server/unified-ai');
-const registerAdminAiControlRoutes = require('./server/routes/admin-ai-control');
-const createAdminRouter = require('./server/routes/admin');
+const { registerAdminAiControlRoutes } = require('./server/routes/admin-ai-control');
+const { createSimpleAdminAiControlRouter } = require('./server/routes/admin-ai-control-simple');
+const { createAdminRouter } = require('./server/routes/admin');
 const { createAuthRouter } = require('./server/routes/auth');
 const createPublicRouter = require('./server/routes/public');
 const createPartnersRouter = require('./server/routes/partners');
@@ -144,8 +145,49 @@ const authRoutes = createAuthRouter({
   rateLimit: (name, windowMs, max) => (req, res, next) => next(),
   validateBody,
   validateLocalLogin,
-  isBanned: (login, ip) => false,
-  fetchTwitchUser: async () => null,
+  isBanned: (login, ip) => {
+    const normalizedLogin = (login || '').toLowerCase().trim();
+    const normalizedIP = (ip || '').trim();
+    
+    // Check banned logins from config
+    const bannedLogins = (config.BANNED_LOGINS || '').split(',').map(l => l.trim().toLowerCase()).filter(Boolean);
+    if (bannedLogins.includes(normalizedLogin)) {
+      return true;
+    }
+    
+    // Check banned IPs from config
+    const bannedIPs = (config.BANNED_IPS || '').split(',').map(ip => ip.trim()).filter(Boolean);
+    if (bannedIPs.includes(normalizedIP)) {
+      return true;
+    }
+    
+    // Check database for banned status
+    try {
+      const profile = db.getProfile(normalizedLogin);
+      if (profile && profile.role === 'banned') {
+        return true;
+      }
+    } catch (err) {
+      logger.warn('Error checking ban status in database', { error: err.message, login: normalizedLogin });
+    }
+    
+    return false;
+  },
+  fetchTwitchUser: async (accessToken) => {
+    try {
+      const res = await fetch('https://api.twitch.tv/helix/users', {
+        headers: {
+          'Client-ID': config.TWITCH_CLIENT_ID,
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data?.data?.[0] || null;
+    } catch {
+      return null;
+    }
+  },
   defaultChannel: '',
 });
 app.use('/auth', authRoutes);
@@ -153,6 +195,39 @@ app.use('/auth', authRoutes);
 // Admin services routes
 const adminServicesRoutes = createSimpleAdminServicesRouter();
 app.use('/admin/services', adminServicesRoutes);
+
+// Initialize TMI client if bot credentials are available
+let tmiClient = null;
+if (process.env.BOT_USERNAME && process.env.BOT_OAUTH_TOKEN) {
+  const tmi = require('tmi.js');
+  const TARGET_CHANNELS = (process.env.TARGET_CHANNELS || process.env.TWITCH_CHANNEL || '')
+    .split(',')
+    .map(c => c.trim().toLowerCase())
+    .filter(Boolean);
+  
+  tmiClient = new tmi.Client({
+    options: { debug: false },
+    identity: { 
+      username: process.env.BOT_USERNAME, 
+      password: process.env.BOT_OAUTH_TOKEN 
+    },
+    channels: TARGET_CHANNELS,
+    connection: { reconnect: true, secure: true },
+  });
+  
+  tmiClient.on('connected', (addr, port) => {
+    logger.info(`TMI client connected to ${addr}:${port}`);
+  });
+  
+  tmiClient.on('disconnected', (reason) => {
+    logger.warn('TMI client disconnected', { reason });
+  });
+  
+  // Connect in background
+  tmiClient.connect().catch(err => {
+    logger.error('TMI client connection failed', { error: err.message });
+  });
+}
 
 // Admin routes (DB-backed login, logout, CSRF, etc.)
 const adminRoutes = createAdminRouter({
@@ -162,14 +237,14 @@ const adminRoutes = createAdminRouter({
   logger,
   rateLimit: (name, windowMs, max) => (req, res, next) => next(),
   db,
-  tmiClient: null,
+  tmiClient,
   blockedIPs: new Map(),
   adminLoginAttempts: new Map(),
   recentErrors,
   recentSlowRequests,
   recentSocketDisconnects,
   lastTmiReconnectAt: null,
-  getCriticalHashes: () => ({}),
+  getCriticalHashes,
   recordLoginAttempt,
 });
 app.use('/admin', adminRoutes);
@@ -183,6 +258,16 @@ app.use(adminUsersRoutes);
 const { createPlayersRouter } = require('./server/routes/players');
 const playersRoutes = createPlayersRouter({ auth, db, logger, validateBody, fetch, config });
 app.use(playersRoutes);
+
+// Public, partners, and catalog routes
+const publicRoutes = createPublicRouter({ auth, db, logger });
+app.use('/public', publicRoutes);
+
+const partnersRoutes = createPartnersRouter({ auth, db, logger });
+app.use('/partners', partnersRoutes);
+
+const catalogRoutes = createCatalogRouter({ db, logger });
+app.use('/catalog', catalogRoutes);
 
 // Admin AI control routes (simple router for demo/fallback)
 const adminAiControlRoutes = createSimpleAdminAiControlRouter();
@@ -328,6 +413,83 @@ function getCriticalHashes() {
   }
 }
 
+// Game engines and socket handlers with cosmetics and heuristics
+const { createSocketHandlers } = require('./server/socket');
+const { DEFAULT_CHANNEL } = require('./server/channel-state');
+const { getCosmeticsForLogin, getHeuristics, getDefaultAvatarForLogin } = require('./server/db');
+const { openBettingWindow, startRoundInternal, settleRound } = require('./server/game/core');
+
+// Overlay state maps
+const overlaySettingsByChannel = new Map();
+const overlayFxByChannel = new Map();
+
+// Rate limiting for socket events
+function socketRateLimit(socket, eventName, limitMs = 1000) {
+  const key = `${socket.id}:${eventName}`;
+  const now = Date.now();
+  if (socket.lastEventTimes && socket.lastEventTimes[key] && now - socket.lastEventTimes[key] < limitMs) {
+    return false;
+  }
+  if (!socket.lastEventTimes) socket.lastEventTimes = {};
+  socket.lastEventTimes[key] = now;
+  return true;
+}
+
+// Initialize socket handlers with full production features
+createSocketHandlers({
+  io,
+  auth,
+  db,
+  logger,
+  recentSocketDisconnects,
+  getStateForChannel: require('./server/game/core').getStateForChannel,
+  getChannelFromSocket: require('./server/auth').getChannelFromSocket,
+  socketRateLimit,
+  DEFAULT_CHANNEL,
+  openBettingWindow,
+  startRoundInternal,
+  settleRound,
+  getCosmeticsForLogin,
+  getHeuristics,
+  getDefaultAvatarForLogin,
+  overlaySettingsByChannel,
+  overlayFxByChannel
+});
+
+// AI monitoring and control systems integration
+const { initializeAIMonitoring } = require('./server/ai-monitoring');
+const { getAIAudioGenerator } = require('./server/ai-audio-generator');
+
+// Initialize AI monitoring
+try {
+  initializeAIMonitoring({
+    logger,
+    performanceMonitor,
+    unifiedAI,
+    sendMonitorAlert,
+    db
+  });
+  console.log('🤖 AI monitoring system initialized');
+} catch (error) {
+  console.error('❌ Failed to initialize AI monitoring:', error.message);
+}
+
+// Startup/health subsystems integration
+const { runStartupChecks } = require('./server/startup');
+
+// Run startup checks
+try {
+  const startupResults = runStartupChecks({
+    config,
+    db,
+    logger,
+    redis: null // Redis not initialized in this setup
+  });
+  console.log('🚀 Startup checks completed:', startupResults);
+} catch (error) {
+  console.error('❌ Startup checks failed:', error.message);
+}
+
 // ======================
 // Acey Engine Integration
 // ======================
@@ -361,7 +523,7 @@ try {
 }
 console.log('AceyEngine created successfully');
 
-// Socket.IO connection handling
+// Socket.IO connection handling (legacy, kept for compatibility)
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
   

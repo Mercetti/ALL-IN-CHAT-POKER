@@ -387,11 +387,14 @@ class AIServiceManager {
    * Start health monitoring
    */
   startHealthMonitoring() {
-    // Check services every 30 seconds
-    setInterval(async () => {
-      await this.checkOllamaHealth();
-      await this.checkTunnelHealth();
-    }, 30000);
+    // Skip intervals in test environment
+    if (process.env.NODE_ENV !== 'test') {
+      // Check services every 30 seconds
+      setInterval(async () => {
+        await this.checkOllamaHealth();
+        await this.checkTunnelHealth();
+      }, 30000);
+    }
   }
 
   /**
