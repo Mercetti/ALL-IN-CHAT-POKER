@@ -932,5 +932,5 @@ module.exports = {
 
 // Add address method for supertest compatibility
 app.address = function() {
-  return server.address();
+  return server.address() || { port: 0, family: 'IPv4', address: '127.0.0.1' };
 };
