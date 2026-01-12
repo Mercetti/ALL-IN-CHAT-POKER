@@ -261,9 +261,8 @@ app.use(playersRoutes);
 // Public, partners, and catalog routes
 // const publicRoutes = createPublicRouter({ config, defaultChannel: '' });
 // app.use('/public', publicRoutes);
-
-const partnersRoutes = createPartnersRouter({ auth, db, logger });
-app.use('/partners', partnersRoutes);
+// const partnersRoutes = createPartnersRouter({ auth, db, logger });
+// app.use('/partners', partnersRoutes);
 
 const catalogRoutes = createCatalogRouter({ db, logger });
 app.use('/catalog', catalogRoutes);
