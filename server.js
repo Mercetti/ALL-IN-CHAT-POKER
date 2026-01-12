@@ -260,7 +260,7 @@ const playersRoutes = createPlayersRouter({ auth, db, logger, validateBody, fetc
 app.use(playersRoutes);
 
 // Public, partners, and catalog routes
-const publicRoutes = createPublicRouter({ auth, db, logger });
+const publicRoutes = createPublicRouter({ config, startup, defaultChannel: '' });
 app.use('/public', publicRoutes);
 
 const partnersRoutes = createPartnersRouter({ auth, db, logger });
