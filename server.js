@@ -262,9 +262,9 @@ app.use(playersRoutes);
 // Startup/health subsystems integration
 const { checkStartup: runStartupChecks, logStartupCheck: runLogStartupCheck, getHealth: getStartupHealth } = require('./server/startup');
 
-// Public, partners, and catalog routes
-const startupConfig = { checkStartup: doStartupChecks, logStartupCheck: doLogStartupCheck, getHealth } = require('./server/startup');
-const publicRoutes = createPublicRouter({ config, startup: startupConfig, defaultChannel: '' });
+// Startup/health subsystems integration
+const { checkStartup, getHealth } = require('./server/startup');
+const publicRoutes = createPublicRouter({ config, startup: { checkStartup, getHealth }, defaultChannel: '' });
 app.use('/public', publicRoutes);
 
 const partnersRoutes = createPartnersRouter({ auth, db, logger });
