@@ -37,8 +37,10 @@ const AIPerformanceMonitor = require('./ai-performance-monitor');
 const resilienceManager = require('./resilience-manager');
 
 // Initialize AI systems
-const aiCache = new AICache({ maxSize: 1000, ttl: 1800000 });
-const performanceMonitor = new AIPerformanceMonitor();
+if (process.env.NODE_ENV !== 'test') {
+  const aiCache = new AICache({ maxSize: 1000, ttl: 1800000 });
+  const performanceMonitor = new AIPerformanceMonitor();
+} // Added closing brace here
 
 // Initialize AI manager
 const aiManager = new FreeAIManager({
@@ -91,17 +93,17 @@ function selectModelForContext(messages = [], options = {}) {
 }
 
 // Start performance monitoring
-performanceMonitor.on('slow-response', (data) => {
-  logger.warn('Slow AI response detected', data);
-});
-
-performanceMonitor.on('high-error-rate', (data) => {
-  logger.error('High AI error rate detected', data);
-});
-
-performanceMonitor.on('recommendations', (recommendations) => {
-  logger.info('AI Performance Recommendations:', recommendations);
-});
+if (process.env.NODE_ENV !== 'test' && performanceMonitor) {
+  performanceMonitor.on('slow-response', (data) => {
+    logger.warn('Slow AI response detected', data);
+  });
+  performanceMonitor.on('high-error-rate', (data) => {
+    logger.error('High AI error rate detected', data);
+  });
+  performanceMonitor.on('recommendations', (recommendations) => {
+    logger.info('AI Performance Recommendations:', recommendations);
+  });
+}
 
 function assertProvider() {
   // Always available with free AI manager

@@ -1,13 +1,14 @@
 const request = require('supertest');
+const express = require('express');
 
 // Mock modules that start intervals to prevent Jest from hanging
 jest.mock('../server/ai-cache', () => ({
-  AICache: jest.fn().mockImplementation(() => ({
+  AICache: {
     init: jest.fn(),
     get: jest.fn(),
     set: jest.fn(),
     cleanup: jest.fn(),
-  })),
+  },
 }));
 
 jest.mock('../server/ai-performance-monitor', () => ({
@@ -41,8 +42,8 @@ jest.mock('../server/routes/admin-ai-control', () => ({
   registerAdminAiControlRoutes: jest.fn(),
 }));
 
-jest.mock('../server/routes/admin-services-simple', () => ({
-  createSimpleAdminServicesRouter: jest.fn(),
+jest.doMock('../server/routes/admin-services-simple', () => ({
+  createSimpleAdminServicesRouter: jest.fn(() => express.Router()),
 }));
 
 jest.mock('../server/routes/public', () => ({
