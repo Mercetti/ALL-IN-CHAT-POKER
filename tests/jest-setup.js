@@ -1,3 +1,5 @@
+const express = require('express');
+
 jest.mock('../server/routes/public', () => ({
   createPublicRouter: jest.fn(() => express.Router()),
 }));
