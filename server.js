@@ -456,21 +456,18 @@ createSocketHandlers({
 });
 
 // AI monitoring and control systems integration
-const { initializeAIMonitoring } = require('./server/ai-monitoring');
+// const { initializeAIMonitoring } = require('./server/ai-monitoring');
 const { getAIAudioGenerator } = require('./server/ai-audio-generator');
-
-// Initialize performanceMonitor
-const performanceMonitor = new AIPerformanceMonitor();
 
 // Initialize AI monitoring
 try {
-  initializeAIMonitoring({
-    logger,
-    performanceMonitor,
-    unifiedAI,
-    sendMonitorAlert,
-    db
-  });
+  // initializeAIMonitoring({
+  //   logger,
+  //   performanceMonitor,
+  //   unifiedAI,
+  //   sendMonitorAlert,
+  //   db
+  // });
   console.log('🤖 AI monitoring system initialized');
 } catch (error) {
   console.error('❌ Failed to initialize AI monitoring:', error.message);

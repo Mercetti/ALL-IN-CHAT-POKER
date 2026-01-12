@@ -2,25 +2,25 @@ const request = require('supertest');
 const express = require('express');
 
 // Mock modules that start intervals to prevent Jest from hanging
-jest.mock('../server/ai-cache', () => ({
-  AICache: {
+jest.mock('../server/ai-cache', () => {
+  return jest.fn().mockImplementation(() => ({
     init: jest.fn(),
     get: jest.fn(),
     set: jest.fn(),
     cleanup: jest.fn(),
-  },
-}));
+  }));
+});
 
-jest.mock('../server/ai-performance-monitor', () => ({
-  AIPerformanceMonitor: jest.fn().mockImplementation(() => ({
+jest.mock('../server/ai-performance-monitor', () => {
+  return jest.fn().mockImplementation(() => ({
     init: jest.fn(),
     startMonitoring: jest.fn(),
     stopMonitoring: jest.fn(),
     collectMetrics: jest.fn(),
     analyzePerformance: jest.fn(),
     getMetrics: jest.fn(() => ({})),
-  })),
-}));
+  }));
+});
 
 jest.mock('../server/ai-service-manager', () => ({
   AIServiceManager: jest.fn().mockImplementation(() => ({
@@ -29,6 +29,19 @@ jest.mock('../server/ai-service-manager', () => ({
     stopHealthMonitoring: jest.fn(),
     checkOllamaHealth: jest.fn(),
     checkTunnelHealth: jest.fn(),
+  })),
+}));
+
+jest.mock('../server/ai-audio-generator', () => ({
+  getAIAudioGenerator: jest.fn(() => ({
+    initialize: jest.fn(),
+    generateAudio: jest.fn(),
+  })),
+}));
+
+jest.mock('../server/poker-audio-system', () => ({
+  PokerAudioSystem: jest.fn().mockImplementation(() => ({
+    initialize: jest.fn(),
   })),
 }));
 
@@ -65,8 +78,11 @@ describe('Admin User Management', () => {
   let csrfToken = null;
 
   beforeAll(async () => {
-    // Seed mercetti admin if not exists
+    // Initialize database
     const db = require('../server/db');
+    db.init();
+    
+    // Seed mercetti admin if not exists
     const auth = require('../server/auth');
     const existing = db.getAdminUser('mercetti');
     if (!existing) {

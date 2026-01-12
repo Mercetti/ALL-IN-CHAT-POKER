@@ -1,16 +1,23 @@
-const express = require('express');
+jest.mock('../server/routes/public', () => {
+  const express = require('express');
+  return {
+    createPublicRouter: jest.fn(() => express.Router()),
+  };
+});
 
-jest.mock('../server/routes/public', () => ({
-  createPublicRouter: jest.fn(() => express.Router()),
-}));
+jest.mock('../server/routes/partners', () => {
+  const express = require('express');
+  return {
+    createPartnersRouter: jest.fn(() => express.Router()),
+  };
+});
 
-jest.mock('../server/routes/partners', () => ({
-  createPartnersRouter: jest.fn(() => express.Router()),
-}));
-
-jest.mock('../server/routes/catalog', () => ({
-  createCatalogRouter: jest.fn(() => express.Router()),
-}));
+jest.mock('../server/routes/catalog', () => {
+  const express = require('express');
+  return {
+    createCatalogRouter: jest.fn(() => express.Router()),
+  };
+});
 
 module.exports = {
   testEnvironment: 'node',
