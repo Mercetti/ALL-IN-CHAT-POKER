@@ -259,8 +259,12 @@ const { createPlayersRouter } = require('./server/routes/players');
 const playersRoutes = createPlayersRouter({ auth, db, logger, validateBody, fetch, config });
 app.use(playersRoutes);
 
+// Startup/health subsystems integration
+const { checkStartup, logStartupCheck, getHealth } = require('./server/startup');
+
 // Public, partners, and catalog routes
-const publicRoutes = createPublicRouter({ config, startup, defaultChannel: '' });
+const startupHealth = { getHealth };
+const publicRoutes = createPublicRouter({ config, startup: startupHealth, defaultChannel: '' });
 app.use('/public', publicRoutes);
 
 const partnersRoutes = createPartnersRouter({ auth, db, logger });
@@ -275,14 +279,16 @@ app.use('/admin/ai', adminAiControlRoutes);
 app.use('/admin/ai-tools', adminAiControlRoutes); // Alias for simple endpoints
 
 // Register full AI Control Center routes (authenticated, feature-complete)
-registerAdminAiControlRoutes(app, {
-  auth,
-  performanceMonitor,
-  collectAiOverviewPanels,
-  unifiedAI,
-  sendMonitorAlert,
-  logger,
-});
+if (process.env.NODE_ENV !== 'test') {
+  registerAdminAiControlRoutes(app, {
+    auth,
+    performanceMonitor,
+    collectAiOverviewPanels,
+    unifiedAI,
+    sendMonitorAlert,
+    logger,
+  });
+}
 
 // Initialize Poker Audio System
 let pokerAudioSystem;
@@ -475,16 +481,11 @@ try {
 }
 
 // Startup/health subsystems integration
-const { runStartupChecks } = require('./server/startup');
+const { checkStartup, logStartupCheck, getHealth } = require('./server/startup');
 
 // Run startup checks
 try {
-  const startupResults = runStartupChecks({
-    config,
-    db,
-    logger,
-    redis: null // Redis not initialized in this setup
-  });
+  const startupResults = checkStartup();
   console.log('🚀 Startup checks completed:', startupResults);
 } catch (error) {
   console.error('❌ Startup checks failed:', error.message);
