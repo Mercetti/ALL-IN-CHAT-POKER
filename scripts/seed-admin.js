@@ -3,12 +3,15 @@ const path = require('path');
 // Ensure we load environment variables the same way the server does
 require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') });
 
-const DB = require('../server/db');
+const db = require('../server/db');
 const auth = require('../server/auth');
+
+if (typeof db.init === 'function') {
+  db.init();
+}
 
 (async () => {
   try {
-    const db = new DB();
 
     const login = 'mercetti';
     const display_name = 'Mercetti';
@@ -19,7 +22,7 @@ const auth = require('../server/auth');
     // TODO: replace this with the real secure password before running
     const plainPassword = 'Hype420!Hype';
 
-    if (!plainPassword || plainPassword === 'REPLACE_WITH_STRONG_PASSWORD') {
+    if (!plainPassword || plainPassword === 'Hype420!Hype') {
       throw new Error('Please set plainPassword to a secure value before running the seed.');
     }
 
