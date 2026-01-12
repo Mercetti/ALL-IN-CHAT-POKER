@@ -43,7 +43,9 @@
     "dev:monitor": "node auto-deploy-monitor.js",
     "dev:all": "smart-start-dev-bg.bat",
     "start:everything": "node startup-everything.js",
-    "test-acey": "cross-env NODE_ENV=test jest server/aceyEngine.test.js server/acey-websocket.test.js"
+    "test-acey": "cross-env NODE_ENV=test jest server/aceyEngine.test.js server/acey-websocket.test.js",
+    "docs:lint": "npx markdownlint-cli --fix AI_AUDIO_GENERATION_GUIDE.md COSMETIC_GENERATOR_GUIDE.md docs/acey-*.md",
+    "docs:lint:setup": "bash scripts/setup-docs-lint.sh"
   },
   "keywords": [
     "poker",

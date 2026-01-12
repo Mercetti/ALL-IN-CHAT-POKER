@@ -28,28 +28,73 @@ function createAdminRouter({ auth, middleware, config, logger, rateLimit, db, tm
     res.json({ token });
   });
 
-  // Admin login with rate limiting
+  // Admin login with rate limiting and DB-backed authentication
   router.post('/login', rateLimit('admin-login', 60 * 1000, 5), (req, res) => {
     try {
       const ip = req.ip;
-      const { password } = req.body || {};
+      const { username, password } = req.body || {};
 
       if (!password || typeof password !== 'string') {
         return res.status(400).json({ error: 'password required' });
       }
+      if (!username || typeof username !== 'string') {
+        return res.status(400).json({ error: 'username required' });
+      }
 
+      // Basic IP rate limiting
       if (!recordLoginAttempt(ip)) {
-        logger.warn('Login attempt blocked - rate limited', { ip });
+        logger.warn('Admin login attempt blocked - rate limited', { ip, username });
         return res.status(429).json({ error: 'too many attempts, try again later' });
       }
 
-      if (password !== config.ADMIN_PASSWORD) {
-        logger.warn('Failed login attempt', { ip });
-        return res.status(401).json({ error: 'invalid password' });
+      // Fetch admin user from DB
+      const adminUser = db.getAdminUser(username);
+      if (!adminUser) {
+        db.recordAdminLoginAttempt({ login: username, ip, success: 0, reason: 'user_not_found' });
+        logger.warn('Admin login failed - user not found', { ip, username });
+        return res.status(401).json({ error: 'invalid_credentials' });
       }
 
-      logger.info('Admin login successful', { ip });
-      const jwtData = auth.createAdminJWT();
+      // Check account status and lockout
+      if (adminUser.status !== 'active') {
+        db.recordAdminLoginAttempt({ login: username, ip, success: 0, reason: 'account_inactive' });
+        logger.warn('Admin login failed - account inactive', { ip, username, status: adminUser.status });
+        return res.status(403).json({ error: 'account_disabled' });
+      }
+
+      const now = new Date();
+      if (adminUser.locked_until && new Date(adminUser.locked_until) > now) {
+        db.recordAdminLoginAttempt({ login: username, ip, success: 0, reason: 'account_locked' });
+        logger.warn('Admin login failed - account locked', { ip, username, lockedUntil: adminUser.locked_until });
+        return res.status(423).json({ error: 'account_locked' });
+      }
+
+      // Verify password
+      const passwordValid = auth.verifyPassword(password, adminUser.password_hash);
+      if (!passwordValid) {
+        db.incrementAdminFailedAttempts(username);
+        db.recordAdminLoginAttempt({ login: username, ip, success: 0, reason: 'invalid_password' });
+
+        // Apply lockout if threshold exceeded
+        const recentFailures = db.countRecentAdminLoginFailures(username, 900); // 15 min window
+        if (recentFailures >= (config.ADMIN_LOGIN_MAX_ATTEMPTS || 5)) {
+          const lockUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 min lockout
+          db.setAdminLockedUntil(username, lockUntil);
+          logger.warn('Admin account locked due to repeated failures', { ip, username, recentFailures, lockedUntil: lockUntil.toISOString() });
+        }
+
+        logger.warn('Admin login failed - invalid password', { ip, username });
+        return res.status(401).json({ error: 'invalid_credentials' });
+      }
+
+      // Success: reset failures, update last login, record attempt, issue JWT/CSRF
+      db.resetAdminFailedAttempts(username);
+      db.markAdminLoginSuccess(username);
+      db.recordAdminLoginAttempt({ login: username, ip, success: 1 });
+      db.logAdminUserAction({ actor_login: username, action: 'login', details: { ip } });
+
+      logger.info('Admin login successful', { ip, username });
+      const jwtData = auth.createAdminJWT({ adminName: username, role: adminUser.role });
       const cookieOptions = auth.getAdminCookieOptions();
       const csrfToken = middleware.issueCsrfCookie(res, { auth, config });
 
@@ -59,6 +104,11 @@ function createAdminRouter({ auth, middleware, config, logger, rateLimit, db, tm
         token: jwtData.token,
         csrfToken,
         expiresIn: jwtData.expiresIn,
+        user: {
+          login: adminUser.login,
+          displayName: adminUser.display_name,
+          role: adminUser.role,
+        },
       });
     } catch (err) {
       logger.error('Error in admin login', { error: err.message });

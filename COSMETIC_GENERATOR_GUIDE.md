@@ -3,6 +3,7 @@
 ## 🎯 **What's New:**
 
 ### **✅ Complete Cosmetic Set Creation:**
+
 - **Image Upload**: Upload logos, backgrounds, items
 - **Set Management**: Create complete cosmetic collections
 - **Template Generation**: Generate from pre-built templates
@@ -14,6 +15,7 @@
 ## 🚀 **New Admin Endpoints:**
 
 ### **📤 Image Upload:**
+
 ```bash
 # Upload image for cosmetic
 POST /admin/cosmetics/upload-image
@@ -29,6 +31,7 @@ image: [file]  // Image file (max 10MB)
 ```
 
 ### **🎨 Create Cosmetic Set:**
+
 ```bash
 # Create complete cosmetic set
 POST /admin/cosmetics/create-set
@@ -80,6 +83,7 @@ Content-Type: application/json
 ```
 
 ### **📋 Get All Sets:**
+
 ```bash
 # Get all cosmetic sets
 GET /admin/cosmetics/sets
@@ -103,6 +107,7 @@ GET /admin/cosmetics/sets
 ```
 
 ### **🔍 Get Specific Set:**
+
 ```bash
 # Get cosmetic set by ID
 GET /admin/cosmetics/set/{setId}
@@ -124,6 +129,7 @@ GET /admin/cosmetics/set/{setId}
 ```
 
 ### **✏️ Update Set:**
+
 ```bash
 # Update cosmetic set
 PUT /admin/cosmetics/set/{setId}
@@ -138,6 +144,7 @@ Content-Type: application/json
 ```
 
 ### **🗑️ Delete Set:**
+
 ```bash
 # Delete cosmetic set
 DELETE /admin/cosmetics/set/{setId}
@@ -152,6 +159,7 @@ DELETE /admin/cosmetics/set/{setId}
 ```
 
 ### **🎭 Template Generation:**
+
 ```bash
 # Generate from template
 POST /admin/cosmetics/generate-from-template
@@ -178,6 +186,7 @@ Content-Type: application/json
 ```
 
 ### **📋 Get Templates:**
+
 ```bash
 # Get available templates
 GET /admin/cosmetics/templates
@@ -198,7 +207,25 @@ GET /admin/cosmetics/templates
 
 ## 🎯 **Your New Workflow:**
 
+### **🧾 Cosmetic Brief Template (fill before creation)**
+
+1. **Theme Name & Slot Coverage**
+   - Table skin, card back, avatar ring, profile frame, effect, SFX pairing.
+2. **Visual References**
+   - 1–3 image links or hex palette plus any “avoid” notes.
+3. **Rarity & Unlock Logic**
+   - `common | rare | epic | legendary`, price, drops/quest unlock rules.
+4. **Narrative Hook**
+   - Copy snippet for catalog + tooltip language.
+5. **Linked Assets**
+   - Audio cues (if any), sprite sheet IDs, overlay FX key names.
+6. **Technical Constraints**
+   - Target texture sizes, animation frame counts, file-size ceiling.
+
+Acey should capture this brief (Markdown or JSON) and attach it to the cosmetic set record before generating art.
+
 ### **📤 Step 1: Upload Images**
+
 ```bash
 # Upload logo
 curl -X POST http://localhost:5173/admin/cosmetics/upload-image \
@@ -217,6 +244,7 @@ curl -X POST http://localhost:5173/admin/cosmetics/upload-image \
 ```
 
 ### **🎨 Step 2: Create Set**
+
 ```bash
 # Create complete set with uploaded images
 curl -X POST http://localhost:5173/admin/cosmetics/create-set \
@@ -242,6 +270,7 @@ curl -X POST http://localhost:5173/admin/cosmetics/create-set \
 ```
 
 ### **🎭 Step 3: Generate from Template**
+
 ```bash
 # Generate set from template
 curl -X POST http://localhost:5173/admin/cosmetics/generate-from-template \
@@ -250,6 +279,7 @@ curl -X POST http://localhost:5173/admin/cosmetics/generate-from-template \
 ```
 
 ### **📋 Step 4: Manage Sets**
+
 ```bash
 # Get all sets
 curl http://localhost:5173/admin/cosmetics/sets
@@ -268,9 +298,36 @@ curl -X DELETE http://localhost:5173/admin/cosmetics/set/set_123456
 
 ---
 
+## 🧪 **Validation & Release Automation**
+
+1. **Catalog Consistency Script**
+   - `npm run cosmetics-validate -- --manifest server/cosmetic-catalog.json`
+   - Checks for missing previews, mismatched rarity/price caps, orphaned asset files.
+2. **Image Audit**
+   - `npm run cosmetics-lint-images -- --path public/assets/cosmetics` verifies dimensions, alpha presence, max file size.
+3. **Set Packaging**
+   - Bundle final assets + metadata as:
+
+     ```
+     /package/<theme-name>/
+       assets/ (png/webm/gif/audio)
+       metadata.json
+       brief.md
+       previews/ (gif/mp4)
+     ```
+
+   - Use `npm run cosmetics-package -- --theme neon_retro`.
+4. **Approval Workflow**
+   - Visual QA → Overlay verification (`npm run dev-overlay -- --fx <id>`) → Catalog review → Ops sign-off.
+5. **Release Log**
+   - Append entry to `docs/cosmetics-release-log.md` with theme name, rarity mix, date, reviewer initials.
+
+---
+
 ## 🎨 **Supported Image Formats:**
 
 ### **✅ Accepted Formats:**
+
 - **JPEG** (.jpg, .jpeg) - Best for photos
 - **PNG** (.png) - Best for graphics with transparency
 - **GIF** (.gif) - For animated images
@@ -278,11 +335,13 @@ curl -X DELETE http://localhost:5173/admin/cosmetics/set/set_123456
 - **SVG** (.svg) - Vector graphics
 
 ### **📏 File Size Limits:**
+
 - **Maximum**: 10MB per image
 - **Recommended**: Under 2MB for optimal performance
 - **Multiple**: Up to 5 files per request
 
 ### **🔍 Image Processing:**
+
 - **Automatic Metadata**: Size, format, hash analysis
 - **Color Profile**: Dominant colors and palette extraction
 - **Transparency Detection**: Alpha channel analysis
@@ -293,6 +352,7 @@ curl -X DELETE http://localhost:5173/admin/cosmetics/set/set_123456
 ## 🎯 **Complete Set Structure:**
 
 ### **📋 Set Properties:**
+
 ```json
 {
   "id": "unique_set_identifier",
@@ -351,6 +411,7 @@ curl -X DELETE http://localhost:5173/admin/cosmetics/set/set_123456
 ## 🎊 **Benefits:**
 
 ### **For You (Creator):**
+
 - **Easy Upload**: Drag & drop image upload
 - **Template System**: Quick start with pre-built themes
 - **Complete Sets**: All-in-one theme creation
@@ -358,12 +419,14 @@ curl -X DELETE http://localhost:5173/admin/cosmetics/set/set_123456
 - **File Organization**: Structured storage system
 
 ### **For Players:**
+
 - **Rich Themes**: Complete visual experiences
 - **Custom Items**: Personalized cosmetics
 - **Professional Quality**: Optimized image handling
 - **Fast Loading**: Efficient file delivery
 
 ### **For System:**
+
 - **Scalable Storage**: Organized file management
 - **Image Processing**: Automatic metadata extraction
 - **Validation**: File format and size checking
@@ -374,6 +437,7 @@ curl -X DELETE http://localhost:5173/admin/cosmetics/set/set_123456
 ## 🚀 **Quick Start:**
 
 ### **🎨 Create Your First Set:**
+
 ```bash
 # 1. Upload your logo
 curl -X POST http://localhost:5173/admin/cosmetics/upload-image \
@@ -400,6 +464,7 @@ curl -X POST http://localhost:5173/admin/cosmetics/create-set \
 ```
 
 ### **🎭 Generate Template Set:**
+
 ```bash
 # Generate from poker night template
 curl -X POST http://localhost:5173/admin/cosmetics/generate-from-template \
@@ -412,6 +477,7 @@ curl -X POST http://localhost:5173/admin/cosmetics/generate-from-template \
 ## 🎯 **AI Control Center Integration:**
 
 ### **📱 New Panel Features:**
+
 - **Image Upload Interface**: Drag & drop upload area
 - **Set Builder**: Visual cosmetic set creator
 - **Template Gallery**: Browse and use templates
@@ -420,6 +486,7 @@ curl -X POST http://localhost:5173/admin/cosmetics/generate-from-template \
 - **Batch Operations**: Upload multiple images at once
 
 ### **🔗 Connected Systems:**
+
 - **Audio AI Generator**: Generate matching sound effects
 - **Image Deduplicator**: Prevent duplicate uploads
 - **Connection Hardener**: Reliable file uploads
@@ -430,6 +497,7 @@ curl -X POST http://localhost:5173/admin/cosmetics/generate-from-template \
 ## 🎉 **Complete Solution:**
 
 ### **✅ All Your Questions Answered:**
+
 1. **Panel enhancements** ✅ Complete 8-panel system
 2. **Audio AI system** ✅ Professional background music generation
 3. **Deploy fixes** ✅ AI can auto-deploy fixes
@@ -441,6 +509,7 @@ curl -X POST http://localhost:5173/admin/cosmetics/generate-from-template \
 9. **Cosmetic generator** ✅ Complete image upload and set creation
 
 ### **🚀 Cosmetic Generator - FULLY FEATURED:**
+
 - **Image Upload**: ✅ Multiple formats, automatic processing
 - **Set Creation**: ✅ Complete cosmetic collections
 - **Template System**: ✅ Pre-built themes
@@ -452,3 +521,14 @@ curl -X POST http://localhost:5173/admin/cosmetics/generate-from-template \
 **Your cosmetic generator is now a complete, professional-grade system!** 🎨
 
 **Upload your images and create complete cosmetic sets with ease!** 🎯
+
+---
+
+## ✅ **Approval Checklist (run before shipping)**
+
+1. Cosmetic brief attached to catalog ticket.
+2. Assets pass validation script, file names match catalog IDs.
+3. Overlay preview recorded (GIF/MP4) and stored in `/public/assets/cosmetics/previews`.
+4. Catalog entry updated (rarity, price, unlocks) and DB seed refreshed.
+5. Audio/SFX + sprite dependencies linked (if applicable).
+6. Ops notified with package ZIP + changelog.

@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔧 Running markdownlint auto-fix on docs..."
+npx markdownlint-cli --fix AI_AUDIO_GENERATION_GUIDE.md COSMETIC_GENERATOR_GUIDE.md docs/acey-*.md

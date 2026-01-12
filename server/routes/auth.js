@@ -69,26 +69,67 @@ function createAuthRouter({
     }
   });
 
-  // Simple admin password-only login for Control Center
+  // DB-backed admin login for Control Center
   router.post('/auth/login', rateLimit('auth_login', 60 * 1000, 5), (req, res) => {
     try {
-      const { password } = req.body || {};
+      const { username, password } = req.body || {};
 
-      logger.info('admin login attempt', { hasPassword: !!password, ip: req.ip });
+      logger.info('admin login attempt', { hasPassword: !!password, hasUsername: !!username, ip: req.ip });
 
       if (!password || typeof password !== 'string') {
         return res.status(400).json({ error: 'invalid_payload' });
       }
+      if (!username || typeof username !== 'string') {
+        return res.status(400).json({ error: 'invalid_payload' });
+      }
 
-      // Compare against ADMIN_PASSWORD env var
-      const adminPassword = config.ADMIN_PASSWORD;
-      logger.info('admin password check', { configured: !!adminPassword });
-      if (!adminPassword || password !== adminPassword) {
+      // Fetch admin user from DB
+      const adminUser = db.getAdminUser(username);
+      if (!adminUser) {
+        db.recordAdminLoginAttempt({ login: username, ip: req.ip, success: 0, reason: 'user_not_found' });
+        logger.warn('admin login failed - user not found', { ip, username });
         return res.status(401).json({ error: 'invalid_credentials' });
       }
 
-      // Create admin JWT as cookie
-      const { token } = createAdminJWT();
+      // Check account status and lockout
+      if (adminUser.status !== 'active') {
+        db.recordAdminLoginAttempt({ login: username, ip: req.ip, success: 0, reason: 'account_inactive' });
+        logger.warn('admin login failed - account inactive', { ip, username, status: adminUser.status });
+        return res.status(403).json({ error: 'account_disabled' });
+      }
+
+      const now = new Date();
+      if (adminUser.locked_until && new Date(adminUser.locked_until) > now) {
+        db.recordAdminLoginAttempt({ login: username, ip: req.ip, success: 0, reason: 'account_locked' });
+        logger.warn('admin login failed - account locked', { ip, username, lockedUntil: adminUser.locked_until });
+        return res.status(423).json({ error: 'account_locked' });
+      }
+
+      // Verify password
+      const passwordValid = auth.verifyPassword(password, adminUser.password_hash);
+      if (!passwordValid) {
+        db.incrementAdminFailedAttempts(username);
+        db.recordAdminLoginAttempt({ login: username, ip: req.ip, success: 0, reason: 'invalid_password' });
+
+        // Apply lockout if threshold exceeded
+        const recentFailures = db.countRecentAdminLoginFailures(username, 900); // 15 min window
+        if (recentFailures >= (config.ADMIN_LOGIN_MAX_ATTEMPTS || 5)) {
+          const lockUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 min lockout
+          db.setAdminLockedUntil(username, lockUntil);
+          logger.warn('Admin account locked due to repeated failures', { ip, username, recentFailures, lockedUntil: lockUntil.toISOString() });
+        }
+
+        logger.warn('admin login failed - invalid password', { ip, username });
+        return res.status(401).json({ error: 'invalid_credentials' });
+      }
+
+      // Success: reset failures, update last login, record attempt, issue JWT
+      db.resetAdminFailedAttempts(username);
+      db.markAdminLoginSuccess(username);
+      db.recordAdminLoginAttempt({ login: username, ip: req.ip, success: 1 });
+      db.logAdminUserAction({ actor_login: username, action: 'login', details: { ip: req.ip } });
+
+      const { token } = createAdminJWT({ adminName: username, role: adminUser.role });
 
       logger.info('admin token generated', { tokenPreview: token.slice(0, 20) + '...' });
 
@@ -99,8 +140,16 @@ function createAuthRouter({
         maxAge: config.ADMIN_JWT_TTL_SECONDS * 1000,
       });
 
-      logger.info('admin login success', { ip: req.ip });
-      return res.json({ success: true, token }); // Also return token for Electron
+      logger.info('admin login success', { ip: req.ip, username });
+      return res.json({
+        success: true,
+        token,
+        user: {
+          login: adminUser.login,
+          displayName: adminUser.display_name,
+          role: adminUser.role,
+        },
+      });
     } catch (err) {
       logger.error('admin login failed', { error: err.message, stack: err.stack });
       return res.status(500).json({ error: 'internal_error' });

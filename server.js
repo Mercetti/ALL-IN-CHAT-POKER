@@ -23,7 +23,7 @@ const { PerformanceMonitor } = require('./server/utils/performance-monitor');
 const UnifiedAISystem = require('./server/unified-ai');
 const registerAdminAiControlRoutes = require('./server/routes/admin-ai-control');
 const createAdminRouter = require('./server/routes/admin');
-const createAuthRouter = require('./server/routes/auth');
+const { createAuthRouter } = require('./server/routes/auth');
 const createPublicRouter = require('./server/routes/public');
 const createPartnersRouter = require('./server/routes/partners');
 const createCatalogRouter = require('./server/routes/catalog');
@@ -132,13 +132,56 @@ const securityManager = new SecurityManager(app, config);
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Auth routes
-const authRoutes = createSimpleAuthRouter();
+// Auth routes (DB-backed)
+const authRoutes = createAuthRouter({
+  config,
+  auth,
+  db,
+  jwt: auth,
+  logger,
+  fetch,
+  rateLimit: (name, windowMs, max) => (req, res, next) => next(),
+  validateBody,
+  validateLocalLogin,
+  isBanned: (login, ip) => false,
+  fetchTwitchUser: async () => null,
+  defaultChannel: '',
+});
 app.use('/auth', authRoutes);
 
 // Admin services routes
 const adminServicesRoutes = createSimpleAdminServicesRouter();
 app.use('/admin/services', adminServicesRoutes);
+
+// Admin routes (DB-backed login, logout, CSRF, etc.)
+const adminRoutes = createAdminRouter({
+  auth,
+  middleware,
+  config,
+  logger,
+  rateLimit: (name, windowMs, max) => (req, res, next) => next(),
+  db,
+  tmiClient: null,
+  blockedIPs: new Map(),
+  adminLoginAttempts: new Map(),
+  recentErrors,
+  recentSlowRequests,
+  recentSocketDisconnects,
+  lastTmiReconnectAt: null,
+  getCriticalHashes: () => ({}),
+  recordLoginAttempt,
+});
+app.use('/admin', adminRoutes);
+
+// Admin user management CRUD/audit routes
+const { createAdminUsersRouter } = require('./server/routes/admin-users');
+const adminUsersRoutes = createAdminUsersRouter({ auth, db, logger, validateBody });
+app.use(adminUsersRoutes);
+
+// Player/Streamer management routes
+const { createPlayersRouter } = require('./server/routes/players');
+const playersRoutes = createPlayersRouter({ auth, db, logger, validateBody, fetch, config });
+app.use(playersRoutes);
 
 // Admin AI control routes (simple router for demo/fallback)
 const adminAiControlRoutes = createSimpleAdminAiControlRouter();
