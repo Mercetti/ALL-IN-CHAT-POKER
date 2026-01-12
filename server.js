@@ -481,11 +481,11 @@ try {
 }
 
 // Startup/health subsystems integration
-const { checkStartup: runStartupChecks, logStartupCheck: runLogStartupCheck, getHealth: getStartupHealth } = require('./server/startup');
+const { checkStartup: doStartupChecks, logStartupCheck: runLogStartupCheck, getHealth: getStartupHealth } = require('./server/startup');
 
 // Run startup checks
 try {
-  const startupResults = runStartupChecks();
+  const startupResults = doStartupChecks();
   console.log('🚀 Startup checks completed:', startupResults);
 } catch (error) {
   console.error('❌ Startup checks failed:', error.message);
