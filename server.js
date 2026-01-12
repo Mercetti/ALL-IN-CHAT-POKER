@@ -260,10 +260,10 @@ const playersRoutes = createPlayersRouter({ auth, db, logger, validateBody, fetc
 app.use(playersRoutes);
 
 // Startup/health subsystems integration
-const { checkStartup, logStartupCheck, getHealth } = require('./server/startup');
+const { checkStartup: runStartupChecks, logStartupCheck: runLogStartupCheck, getHealth: getStartupHealth } = require('./server/startup');
 
 // Public, partners, and catalog routes
-const startupHealth = { getHealth };
+const startupHealth = { getHealth: getStartupHealth };
 const publicRoutes = createPublicRouter({ config, startup: startupHealth, defaultChannel: '' });
 app.use('/public', publicRoutes);
 
@@ -481,11 +481,11 @@ try {
 }
 
 // Startup/health subsystems integration
-const { checkStartup, logStartupCheck, getHealth } = require('./server/startup');
+const { checkStartup: runStartupChecks, logStartupCheck: runLogStartupCheck, getHealth: getStartupHealth } = require('./server/startup');
 
 // Run startup checks
 try {
-  const startupResults = checkStartup();
+  const startupResults = runStartupChecks();
   console.log('🚀 Startup checks completed:', startupResults);
 } catch (error) {
   console.error('❌ Startup checks failed:', error.message);
