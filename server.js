@@ -28,6 +28,7 @@ const createPublicRouter = require('./server/routes/public');
 const createPartnersRouter = require('./server/routes/partners');
 const createCatalogRouter = require('./server/routes/catalog');
 const createAdminServicesRouter = require('./server/routes/admin-services');
+const { createSimpleAdminServicesRouter } = require('./server/routes/admin-services-simple');
 const { getActorFromReq, recordLoginAttempt, getAdminActivitySummary, clearAdminLoginHistory } = require('./server/admin/ops');
 const { validateBody } = require('./server/utils/file-ops');
 const { validateLocalLogin } = require('./server/routes/auth-simple');
