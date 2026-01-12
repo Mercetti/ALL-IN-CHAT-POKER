@@ -22,16 +22,19 @@ function registerAdminAiControlRoutes(app, deps) {
     logger,
   } = deps;
 
+  // Check if required dependencies are available
   if (!auth || !auth.requireAdmin || !auth.extractUserLogin) {
     throw new Error('auth with requireAdmin and extractUserLogin is required');
   }
-
   if (!collectAiOverviewPanels) {
     throw new Error('collectAiOverviewPanels is required');
   }
-
   if (!unifiedAI) {
     throw new Error('unifiedAI instance is required');
+  }
+  if (performanceMonitor === undefined) {
+    logger.warn('performanceMonitor is not available, some features will be disabled');
+    performanceMonitor = null;
   }
 
   /**
@@ -39,11 +42,11 @@ function registerAdminAiControlRoutes(app, deps) {
    */
   app.get('/admin/ai/overview', auth.requireAdmin, (req, res) => {
     const actor = auth.extractUserLogin(req) || 'admin';
-    const stopTimer = performanceMonitor?.startTimer?.('admin.ai.overview', {
+    const stopTimer = performanceMonitor && performanceMonitor.startTimer ? performanceMonitor.startTimer('admin.ai.overview', {
       method: req.method,
       actor,
       endpoint: req.originalUrl,
-    });
+    }) : null;
 
     try {
       const panels = collectAiOverviewPanels();
@@ -69,11 +72,11 @@ function registerAdminAiControlRoutes(app, deps) {
    */
   app.post('/admin/ai-tools/chat', auth.requireAdmin, async (req, res) => {
     const actor = auth.extractUserLogin(req) || 'admin';
-    const stopTimer = performanceMonitor?.startTimer?.('admin.ai.chat', {
+    const stopTimer = performanceMonitor && performanceMonitor.startTimer ? performanceMonitor.startTimer('admin.ai.chat', {
       method: req.method,
       actor,
       endpoint: req.originalUrl,
-    });
+    }) : null;
 
     try {
       const message = String(req.body?.message || '').trim();
@@ -129,11 +132,11 @@ function registerAdminAiControlRoutes(app, deps) {
    */
   app.post('/admin/ai-tools/generate-cosmetic', auth.requireAdmin, async (req, res) => {
     const actor = auth.extractUserLogin(req) || 'admin';
-    const stopTimer = performanceMonitor?.startTimer?.('admin.ai.generate_cosmetic', {
+    const stopTimer = performanceMonitor && performanceMonitor.startTimer ? performanceMonitor.startTimer('admin.ai.generate_cosmetic', {
       method: req.method,
       actor,
       endpoint: req.originalUrl,
-    });
+    }) : null;
 
     try {
       const prompt = String(req.body?.prompt || '').trim();
@@ -180,11 +183,11 @@ function registerAdminAiControlRoutes(app, deps) {
    */
   app.get('/admin/ai/performance', auth.requireAdmin, (req, res) => {
     const actor = auth.extractUserLogin(req) || 'admin';
-    const stopTimer = performanceMonitor?.startTimer?.('admin.ai.performance', {
+    const stopTimer = performanceMonitor && performanceMonitor.startTimer ? performanceMonitor.startTimer('admin.ai.performance', {
       method: req.method,
       actor,
       endpoint: req.originalUrl,
-    });
+    }) : null;
 
     try {
       // Get AI performance data from the ai module
@@ -227,11 +230,11 @@ function registerAdminAiControlRoutes(app, deps) {
    */
   app.post('/admin/ai/cache/clear', auth.requireAdmin, (req, res) => {
     const actor = auth.extractUserLogin(req) || 'admin';
-    const stopTimer = performanceMonitor?.startTimer?.('admin.ai.cache.clear', {
+    const stopTimer = performanceMonitor && performanceMonitor.startTimer ? performanceMonitor.startTimer('admin.ai.cache.clear', {
       method: req.method,
       actor,
       endpoint: req.originalUrl,
-    });
+    }) : null;
 
     try {
       const ai = require('../ai');
@@ -261,11 +264,11 @@ function registerAdminAiControlRoutes(app, deps) {
    */
   app.post('/admin/ai/performance/reset', auth.requireAdmin, (req, res) => {
     const actor = auth.extractUserLogin(req) || 'admin';
-    const stopTimer = performanceMonitor?.startTimer?.('admin.ai.performance.reset', {
+    const stopTimer = performanceMonitor && performanceMonitor.startTimer ? performanceMonitor.startTimer('admin.ai.performance.reset', {
       method: req.method,
       actor,
       endpoint: req.originalUrl,
-    });
+    }) : null;
 
     try {
       const ai = require('../ai');

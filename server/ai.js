@@ -119,7 +119,9 @@ async function chat(messages = [], options = {}) {
       // Check cache first
       const cachedResponse = aiCache.get(messages, options);
       if (cachedResponse) {
-        performanceMonitor.recordRequest(startTime, Date.now(), options.model || 'unknown', true, true);
+        if (process.env.NODE_ENV !== 'test' && performanceMonitor) {
+          performanceMonitor.recordRequest(startTime, Date.now(), options.model || 'unknown', true, true);
+        }
         return cachedResponse;
       }
 
@@ -141,14 +143,18 @@ async function chat(messages = [], options = {}) {
       aiCache.set(messages, optimizedOptions, response);
       
       // Record performance metrics
-      performanceMonitor.recordRequest(startTime, Date.now(), selectedModel, true, false);
+      if (process.env.NODE_ENV !== 'test' && performanceMonitor) {
+        performanceMonitor.recordRequest(startTime, Date.now(), selectedModel, true, false);
+      }
       
       return response;
     }, resilienceManager.fallbackResponses.get('ai')?.chat);
     
   } catch (error) {
     // Record error metrics
-    performanceMonitor.recordRequest(startTime, Date.now(), options.model || 'unknown', false, false);
+    if (process.env.NODE_ENV !== 'test' && performanceMonitor) {
+      performanceMonitor.recordRequest(startTime, Date.now(), options.model || 'unknown', false, false);
+    }
     
     // Return fallback response instead of throwing
     const fallback = resilienceManager.fallbackResponses.get('ai');
