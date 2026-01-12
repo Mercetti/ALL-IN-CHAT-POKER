@@ -35,7 +35,6 @@ const { validateBody } = require('./server/utils/file-ops');
 const { validateLocalLogin } = require('./server/routes/auth-simple');
 
 const logger = new Logger('server');
-const performanceMonitor = new PerformanceMonitor({ enabled: true });
 const unifiedAI = new UnifiedAISystem({
   enableChatBot: true,
   enableCosmeticAI: true,
@@ -462,6 +461,9 @@ createSocketHandlers({
 const { initializeAIMonitoring } = require('./server/ai-monitoring');
 const { getAIAudioGenerator } = require('./server/ai-audio-generator');
 
+// Initialize performanceMonitor
+const performanceMonitor = new AIPerformanceMonitor();
+
 // Initialize AI monitoring
 try {
   initializeAIMonitoring({
@@ -477,7 +479,7 @@ try {
 }
 
 // Startup/health subsystems integration
-const { checkStartup: doStartupChecks, logStartupCheck: doLogStartupCheck, getHealth: startupHealthCheckFn } = require('./server/startup');
+const { checkStartup: doStartupChecks, logStartupCheck: doLogStartupCheck, getHealth: getStartupHealth } = require('./server/startup');
 
 // Run startup checks
 try {

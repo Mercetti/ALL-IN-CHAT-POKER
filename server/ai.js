@@ -37,17 +37,17 @@ const AIPerformanceMonitor = require('./ai-performance-monitor');
 const resilienceManager = require('./resilience-manager');
 
 // Initialize AI systems
-if (process.env.NODE_ENV !== 'test') {
-  const aiCache = new AICache({ maxSize: 1000, ttl: 1800000 });
-  const performanceMonitor = new AIPerformanceMonitor();
-} // Added closing brace here
+const aiCache = new AICache({ maxSize: 1000, ttl: 1800000 });
+const performanceMonitor = new AIPerformanceMonitor();
 
-// Initialize AI manager
-const aiManager = new FreeAIManager({
-  preferredProvider: config.AI_PROVIDER || 'ollama',
-  fallbackToRules: true,
-  enableLocalModels: true
-});
+if (process.env.NODE_ENV !== 'test') {
+  // Initialize AI manager
+  const aiManager = new FreeAIManager({
+    preferredProvider: config.AI_PROVIDER || 'ollama',
+    fallbackToRules: true,
+    enableLocalModels: true
+  });
+}
 
 // Initialize tunnel optimizer
 const optimizer = new TunnelOptimizer();
