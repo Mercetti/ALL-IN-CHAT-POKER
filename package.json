@@ -55,6 +55,10 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:codegen": "playwright codegen",
+    "test:performance": "playwright test tests/performance/benchmarks.spec.js",
+    "test:load": "node tests/performance/load-testing.js",
+    "test:stress": "node -e \"const LoadTester = require('./tests/performance/load-testing.js'); const tester = new LoadTester({ concurrentUsers: 50, testDuration: 60000 }); tester.runStressTest();\"",
+    "test:spike": "node -e \"const LoadTester = require('./tests/performance/load-testing.js'); const tester = new LoadTester(); tester.runSpikeTest().then(console.log);\"",
     "docs:lint": "npx markdownlint-cli --fix AI_AUDIO_GENERATION_GUIDE.md COSMETIC_GENERATOR_GUIDE.md docs/acey-*.md",
     "docs:lint:setup": "bash scripts/setup-docs-lint.sh"
   },
