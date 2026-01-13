@@ -5,6 +5,7 @@
   "type": "commonjs",
   "main": "server.js",
   "scripts": {
+    "build": "npm run build --prefix ./acey-control-center",
     "start": "cross-env PM2_DISABLE_INTERACTION=1 PM2_NO_INTERACTION=1 PM2_NO_PM2_UPDATE_NOTIFICATION=1 pm2 start server.js --no-daemon",
     "dev": "cross-env NODE_ENV=development node server.js",
     "prod": "cross-env NODE_ENV=production node server.js",
