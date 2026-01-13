@@ -50,6 +50,11 @@
     "start:everything": "node startup-everything.js",
     "test-acey": "cross-env NODE_ENV=test jest server/aceyEngine.test.js server/acey-websocket.test.js",
     "test:websocket": "cross-env NODE_ENV=test jest tests/acey-websocket.test.js",
+    "test:overlay": "cross-env NODE_ENV=test jest tests/overlay-components.test.js tests/overlay-integration.test.js",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:codegen": "playwright codegen",
     "docs:lint": "npx markdownlint-cli --fix AI_AUDIO_GENERATION_GUIDE.md COSMETIC_GENERATOR_GUIDE.md docs/acey-*.md",
     "docs:lint:setup": "bash scripts/setup-docs-lint.sh"
   },
@@ -72,8 +77,8 @@
     "express-rate-limit": "^7.1.5",
     "helmet": "^7.1.0",
     "ioredis": "^5.3.2",
-    "jpeg-js": "^0.4.4",
     "joi": "^17.11.0",
+    "jpeg-js": "^0.4.4",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
     "pg": "8.11.5",
@@ -85,6 +90,7 @@
     "ws": "^8.18.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "cross-env": "^10.1.0",
     "electron": "^39.2.7",
     "electron-packager": "^17.1.2",
