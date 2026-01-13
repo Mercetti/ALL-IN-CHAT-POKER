@@ -1,0 +1,1098 @@
+/**
+ * Spectator Mode Styles
+ * Styles for watching poker games without participating
+ */
+
+/* ===== BASE SPECTATOR MODE ===== */
+.spectator-mode {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  flex-direction: column;
+  z-index: 9999;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: white;
+  overflow: hidden;
+}
+
+.spectator-mode--disconnected {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.spectator-mode--fullscreen {
+  background: rgba(0, 0, 0, 0.95);
+}
+
+.spectator-mode--minimal {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+/* ===== SPECTATOR CONTROLS ===== */
+.spectator-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.spectator-controls__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.spectator-controls__status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.spectator-controls__indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f56565;
+  animation: indicatorPulse 2s ease-in-out infinite;
+}
+
+.spectator-controls__indicator--connected {
+  background: #48bb78;
+}
+
+@keyframes indicatorPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.spectator-controls__game-id {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.spectator-controls__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.spectator-controls__btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.spectator-controls__btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.spectator-controls__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.spectator-controls__btn--primary {
+  background: #3182ce;
+  border-color: #3182ce;
+  color: white;
+}
+
+.spectator-controls__btn--secondary {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+/* ===== VIEW MODE SELECTOR ===== */
+.spectator-view-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.spectator-view-selector__title {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.spectator-view-selector__options {
+  display: flex;
+  gap: 8px;
+}
+
+.spectator-view-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.spectator-view-option:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.spectator-view-option--active {
+  background: rgba(49, 130, 206, 0.3);
+  border-color: rgba(49, 130, 206, 0.5);
+}
+
+.spectator-view-option__icon {
+  font-size: 16px;
+}
+
+.spectator-view-option__label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ===== SPECTATOR CONTENT ===== */
+.spectator-content {
+  flex: 1;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ===== SPECTATOR TABLE ===== */
+.spectator-table {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 20px;
+}
+
+.spectator-table__component {
+  opacity: 0.9;
+  transform: scale(0.95);
+  pointer-events: none;
+}
+
+/* ===== FLOATING EMOTES ===== */
+.spectator-emotes {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.spectator-emote {
+  position: absolute;
+  font-size: 24px;
+  animation: emojiFloat 3s ease-in-out;
+  pointer-events: none;
+  z-index: 10;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+@keyframes emojiFloat {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  90% {
+    opacity: 1;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+/* ===== PLAYER FOCUS ===== */
+.spectator-player-focus {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  min-width: 250px;
+  z-index: 100;
+  animation: playerFocusPulse 2s ease-in-out infinite;
+}
+
+@keyframes playerFocusPulse {
+  0%, 100% {
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  }
+  50% {
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+  }
+}
+
+.spectator-player-focus__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.spectator-player-focus__name {
+  color: white;
+}
+
+.spectator-player-focus__stack {
+  color: #ffd700;
+  font-weight: 500;
+}
+
+.spectator-player-focus__status {
+  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.spectator-player-focus__status::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 4px;
+  background: currentColor;
+}
+
+.spectator-player-focus__cards {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.spectator-player-focus__hand {
+  display: flex;
+  gap: 2px;
+}
+
+.spectator-player-focus__card {
+  transform: scale(0.9);
+  opacity: 0.9;
+}
+
+.spectator-player-focus__action {
+  margin-top: 12px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: white;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.spectator-player-focus__action:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ===== POT FOCUS ===== */
+.spectator-pot-focus {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  min-width: 200px;
+  z-index: 100;
+}
+
+.spectator-pot-focus__header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.spectator-pot-focus__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.spectator-pot-focus__amount {
+  font-size: 24px;
+  font-weight: bold;
+  color: #ffd700;
+}
+
+.spectator-pot-focus__chips {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.spectator-pot-focus__chip-pot {
+  transform: scale(0.9);
+  opacity: 0.9;
+}
+
+.spectator-pot-focus__details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.spectator-pot-focus__detail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.spectator-pot-focus__label {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.spectator-pot-focus__value {
+  color: white;
+  font-weight: 500;
+}
+
+/* ===== CARDS FOCUS ===== */
+.spectator-cards-focus {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  min-width: 300px;
+  z-index: 100;
+}
+
+.spectator-cards-focus__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.spectator-cards-focus__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.spectator-cards-focus__count {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.spectator-cards-focus__cards {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.spectator-cards-focus__card {
+  transform: scale(0.9);
+  opacity: 0.9;
+}
+
+.spectator-cards-focus__analysis {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.spectator-cards-focus__board,
+.spectator-cards-focus__potential {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.4;
+}
+
+.spectator-cards-focus__title {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.spectator-cards-focus__text {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* ===== SPECTATOR STATISTICS ===== */
+.spectator-statistics {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.spectator-statistics__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.spectator-statistics__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.spectator-statistic {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.spectator-statistic__label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.spectator-statistic__value {
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+}
+
+/* ===== SPECTATOR CHAT ===== */
+.spectator-chat {
+  display: flex;
+  flex-direction: column;
+  height: 200px;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.spectator-chat__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.spectator-chat__title {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.spectator-chat__count {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.spectator-chat__messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.spectator-chat__message {
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  animation: messageSlideIn 0.3s ease-out;
+}
+
+@keyframes messageSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.spectator-chat__message--system {
+  background: rgba(49, 130, 206, 0.2);
+  border-color: rgba(49, 130, 206, 0.4);
+}
+
+.spectator-chat__message--spectator {
+  align-self: flex-end;
+}
+
+.spectator-chat__message--emoji {
+  align-self: center;
+  justify-content: center;
+  background: rgba(240, 147, 251, 0.2);
+  border-color: rgba(240, 147, 251, 0.4);
+}
+
+.spectator-chat__user {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  min-width: 80px;
+}
+
+.spectator-chat__text {
+  flex: 1;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.3;
+  word-wrap: break-word;
+}
+
+.spectator-chat__time {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.6);
+  align-self: flex-end;
+}
+
+.spectator-chat__input {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.spectator-chat__input-field {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 8px 12px;
+  color: white;
+  font-size: 13px;
+  outline: none;
+}
+
+.spectator-chat__input-field:focus {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.spectator-chat__send-btn {
+  padding: 8px 16px;
+  background: #3182ce;
+  border: none;
+  border-radius: 20px;
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.spectator-chat__send-btn:hover:not(:disabled) {
+  background: #2c5282;
+  transform: translateY(-1px);
+}
+
+.spectator-chat__send-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ===== SPECTATOR EMOTE PANEL ===== */
+.spectator-emote-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.spectator-emote-panel__title {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.spectator-emote-panel__emojis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+  gap: 8px;
+}
+
+.spectator-emote-panel__emoji {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.spectator-emote-panel__emoji:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+/* ===== SPECTATOR LOBBY ===== */
+.spectator-lobby {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.95);
+  color: white;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.spectator-lobby__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.spectator-lobby__title {
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+}
+
+.spectator-lobby__count {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.spectator-lobby__search {
+  margin-bottom: 24px;
+}
+
+.spectator-lobby__search-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  outline: none;
+}
+
+.spectator-lobby__search-input:focus {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.spectator-lobby__games {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.spectator-lobby__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 40px 20px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.spectator-lobby__empty-icon {
+  font-size: 48px;
+  opacity: 0.6;
+}
+
+.spectator-lobby__empty-text {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.spectator-lobby__game {
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.spectator-lobby__game:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.spectator-lobby__game--selected {
+  background: rgba(49, 130, 206, 0.3);
+  border-color: rgba(49, 130, 206, 0.5);
+}
+
+.spectator-lobby__game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.spectator-lobby__game-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.spectator-lobby__game-info {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.spectator-lobby__game-players::before,
+.spectator-lobby__game-spectators::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 4px;
+  background: currentColor;
+}
+
+.spectator-lobby__game-details {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.spectator-lobby__game-status {
+  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.spectator-lobby__game-status::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  margin-right: 4px;
+  background: currentColor;
+}
+
+.spectator-lobby__game-type {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.spectator-lobby__game-stakes {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ===== SIDE PANELS ===== */
+.spectator-side-panels {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  overflow-y: auto;
+  max-width: 300px;
+}
+
+/* ===== MOBILE OPTIMIZATIONS ===== */
+@media (max-width: 767px) {
+  .spectator-controls {
+    padding: 12px;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .spectator-controls__actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .spectator-view-selector {
+    padding: 12px;
+    gap: 6px;
+  }
+  
+  .spectator-view-selector__options {
+    flex-wrap: wrap;
+  }
+  
+  .spectator-view-option {
+    min-width: 80px;
+  }
+  
+  .spectator-content {
+    flex-direction: column;
+  }
+  
+  .spectator-table {
+    padding: 12px;
+  }
+  
+  .spectator-player-focus,
+  .spectator-pot-focus,
+  .spectator-cards-focus {
+    min-width: 200px;
+    padding: 16px;
+  }
+  
+  .spectator-statistics__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .spectator-chat {
+    height: 150px;
+  }
+  
+  .spectator-emote-panel__emojis {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .spectator-lobby {
+    padding: 16px;
+  }
+  
+  .spectator-lobby__games {
+    max-height: 300px;
+  }
+  
+  .spectator-side-panels {
+    max-width: 100%;
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* ===== HIGH DPI SUPPORT ===== */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .spectator-controls,
+  .spectator-view-selector,
+  .spectator-chat,
+  .spectator-emote-panel,
+  .spectator-lobby {
+    border-width: 0.5px;
+  }
+  
+  .spectator-controls__btn,
+  .spectator-view-option,
+  .spectator-chat__input-field,
+  .spectator-chat__send-btn,
+  .spectator-emote-panel__emoji {
+    border-width: 0.5px;
+  }
+}
+
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  .spectator-controls,
+  .spectator-view-option,
+  .spectator-chat__message,
+  .spectator-emote-panel__emoji,
+  .spectator-lobby__game {
+    transition: none;
+    animation: none;
+  }
+  
+  .spectator-player-focus,
+  .spectator-pot-focus,
+  .spectator-cards-focus {
+    animation: none;
+  }
+  
+  .spectator-emote {
+    animation: none;
+  }
+  
+  .spectator-chat__message {
+    animation: none;
+  }
+}
+
+/* ===== DARK MODE ===== */
+@media (prefers-color-scheme: dark) {
+  .spectator-mode {
+    background: rgba(0, 0, 0, 0.95);
+  }
+  
+  .spectator-controls,
+  .spectator-view-selector,
+  .spectator-chat,
+  .spectator-emote-panel,
+  .spectator-lobby {
+    background: rgba(0, 0, 0, 0.8);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .spectator-controls__indicator--connected {
+    background: #48bb78;
+  }
+  
+  .spectator-player-focus,
+  .spectator-pot-focus,
+  .spectator-cards-focus {
+    background: rgba(0, 0, 0, 0.9);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+  
+  .spectator-statistic {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  .spectator-chat__message--system {
+    background: rgba(49, 130, 206, 0.3);
+    border-color: rgba(49, 130, 206, 0.4);
+  }
+  
+  .spectator-chat__message--spectator {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  .spectator-chat__message--emoji {
+    background: rgba(240, 147, 251, 0.3);
+    border-color: rgba(240, 147, 251, 0.4);
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+@media (prefers-contrast: high) {
+  .spectator-mode {
+    background: rgba(0, 0, 0, 1);
+  }
+  
+  .spectator-controls,
+  .spectator-view-selector,
+  .spectator-chat,
+  .spectator-emote-panel,
+  .spectator-lobby {
+    border-width: 2px;
+    border-color: white;
+  }
+  
+  .spectator-controls__btn,
+  .spectator-view-option,
+  .spectator-chat__input-field,
+  .spectator-chat__send-btn,
+  .spectator-emote-panel__emoji {
+    border-width: 2px;
+    border-color: white;
+  }
+  
+  .spectator-player-focus,
+  .spectator-pot-focus,
+  .spectator-cards-focus {
+    border-width: 3px;
+    border-color: white;
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  .spectator-mode {
+    display: none !important;
+  }
+}

@@ -1,0 +1,300 @@
+/**
+ * Micro Interactions Styles
+ * Subtle animations and interactive effects
+ */
+
+/* ===== SHAKE ANIMATION ===== */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+/* ===== PULSE ANIMATION ===== */
+@keyframes pulse {
+  0%, 100% { 
+    opacity: 1; 
+    transform: scale(1); 
+  }
+  50% { 
+    opacity: 0.7; 
+    transform: scale(1.05); 
+  }
+}
+
+/* ===== ROTATE ANIMATION ===== */
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ===== FLOAT ANIMATION ===== */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* ===== LOADING DOTS ===== */
+.loading-dot {
+  border-radius: 50%;
+  animation: loadingDot 1.4s ease-in-out infinite both;
+}
+
+@keyframes loadingDot {
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ===== TYPEWRITER CURSOR ===== */
+.typewriter-cursor {
+  display: inline-block;
+  animation: typewriterCursor 1s infinite;
+  font-weight: bold;
+}
+
+@keyframes typewriterCursor {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* ===== HOVER SCALE ===== */
+.hover-scale {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.hover-scale:hover:not(.hover-scale--disabled) {
+  transform: scale(1.05);
+}
+
+.hover-scale--disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ===== HOVER GLOW ===== */
+.hover-glow {
+  display: inline-block;
+  transition: box-shadow 0.3s ease;
+}
+
+.hover-glow:hover:not(.hover-glow--disabled) {
+  box-shadow: 0 0 20px #3182ce, 0 0 40px #3182ce;
+}
+
+.hover-glow--disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ===== HOVER LIFT ===== */
+.hover-lift {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.hover-lift:hover:not(.hover-lift--disabled) {
+  transform: translateY(-8px);
+}
+
+.hover-lift--disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ===== CLICK BOUNCE ===== */
+.click-bounce {
+  display: inline-block;
+  transition: transform 0.15s ease;
+  cursor: pointer;
+}
+
+.click-bounce:active:not(.click-bounce--disabled) {
+  transform: scale(0.95);
+}
+
+.click-bounce--disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ===== SHAKE ANIMATION ===== */
+.shake-animation {
+  display: inline-block;
+}
+
+.shake-animation--disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ===== PULSE ANIMATION ===== */
+.pulse-animation {
+  display: inline-block;
+}
+
+.pulse-animation--disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ===== FADE IN ===== */
+.fade-in {
+  display: inline-block;
+}
+
+/* ===== SLIDE IN ===== */
+.slide-in {
+  display: inline-block;
+}
+
+/* ===== ROTATE ANIMATION ===== */
+.rotate-animation {
+  display: inline-block;
+}
+
+.rotate-animation--disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ===== TYPEWRITER EFFECT ===== */
+.typewriter-effect {
+  display: inline-block;
+  font-family: monospace;
+  white-space: pre-wrap;
+}
+
+/* ===== LOADING DOTS ===== */
+.loading-dots {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== FLOATING ANIMATION ===== */
+.floating-animation {
+  display: inline-block;
+}
+
+.floating-animation--disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ===== MOBILE OPTIMIZATIONS ===== */
+@media (max-width: 767px) {
+  .hover-scale:hover:not(.hover-scale--disabled) {
+    transform: scale(1.02);
+  }
+  
+  .hover-lift:hover:not(.hover-lift--disabled) {
+    transform: translateY(-4px);
+  }
+  
+  .hover-glow:hover:not(.hover-glow--disabled) {
+    box-shadow: 0 0 10px #3182ce, 0 0 20px #3182ce;
+  }
+}
+
+/* ===== HIGH DPI SUPPORT ===== */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .loading-dot {
+    border-radius: 50%;
+  }
+}
+
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  .hover-scale,
+  .hover-glow,
+  .hover-lift,
+  .click-bounce,
+  .shake-animation,
+  .pulse-animation,
+  .fade-in,
+  .slide-in,
+  .rotate-animation,
+  .floating-animation {
+    animation: none;
+    transition: none;
+  }
+  
+  .loading-dot {
+    animation: none;
+  }
+  
+  .typewriter-cursor {
+    animation: none;
+  }
+  
+  .hover-scale:hover:not(.hover-scale--disabled),
+  .hover-lift:hover:not(.hover-lift--disabled) {
+    transform: none;
+  }
+  
+  .hover-glow:hover:not(.hover-glow--disabled) {
+    box-shadow: none;
+  }
+  
+  .click-bounce:active:not(.click-bounce--disabled) {
+    transform: none;
+  }
+}
+
+/* ===== DARK MODE ===== */
+@media (prefers-color-scheme: dark) {
+  .hover-glow:hover:not(.hover-glow--disabled) {
+    box-shadow: 0 0 20px #60a5fa, 0 0 40px #60a5fa;
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+@media (prefers-contrast: high) {
+  .hover-scale:hover:not(.hover-scale--disabled) {
+    transform: scale(1.1);
+  }
+  
+  .hover-lift:hover:not(.hover-lift--disabled) {
+    transform: translateY(-12px);
+  }
+  
+  .hover-glow:hover:not(.hover-glow--disabled) {
+    box-shadow: 0 0 30px #3182ce, 0 0 60px #3182ce;
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  .hover-scale,
+  .hover-glow,
+  .hover-lift,
+  .click-bounce,
+  .shake-animation,
+  .pulse-animation,
+  .fade-in,
+  .slide-in,
+  .rotate-animation,
+  .floating-animation {
+    animation: none;
+    transition: none;
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .loading-dot {
+    animation: none;
+    opacity: 1;
+  }
+  
+  .typewriter-cursor {
+    animation: none;
+    display: none;
+  }
+}

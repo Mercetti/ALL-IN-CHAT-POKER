@@ -1,5 +1,8 @@
 import { AceyOrchestrator, AceyOutput, TaskType } from './orchestrator';
 import { AudioCodingOrchestrator } from './audioCodingOrchestrator';
+import AceyLibraryManager from "../server/utils/libraryManager";
+import fs from "fs";
+import path from "path";
 
 export interface ContinuousLearningConfig {
   autoFineTune: boolean;
@@ -89,8 +92,27 @@ export class ContinuousLearningLoop {
     this.dataset.set(entry.id, entry);
     this.updateMetrics(entry);
 
-    // Add to fine-tune queue if approved
+    // Save approved outputs to JSONL using library manager
     if (approved && entry.confidence >= this.config.minConfidenceThreshold) {
+      const datasetPath = path.join(
+        AceyLibraryManager.paths.datasets,
+        `acey_${taskType.toLowerCase()}.jsonl` 
+      );
+      
+      const jsonlEntry = JSON.stringify({
+        id: entry.id,
+        taskType: entry.taskType,
+        prompt: entry.prompt,
+        output: entry.output,
+        confidence: entry.confidence,
+        timestamp: entry.timestamp,
+        metadata: entry.metadata
+      });
+      
+      // Append to JSONL file
+      fs.appendFileSync(datasetPath, jsonlEntry + "\n");
+      
+      // Add to fine-tune queue
       this.fineTuneQueue.push(entry);
     }
 

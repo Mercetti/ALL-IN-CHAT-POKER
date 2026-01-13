@@ -1,0 +1,1050 @@
+/**
+ * Poker Coach Styles
+ * AI-powered poker coaching and analysis system styles
+ */
+
+/* ===== BASE POKER COACH ===== */
+.poker-coach {
+  position: relative;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.poker-coach--expanded {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.poker-coach--disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* ===== COACH HEADER ===== */
+.poker-coach__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.poker-coach__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.poker-coach__title-icon {
+  font-size: 20px;
+}
+
+.poker-coach__title-text {
+  flex: 1;
+}
+
+.poker-coach__analyzing {
+  font-size: 12px;
+  color: #718096;
+  font-weight: normal;
+  animation: analyzingPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes analyzingPulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.poker-coach__controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.poker-coach__analyze-btn {
+  padding: 6px 12px;
+  background: #3182ce;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.poker-coach__analyze-btn:hover:not(:disabled) {
+  background: #2c5282;
+  transform: translateY(-1px);
+}
+
+.poker-coach__analyze-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.poker-coach__toggle-btn {
+  width: 24px;
+  height: 24px;
+  background: #e2e8f0;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.poker-coach__toggle-btn:hover {
+  background: #cbd5e0;
+}
+
+.poker-coach__toggle-btn--expanded {
+  transform: rotate(180deg);
+}
+
+/* ===== COACH CONTENT ===== */
+.poker-coach__content {
+  padding: 16px;
+}
+
+/* ===== COACH TABS ===== */
+.poker-coach__tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.poker-coach__tab {
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-size: 14px;
+  font-weight: 500;
+  color: #718096;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.poker-coach__tab:hover {
+  color: #4a5568;
+  background: #f7fafc;
+}
+
+.poker-coach__tab--active {
+  color: #3182ce;
+  border-bottom-color: #3182ce;
+  background: transparent;
+}
+
+.poker-coach__tab-content {
+  min-height: 200px;
+}
+
+/* ===== ADVICE TAB ===== */
+.poker-coach__advice {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.poker-coach__recommendation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: #ebf8ff;
+  border-radius: 8px;
+  border-left: 4px solid #3182ce;
+}
+
+.poker-coach__action {
+  font-size: 14px;
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.poker-coach__action--fold {
+  color: #e53e3e;
+}
+
+.poker-coach__action--call {
+  color: #38a169;
+}
+
+.poker-coach__action--raise {
+  color: #d69e2e;
+}
+
+.poker-coach__action--check {
+  color: #3182ce;
+}
+
+.poker-coach__confidence {
+  font-size: 12px;
+  color: #718096;
+  font-weight: 500;
+}
+
+.poker-coach__metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.poker-coach__metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #f7fafc;
+  border-radius: 6px;
+}
+
+.poker-coach__metric-label {
+  font-size: 12px;
+  color: #718096;
+  font-weight: 500;
+}
+
+.poker-coach__metric-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.poker-coach__reasoning {
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.poker-coach__reasoning-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.poker-coach__reasoning-text {
+  font-size: 14px;
+  color: #2d3748;
+  line-height: 1.5;
+}
+
+.poker-coach__opponents {
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.poker-coach__opponents-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.poker-coach__opponents-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.poker-coach__opponent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  background: white;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.poker-coach__opponent-name {
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.poker-coach__opponent-tendency {
+  color: #718096;
+  font-style: italic;
+}
+
+.poker-coach__opponent-aggression {
+  color: #4a5568;
+  font-size: 11px;
+}
+
+/* ===== HISTORY TAB ===== */
+.poker-coach__history {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.poker-coach__history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.poker-coach__history-item {
+  display: grid;
+  grid-template-columns: 80px 60px 60px 60px;
+  gap: 8px;
+  padding: 8px;
+  background: #f7fafc;
+  border-radius: 6px;
+  font-size: 12px;
+  align-items: center;
+}
+
+.poker-coach__history-time {
+  color: #718096;
+  font-weight: 500;
+}
+
+.poker-coach__history-action {
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.poker-coach__history-confidence {
+  color: #4a5568;
+}
+
+.poker-coach__history-strength {
+  color: #2d3748;
+  font-weight: 500;
+}
+
+/* ===== SETTINGS TAB ===== */
+.poker-coach__settings {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.poker-coach__setting {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.poker-coach__setting-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #4a5568;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.poker-coach__setting-select {
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #2d3748;
+  background: white;
+  cursor: pointer;
+}
+
+.poker-coach__setting-select:focus {
+  outline: 2px solid #3182ce;
+  outline-offset: 2px;
+}
+
+.poker-coach__settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.poker-coach__setting-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.poker-coach__setting-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #3182ce;
+}
+
+.poker-coach__setting-checkbox-label {
+  font-size: 14px;
+  color: #2d3748;
+  cursor: pointer;
+}
+
+/* ===== EMPTY STATE ===== */
+.poker-coach__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  color: #718096;
+}
+
+.poker-coach__empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.poker-coach__empty-text {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ===== COACH VARIANTS ===== */
+.poker-coach--default {
+  /* Default styles already defined */
+}
+
+.poker-coach--compact {
+  border-radius: 8px;
+}
+
+.poker-coach--compact .poker-coach__header {
+  padding: 12px;
+}
+
+.poker-coach--compact .poker-coach__content {
+  padding: 12px;
+}
+
+.poker-coach--minimal {
+  border: none;
+  box-shadow: none;
+  background: #f8fafc;
+}
+
+.poker-coach--minimal .poker-coach__header {
+  background: transparent;
+  border-bottom: none;
+}
+
+.poker-coach--dark {
+  background: #2d3748;
+  border-color: #4a5568;
+}
+
+.poker-coach--dark .poker-coach__header {
+  background: #1a202c;
+  border-color: #4a5568;
+}
+
+.poker-coach--dark .poker-coach__title {
+  color: #f7fafc;
+}
+
+.poker-coach--dark .poker-coach__analyzing {
+  color: #a0aec0;
+}
+
+.poker-coach--dark .poker-coach__toggle-btn {
+  background: #4a5568;
+  color: #f7fafc;
+}
+
+.poker-coach--dark .poker-coach__toggle-btn:hover {
+  background: #718096;
+}
+
+.poker-coach--dark .poker-coach__tab {
+  color: #a0aec0;
+}
+
+.poker-coach--dark .poker-coach__tab:hover {
+  color: #e2e8f0;
+  background: #4a5568;
+}
+
+.poker-coach--dark .poker-coach__tab--active {
+  color: #63b3ed;
+  border-color: #63b3ed;
+}
+
+.poker-coach--dark .poker-coach__action {
+  color: #f7fafc;
+}
+
+.poker-coach--dark .poker-coach__confidence {
+  color: #a0aec0;
+}
+
+.poker-coach--dark .poker-coach__metric {
+  background: #4a5568;
+}
+
+.poker-coach--dark .poker-coach__metric-label {
+  color: #a0aec0;
+}
+
+.poker-coach--dark .poker-coach__metric-value {
+  color: #f7fafc;
+}
+
+.poker-coach--dark .poker-coach__reasoning {
+  background: #4a5568;
+  border-color: #718096;
+}
+
+.poker-coach--dark .poker-coach__reasoning-title {
+  color: #e2e8f0;
+}
+
+.poker-coach--dark .poker-coach__reasoning-text {
+  color: #f7fafc;
+}
+
+.poker-coach--dark .poker-coach__opponents {
+  background: #4a5568;
+  border-color: #718096;
+}
+
+.poker-coach--dark .poker-coach__opponents-title {
+  color: #e2e8f0;
+}
+
+.poker-coach--dark .poker-coach__opponent {
+  background: #2d3748;
+}
+
+.poker-coach--dark .poker-coach__opponent-name {
+  color: #f7fafc;
+}
+
+.poker-coach--dark .poker-coach__opponent-tendency {
+  color: #a0aec0;
+}
+
+.poker-coach--dark .poker-coach__opponent-aggression {
+  color: #e2e8f0;
+}
+
+.poker-coach--dark .poker-coach__history-item {
+  background: #4a5568;
+}
+
+.poker-coach--dark .poker-coach__history-time {
+  color: #a0aec0;
+}
+
+.poker-coach--dark .poker-coach__history-confidence {
+  color: #e2e8f0;
+}
+
+.poker-coach--dark .poker-coach__history-strength {
+  color: #f7fafc;
+}
+
+.poker-coach--dark .poker-coach__setting-label {
+  color: #e2e8f0;
+}
+
+.poker-coach--dark .poker-coach__setting-select {
+  background: #4a5568;
+  border-color: #718096;
+  color: #f7fafc;
+}
+
+.poker-coach--dark .poker-coach__setting-checkbox-label {
+  color: #f7fafc;
+}
+
+.poker-coach--dark .poker-coach__empty {
+  color: #a0aec0;
+}
+
+/* ===== COACH SETTINGS ===== */
+.poker-coach-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.poker-coach-settings__section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.poker-coach-settings__section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.poker-coach-settings__setting {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.poker-coach-settings__label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #4a5568;
+}
+
+.poker-coach-settings__select {
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #2d3748;
+  background: white;
+  cursor: pointer;
+}
+
+.poker-coach-settings__select:focus {
+  outline: 2px solid #3182ce;
+  outline-offset: 2px;
+}
+
+.poker-coach-settings__checkboxes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.poker-coach-settings__checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.poker-coach-settings__checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #3182ce;
+}
+
+.poker-coach-settings__checkbox span {
+  font-size: 14px;
+  color: #2d3748;
+  cursor: pointer;
+}
+
+/* ===== COACH STATISTICS ===== */
+.poker-coach-stats {
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.poker-coach-stats__header {
+  margin-bottom: 20px;
+}
+
+.poker-coach-stats__title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.poker-coach-stats__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 16px;
+}
+
+.poker-coach-stats__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.poker-coach-stats__stat-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: #3182ce;
+}
+
+.poker-coach-stats__stat-label {
+  font-size: 12px;
+  color: #718096;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+/* ===== MOBILE OPTIMIZATIONS ===== */
+@media (max-width: 767px) {
+  .poker-coach__header {
+    padding: 12px;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .poker-coach__title {
+    font-size: 14px;
+  }
+
+  .poker-coach__controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .poker-coach__content {
+    padding: 12px;
+  }
+
+  .poker-coach__tabs {
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .poker-coach__tab {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .poker-coach__metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .poker-coach__history-item {
+    grid-template-columns: 60px 50px 50px 50px;
+    font-size: 11px;
+  }
+
+  .poker-coach-settings {
+    padding: 16px;
+    gap: 20px;
+  }
+
+  .poker-coach-settings__section-title {
+    font-size: 14px;
+  }
+
+  .poker-coach-stats {
+    padding: 16px;
+  }
+
+  .poker-coach-stats__title {
+    font-size: 16px;
+  }
+
+  .poker-coach-stats__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .poker-coach-stats__stat {
+    padding: 12px;
+  }
+
+  .poker-coach-stats__stat-value {
+    font-size: 20px;
+  }
+
+  .poker-coach-stats__stat-label {
+    font-size: 10px;
+  }
+}
+
+/* ===== HIGH DPI SUPPORT ===== */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .poker-coach,
+  .poker-coach-settings,
+  .poker-coach-stats {
+    border-width: 0.5px;
+  }
+
+  .poker-coach__analyze-btn,
+  .poker-coach__toggle-btn,
+  .poker-coach__setting-select,
+  .poker-coach-settings__select {
+    border-width: 0.5px;
+  }
+}
+
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  .poker-coach,
+  .poker-coach__analyze-btn,
+  .poker-coach__toggle-btn,
+  .poker-coach__tab,
+  .poker-coach__setting-select,
+  .poker-coach-settings__select {
+    transition: none;
+  }
+
+  .poker-coach__analyzing {
+    animation: none;
+  }
+}
+
+/* ===== DARK MODE ===== */
+@media (prefers-color-scheme: dark) {
+  .poker-coach,
+  .poker-coach-settings,
+  .poker-coach-stats {
+    background: #2d3748;
+    border-color: #4a5568;
+  }
+
+  .poker-coach__header {
+    background: #1a202c;
+    border-color: #4a5568;
+  }
+
+  .poker-coach__title {
+    color: #f7fafc;
+  }
+
+  .poker-coach__analyzing {
+    color: #a0aec0;
+  }
+
+  .poker-coach__toggle-btn {
+    background: #4a5568;
+    color: #f7fafc;
+  }
+
+  .poker-coach__toggle-btn:hover {
+    background: #718096;
+  }
+
+  .poker-coach__tab {
+    color: #a0aec0;
+  }
+
+  .poker-coach__tab:hover {
+    color: #e2e8f0;
+    background: #4a5568;
+  }
+
+  .poker-coach__tab--active {
+    color: #63b3ed;
+    border-color: #63b3ed;
+  }
+
+  .poker-coach__action {
+    color: #f7fafc;
+  }
+
+  .poker-coach__confidence {
+    color: #a0aec0;
+  }
+
+  .poker-coach__metric {
+    background: #4a5568;
+  }
+
+  .poker-coach__metric-label {
+    color: #a0aec0;
+  }
+
+  .poker-coach__metric-value {
+    color: #f7fafc;
+  }
+
+  .poker-coach__reasoning {
+    background: #4a5568;
+    border-color: #718096;
+  }
+
+  .poker-coach__reasoning-title {
+    color: #e2e8f0;
+  }
+
+  .poker-coach__reasoning-text {
+    color: #f7fafc;
+  }
+
+  .poker-coach__opponents {
+    background: #4a5568;
+    border-color: #718096;
+  }
+
+  .poker-coach__opponents-title {
+    color: #e2e8f0;
+  }
+
+  .poker-coach__opponent {
+    background: #2d3748;
+  }
+
+  .poker-coach__opponent-name {
+    color: #f7fafc;
+  }
+
+  .poker-coach__opponent-tendency {
+    color: #a0aec0;
+  }
+
+  .poker-coach__opponent-aggression {
+    color: #e2e8f0;
+  }
+
+  .poker-coach__history-item {
+    background: #4a5568;
+  }
+
+  .poker-coach__history-time {
+    color: #a0aec0;
+  }
+
+  .poker-coach__history-confidence {
+    color: #e2e8f0;
+  }
+
+  .poker-coach__history-strength {
+    color: #f7fafc;
+  }
+
+  .poker-coach__setting-label {
+    color: #e2e8f0;
+  }
+
+  .poker-coach__setting-select {
+    background: #4a5568;
+    border-color: #718096;
+    color: #f7fafc;
+  }
+
+  .poker-coach__setting-checkbox-label {
+    color: #f7fafc;
+  }
+
+  .poker-coach__empty {
+    color: #a0aec0;
+  }
+
+  .poker-coach-settings__section-title {
+    color: #f7fafc;
+    border-color: #4a5568;
+  }
+
+  .poker-coach-settings__label {
+    color: #e2e8f0;
+  }
+
+  .poker-coach-settings__select {
+    background: #4a5568;
+    border-color: #718096;
+    color: #f7fafc;
+  }
+
+  .poker-coach-settings__checkbox span {
+    color: #f7fafc;
+  }
+
+  .poker-coach-stats__title {
+    color: #f7fafc;
+  }
+
+  .poker-coach-stats__stat {
+    background: #4a5568;
+  }
+
+  .poker-coach-stats__stat-label {
+    color: #a0aec0;
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+@media (prefers-contrast: high) {
+  .poker-coach,
+  .poker-coach-settings,
+  .poker-coach-stats {
+    border-width: 2px;
+    border-color: #000;
+  }
+
+  .poker-coach__analyze-btn,
+  .poker-coach__toggle-btn,
+  .poker-coach__setting-select,
+  .poker-coach-settings__select {
+    border-width: 2px;
+    border-color: #000;
+  }
+
+  .poker-coach__tab--active {
+    border-width: 3px;
+    border-color: #0066cc;
+  }
+
+  .poker-coach__recommendation {
+    border-left-width: 6px;
+    border-color: #0066cc;
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  .poker-coach,
+  .poker-coach-settings,
+  .poker-coach-stats {
+    background: white !important;
+    color: black !important;
+    border: 1px solid black !important;
+    box-shadow: none !important;
+  }
+
+  .poker-coach__header {
+    background: white !important;
+    border-color: black !important;
+  }
+
+  .poker-coach__toggle-btn,
+  .poker-coach__analyze-btn {
+    display: none !important;
+  }
+
+  .poker-coach__tab {
+    border-color: black !important;
+  }
+
+  .poker-coach__tab--active {
+    border-color: black !important;
+  }
+}

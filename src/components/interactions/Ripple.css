@@ -1,0 +1,754 @@
+/**
+ * Ripple Effect Styles
+ * Material Design inspired ripple effect animations
+ */
+
+/* ===== RIPPLE CONTAINER ===== */
+.ripple-container {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.ripple-container--disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ===== RIPPLE EFFECT ===== */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.6);
+  transform: translate(-50%, -50%) scale(0);
+  animation: rippleEffect 600ms ease-out;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+@keyframes rippleEffect {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(4);
+    opacity: 0;
+  }
+}
+
+/* ===== RIPPLE BUTTON ===== */
+.ripple-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  overflow: hidden;
+  outline: none;
+}
+
+.ripple-button:focus-visible {
+  outline: 2px solid #3182ce;
+  outline-offset: 2px;
+}
+
+.ripple-button:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Button variants */
+.ripple-button--primary {
+  background: #3182ce;
+  color: white;
+}
+
+.ripple-button--primary:hover:not(.ripple-button--disabled) {
+  background: #2c5282;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(49, 130, 206, 0.3);
+}
+
+.ripple-button--secondary {
+  background: #718096;
+  color: white;
+}
+
+.ripple-button--secondary:hover:not(.ripple-button--disabled) {
+  background: #4a5568;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(113, 128, 150, 0.3);
+}
+
+.ripple-button--success {
+  background: #48bb78;
+  color: white;
+}
+
+.ripple-button--success:hover:not(.ripple-button--disabled) {
+  background: #38a169;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+}
+
+.ripple-button--danger {
+  background: #f56565;
+  color: white;
+}
+
+.ripple-button--danger:hover:not(.ripple-button--disabled) {
+  background: #e53e3e;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 101, 101, 0.3);
+}
+
+.ripple-button--warning {
+  background: #ed8936;
+  color: white;
+}
+
+.ripple-button--warning:hover:not(.ripple-button--disabled) {
+  background: #dd6b20;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(237, 137, 54, 0.3);
+}
+
+.ripple-button--info {
+  background: #4299e1;
+  color: white;
+}
+
+.ripple-button--info:hover:not(.ripple-button--disabled) {
+  background: #3182ce;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
+}
+
+.ripple-button--light {
+  background: #f7fafc;
+  color: #2d3748;
+  border: 1px solid #e2e8f0;
+}
+
+.ripple-button--light:hover:not(.ripple-button--disabled) {
+  background: #edf2f7;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.ripple-button--dark {
+  background: #2d3748;
+  color: white;
+}
+
+.ripple-button--dark:hover:not(.ripple-button--disabled) {
+  background: #1a202c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(45, 55, 72, 0.3);
+}
+
+.ripple-button--link {
+  background: transparent;
+  color: #3182ce;
+  border: none;
+  text-decoration: underline;
+}
+
+.ripple-button--link:hover:not(.ripple-button--disabled) {
+  color: #2c5282;
+  text-decoration: none;
+}
+
+.ripple-button--ghost {
+  background: transparent;
+  color: #4a5568;
+  border: 1px solid #e2e8f0;
+}
+
+.ripple-button--ghost:hover:not(.ripple-button--disabled) {
+  background: #f7fafc;
+  color: #2d3748;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.ripple-button--outline {
+  background: transparent;
+  color: #3182ce;
+  border: 2px solid #3182ce;
+}
+
+.ripple-button--outline:hover:not(.ripple-button--disabled) {
+  background: #3182ce;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(49, 130, 206, 0.3);
+}
+
+/* Button sizes */
+.ripple-button--small {
+  padding: 6px 12px;
+  font-size: 12px;
+  min-height: 32px;
+}
+
+.ripple-button--medium {
+  padding: 8px 16px;
+  font-size: 14px;
+  min-height: 40px;
+}
+
+.ripple-button--large {
+  padding: 12px 24px;
+  font-size: 16px;
+  min-height: 48px;
+}
+
+.ripple-button--xlarge {
+  padding: 16px 32px;
+  font-size: 18px;
+  min-height: 56px;
+}
+
+/* Button states */
+.ripple-button--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.ripple-button--loading {
+  cursor: wait;
+}
+
+.ripple-button__spinner {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.ripple-button__content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* ===== RIPPLE CARD ===== */
+.ripple-card {
+  position: relative;
+  display: block;
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.ripple-card:hover:not(.ripple-card--disabled) {
+  transform: translateY(-2px);
+}
+
+.ripple-card:focus-visible {
+  outline: 2px solid #3182ce;
+  outline-offset: 2px;
+}
+
+.ripple-card:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Card variants */
+.ripple-card--default {
+  background: white;
+  border: 1px solid #e2e8f0;
+}
+
+.ripple-card--default:hover:not(.ripple-card--disabled) {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #cbd5e0;
+}
+
+.ripple-card--elevated {
+  background: white;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.ripple-card--elevated:hover:not(.ripple-card--disabled) {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.ripple-card--outlined {
+  background: transparent;
+  border: 2px solid #e2e8f0;
+}
+
+.ripple-card--outlined:hover:not(.ripple-card--disabled) {
+  border-color: #cbd5e0;
+  background: #f7fafc;
+}
+
+.ripple-card--filled {
+  background: #f7fafc;
+  border: none;
+}
+
+.ripple-card--filled:hover:not(.ripple-card--disabled) {
+  background: #edf2f7;
+}
+
+/* Card elevations */
+.ripple-card--elevation-none {
+  box-shadow: none;
+}
+
+.ripple-card--elevation-low {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.ripple-card--elevation-medium {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.ripple-card--elevation-high {
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.ripple-card--elevation-xhigh {
+  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Card states */
+.ripple-card--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ===== RIPPLE ICON ===== */
+.ripple-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  overflow: hidden;
+  outline: none;
+}
+
+.ripple-icon:focus-visible {
+  outline: 2px solid #3182ce;
+  outline-offset: 2px;
+}
+
+.ripple-icon:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Icon variants */
+.ripple-icon--primary {
+  background: #3182ce;
+  color: white;
+}
+
+.ripple-icon--primary:hover:not(.ripple-icon--disabled) {
+  background: #2c5282;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(49, 130, 206, 0.3);
+}
+
+.ripple-icon--secondary {
+  background: #718096;
+  color: white;
+}
+
+.ripple-icon--secondary:hover:not(.ripple-icon--disabled) {
+  background: #4a5568;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(113, 128, 150, 0.3);
+}
+
+.ripple-icon--success {
+  background: #48bb78;
+  color: white;
+}
+
+.ripple-icon--success:hover:not(.ripple-icon--disabled) {
+  background: #38a169;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+}
+
+.ripple-icon--danger {
+  background: #f56565;
+  color: white;
+}
+
+.ripple-icon--danger:hover:not(.ripple-icon--disabled) {
+  background: #e53e3e;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(245, 101, 101, 0.3);
+}
+
+.ripple-icon--warning {
+  background: #ed8936;
+  color: white;
+}
+
+.ripple-icon--warning:hover:not(.ripple-icon--disabled) {
+  background: #dd6b20;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(237, 137, 54, 0.3);
+}
+
+.ripple-icon--info {
+  background: #4299e1;
+  color: white;
+}
+
+.ripple-icon--info:hover:not(.ripple-icon--disabled) {
+  background: #3182ce;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
+}
+
+.ripple-icon--light {
+  background: #f7fafc;
+  color: #2d3748;
+  border: 1px solid #e2e8f0;
+}
+
+.ripple-icon--light:hover:not(.ripple-icon--disabled) {
+  background: #edf2f7;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.ripple-icon--dark {
+  background: #2d3748;
+  color: white;
+}
+
+.ripple-icon--dark:hover:not(.ripple-icon--disabled) {
+  background: #1a202c;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(45, 55, 72, 0.3);
+}
+
+.ripple-icon--ghost {
+  background: transparent;
+  color: #4a5568;
+}
+
+.ripple-icon--ghost:hover:not(.ripple-icon--disabled) {
+  background: #f7fafc;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Icon sizes */
+.ripple-icon--small {
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+}
+
+.ripple-icon--medium {
+  width: 40px;
+  height: 40px;
+  font-size: 16px;
+}
+
+.ripple-icon--large {
+  width: 48px;
+  height: 48px;
+  font-size: 20px;
+}
+
+.ripple-icon--xlarge {
+  width: 56px;
+  height: 56px;
+  font-size: 24px;
+}
+
+/* Icon states */
+.ripple-icon--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ===== RIPPLE INPUT ===== */
+.ripple-input-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.ripple-input__ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple-input__field {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  outline: none;
+}
+
+.ripple-input__field::placeholder {
+  color: #a0aec0;
+}
+
+/* Input variants */
+.ripple-input--outlined .ripple-input__ripple {
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.ripple-input--outlined.ripple-input--focused .ripple-input__ripple {
+  border-color: #3182ce;
+  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+}
+
+.ripple-input--filled .ripple-input__ripple {
+  border: none;
+  border-bottom: 2px solid #e2e8f0;
+  border-radius: 0;
+  padding: 8px 0;
+  background: #f7fafc;
+}
+
+.ripple-input--filled.ripple-input--focused .ripple-input__ripple {
+  border-bottom-color: #3182ce;
+  background: white;
+}
+
+.ripple-input--standard .ripple-input__ripple {
+  border: none;
+  border-bottom: 1px solid #e2e8f0;
+  border-radius: 0;
+  padding: 8px 0;
+}
+
+.ripple-input--standard.ripple-input--focused .ripple-input__ripple {
+  border-bottom-color: #3182ce;
+}
+
+/* Input sizes */
+.ripple-input--small .ripple-input__ripple {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.ripple-input--medium .ripple-input__ripple {
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+.ripple-input--large .ripple-input__ripple {
+  padding: 12px 16px;
+  font-size: 16px;
+}
+
+/* Input states */
+.ripple-input--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ===== MOBILE OPTIMIZATIONS ===== */
+@media (max-width: 767px) {
+  .ripple-button--small {
+    min-height: 36px;
+    padding: 8px 12px;
+  }
+  
+  .ripple-button--medium {
+    min-height: 44px;
+    padding: 10px 16px;
+  }
+  
+  .ripple-button--large {
+    min-height: 52px;
+    padding: 14px 24px;
+  }
+  
+  .ripple-button--xlarge {
+    min-height: 60px;
+    padding: 18px 32px;
+  }
+  
+  .ripple-icon--small {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .ripple-icon--medium {
+    width: 44px;
+    height: 44px;
+  }
+  
+  .ripple-icon--large {
+    width: 52px;
+    height: 52px;
+  }
+  
+  .ripple-icon--xlarge {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+/* ===== HIGH DPI SUPPORT ===== */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .ripple-button,
+  .ripple-card,
+  .ripple-icon {
+    border-width: 0.5px;
+  }
+  
+  .ripple-input--outlined .ripple-input__ripple {
+    border-width: 1px;
+  }
+}
+
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  .ripple,
+  .ripple-button,
+  .ripple-card,
+  .ripple-icon {
+    animation: none;
+    transition: none;
+  }
+  
+  .ripple-button__spinner {
+    animation: none;
+  }
+}
+
+/* ===== DARK MODE ===== */
+@media (prefers-color-scheme: dark) {
+  .ripple-button--light {
+    background: #2d3748;
+    color: white;
+    border-color: #4a5568;
+  }
+  
+  .ripple-button--light:hover:not(.ripple-button--disabled) {
+    background: #4a5568;
+  }
+  
+  .ripple-button--ghost {
+    background: transparent;
+    color: #a0aec0;
+    border-color: #4a5568;
+  }
+  
+  .ripple-button--ghost:hover:not(.ripple-button--disabled) {
+    background: #4a5568;
+    color: white;
+  }
+  
+  .ripple-card--default {
+    background: #2d3748;
+    border-color: #4a5568;
+  }
+  
+  .ripple-card--outlined {
+    border-color: #4a5568;
+  }
+  
+  .ripple-card--filled {
+    background: #2d3748;
+  }
+  
+  .ripple-card--filled:hover:not(.ripple-card--disabled) {
+    background: #4a5568;
+  }
+  
+  .ripple-input__field::placeholder {
+    color: #718096;
+  }
+  
+  .ripple-input--outlined .ripple-input__ripple {
+    border-color: #4a5568;
+  }
+  
+  .ripple-input--filled .ripple-input__ripple {
+    background: #2d3748;
+    border-bottom-color: #4a5568;
+  }
+  
+  .ripple-input--standard .ripple-input__ripple {
+    border-bottom-color: #4a5568;
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+@media (prefers-contrast: high) {
+  .ripple-button,
+  .ripple-card,
+  .ripple-icon {
+    border-width: 2px;
+  }
+  
+  .ripple-input--outlined .ripple-input__ripple {
+    border-width: 3px;
+  }
+  
+  .ripple-input--filled .ripple-input__ripple {
+    border-bottom-width: 3px;
+  }
+  
+  .ripple-input--standard .ripple-input__ripple {
+    border-bottom-width: 2px;
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  .ripple,
+  .ripple-button__spinner {
+    display: none !important;
+  }
+  
+  .ripple-button,
+  .ripple-card,
+  .ripple-icon {
+    background: white !important;
+    color: black !important;
+    border: 1px solid black !important;
+    box-shadow: none !important;
+  }
+}

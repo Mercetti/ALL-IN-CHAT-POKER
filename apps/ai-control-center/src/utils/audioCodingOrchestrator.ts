@@ -1,4 +1,5 @@
 import { AceyOrchestrator, AceyOutput, TaskEntry, TaskType } from './orchestrator';
+import AceyLibraryManager from "../server/utils/libraryManager";
 
 export interface AudioCodingOrchestratorConfig {
   baseOrchestrator: AceyOrchestrator;
@@ -204,8 +205,52 @@ export class AudioCodingOrchestrator {
     };
   }
 
+  /**
+   * Save output using library manager
+   */
+  private saveOutput(taskType: TaskType, output: string | Buffer): string {
+    let folderName: keyof typeof AceyLibraryManager.paths;
+    
+    switch(taskType) {
+      case 'audio':
+        folderName = 'audio';
+        break;
+      case 'website':
+      case 'graphics':
+        folderName = 'datasets';
+        break;
+      case 'images':
+        folderName = 'images';
+        break;
+      default:
+        folderName = 'datasets';
+    }
+
+    const fileName = `${taskType}-${Date.now()}.dat`;
+    return AceyLibraryManager.saveFile(folderName, fileName, output);
+  }
+
+  /**
+   * Process and save task output
+   */
+  private async processAndSaveOutput(task: TaskEntry, output: AceyOutput): Promise<AceyOutput> {
+    // Save the output content
+    if (output.speech) {
+      this.saveOutput(task.taskType, output.speech);
+    }
+
+    // Save audio if present
+    if (output.audioUrl && output.audioUrl.startsWith('data:')) {
+      // Convert base64 to buffer and save
+      const base64Data = output.audioUrl.split(',')[1];
+      const audioBuffer = Buffer.from(base64Data, 'base64');
+      this.saveOutput('audio', audioBuffer);
+    }
+
+    return output;
+  }
+
   async estimateProcessingTime(tasks: TaskEntry[]): Promise<number> {
-    // Estimate based on task types and historical data
     const baseTimePerTask = 2000; // 2 seconds base
     const taskTypeMultipliers: Record<TaskType, number> = {
       audio: 1.5,    // Audio takes longer

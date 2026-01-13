@@ -4,6 +4,7 @@ import { AceyOrchestrator } from "../utils/orchestrator";
 import { AudioCodingOrchestrator } from "../utils/audioCodingOrchestrator";
 import { ContinuousLearningLoop } from "../utils/continuousLearning";
 import { AceyOutput, TaskType, TaskEntry } from "../utils/schema";
+import AceyLibraryManager from "../server/utils/libraryManager";
 
 interface DatasetStats {
   audio: number;
@@ -209,16 +210,17 @@ export const AceyControlCenter: React.FC<Props> = ({ orchestrator }) => {
       setTaskQueue(prev => prev.map(task => ({ ...task, status: 'failed' as const })));
     } finally {
       setIsSimulating(false);
+      updateDatasetStats();
     }
   };
 
   const updateDatasetStats = () => {
-    // Simulate reading from dataset files
+    const stats = AceyLibraryManager.getLibraryStats();
     setDatasetStats({
-      audio: Math.floor(Math.random() * 50) + 150,
-      website: Math.floor(Math.random() * 30) + 120,
-      graphics: Math.floor(Math.random() * 25) + 75,
-      images: Math.floor(Math.random() * 20) + 60,
+      audio: stats.audio,
+      website: stats.datasets, // Code tasks stored in datasets
+      graphics: stats.datasets, // Graphics tasks stored in datasets  
+      images: stats.images
     });
   };
 

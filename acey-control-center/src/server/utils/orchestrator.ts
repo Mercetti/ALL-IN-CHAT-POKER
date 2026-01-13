@@ -1,5 +1,7 @@
+// File: src/server/utils/orchestrator.ts
+
 import axios from "axios";
-import { AceyInteractionLog, TaskType, PersonaMode, AceyOutput } from "./schema";
+import { AceyInteractionLog, TaskType, PersonaMode, AceyOutput, TaskDefinition, BatchResult } from "./schema";
 import { saveLog } from "./llmLogger";
 import { filterAceyLogs } from "../filter";
 
@@ -190,14 +192,16 @@ export class AceyOrchestrator {
    */
   private getTemperatureForTask(taskType: TaskType): number {
     const temperatures: Record<TaskType, number> = {
-      game: 0.8,      // More creative for game commentary
-      website: 0.3,   // More conservative for website tasks
-      graphics: 0.6,  // Moderate for creative tasks
-      audio: 0.7,      // Creative for audio generation
-      moderation: 0.1, // Very conservative for moderation
-      memory: 0.4,    // Moderate for memory tasks
-      trust: 0.2,      // Conservative for trust calculations
-      persona: 0.5    // Balanced for persona decisions
+      game: 0.8,        // More creative for game commentary
+      website: 0.3,     // More conservative for website tasks
+      graphics: 0.6,   // Moderate for creative tasks
+      audio: 0.7,       // Creative for audio generation
+      images: 0.8,      // Creative for image generation
+      moderation: 0.1,  // Very conservative for moderation
+      memory: 0.4,      // Moderate for memory tasks
+      trust: 0.2,        // Conservative for trust calculations
+      persona: 0.5,      // Balanced for persona decisions
+      coding: 0.3       // Conservative for code generation
     };
     
     return temperatures[taskType] || 0.5;
@@ -208,14 +212,16 @@ export class AceyOrchestrator {
    */
   private getMaxTokensForTask(taskType: TaskType): number {
     const tokenLimits: Record<TaskType, number> = {
-      game: 150,       // Short commentary
-      website: 300,   // Detailed responses
-      graphics: 200,  // Descriptive text
-      audio: 100,      // Short descriptions
-      moderation: 50,  // Brief decisions
-      memory: 100,     // Concise summaries
-      trust: 50,       // Simple calculations
-      persona: 75     // Brief decisions
+      game: 150,         // Short commentary
+      website: 300,      // Detailed responses
+      graphics: 200,    // Descriptive text
+      audio: 100,        // Short descriptions
+      images: 150,       // Image descriptions
+      moderation: 50,    // Brief decisions
+      memory: 100,       // Concise summaries
+      trust: 50,         // Simple calculations
+      persona: 75,       // Brief decisions
+      coding: 500        // More tokens for code generation
     };
     
     return tokenLimits[taskType] || 150;
@@ -240,6 +246,12 @@ export class AceyOrchestrator {
       case "audio":
         // Trigger audio generation
         return await this.executeAudioTask(output, context);
+      case "images":
+        // Trigger image generation
+        return await this.executeImagesTask(output, context);
+      case "coding":
+        // Execute code generation
+        return await this.executeCodingTask(output, context);
       case "moderation":
         // Apply moderation actions
         return await this.executeModerationTask(output, context);
@@ -311,7 +323,38 @@ export class AceyOrchestrator {
     return {
       status: "audio generated",
       script: output.speech,
-      audioType: context.audioType || "speech"
+      audioType: context.audioType || "speech",
+      audioFilePath: output.audioFilePath || null
+    };
+  }
+
+  /**
+   * Execute image generation tasks
+   */
+  private async executeImagesTask(output: AceyOutput, context: any): Promise<any> {
+    // Integrate with image generation system
+    // This could trigger DALL-E, Midjourney, etc.
+    
+    return {
+      status: "image generated",
+      description: output.speech,
+      imageUrl: output.imageUrl || null,
+      parameters: context
+    };
+  }
+
+  /**
+   * Execute code generation tasks
+   */
+  private async executeCodingTask(output: AceyOutput, context: any): Promise<any> {
+    // Integrate with code execution system
+    // This could save code files, run tests, etc.
+    
+    return {
+      status: "code generated",
+      code: output.speech,
+      language: context.language || "typescript",
+      filePath: context.filePath || null
     };
   }
 
@@ -395,6 +438,75 @@ export class AceyOrchestrator {
     
     const totalTime = Date.now() - startTime;
     console.log(`[BATCH] Completed ${tasks.length} tasks in ${totalTime}ms`);
+    
+    return results;
+  }
+
+  /**
+   * Add a single task to the queue
+   */
+  public addTask(taskType: TaskType, prompt: string, context: any): TaskDefinition {
+    const task: TaskDefinition = {
+      id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      taskType,
+      prompt,
+      context,
+      priority: 'medium',
+      timestamp: new Date().toISOString()
+    };
+    
+    console.log(`[TASK] Added task: ${task.id} (${taskType})`);
+    return task;
+  }
+
+  /**
+   * Run dry-run simulation without execution
+   */
+  public async dryRunSimulation(tasks: { taskType: TaskType; prompt: string; context: any }[]): Promise<BatchResult[]> {
+    console.log(`[DRY-RUN] Simulating ${tasks.length} tasks`);
+    
+    // Store original mode
+    const originalSimulationMode = this.simulationMode;
+    const originalDryRunMode = this.dryRunMode;
+    
+    // Enable dry-run mode
+    this.simulationMode = true;
+    this.dryRunMode = true;
+    
+    const results: BatchResult[] = [];
+    
+    try {
+      for (const task of tasks) {
+        const startTime = Date.now();
+        
+        try {
+          const output = await this.runTask(task.taskType, task.prompt, task.context);
+          
+          results.push({
+            taskId: task.taskType + '_' + Date.now(),
+            output,
+            processed: true,
+            processingTime: Date.now() - startTime
+          });
+          
+        } catch (error) {
+          results.push({
+            taskId: task.taskType + '_' + Date.now(),
+            output: { speech: "Error occurred", intents: [] },
+            processed: false,
+            error: error instanceof Error ? error.message : "Unknown error",
+            processingTime: Date.now() - startTime
+          });
+        }
+      }
+      
+      console.log(`[DRY-RUN] Simulation completed: ${results.filter(r => r.processed).length}/${tasks.length} successful`);
+      
+    } finally {
+      // Restore original mode
+      this.simulationMode = originalSimulationMode;
+      this.dryRunMode = originalDryRunMode;
+    }
     
     return results;
   }

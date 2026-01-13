@@ -1,0 +1,654 @@
+/**
+ * Interactions Styles
+ * Global styles for micro-interactions and ripple effects
+ */
+
+/* ===== INTERACTIONS DESIGN SYSTEM ===== */
+:root {
+  /* Ripple colors */
+  --ripple-primary: rgba(255, 255, 255, 0.6);
+  --ripple-secondary: rgba(255, 255, 255, 0.6);
+  --ripple-success: rgba(255, 255, 255, 0.6);
+  --ripple-danger: rgba(255, 255, 255, 0.6);
+  --ripple-warning: rgba(255, 255, 255, 0.6);
+  --ripple-info: rgba(255, 255, 255, 0.6);
+  --ripple-light: rgba(0, 0, 0, 0.1);
+  --ripple-dark: rgba(255, 255, 255, 0.6);
+  --ripple-ghost: rgba(255, 255, 255, 0.6);
+  --ripple-outline: rgba(255, 255, 255, 0.6);
+  
+  /* Animation durations */
+  --ripple-duration: 600ms;
+  --hover-duration: 200ms;
+  --click-duration: 150ms;
+  --fade-duration: 300ms;
+  --slide-duration: 400ms;
+  --pulse-duration: 1000ms;
+  --rotate-duration: 1000ms;
+  --float-duration: 2000ms;
+  --shake-duration: 500ms;
+  --typewriter-duration: 50ms;
+  
+  /* Animation scales */
+  --hover-scale: 1.05;
+  --click-scale: 0.95;
+  --icon-scale: 1.1;
+  --chip-scale: 1.05;
+  
+  /* Animation distances */
+  --hover-lift: 8px;
+  --hover-lift-mobile: 4px;
+  --slide-distance: 100px;
+  --fade-distance: 20px;
+  --float-amplitude: 10px;
+  --shake-intensity: 4px;
+  
+  /* Glow effects */
+  --glow-color: #3182ce;
+  --glow-intensity: 0.5;
+  --glow-size: 20px;
+  --glow-size-mobile: 10px;
+  
+  /* Button sizes */
+  --button-height-small: 32px;
+  --button-height-medium: 40px;
+  --button-height-large: 48px;
+  --button-height-xlarge: 56px;
+  --button-height-small-mobile: 36px;
+  --button-height-medium-mobile: 44px;
+  --button-height-large-mobile: 52px;
+  --button-height-xlarge-mobile: 60px;
+  
+  /* Icon sizes */
+  --icon-size-small: 32px;
+  --icon-size-medium: 40px;
+  --icon-size-large: 48px;
+  --icon-size-xlarge: 56px;
+  --icon-size-small-mobile: 36px;
+  --icon-size-medium-mobile: 44px;
+  --icon-size-large-mobile: 52px;
+  --icon-size-xlarge-mobile: 60px;
+  
+  /* Chip sizes */
+  --chip-size-small: 40px;
+  --chip-size-medium: 50px;
+  --chip-size-large: 60px;
+  --chip-size-xlarge: 70px;
+  --chip-size-small-mobile: 36px;
+  --chip-size-medium-mobile: 44px;
+  --chip-size-large-mobile: 52px;
+  --chip-size-xlarge-mobile: 60px;
+  
+  /* Transition timing */
+  --transition-fast: 150ms;
+  --transition-normal: 200ms;
+  --transition-slow: 300ms;
+  --transition-slower: 400ms;
+  --transition-slowest: 600ms;
+  
+  /* Easing functions */
+  --ease-out: ease-out;
+  --ease-in-out: ease-in-out;
+  --ease-in: ease-in;
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== RIPPLE EFFECTS ===== */
+.ripple-effect {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.ripple-effect--disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background-color: var(--ripple-primary);
+  transform: translate(-50%, -50%) scale(0);
+  animation: rippleEffect var(--ripple-duration) var(--ease-out);
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+@keyframes rippleEffect {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(4);
+    opacity: 0;
+  }
+}
+
+/* ===== HOVER EFFECTS ===== */
+.hover-scale {
+  transition: transform var(--transition-normal) var(--ease-out);
+}
+
+.hover-scale:hover:not(.hover-scale--disabled) {
+  transform: scale(var(--hover-scale));
+}
+
+.hover-glow {
+  transition: box-shadow var(--transition-slow) var(--ease-out);
+}
+
+.hover-glow:hover:not(.hover-glow--disabled) {
+  box-shadow: 0 0 var(--glow-size) var(--glow-color), 0 0 calc(var(--glow-size) * 2) var(--glow-color);
+}
+
+.hover-lift {
+  transition: transform var(--transition-normal) var(--ease-out);
+}
+
+.hover-lift:hover:not(.hover-lift--disabled) {
+  transform: translateY(calc(-1 * var(--hover-lift)));
+}
+
+/* ===== CLICK EFFECTS ===== */
+.click-bounce {
+  transition: transform var(--click-duration) var(--ease-out);
+  cursor: pointer;
+}
+
+.click-bounce:active:not(.click-bounce--disabled) {
+  transform: scale(var(--click-scale));
+}
+
+/* ===== ANIMATION EFFECTS ===== */
+.shake-animation {
+  animation: shake var(--shake-duration) var(--ease-in-out);
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(calc(-1 * var(--shake-intensity))); }
+  20%, 40%, 60%, 80% { transform: translateX(var(--shake-intensity)); }
+}
+
+.pulse-animation {
+  animation: pulse var(--pulse-duration) var(--ease-in-out) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    opacity: 1; 
+    transform: scale(1); 
+  }
+  50% { 
+    opacity: 0.7; 
+    transform: scale(1.05); 
+  }
+}
+
+.rotate-animation {
+  animation: rotate var(--rotate-duration) linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.floating-animation {
+  animation: float var(--float-duration) var(--ease-in-out) infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(calc(-1 * var(--float-amplitude))); }
+}
+
+/* ===== LOADING ANIMATIONS ===== */
+.loading-dots {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.loading-dot {
+  border-radius: 50%;
+  animation: loadingDot 1.4s var(--ease-in-out) infinite both;
+}
+
+@keyframes loadingDot {
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ===== TYPEWRITER EFFECT ===== */
+.typewriter-effect {
+  font-family: monospace;
+  white-space: pre-wrap;
+}
+
+.typewriter-cursor {
+  display: inline-block;
+  animation: typewriterCursor 1s infinite;
+  font-weight: bold;
+}
+
+@keyframes typewriterCursor {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* ===== FADE ANIMATIONS ===== */
+.fade-in {
+  opacity: 0;
+  animation: fadeIn var(--fade-duration) var(--ease-out) forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* ===== SLIDE ANIMATIONS ===== */
+.slide-in {
+  animation: slideIn var(--slide-duration) var(--ease-out) forwards;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(calc(-1 * var(--slide-distance)));
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* ===== INTERACTIVE COMPONENTS ===== */
+.interactive-component {
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  transition: all var(--transition-normal) var(--ease-out);
+  outline: none;
+}
+
+.interactive-component:focus-visible {
+  outline: 2px solid var(--glow-color);
+  outline-offset: 2px;
+}
+
+.interactive-component:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.interactive-component--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ===== BUTTON INTERACTIONS ===== */
+.interactive-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition-normal) var(--ease-out);
+}
+
+.interactive-button:hover:not(.interactive-button--disabled) {
+  transform: translateY(-1px);
+}
+
+.interactive-button:active:not(.interactive-button--disabled) {
+  transform: translateY(0);
+}
+
+/* ===== CARD INTERACTIONS ===== */
+.interactive-card {
+  position: relative;
+  display: block;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all var(--transition-normal) var(--ease-out);
+}
+
+.interactive-card:hover:not(.interactive-card--disabled) {
+  transform: translateY(-2px);
+}
+
+/* ===== ICON INTERACTIONS ===== */
+.interactive-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all var(--transition-normal) var(--ease-out);
+}
+
+.interactive-icon:hover:not(.interactive-icon--disabled) {
+  transform: scale(var(--icon-scale));
+}
+
+/* ===== CHIP INTERACTIONS ===== */
+.interactive-chip {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all var(--transition-normal) var(--ease-out);
+}
+
+.interactive-chip:hover:not(.interactive-chip--disabled) {
+  transform: translateY(-2px) scale(var(--chip-scale));
+}
+
+/* ===== BADGE INTERACTIONS ===== */
+.interactive-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-normal) var(--ease-out);
+}
+
+.interactive-badge:hover:not(.interactive-badge--disabled) {
+  transform: scale(1.05);
+}
+
+/* ===== INPUT INTERACTIONS ===== */
+.interactive-input {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  transition: all var(--transition-normal) var(--ease-out);
+}
+
+.interactive-input--focused {
+  transform: scale(1.02);
+}
+
+/* ===== LIST INTERACTIONS ===== */
+.interactive-list-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all var(--transition-normal) var(--ease-out);
+}
+
+.interactive-list-item:hover:not(.interactive-list-item--disabled) {
+  transform: translateX(4px);
+}
+
+/* ===== POKER SPECIFIC INTERACTIONS ===== */
+.poker-chip-stack {
+  position: relative;
+  cursor: pointer;
+  transition: all var(--transition-normal) var(--ease-out);
+}
+
+.poker-chip-stack:hover:not(.poker-chip-stack--disabled) {
+  transform: translateY(-4px) scale(1.05);
+}
+
+.poker-card {
+  position: relative;
+  cursor: pointer;
+  transition: all var(--transition-normal) var(--ease-out);
+}
+
+.poker-card:hover:not(.poker-card--disabled) {
+  transform: translateY(-8px) scale(1.05);
+}
+
+.poker-table-seat {
+  position: relative;
+  cursor: pointer;
+  transition: all var(--transition-normal) var(--ease-out);
+}
+
+.poker-table-seat:hover:not(.poker-table-seat--disabled) {
+  transform: scale(1.1);
+}
+
+.poker-action-button {
+  position: relative;
+  cursor: pointer;
+  transition: all var(--transition-normal) var(--ease-out);
+}
+
+.poker-action-button:hover:not(.poker-action-button--disabled) {
+  transform: translateY(-2px) scale(1.05);
+}
+
+/* ===== MOBILE OPTIMIZATIONS ===== */
+@media (max-width: 767px) {
+  :root {
+    --hover-lift: var(--hover-lift-mobile);
+    --glow-size: var(--glow-size-mobile);
+    --button-height-small: var(--button-height-small-mobile);
+    --button-height-medium: var(--button-height-medium-mobile);
+    --button-height-large: var(--button-height-large-mobile);
+    --button-height-xlarge: var(--button-height-xlarge-mobile);
+    --icon-size-small: var(--icon-size-small-mobile);
+    --icon-size-medium: var(--icon-size-medium-mobile);
+    --icon-size-large: var(--icon-size-large-mobile);
+    --icon-size-xlarge: var(--icon-size-xlarge-mobile);
+    --chip-size-small: var(--chip-size-small-mobile);
+    --chip-size-medium: var(--chip-size-medium-mobile);
+    --chip-size-large: var(--chip-size-large-mobile);
+    --chip-size-xlarge: var(--chip-size-xlarge-mobile);
+  }
+  
+  .hover-scale:hover:not(.hover-scale--disabled) {
+    transform: scale(1.02);
+  }
+  
+  .hover-lift:hover:not(.hover-lift--disabled) {
+    transform: translateY(calc(-1 * var(--hover-lift-mobile)));
+  }
+  
+  .hover-glow:hover:not(.hover-glow--disabled) {
+    box-shadow: 0 0 var(--glow-size-mobile) var(--glow-color), 0 0 calc(var(--glow-size-mobile) * 2) var(--glow-color);
+  }
+  
+  .interactive-button:hover:not(.interactive-button--disabled) {
+    transform: translateY(-0.5px);
+  }
+  
+  .interactive-card:hover:not(.interactive-card--disabled) {
+    transform: translateY(-1px);
+  }
+  
+  .interactive-icon:hover:not(.interactive-icon--disabled) {
+    transform: scale(1.05);
+  }
+  
+  .interactive-chip:hover:not(.interactive-chip--disabled) {
+    transform: translateY(-1px) scale(1.02);
+  }
+  
+  .poker-chip-stack:hover:not(.poker-chip-stack--disabled) {
+    transform: translateY(-2px) scale(1.02);
+  }
+  
+  .poker-card:hover:not(.poker-card--disabled) {
+    transform: translateY(-4px) scale(1.02);
+  }
+  
+  .poker-table-seat:hover:not(.poker-table-seat--disabled) {
+    transform: scale(1.05);
+  }
+  
+  .poker-action-button:hover:not(.poker-action-button--disabled) {
+    transform: translateY(-1px) scale(1.02);
+  }
+}
+
+/* ===== HIGH DPI SUPPORT ===== */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .interactive-button,
+  .interactive-card,
+  .interactive-icon,
+  .interactive-badge,
+  .interactive-chip,
+  .interactive-input {
+    border-width: 0.5px;
+  }
+}
+
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --ripple-duration: 0ms;
+    --hover-duration: 0ms;
+    --click-duration: 0ms;
+    --fade-duration: 0ms;
+    --slide-duration: 0ms;
+    --pulse-duration: 0ms;
+    --rotate-duration: 0ms;
+    --float-duration: 0ms;
+    --shake-duration: 0ms;
+    --typewriter-duration: 0ms;
+  }
+  
+  .ripple,
+  .hover-scale,
+  .hover-glow,
+  .hover-lift,
+  .click-bounce,
+  .shake-animation,
+  .pulse-animation,
+  .fade-in,
+  .slide-in,
+  .rotate-animation,
+  .floating-animation,
+  .loading-dot,
+  .typewriter-cursor {
+    animation: none;
+    transition: none;
+  }
+  
+  .hover-scale:hover:not(.hover-scale--disabled),
+  .hover-lift:hover:not(.hover-lift--disabled),
+  .interactive-button:hover:not(.interactive-button--disabled),
+  .interactive-card:hover:not(.interactive-card--disabled),
+  .interactive-icon:hover:not(.interactive-icon--disabled),
+  .interactive-chip:hover:not(.interactive-chip--disabled),
+  .interactive-badge:hover:not(.interactive-badge--disabled),
+  .poker-chip-stack:hover:not(.poker-chip-stack--disabled),
+  .poker-card:hover:not(.poker-card--disabled),
+  .poker-table-seat:hover:not(.poker-table-seat--disabled),
+  .poker-action-button:hover:not(.poker-action-button--disabled) {
+    transform: none;
+  }
+  
+  .hover-glow:hover:not(.hover-glow--disabled) {
+    box-shadow: none;
+  }
+  
+  .click-bounce:active:not(.click-bounce--disabled) {
+    transform: none;
+  }
+}
+
+/* ===== DARK MODE ===== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --glow-color: #60a5fa;
+    --ripple-light: rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+@media (prefers-contrast: high) {
+  :root {
+    --hover-scale: 1.1;
+    --click-scale: 0.9;
+    --icon-scale: 1.15;
+    --chip-scale: 1.1;
+    --hover-lift: 12px;
+    --glow-size: 30px;
+    --shake-intensity: 8px;
+  }
+  
+  .interactive-button,
+  .interactive-card,
+  .interactive-icon,
+  .interactive-badge,
+  .interactive-chip,
+  .interactive-input {
+    border-width: 2px;
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  .ripple,
+  .hover-scale,
+  .hover-glow,
+  .hover-lift,
+  .click-bounce,
+  .shake-animation,
+  .pulse-animation,
+  .fade-in,
+  .slide-in,
+  .rotate-animation,
+  .floating-animation,
+  .loading-dot,
+  .typewriter-cursor {
+    animation: none;
+    transition: none;
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .interactive-button,
+  .interactive-card,
+  .interactive-icon,
+  .interactive-badge,
+  .interactive-chip,
+  .interactive-input {
+    background: white !important;
+    color: black !important;
+    border: 1px solid black !important;
+    box-shadow: none !important;
+  }
+}

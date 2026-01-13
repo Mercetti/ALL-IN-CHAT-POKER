@@ -1,5 +1,7 @@
+// File: src/server/utils/audioCodingOrchestrator.ts
+
 import { AceyOrchestrator } from "./orchestrator";
-import { AceyInteractionLog, AceyOutput, TaskType } from "./schema";
+import { AceyInteractionLog, AceyOutput, TaskType, TaskDefinition, BatchResult } from "./schema";
 import { saveLog } from "./llmLogger";
 import { filterAceyLogs } from "../filter";
 import fs from "fs";
@@ -49,6 +51,11 @@ interface CodingTaskContext {
 
 type AceyTaskContext = AudioTaskContext | CodingTaskContext;
 
+// Interface for ContinuousLearningLoop (will be implemented in Chunk 4)
+interface IContinuousLearningLoop {
+  processOutput(taskType: TaskType, prompt: string, output: AceyOutput, context: any, approved?: boolean, confidence?: number): Promise<any>;
+}
+
 interface AudioCodingOrchestratorOptions {
   baseOrchestrator: AceyOrchestrator;
   simulationMode?: boolean;
@@ -57,6 +64,7 @@ interface AudioCodingOrchestratorOptions {
   enableValidation?: boolean;
   enableDatasetPrep?: boolean;
   maxDatasetSize?: number;
+  continuousLearningLoop?: IContinuousLearningLoop; // Optional learning loop integration
 }
 
 export class AudioCodingOrchestrator {
@@ -67,6 +75,7 @@ export class AudioCodingOrchestrator {
   private enableValidation: boolean;
   private enableDatasetPrep: boolean;
   private maxDatasetSize: number;
+  private continuousLearningLoop?: IContinuousLearningLoop;
 
   constructor(options: AudioCodingOrchestratorOptions) {
     this.orchestrator = options.baseOrchestrator;
@@ -76,6 +85,7 @@ export class AudioCodingOrchestrator {
     this.enableValidation = options.enableValidation ?? true;
     this.enableDatasetPrep = options.enableDatasetPrep ?? true;
     this.maxDatasetSize = options.maxDatasetSize ?? 10000;
+    this.continuousLearningLoop = options.continuousLearningLoop;
 
     // Ensure dataset directory exists
     if (!fs.existsSync(this.datasetDir)) {
@@ -104,21 +114,21 @@ export class AudioCodingOrchestrator {
         context: {
           ...context,
           environment: this.simulationMode ? "simulation" : "live",
-          taskCategory: this.getTaskCategory(taskType)
+          taskCategory: taskType
         },
         llmPrompt: prompt,
         llmOutput: aceyOutput.speech,
         aceyOutput,
-        controlDecision: this.autoApprove && filterAceyLogs({ taskType, timestamp: new Date().toISOString(), context: { ...context, environment: this.simulationMode ? "simulation" : "live", taskCategory: this.getTaskCategory(taskType) }, llmPrompt, llmOutput: aceyOutput, controlDecision: "approved", finalAction: null, trustDelta: 0, personaMode: "neutral", performance: { responseTime: 0, tokenCount: 0, cost: 0 } } as any)
+        controlDecision: this.autoApprove && filterAceyLogs({ taskType, timestamp: new Date().toISOString(), context: { ...context, environment: this.simulationMode ? "simulation" : "live", taskCategory: taskType }, llmPrompt: prompt, llmOutput: aceyOutput, controlDecision: "approved", finalAction: null, trustDelta: 0, personaMode: "neutral", performance: { responseTime: 0, tokenCount: 0, cost: 0 } } as any)
           ? "approved"
           : "rejected",
         finalAction: this.simulationMode ? null : aceyOutput.speech,
-        trustDelta: this.calculateTrustDelta(taskType, context),
+        trustDelta: 0,
         personaMode: "neutral", // Use default persona mode
         performance: {
           responseTime: Date.now() - startTime,
-          tokenCount: this.estimateTokens(prompt + aceyOutput.speech),
-          cost: this.calculateCost(prompt + aceyOutput.speech)
+          tokenCount: 0,
+          cost: 0
         }
       };
 
@@ -199,6 +209,99 @@ export class AudioCodingOrchestrator {
     console.log(`[AUDIO-CODING] Batch completed: ${results.length}/${tasks.length} tasks in ${totalTime}ms`);
     
     return results;
+  }
+
+  /**
+   * Run batch simulation with previews for audio and coding tasks
+   */
+  public async runBatchSimulation(tasks: { taskType: TaskType; prompt: string; context: AceyTaskContext }[]): Promise<{
+    results: BatchResult[];
+    previews: Array<{
+      taskId: string;
+      taskType: TaskType;
+      preview: any; // Audio preview, code preview, etc.
+      metadata: any;
+    }>;
+  }> {
+    console.log(`[AUDIO-CODING] Running batch simulation with previews for ${tasks.length} tasks`);
+    
+    // Store original mode
+    const originalSimulationMode = this.simulationMode;
+    
+    // Enable simulation mode
+    this.simulationMode = true;
+    
+    const results: BatchResult[] = [];
+    const previews: any[] = [];
+    
+    try {
+      for (const task of tasks) {
+        const startTime = Date.now();
+        const taskId = `${task.taskType}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        try {
+          const output = await this.runTask(task.taskType, task.prompt, task.context);
+          
+          // Generate preview based on task type
+          const preview = this.generatePreview(task.taskType, output, task.context);
+          
+          results.push({
+            taskId,
+            output,
+            processed: true,
+            processingTime: Date.now() - startTime
+          });
+          
+          previews.push({
+            taskId,
+            taskType: task.taskType,
+            preview,
+            metadata: {
+              confidence: output.confidence,
+              trust: output.trust,
+              intents: output.intents,
+              processingTime: Date.now() - startTime
+            }
+          });
+          
+          // Process through continuous learning loop if available
+          if (this.continuousLearningLoop && output.confidence && output.confidence > 0.7) {
+            await this.continuousLearningLoop.processOutput(
+              task.taskType,
+              task.prompt,
+              output,
+              task.context,
+              true, // Auto-approve in simulation
+              output.confidence
+            );
+          }
+          
+        } catch (error) {
+          results.push({
+            taskId,
+            output: { speech: "Error occurred", intents: [] },
+            processed: false,
+            error: error instanceof Error ? error.message : "Unknown error",
+            processingTime: Date.now() - startTime
+          });
+          
+          previews.push({
+            taskId,
+            taskType: task.taskType,
+            preview: { error: error instanceof Error ? error.message : "Unknown error" },
+            metadata: { error: true }
+          });
+        }
+      }
+      
+      console.log(`[AUDIO-CODING] Batch simulation completed: ${results.filter(r => r.processed).length}/${tasks.length} successful`);
+      
+    } finally {
+      // Restore original mode
+      this.simulationMode = originalSimulationMode;
+    }
+    
+    return { results, previews };
   }
 
   /**
@@ -374,48 +477,45 @@ export class AudioCodingOrchestrator {
         }
       }
       
-      // Prepare dataset entry
-      const datasetEntry = {
-        input: {
-          prompt,
-          context,
-          personaMode: this.orchestrator.personaMode,
-          timestamp: new Date().toISOString()
-        },
-        output: {
-          speech: output.speech,
-          intents: output.intents,
-          metadata: {
-            taskType,
-            taskCategory: this.getTaskCategory(taskType),
-            generatedAt: new Date().toISOString()
-          }
-        }
+          const datasetEntry = {
+        id: `${taskType}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        taskType,
+        prompt,
+        output,
+        context,
+        timestamp: new Date().toISOString(),
+        intents: output.intents,
+        confidence: output.confidence,
+        trust: output.trust
       };
       
-      const line = JSON.stringify(datasetEntry) + "\n";
-      fs.appendFileSync(filePath, line);
-      
-      console.log(`[DATASET] Added ${taskType} entry to dataset`);
-      
-    } catch (error) {
-      console.error(`[DATASET] Failed to append to dataset:`, error);
+      // Write to dataset file
+      fs.appendFileSync(filePath, JSON.stringify(datasetEntry) + '\n');
     }
   }
 
   /**
-   * Get task category
+   * Generate preview for task output
    */
-  private getTaskCategory(taskType: TaskType): string {
-    if (taskType === "audio") return "audio";
-    if (taskType === "coding") return "coding";
-    return "general";
+  private generatePreview(taskType: TaskType, output: AceyOutput, context: any): string {
+    switch (taskType) {
+      case 'audio':
+        return `Audio preview: ${output.speech?.substring(0, 100)}...`;
+      case 'website':
+        return `Code preview: ${output.speech?.substring(0, 100)}...`;
+      case 'graphics':
+        return `Graphics preview: ${output.speech?.substring(0, 100)}...`;
+      case 'images':
+        return `Image preview: ${output.speech?.substring(0, 100)}...`;
+      default:
+        return `Preview: ${output.speech?.substring(0, 100)}...`;
+    }
   }
 
   /**
    * Calculate trust delta based on task and context
    */
-  private calculateTrustDelta(taskType: TaskType, context: AceyTaskContext): number {
+  private calculateTrustDelta(taskType: TaskType, context: any): number {
     // Base trust delta
     let delta = 0.05;
     
@@ -470,19 +570,21 @@ export class AudioCodingOrchestrator {
     const stats: Record<string, { size: number; entries: number }> = {};
     
     try {
-      const files = fs.readdirSync(this.datasetDir);
-      
-      for (const file of files) {
-        if (file.endsWith('.jsonl')) {
-          const filePath = path.join(this.datasetDir, file);
-          const stats = fs.statSync(filePath);
-          const content = fs.readFileSync(filePath, 'utf-8');
-          const entries = content.split('\n').filter(line => line.trim()).length;
-          
-          stats[file] = {
-            size: stats.size,
-            entries
-          };
+      if (fs.existsSync(this.datasetDir)) {
+        const files = fs.readdirSync(this.datasetDir);
+        
+        for (const file of files) {
+          if (file.endsWith('.jsonl')) {
+            const filePath = path.join(this.datasetDir, file);
+            const fileStats = fs.statSync(filePath);
+            const content = fs.readFileSync(filePath, 'utf-8');
+            const entries = content.split('\n').filter(line => line.trim()).length;
+            
+            stats[file] = {
+              size: fileStats.size,
+              entries
+            };
+          }
         }
       }
     } catch (error) {
@@ -505,10 +607,12 @@ export class AudioCodingOrchestrator {
         }
       } else {
         // Clear all datasets
-        const files = fs.readdirSync(this.datasetDir);
-        for (const file of files) {
-          if (file.endsWith('.jsonl')) {
-            fs.unlinkSync(path.join(this.datasetDir, file));
+        if (fs.existsSync(this.datasetDir)) {
+          const files = fs.readdirSync(this.datasetDir);
+          for (const file of files) {
+            if (file.endsWith('.jsonl')) {
+              fs.unlinkSync(path.join(this.datasetDir, file));
+            }
           }
         }
         console.log('[DATASET] Cleared all datasets');
@@ -521,7 +625,7 @@ export class AudioCodingOrchestrator {
   /**
    * Update configuration
    */
-  public updateConfig(config: Partial<AudioCodingOrchestratorOptions>): void {
+  public updateConfig(config: Partial<any>): void {
     if (config.simulationMode !== undefined) this.simulationMode = config.simulationMode;
     if (config.autoApprove !== undefined) this.autoApprove = config.autoApprove;
     if (config.enableValidation !== undefined) this.enableValidation = config.enableValidation;

@@ -1,0 +1,854 @@
+/**
+ * Loading States Styles
+ * Advanced loading states with various animations and patterns
+ */
+
+/* ===== PROGRESS BAR ===== */
+.progress-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.progress-bar--animated {
+  animation: progressBarPulse 2s ease-in-out infinite;
+}
+
+@keyframes progressBarPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.progress-bar__label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #4a5568;
+  text-align: center;
+}
+
+.progress-bar__track {
+  width: 100%;
+  height: 8px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar__fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3182ce, #2563eb);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progress-bar__fill--animated {
+  animation: progressFillShimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes progressFillShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Progress variants */
+.progress-bar--success .progress-bar__fill {
+  background: linear-gradient(90deg, #48bb78, #38a169);
+}
+
+.progress-bar--warning .progress-bar__fill {
+  background: linear-gradient(90deg, #ed8936, #dd6b20);
+}
+
+.progress-bar--danger .progress-bar__fill {
+  background: linear-gradient(90deg, #f56565, #e53e3e);
+}
+
+.progress-bar--info .progress-bar__fill {
+  background: linear-gradient(90deg, #4299e1, #3182ce);
+}
+
+/* ===== SPINNER ===== */
+.spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.spinner__circle {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f0f0f0;
+  border-top: 3px solid #3182ce;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Spinner sizes */
+.spinner--small .spinner__circle {
+  width: 24px;
+  height: 24px;
+  border-width: 2px;
+}
+
+.spinner--medium .spinner__circle {
+  width: 40px;
+  height: 40px;
+  border-width: 3px;
+}
+
+.spinner--large .spinner__circle {
+  width: 56px;
+  height: 56px;
+  border-width: 4px;
+}
+
+.spinner--xlarge .spinner__circle {
+  width: 72px;
+  height: 72px;
+  border-width: 4px;
+}
+
+/* Spinner colors */
+.spinner--primary .spinner__circle {
+  border-top-color: #3182ce;
+}
+
+.spinner--success .spinner__circle {
+  border-top-color: #48bb78;
+}
+
+.spinner--warning .spinner__circle {
+  border-top-color: #ed8936;
+}
+
+.spinner--danger .spinner__circle {
+  border-top-color: #f56565;
+}
+
+.spinner--info .spinner__circle {
+  border-top-color: #4299e1;
+}
+
+.spinner--light .spinner__circle {
+  border-top-color: #718096;
+}
+
+.spinner--dark .spinner__circle {
+  border-top-color: #2d3748;
+}
+
+/* Spinner speeds */
+.spinner--slow .spinner__circle {
+  animation-duration: 2s;
+}
+
+.spinner--normal .spinner__circle {
+  animation-duration: 1s;
+}
+
+.spinner--fast .spinner__circle {
+  animation-duration: 0.5s;
+}
+
+/* Dots spinner */
+.spinner__dots {
+  display: flex;
+  gap: 4px;
+}
+
+.spinner__dot {
+  width: 8px;
+  height: 8px;
+  background: #3182ce;
+  border-radius: 50%;
+  animation: dotsBounce 1.4s ease-in-out infinite both;
+}
+
+.spinner__dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.spinner__dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+.spinner__dot:nth-child(3) {
+  animation-delay: 0;
+}
+
+@keyframes dotsBounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Pulse spinner */
+.spinner__pulse {
+  position: relative;
+  width: 40px;
+  height: 40px;
+}
+
+.spinner__pulse-circle {
+  width: 100%;
+  height: 100%;
+  background: #3182ce;
+  border-radius: 50%;
+  animation: pulseEffect 1.5s ease-in-out infinite;
+}
+
+@keyframes pulseEffect {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* Poker spinner */
+.spinner__poker {
+  display: flex;
+  gap: 8px;
+}
+
+.spinner__poker-card {
+  width: 40px;
+  height: 56px;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  animation: pokerCardFlip 2s ease-in-out infinite;
+}
+
+.spinner__poker-card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.spinner__poker-card:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.spinner__poker-card-back {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, #3182ce 25%, #2563eb 25%, #2563eb 50%, #3182ce 50%, #3182ce 75%, #2563eb 75%, #2563eb);
+  background-size: 8px 8px;
+  border-radius: 4px;
+}
+
+@keyframes pokerCardFlip {
+  0%, 100% {
+    transform: translateY(0) rotateY(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotateY(180deg);
+  }
+}
+
+/* Chips spinner */
+.spinner__chips {
+  display: flex;
+  gap: 4px;
+  align-items: flex-end;
+}
+
+.spinner__chip {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(145deg, #3182ce, #2563eb);
+  border: 2px solid #2563eb;
+  border-radius: 50%;
+  animation: chipBounce 1.5s ease-in-out infinite;
+}
+
+.spinner__chip--1 {
+  animation-delay: 0s;
+}
+
+.spinner__chip--2 {
+  animation-delay: 0.2s;
+}
+
+.spinner__chip--3 {
+  animation-delay: 0.4s;
+}
+
+@keyframes chipBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+.spinner__label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #4a5568;
+}
+
+/* ===== LOADING OVERLAY ===== */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.loading-overlay--visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.loading-overlay--backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.loading-overlay--default {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.loading-overlay__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 32px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.loading-overlay--backdrop .loading-overlay__content {
+  background: transparent;
+  box-shadow: none;
+}
+
+.loading-overlay__progress {
+  width: 200px;
+}
+
+/* ===== CONTENT LOADER ===== */
+.content-loader {
+  width: 100%;
+}
+
+/* ===== LAZY LOADER ===== */
+.lazy-loader {
+  width: 100%;
+  min-height: 100px;
+}
+
+/* ===== STEP LOADER ===== */
+.step-loader {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.step-loader--animated {
+  animation: stepLoaderPulse 2s ease-in-out infinite;
+}
+
+@keyframes stepLoaderPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.step-loader__progress {
+  width: 100%;
+}
+
+.step-loader__progress-bar {
+  width: 100%;
+  height: 4px;
+  background: #f0f0f0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.step-loader__progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3182ce, #2563eb);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.step-loader__steps {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.step-loader__step {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  transition: all 0.3s ease;
+}
+
+.step-loader__step--completed {
+  border-color: #48bb78;
+  background: #f0fff4;
+}
+
+.step-loader__step--active {
+  border-color: #3182ce;
+  background: #ebf8ff;
+  box-shadow: 0 4px 12px rgba(49, 130, 206, 0.1);
+}
+
+.step-loader__step--pending {
+  border-color: #e0e0e0;
+  background: #f8f9fa;
+  opacity: 0.6;
+}
+
+.step-loader__step-indicator {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.step-loader__step--completed .step-loader__step-indicator {
+  background: #48bb78;
+  color: white;
+}
+
+.step-loader__step--active .step-loader__step-indicator {
+  background: #3182ce;
+  color: white;
+}
+
+.step-loader__step--pending .step-loader__step-indicator {
+  background: #e0e0e0;
+  color: #718096;
+}
+
+.step-loader__step-check {
+  font-size: 16px;
+}
+
+.step-loader__step-number {
+  font-size: 14px;
+}
+
+.step-loader__step-content {
+  flex: 1;
+}
+
+.step-loader__step-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 4px;
+}
+
+.step-loader__step--completed .step-loader__step-title {
+  color: #22543d;
+}
+
+.step-loader__step--active .step-loader__step-title {
+  color: #2c5282;
+}
+
+.step-loader__step--pending .step-loader__step-title {
+  color: #718096;
+}
+
+.step-loader__step-description {
+  font-size: 14px;
+  color: #718096;
+  line-height: 1.5;
+}
+
+/* ===== INFINITE LOADER ===== */
+.infinite-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  width: 100%;
+}
+
+.infinite-loader__end {
+  text-align: center;
+  color: #718096;
+  font-size: 14px;
+  font-style: italic;
+}
+
+.infinite-loader__trigger {
+  width: 100%;
+  height: 1px;
+}
+
+/* ===== POKER LOADING STATES ===== */
+.poker-loading-states {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 32px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.poker-loading-states__chips {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.poker-loading-states__cards {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.poker-loading-states__card {
+  border-radius: 6px;
+}
+
+.poker-loading-states__message {
+  font-size: 16px;
+  font-weight: 500;
+  color: #4a5568;
+}
+
+.poker-loading-states__progress {
+  width: 200px;
+}
+
+/* ===== MOBILE OPTIMIZATIONS ===== */
+@media (max-width: 767px) {
+  .progress-bar__track {
+    height: 6px;
+  }
+  
+  .spinner__circle {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .spinner--small .spinner__circle {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .spinner--medium .spinner__circle {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .spinner--large .spinner__circle {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .spinner--xlarge .spinner__circle {
+    width: 64px;
+    height: 64px;
+  }
+  
+  .spinner__poker-card {
+    width: 32px;
+    height: 45px;
+  }
+  
+  .spinner__chip {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .loading-overlay__content {
+    padding: 24px;
+    gap: 12px;
+  }
+  
+  .loading-overlay__progress {
+    width: 150px;
+  }
+  
+  .step-loader__step {
+    padding: 12px;
+    gap: 12px;
+  }
+  
+  .step-loader__step-indicator {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+  
+  .step-loader__step-title {
+    font-size: 14px;
+  }
+  
+  .step-loader__step-description {
+    font-size: 12px;
+  }
+  
+  .poker-loading-states {
+    padding: 24px;
+    gap: 12px;
+  }
+  
+  .poker-loading-states__cards {
+    gap: 4px;
+  }
+  
+  .poker-loading-states__card {
+    width: 48px;
+    height: 67px;
+  }
+  
+  .poker-loading-states__progress {
+    width: 150px;
+  }
+}
+
+/* ===== HIGH DPI SUPPORT ===== */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .progress-bar__track,
+  .spinner__circle,
+  .spinner__poker-card,
+  .spinner__chip,
+  .step-loader__step,
+  .loading-overlay__content,
+  .poker-loading-states {
+    border-width: 0.5px;
+  }
+}
+
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  .progress-bar,
+  .spinner,
+  .loading-overlay,
+  .step-loader,
+  .poker-loading-states {
+    animation: none;
+  }
+  
+  .progress-bar--animated,
+  .progress-bar__fill--animated,
+  .step-loader--animated {
+    animation: none;
+  }
+  
+  .spinner__circle,
+  .spinner__dot,
+  .spinner__pulse-circle,
+  .spinner__poker-card,
+  .spinner__chip {
+    animation: none;
+  }
+  
+  .progress-bar__fill,
+  .step-loader__progress-fill {
+    transition: none;
+  }
+  
+  .loading-overlay,
+  .step-loader__step {
+    transition: none;
+  }
+}
+
+/* ===== DARK MODE ===== */
+@media (prefers-color-scheme: dark) {
+  .progress-bar__label,
+  .spinner__label,
+  .poker-loading-states__message {
+    color: #a0aec0;
+  }
+  
+  .progress-bar__track {
+    background: #4a5568;
+  }
+  
+  .spinner__circle {
+    border-color: #4a5568;
+  }
+  
+  .spinner__dot {
+    background: #60a5fa;
+  }
+  
+  .spinner__pulse-circle {
+    background: #60a5fa;
+  }
+  
+  .spinner__poker-card {
+    background: #2d3748;
+    border-color: #4a5568;
+  }
+  
+  .spinner__chip {
+    background: linear-gradient(145deg, #2563eb, #1e40af);
+    border-color: #1e40af;
+  }
+  
+  .loading-overlay--default {
+    background: rgba(45, 55, 72, 0.9);
+  }
+  
+  .loading-overlay__content {
+    background: #2d3748;
+  }
+  
+  .loading-overlay--backdrop .loading-overlay__content {
+    background: transparent;
+  }
+  
+  .step-loader__step {
+    background: #2d3748;
+    border-color: #4a5568;
+  }
+  
+  .step-loader__step--completed {
+    background: #1a365d;
+    border-color: #48bb78;
+  }
+  
+  .step-loader__step--active {
+    background: #1a365d;
+    border-color: #3182ce;
+  }
+  
+  .step-loader__step--pending {
+    background: #4a5568;
+    border-color: #718096;
+  }
+  
+  .step-loader__step-title {
+    color: #f7fafc;
+  }
+  
+  .step-loader__step--completed .step-loader__step-title {
+    color: #9ae6b4;
+  }
+  
+  .step-loader__step--active .step-loader__step-title {
+    color: #90cdf4;
+  }
+  
+  .step-loader__step--pending .step-loader__step-title {
+    color: #a0aec0;
+  }
+  
+  .step-loader__step-description {
+    color: #a0aec0;
+  }
+  
+  .infinite-loader__end {
+    color: #a0aec0;
+  }
+  
+  .poker-loading-states {
+    background: #2d3748;
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+@media (prefers-contrast: high) {
+  .progress-bar__track {
+    border: 2px solid #000;
+  }
+  
+  .spinner__circle {
+    border-width: 4px;
+    border-color: #000;
+  }
+  
+  .spinner__dot {
+    background: #000;
+  }
+  
+  .spinner__pulse-circle {
+    background: #000;
+  }
+  
+  .spinner__poker-card {
+    border-width: 3px;
+    border-color: #000;
+  }
+  
+  .spinner__chip {
+    border-width: 3px;
+    border-color: #000;
+  }
+  
+  .step-loader__step {
+    border-width: 2px;
+    border-color: #000;
+  }
+  
+  .loading-overlay__content,
+  .poker-loading-states {
+    border: 2px solid #000;
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  .progress-bar,
+  .spinner,
+  .loading-overlay,
+  .content-loader,
+  .lazy-loader,
+  .step-loader,
+  .infinite-loader,
+  .poker-loading-states {
+    display: none !important;
+  }
+}

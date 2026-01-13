@@ -1,3 +1,7 @@
+import fs from "fs";
+import path from "path";
+import AceyLibraryManager from "../server/utils/libraryManager";
+
 export interface OrchestratorConfig {
   llmEndpoint: string;
   personaMode?: 'hype' | 'professional' | 'casual';
@@ -192,8 +196,16 @@ export const ${prompt.charAt(0).toUpperCase() + prompt.slice(1).replace(/\s+/g, 
     // Simulate TTS API call
     await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000));
     
-    // Return mock audio URL
-    return `data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT`;
+    // Generate audio file using library manager
+    const audioFileName = `audio-${Date.now()}.wav`;
+    const outputPath = path.join(AceyLibraryManager.paths.audio, audioFileName);
+    
+    // Create mock audio data (in real implementation, this would be actual audio data)
+    const mockAudioData = Buffer.from('mock-audio-data');
+    AceyLibraryManager.saveFile('audio', audioFileName, mockAudioData);
+    
+    // Return file path as URL
+    return outputPath;
   }
 
   getConfig(): OrchestratorConfig {

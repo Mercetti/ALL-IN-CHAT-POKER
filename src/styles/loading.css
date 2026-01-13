@@ -1,0 +1,864 @@
+/**
+ * Loading Styles
+ * Global styles for loading states and skeleton screens
+ */
+
+/* ===== LOADING DESIGN SYSTEM ===== */
+:root {
+  /* Loading colors */
+  --loading-primary: #3182ce;
+  --loading-secondary: #718096;
+  --loading-success: #48bb78;
+  --loading-warning: #ed8936;
+  --loading-danger: #f56565;
+  --loading-info: #4299e1;
+  --loading-light: #f7fafc;
+  --loading-dark: #2d3748;
+  
+  /* Skeleton colors */
+  --skeleton-base: #f0f0f0;
+  --skeleton-shimmer: #e0e0e0;
+  --skeleton-dark-base: #4a5568;
+  --skeleton-dark-shimmer: #2d3748;
+  
+  /* Animation durations */
+  --loading-duration-fast: 0.5s;
+  --loading-duration-normal: 1s;
+  --loading-duration-slow: 1.5s;
+  --loading-duration-slower: 2s;
+  --loading-duration-slowest: 3s;
+  
+  /* Animation timing */
+  --loading-ease-in: ease-in;
+  --loading-ease-out: ease-out;
+  --loading-ease-in-out: ease-in-out;
+  --loading-ease-linear: linear;
+  
+  /* Progress bar */
+  --progress-height: 8px;
+  --progress-height-small: 4px;
+  --progress-height-large: 12px;
+  --progress-radius: 4px;
+  --progress-radius-small: 2px;
+  --progress-radius-large: 6px;
+  
+  /* Spinner sizes */
+  --spinner-size-small: 24px;
+  --spinner-size-medium: 40px;
+  --spinner-size-large: 56px;
+  --spinner-size-xlarge: 72px;
+  --spinner-size-small-mobile: 20px;
+  --spinner-size-medium-mobile: 32px;
+  --spinner-size-large-mobile: 48px;
+  --spinner-size-xlarge-mobile: 64px;
+  
+  /* Spinner border widths */
+  --spinner-border-small: 2px;
+  --spinner-border-medium: 3px;
+  --spinner-border-large: 4px;
+  --spinner-border-xlarge: 4px;
+  
+  /* Overlay */
+  --overlay-z-index: 1000;
+  --overlay-backdrop: rgba(0, 0, 0, 0.5);
+  --overlay-light: rgba(255, 255, 255, 0.9);
+  --overlay-dark: rgba(45, 55, 72, 0.9);
+  
+  /* Skeleton */
+  --skeleton-border-radius: 4px;
+  --skeleton-border-radius-small: 2px;
+  --skeleton-border-radius-large: 8px;
+  --skeleton-border-radius-xlarge: 16px;
+  
+  /* Step loader */
+  --step-indicator-size: 32px;
+  --step-indicator-size-small: 28px;
+  --step-indicator-size-large: 36px;
+  --step-gap: 16px;
+  --step-gap-small: 12px;
+  --step-gap-large: 20px;
+  
+  /* Poker specific */
+  --poker-card-width: 60px;
+  --poker-card-height: 84px;
+  --poker-card-width-small: 48px;
+  --poker-card-height-small: 67px;
+  --poker-card-width-large: 72px;
+  --poker-card-height-large: 100px;
+  
+  --poker-chip-size: 32px;
+  --poker-chip-size-small: 24px;
+  --poker-chip-size-large: 40px;
+  
+  --poker-table-width: 100%;
+  --poker-table-height: 400px;
+  --poker-table-height-small: 300px;
+  --poker-table-height-large: 500px;
+}
+
+/* ===== BASE LOADING ===== */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.loading--centered {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.loading--full {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--overlay-z-index);
+}
+
+/* ===== SKELETON BASE ===== */
+.skeleton {
+  display: inline-block;
+  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-shimmer) 50%, var(--skeleton-base) 75%);
+  background-size: 200% 100%;
+  border-radius: var(--skeleton-border-radius);
+  overflow: hidden;
+}
+
+.skeleton--animated {
+  animation: skeletonShimmer var(--loading-duration-slow) var(--loading-ease-in-out) infinite;
+}
+
+@keyframes skeletonShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Skeleton variants */
+.skeleton--text {
+  height: 1em;
+  border-radius: var(--skeleton-border-radius-small);
+}
+
+.skeleton--circular {
+  border-radius: 50%;
+  width: var(--spinner-size-medium);
+  height: var(--spinner-size-medium);
+}
+
+.skeleton--rectangular {
+  border-radius: var(--skeleton-border-radius);
+}
+
+.skeleton--rounded {
+  border-radius: var(--skeleton-border-radius-xlarge);
+}
+
+/* ===== PROGRESS BAR ===== */
+.progress {
+  width: 100%;
+  height: var(--progress-height);
+  background: var(--skeleton-base);
+  border-radius: var(--progress-radius);
+  overflow: hidden;
+}
+
+.progress--animated {
+  animation: progressPulse var(--loading-duration-slower) var(--loading-ease-in-out) infinite;
+}
+
+@keyframes progressPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.progress__bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--loading-primary), #2563eb);
+  border-radius: var(--progress-radius);
+  transition: width var(--loading-duration-normal) var(--loading-ease-out);
+}
+
+.progress__bar--animated {
+  animation: progressShimmer var(--loading-duration-slow) var(--loading-ease-in-out) infinite;
+}
+
+@keyframes progressShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Progress variants */
+.progress--small {
+  height: var(--progress-height-small);
+  border-radius: var(--progress-radius-small);
+}
+
+.progress--large {
+  height: var(--progress-height-large);
+  border-radius: var(--progress-radius-large);
+}
+
+.progress--success .progress__bar {
+  background: linear-gradient(90deg, var(--loading-success), #38a169);
+}
+
+.progress--warning .progress__bar {
+  background: linear-gradient(90deg, var(--loading-warning), #dd6b20);
+}
+
+.progress--danger .progress__bar {
+  background: linear-gradient(90deg, var(--loading-danger), #e53e3e);
+}
+
+.progress--info .progress__bar {
+  background: linear-gradient(90deg, var(--loading-info), #3182ce);
+}
+
+/* ===== SPINNER ===== */
+.spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner__circle {
+  border: var(--spinner-border-medium) solid var(--skeleton-base);
+  border-top: var(--spinner-border-medium) solid var(--loading-primary);
+  border-radius: 50%;
+  animation: spin var(--loading-duration-normal) var(--loading-ease-linear) infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Spinner sizes */
+.spinner--small .spinner__circle {
+  width: var(--spinner-size-small);
+  height: var(--spinner-size-small);
+  border-width: var(--spinner-border-small);
+}
+
+.spinner--medium .spinner__circle {
+  width: var(--spinner-size-medium);
+  height: var(--spinner-size-medium);
+  border-width: var(--spinner-border-medium);
+}
+
+.spinner--large .spinner__circle {
+  width: var(--spinner-size-large);
+  height: var(--spinner-size-large);
+  border-width: var(--spinner-border-large);
+}
+
+.spinner--xlarge .spinner__circle {
+  width: var(--spinner-size-xlarge);
+  height: var(--spinner-size-xlarge);
+  border-width: var(--spinner-border-xlarge);
+}
+
+/* Spinner colors */
+.spinner--primary .spinner__circle {
+  border-top-color: var(--loading-primary);
+}
+
+.spinner--success .spinner__circle {
+  border-top-color: var(--loading-success);
+}
+
+.spinner--warning .spinner__circle {
+  border-top-color: var(--loading-warning);
+}
+
+.spinner--danger .spinner__circle {
+  border-top-color: var(--loading-danger);
+}
+
+.spinner--info .spinner__circle {
+  border-top-color: var(--loading-info);
+}
+
+.spinner--light .spinner__circle {
+  border-top-color: var(--loading-light);
+}
+
+.spinner--dark .spinner__circle {
+  border-top-color: var(--loading-dark);
+}
+
+/* Spinner speeds */
+.spinner--slow .spinner__circle {
+  animation-duration: var(--loading-duration-slower);
+}
+
+.spinner--normal .spinner__circle {
+  animation-duration: var(--loading-duration-normal);
+}
+
+.spinner--fast .spinner__circle {
+  animation-duration: var(--loading-duration-fast);
+}
+
+/* ===== LOADING OVERLAY ===== */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--overlay-z-index);
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--loading-duration-normal) var(--loading-ease-out);
+}
+
+.loading-overlay--visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.loading-overlay--backdrop {
+  background: var(--overlay-backdrop);
+}
+
+.loading-overlay--light {
+  background: var(--overlay-light);
+}
+
+.loading-overlay--dark {
+  background: var(--overlay-dark);
+}
+
+.loading-overlay__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 32px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  max-width: 90%;
+  max-height: 90%;
+  overflow: auto;
+}
+
+.loading-overlay--backdrop .loading-overlay__content,
+.loading-overlay--light .loading-overlay__content,
+.loading-overlay--dark .loading-overlay__content {
+  background: transparent;
+  box-shadow: none;
+}
+
+.loading-overlay--dark .loading-overlay__content {
+  color: white;
+}
+
+/* ===== CONTENT LOADER ===== */
+.content-loader {
+  width: 100%;
+  min-height: 100px;
+  position: relative;
+}
+
+.content-loader__skeleton {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.content-loader__content {
+  opacity: 0;
+  transition: opacity var(--loading-duration-normal) var(--loading-ease-out);
+}
+
+.content-loader__content--visible {
+  opacity: 1;
+}
+
+/* ===== LAZY LOADER ===== */
+.lazy-loader {
+  width: 100%;
+  min-height: 100px;
+  position: relative;
+}
+
+.lazy-loader__placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.lazy-loader__content {
+  opacity: 0;
+  transition: opacity var(--loading-duration-normal) var(--loading-ease-out);
+}
+
+.lazy-loader__content--visible {
+  opacity: 1;
+}
+
+/* ===== STEP LOADER ===== */
+.step-loader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--step-gap);
+  width: 100%;
+}
+
+.step-loader--animated {
+  animation: stepLoaderPulse var(--loading-duration-slower) var(--loading-ease-in-out) infinite;
+}
+
+@keyframes stepLoaderPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.step-loader__progress {
+  width: 100%;
+}
+
+.step-loader__progress-bar {
+  width: 100%;
+  height: 4px;
+  background: var(--skeleton-base);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.step-loader__progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--loading-primary), #2563eb);
+  border-radius: 2px;
+  transition: width var(--loading-duration-normal) var(--loading-ease-out);
+}
+
+.step-loader__steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--step-gap);
+}
+
+.step-loader__step {
+  display: flex;
+  align-items: center;
+  gap: var(--step-gap);
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid var(--skeleton-shimmer);
+  transition: all var(--loading-duration-normal) var(--loading-ease-out);
+}
+
+.step-loader__step--completed {
+  border-color: var(--loading-success);
+  background: #f0fff4;
+}
+
+.step-loader__step--active {
+  border-color: var(--loading-primary);
+  background: #ebf8ff;
+  box-shadow: 0 4px 12px rgba(49, 130, 206, 0.1);
+}
+
+.step-loader__step--pending {
+  border-color: var(--skeleton-shimmer);
+  background: #f8f9fa;
+  opacity: 0.6;
+}
+
+.step-loader__step-indicator {
+  width: var(--step-indicator-size);
+  height: var(--step-indicator-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.step-loader__step--completed .step-loader__step-indicator {
+  background: var(--loading-success);
+  color: white;
+}
+
+.step-loader__step--active .step-loader__step-indicator {
+  background: var(--loading-primary);
+  color: white;
+}
+
+.step-loader__step--pending .step-loader__step-indicator {
+  background: var(--skeleton-base);
+  color: var(--loading-secondary);
+}
+
+/* ===== INFINITE LOADER ===== */
+.infinite-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  width: 100%;
+}
+
+.infinite-loader__end {
+  text-align: center;
+  color: var(--loading-secondary);
+  font-size: 14px;
+  font-style: italic;
+}
+
+.infinite-loader__trigger {
+  width: 100%;
+  height: 1px;
+}
+
+/* ===== POKER LOADING STATES ===== */
+.poker-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 32px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.poker-loading--table {
+  width: 100%;
+  max-width: 600px;
+}
+
+.poker-loading__table {
+  width: var(--poker-table-width);
+  height: var(--poker-table-height);
+  position: relative;
+  background: linear-gradient(90deg, #2a5434 25%, #1a3420 50%, #2a5434 75%);
+  background-size: 200% 100%;
+  border-radius: 50%;
+  animation: pokerTableShimmer var(--loading-duration-slower) var(--loading-ease-in-out) infinite;
+}
+
+@keyframes pokerTableShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.poker-loading__cards {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.poker-loading__card {
+  width: var(--poker-card-width);
+  height: var(--poker-card-height);
+  background: linear-gradient(90deg, white 25%, var(--skeleton-base) 50%, white 75%);
+  background-size: 200% 100%;
+  border-radius: 6px;
+  animation: cardShimmer var(--loading-duration-slow) var(--loading-ease-in-out) infinite;
+}
+
+@keyframes cardShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.poker-loading__chips {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.poker-loading__chip {
+  width: var(--poker-chip-size);
+  height: var(--poker-chip-size);
+  background: linear-gradient(145deg, var(--loading-primary), #2563eb);
+  border: 2px solid #2563eb;
+  border-radius: 50%;
+  animation: chipBounce var(--loading-duration-slow) var(--loading-ease-in-out) infinite;
+}
+
+@keyframes chipBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+.poker-loading__message {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--loading-secondary);
+}
+
+/* ===== MOBILE OPTIMIZATIONS ===== */
+@media (max-width: 767px) {
+  :root {
+    --spinner-size-small: var(--spinner-size-small-mobile);
+    --spinner-size-medium: var(--spinner-size-medium-mobile);
+    --spinner-size-large: var(--spinner-size-large-mobile);
+    --spinner-size-xlarge: var(--spinner-size-xlarge-mobile);
+    
+    --poker-card-width: var(--poker-card-width-small);
+    --poker-card-height: var(--poker-card-height-small);
+    
+    --poker-chip-size: var(--poker-chip-size-small);
+    
+    --poker-table-height: var(--poker-table-height-small);
+    
+    --step-gap: var(--step-gap-small);
+    --step-indicator-size: var(--step-indicator-size-small);
+  }
+  
+  .loading-overlay__content {
+    padding: 24px;
+    gap: 12px;
+  }
+  
+  .step-loader__step {
+    padding: 12px;
+    gap: var(--step-gap-small);
+  }
+  
+  .poker-loading {
+    padding: 24px;
+    gap: 12px;
+  }
+  
+  .poker-loading__cards {
+    gap: 4px;
+  }
+}
+
+/* ===== HIGH DPI SUPPORT ===== */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .progress,
+  .spinner__circle,
+  .loading-overlay__content,
+  .step-loader__step,
+  .poker-loading {
+    border-width: 0.5px;
+  }
+  
+  .skeleton {
+    border-radius: calc(var(--skeleton-border-radius) * 0.5);
+  }
+}
+
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --loading-duration-fast: 0s;
+    --loading-duration-normal: 0s;
+    --loading-duration-slow: 0s;
+    --loading-duration-slower: 0s;
+    --loading-duration-slowest: 0s;
+  }
+  
+  .skeleton,
+  .progress,
+  .spinner__circle,
+  .loading-overlay,
+  .step-loader,
+  .poker-loading,
+  .poker-loading__table,
+  .poker-loading__card,
+  .poker-loading__chip {
+    animation: none;
+  }
+  
+  .skeleton--animated,
+  .progress--animated,
+  .progress__bar--animated,
+  .step-loader--animated {
+    animation: none;
+  }
+  
+  .loading-overlay,
+  .step-loader__step,
+  .content-loader__content,
+  .lazy-loader__content {
+    transition: none;
+  }
+  
+  .progress__bar,
+  .step-loader__progress-fill {
+    transition: none;
+  }
+}
+
+/* ===== DARK MODE ===== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --skeleton-base: var(--skeleton-dark-base);
+    --skeleton-shimmer: var(--skeleton-dark-shimmer);
+    
+    --loading-secondary: #a0aec0;
+    
+    --overlay-backdrop: rgba(0, 0, 0, 0.7);
+    --overlay-light: rgba(45, 55, 72, 0.9);
+    --overlay-dark: rgba(26, 32, 44, 0.9);
+  }
+  
+  .loading-overlay__content {
+    background: var(--loading-dark);
+    color: white;
+  }
+  
+  .step-loader__step {
+    background: var(--loading-dark);
+    border-color: var(--skeleton-dark-shimmer);
+  }
+  
+  .step-loader__step--completed {
+    background: #1a365d;
+    border-color: var(--loading-success);
+  }
+  
+  .step-loader__step--active {
+    background: #1a365d;
+    border-color: var(--loading-primary);
+  }
+  
+  .step-loader__step--pending {
+    background: var(--skeleton-dark-base);
+    border-color: var(--skeleton-dark-shimmer);
+  }
+  
+  .step-loader__step-title {
+    color: #f7fafc;
+  }
+  
+  .step-loader__step--completed .step-loader__step-title {
+    color: #9ae6b4;
+  }
+  
+  .step-loader__step--active .step-loader__step-title {
+    color: #90cdf4;
+  }
+  
+  .step-loader__step--pending .step-loader__step-title {
+    color: var(--loading-secondary);
+  }
+  
+  .step-loader__step-description {
+    color: var(--loading-secondary);
+  }
+  
+  .infinite-loader__end {
+    color: var(--loading-secondary);
+  }
+  
+  .poker-loading {
+    background: var(--loading-dark);
+  }
+  
+  .poker-loading__message {
+    color: var(--loading-secondary);
+  }
+  
+  .poker-loading__card {
+    background: linear-gradient(90deg, var(--loading-dark) 25%, var(--skeleton-dark-shimmer) 50%, var(--loading-dark) 75%);
+    background-size: 200% 100%;
+  }
+  
+  .poker-loading__table {
+    background: linear-gradient(90deg, #1a365d 25%, #0f172a 50%, #1a365d 75%);
+    background-size: 200% 100%;
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+@media (prefers-contrast: high) {
+  :root {
+    --progress-height: 12px;
+    --progress-radius: 6px;
+    
+    --spinner-border-small: 3px;
+    --spinner-border-medium: 4px;
+    --spinner-border-large: 5px;
+    --spinner-border-xlarge: 6px;
+    
+    --skeleton-border-radius: 6px;
+    --skeleton-border-radius-small: 3px;
+    --skeleton-border-radius-large: 10px;
+    --skeleton-border-radius-xlarge: 14px;
+  }
+  
+  .progress {
+    border: 2px solid #000;
+  }
+  
+  .spinner__circle {
+    border-color: #000;
+  }
+  
+  .step-loader__step {
+    border-width: 2px;
+    border-color: #000;
+  }
+  
+  .loading-overlay__content,
+  .poker-loading {
+    border: 2px solid #000;
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  .skeleton,
+  .progress,
+  .spinner,
+  .loading-overlay,
+  .content-loader,
+  .lazy-loader,
+  .step-loader,
+  .infinite-loader,
+  .poker-loading {
+    display: none !important;
+  }
+}

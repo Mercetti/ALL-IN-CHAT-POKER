@@ -2,7 +2,7 @@
  * Enhanced AI Orchestrator with Continuous Learning Integration
  */
 
-const Logger = require('../logger');
+const Logger = require('./logger');
 const { getUnifiedAI } = require('./ai');
 const ContinuousLearningLoop = require('./utils/continuousLearning');
 const { TaskType, AceyOutput, AceyTask, isAutoApproved } = require('./utils/learningSchema');
@@ -300,6 +300,11 @@ class AudioCodingOrchestrator {
    * Add task to queue
    */
   addTask(taskType, prompt, parameters = {}) {
+    // Validate task type
+    if (!Object.values(TaskType).includes(taskType)) {
+      throw new Error(`Invalid task type: ${taskType}`);
+    }
+    
     const task = new AceyTask({
       taskType,
       prompt,
