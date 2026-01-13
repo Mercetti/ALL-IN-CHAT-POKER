@@ -296,14 +296,27 @@ class ThemeDemo {
         }
     }
 
-    // Demo analytics
+    // Demo analytics - Updated to use unified theme manager
     trackThemeUsage(themeName) {
+        // Use unified theme manager if available
+        if (window.unifiedThemeManager) {
+            // Unified manager handles tracking automatically
+            return;
+        }
+        
+        // Fallback behavior
         const usage = JSON.parse(localStorage.getItem('theme_usage') || '{}');
         usage[themeName] = (usage[themeName] || 0) + 1;
         localStorage.setItem('theme_usage', JSON.stringify(usage));
     }
 
     getThemeUsageStats() {
+        // Use unified theme manager if available
+        if (window.unifiedThemeManager) {
+            return window.unifiedThemeManager.getUsageStats();
+        }
+        
+        // Fallback behavior
         return JSON.parse(localStorage.getItem('theme_usage') || '{}');
     }
 
@@ -311,14 +324,21 @@ class ThemeDemo {
     measureThemePerformance(themeName) {
         const start = performance.now();
         
-        if (window.themeManager) {
+        // Use unified theme manager if available
+        if (window.unifiedThemeManager) {
+            window.unifiedThemeManager.setTheme(themeName);
+        } else if (window.themeManager) {
             window.themeManager.setTheme(themeName);
         }
         
         const end = performance.now();
         const duration = end - start;
         
-        console.log(`Theme "${themeName}" applied in ${duration.toFixed(2)}ms`);
+        if (typeof logger !== 'undefined') {
+            logger.performance(`Theme "${themeName}" applied in ${duration.toFixed(2)}ms`);
+        } else {
+            console.log(`Theme "${themeName}" applied in ${duration.toFixed(2)}ms`);
+        }
         return duration;
     }
 

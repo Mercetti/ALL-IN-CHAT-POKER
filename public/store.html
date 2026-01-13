@@ -279,6 +279,9 @@
     </section>
   </div>
 
+  <script src="client-logger.js"></script>
+  <script src="unified-theme-manager.js"></script>
+  <script src="theme-migration-helper.js"></script>
   <script>
     class ClassicStore {
       constructor() {
@@ -297,7 +300,7 @@
           if (!response.ok) throw new Error('Failed to load catalog');
           
           this.catalog = await response.json();
-          console.log('Catalog loaded:', this.catalog.length, 'items');
+          logger.info('Catalog loaded:', this.catalog.length, 'items');
           
           // Render items
           this.renderCatalogItems();
@@ -309,7 +312,7 @@
           this.aicSection.style.display = 'block';
           
         } catch (error) {
-          console.error('Store initialization failed:', error);
+          logger.error('Store initialization failed:', error);
           this.loading.innerHTML = '<div class="error">Failed to load store. Please refresh.</div>';
         }
       }

@@ -91,6 +91,9 @@
     </div>
   </div>
 
+  <script src="client-logger.js"></script>
+  <script src="unified-theme-manager.js"></script>
+  <script src="theme-migration-helper.js"></script>
   <script>
     (function () {
       const btn = document.getElementById('send-suggestion');
@@ -152,7 +155,7 @@
         const fw = meta.frameWidth || Math.floor(img.naturalWidth / cols);
         const fh = meta.frameHeight || Math.floor(img.naturalHeight / rows);
         let frame = 0;
-        console.debug('[winburst] loaded', { w: img.naturalWidth, h: img.naturalHeight, fw, fh, cols, rows, frames });
+        logger.animation('[winburst] loaded', { w: img.naturalWidth, h: img.naturalHeight, fw, fh, cols, rows, frames });
         const draw = () => {
           if (!canvas.isConnected) return;
           const f = frame % frames;
@@ -167,7 +170,7 @@
         };
         draw();
       };
-      img.onerror = (e) => console.warn('[winburst] failed to load sprite', e);
+      img.onerror = (e) => logger.warn('[winburst] failed to load sprite', e);
       img.src = SPRITE_URL;
     })();
 

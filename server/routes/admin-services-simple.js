@@ -1,4 +1,5 @@
 const express = require('express');
+const logger = require('../utils/logger');
 
 function createSimpleAdminServicesRouter() {
   const router = express.Router();
@@ -28,7 +29,7 @@ function createSimpleAdminServicesRouter() {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Service status error:', error);
+      logger.error('Service status error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -69,7 +70,7 @@ function createSimpleAdminServicesRouter() {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Ollama models error:', error);
+      logger.error('Ollama models error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -102,7 +103,7 @@ function createSimpleAdminServicesRouter() {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Performance metrics error:', error);
+      logger.error('Performance metrics error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });

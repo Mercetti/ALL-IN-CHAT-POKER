@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ErrorBoundary from './ErrorBoundary';
 
-export default function PlayersPage() {
+function PlayersPageComponent() {
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -199,5 +200,13 @@ export default function PlayersPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function PlayersPage() {
+  return (
+    <ErrorBoundary>
+      <PlayersPageComponent />
+    </ErrorBoundary>
   );
 }

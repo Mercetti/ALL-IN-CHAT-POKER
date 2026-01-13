@@ -398,6 +398,14 @@ document.addEventListener('DOMContentLoaded', () => {
         Toast.error('Username and password required');
         return;
       }
+      if (!email) {
+        Toast.error('Email is required for account verification');
+        return;
+      }
+      if (!email.includes('@') || !email.includes('.')) {
+        Toast.error('Please enter a valid email address');
+        return;
+      }
       if (password.length < 8) {
         Toast.error('Password must be at least 8 characters');
         return;

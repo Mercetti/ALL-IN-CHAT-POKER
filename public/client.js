@@ -242,10 +242,24 @@ function clearToken() {
 }
 
 function getTheme() {
-  return localStorage.getItem('app_theme') || 'dark';
+  // Use unified theme manager if available
+  if (window.unifiedThemeManager) {
+    return window.unifiedThemeManager.getCurrentTheme();
+  }
+  
+  // Fallback to legacy storage
+  return localStorage.getItem('app_theme') || 
+         localStorage.getItem('theme') || 
+         localStorage.getItem('theme-preference') || 'dark';
 }
 
 function applyTheme(theme) {
+  // Use unified theme manager if available
+  if (window.unifiedThemeManager) {
+    return window.unifiedThemeManager.setTheme(theme);
+  }
+  
+  // Fallback behavior
   const t = theme || getTheme();
   if (t === 'light') {
     document.body.classList.add('light-theme');
@@ -257,6 +271,12 @@ function applyTheme(theme) {
 }
 
 function toggleTheme() {
+  // Use unified theme manager if available
+  if (window.unifiedThemeManager) {
+    return window.unifiedThemeManager.toggleTheme();
+  }
+  
+  // Fallback behavior
   const current = getTheme();
   const next = current === 'light' ? 'dark' : 'light';
   applyTheme(next);

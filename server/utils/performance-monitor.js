@@ -3,6 +3,8 @@
  * Provides comprehensive performance tracking, metrics collection, and reporting
  */
 
+const logger = require('./logger');
+
 class PerformanceMonitor {
   constructor(options = {}) {
     this.enabled = options.enabled !== false;
@@ -397,7 +399,7 @@ class PerformanceMonitor {
       this.metrics.system.alerts.push(alert);
       
       // Log alert
-      console.warn(`[PERFORMANCE ALERT] ${alert.type.toUpperCase()}: ${alert.message}`, alert);
+      logger.performance(`${alert.type.toUpperCase()}: ${alert.message}`, alert);
     });
     
     // Maintain alert limit
@@ -431,7 +433,7 @@ class PerformanceMonitor {
       this.metrics.system.alerts.push(alert);
       
       // Log alert
-      console.warn(`[SYSTEM ALERT] ${alert.type.toUpperCase()}: ${alert.message}`, alert);
+      logger.warn(`${alert.type.toUpperCase()}: ${alert.message}`, alert);
     });
   }
 

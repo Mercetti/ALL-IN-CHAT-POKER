@@ -3,6 +3,8 @@
  * Provides real-time memory tracking, leak detection, and performance metrics
  */
 
+const logger = require('./logger');
+
 class MemoryMonitor {
   constructor(options = {}) {
     this.enabled = options.enabled !== false;
@@ -205,7 +207,7 @@ class MemoryMonitor {
     };
     
     // Log alert
-    console.warn(`[MEMORY ALERT] ${type.toUpperCase()}: ${message}`, alert);
+    logger.memory(`${type.toUpperCase()}: ${message}`, alert);
     
     // Could emit to monitoring system, send to logging service, etc.
     if (this.onAlert) {

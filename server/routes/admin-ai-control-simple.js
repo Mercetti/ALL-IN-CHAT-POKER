@@ -1,5 +1,6 @@
 const express = require('express');
 const crypto = require('crypto');
+const logger = require('../utils/logger');
 
 function createSimpleAdminAiControlRouter() {
   const router = express.Router();
@@ -96,7 +97,7 @@ function createSimpleAdminAiControlRouter() {
         ]
       });
     } catch (error) {
-      console.error('AI Control overview error:', error);
+      logger.error('AI Control overview error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -129,7 +130,7 @@ function createSimpleAdminAiControlRouter() {
         }
       });
     } catch (error) {
-      console.error('Service status error:', error);
+      logger.error('Service status error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -175,7 +176,7 @@ function createSimpleAdminAiControlRouter() {
         }
       });
     } catch (error) {
-      console.error('Ollama models error:', error);
+      logger.error('Ollama models error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -189,7 +190,7 @@ function createSimpleAdminAiControlRouter() {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Start ollama error:', error);
+      logger.error('Start ollama error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -202,7 +203,7 @@ function createSimpleAdminAiControlRouter() {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Stop ollama error:', error);
+      logger.error('Stop ollama error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -216,7 +217,7 @@ function createSimpleAdminAiControlRouter() {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Start tunnel error:', error);
+      logger.error('Start tunnel error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -229,7 +230,7 @@ function createSimpleAdminAiControlRouter() {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Stop tunnel error:', error);
+      logger.error('Stop tunnel error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -243,7 +244,7 @@ function createSimpleAdminAiControlRouter() {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Test connection error:', error);
+      logger.error('Test connection error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -267,7 +268,7 @@ function createSimpleAdminAiControlRouter() {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('AI Control status error:', error);
+      logger.error('AI Control status error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -308,7 +309,7 @@ function createSimpleAdminAiControlRouter() {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('AI models error:', error);
+      logger.error('AI models error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -338,7 +339,7 @@ function createSimpleAdminAiControlRouter() {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('AI config error:', error);
+      logger.error('AI config error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -421,7 +422,7 @@ function createSimpleAdminAiControlRouter() {
         }
       });
     } catch (error) {
-      console.error('Performance data error:', error);
+      logger.error('Performance data error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -460,7 +461,7 @@ function createSimpleAdminAiControlRouter() {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('AI analytics error:', error);
+      logger.error('AI analytics error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -600,7 +601,7 @@ function createSimpleAdminAiControlRouter() {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Chat error:', error);
+      logger.error('Chat error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -691,7 +692,7 @@ function createSimpleAdminAiControlRouter() {
         }
       });
     } catch (error) {
-      console.error('Get audio files error:', error);
+      logger.error('Get audio files error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -771,7 +772,7 @@ function createSimpleAdminAiControlRouter() {
         }
       });
     } catch (error) {
-      console.error('Get cosmetic sets error:', error);
+      logger.error('Get cosmetic sets error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -842,7 +843,7 @@ function createSimpleAdminAiControlRouter() {
         aceyInsights: analysis.characteristics
       });
     } catch (error) {
-      console.error('Generate audio error:', error);
+      logger.error('Generate audio error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -942,7 +943,7 @@ function createSimpleAdminAiControlRouter() {
         }
       });
     } catch (error) {
-      console.error('Development workflow error:', error);
+      logger.error('Development workflow error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -993,7 +994,7 @@ function createSimpleAdminAiControlRouter() {
         message: 'Acey LLM: Development status analysis complete'
       });
     } catch (error) {
-      console.error('Development status error:', error);
+      logger.error('Development status error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -1099,7 +1100,7 @@ function createSimpleAdminAiControlRouter() {
         }
       });
     } catch (error) {
-      console.error('Player feedback analysis error:', error);
+      logger.error('Player feedback analysis error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -1262,7 +1263,7 @@ function createSimpleAdminAiControlRouter() {
         message: 'Acey LLM: Top player suggestions analysis complete'
       });
     } catch (error) {
-      console.error('Top suggestions error:', error);
+      logger.error('Top suggestions error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -1799,7 +1800,7 @@ The All-In Chat Poker Team"
         }
       });
     } catch (error) {
-      console.error('Generate cosmetic error:', error);
+      logger.error('Generate cosmetic error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -1887,7 +1888,7 @@ The All-In Chat Poker Team"
         }
       });
     } catch (error) {
-      console.error('Create logo error:', error);
+      logger.error('Create logo error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });

@@ -455,7 +455,7 @@ export default function PokerChipCounter() {
         }
       });
     } catch (error) {
-      console.error('Acey test abilities error:', error);
+      logger.error('Acey test abilities error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });

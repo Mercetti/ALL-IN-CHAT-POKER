@@ -66,7 +66,7 @@
       <div class="auth-section">
         <div class="auth-header">
           <h3>Quick Sign In</h3>
-          <p class="auth-subtitle">Connect with your favorite platform</p>
+          <p class="auth-subtitle">Connect with your favorite platform (email required for new accounts)</p>
         </div>
         
         <div class="auth-providers" role="group" aria-label="Sign in options">
@@ -107,7 +107,7 @@
       <details class="traditional-auth">
         <summary class="traditional-auth-toggle">
           <span class="toggle-icon">👤</span>
-          <span class="toggle-text">Use username & password</span>
+          <span class="toggle-text">Use username & password (email required for new accounts)</span>
         </summary>
         
         <div class="auth-forms">
@@ -165,7 +165,7 @@
           <details class="register-section">
             <summary class="register-toggle">
               <span class="toggle-icon">✨</span>
-              <span class="toggle-text">Create new account</span>
+              <span class="toggle-text">Create new account (email required)</span>
             </summary>
             
             <form id="local-register-form" class="auth-form">
@@ -174,8 +174,9 @@
                 <input type="text" id="register-username" name="login" autocomplete="username" placeholder="Choose a username" required>
               </div>
               <div class="form-group">
-                <label for="register-email">Email (optional)</label>
-                <input type="email" id="register-email" name="email" autocomplete="email" placeholder="your@email.com">
+                <label for="register-email">Email <span class="required-indicator">*</span></label>
+                <input type="email" id="register-email" name="email" autocomplete="email" placeholder="your@email.com" required>
+                <small class="form-hint">Email is required for account verification and password reset</small>
               </div>
               <div class="form-group">
                 <label for="register-password">Password</label>

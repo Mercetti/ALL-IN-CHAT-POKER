@@ -50,6 +50,9 @@ const { getActorFromReq, recordLoginAttempt, getAdminActivitySummary, clearAdmin
 const { validateBody } = require('./server/utils/file-ops');
 const { validateLocalLogin } = require('./server/routes/auth-simple');
 
+// Discord integration
+const { registerDiscordRoutes, getDiscordConfig } = require('./server/discord');
+
 const logger = new Logger('server');
 const unifiedAI = new UnifiedAISystem({
   enableChatBot: true,
@@ -227,6 +230,19 @@ app.use('/auth', authRoutes);
 // Admin services routes
 const adminServicesRoutes = createSimpleAdminServicesRouter();
 app.use('/admin/services', adminServicesRoutes);
+
+// Discord integration (if configured)
+try {
+  const discordConfig = getDiscordConfig();
+  if (discordConfig.publicKey && discordConfig.clientId) {
+    registerDiscordRoutes(app);
+    console.log('✅ Discord integration enabled');
+  } else {
+    console.log('⚠️ Discord integration disabled - missing configuration');
+  }
+} catch (error) {
+  console.warn('⚠️ Discord integration failed to initialize:', error.message);
+}
 
 // Initialize TMI client if bot credentials are available
 let tmiClient = null;

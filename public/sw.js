@@ -3,6 +3,19 @@ const CACHE_NAME = 'allinchatpoker-v1';
 const STATIC_CACHE = 'static-v1';
 const DYNAMIC_CACHE = 'dynamic-v1';
 
+// Service Worker Logger
+const SWLogger = {
+  log: (message, ...args) => {
+    console.log(`[SW] ${message}`, ...args);
+  },
+  error: (message, ...args) => {
+    console.error(`[SW] ${message}`, ...args);
+  },
+  warn: (message, ...args) => {
+    console.warn(`[SW] ${message}`, ...args);
+  }
+};
+
 const STATIC_ASSETS = [
     '/',
     '/index-enhanced.html',
@@ -30,16 +43,16 @@ const STATIC_ASSETS = [
 
 // Install event
 self.addEventListener('install', (event) => {
-    console.log('Service Worker: Installing...');
+    SWLogger.log('Installing...');
     
     event.waitUntil(
         caches.open(STATIC_CACHE)
             .then(cache => {
-                console.log('Service Worker: Caching static assets');
+                SWLogger.log('Caching static assets');
                 return cache.addAll(STATIC_ASSETS);
             })
             .then(() => {
-                console.log('Service Worker: Installation complete');
+                SWLogger.log('Installation complete');
                 self.skipWaiting();
             })
     );
@@ -47,20 +60,20 @@ self.addEventListener('install', (event) => {
 
 // Activate event
 self.addEventListener('activate', (event) => {
-    console.log('Service Worker: Activating...');
+    SWLogger.log('Activating...');
     
     event.waitUntil(
         caches.keys().then(cacheNames => {
             return Promise.all(
                 cacheNames.map(cacheName => {
                     if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
-                        console.log('Service Worker: Deleting old cache:', cacheName);
+                        SWLogger.log('Deleting old cache:', cacheName);
                         return caches.delete(cacheName);
                     }
                 })
             );
         }).then(() => {
-            console.log('Service Worker: Activation complete');
+            SWLogger.log('Activation complete');
             return self.clients.claim();
         })
     );
@@ -81,7 +94,7 @@ self.addEventListener('fetch', (event) => {
             .then(response => {
                 // Return cached response if available
                 if (response) {
-                    console.log('Service Worker: Serving from cache:', request.url);
+                    SWLogger.log('Serving from cache:', request.url);
                     return response;
                 }
                 
@@ -93,7 +106,7 @@ self.addEventListener('fetch', (event) => {
                             const responseClone = response.clone();
                             caches.open(DYNAMIC_CACHE)
                                 .then(cache => {
-                                    console.log('Service Worker: Caching dynamic resource:', request.url);
+                                    SWLogger.log('Caching dynamic resource:', request.url);
                                     cache.put(request, responseClone);
                                 });
                         }
@@ -101,7 +114,7 @@ self.addEventListener('fetch', (event) => {
                     })
                     .catch(() => {
                         // Network failed, try to serve from cache
-                        console.log('Service Worker: Network failed, trying cache fallback');
+                        SWLogger.log('Network failed, trying cache fallback');
                         return caches.match(request)
                             .then(cachedResponse => {
                                 if (cachedResponse) {
@@ -127,7 +140,7 @@ self.addEventListener('fetch', (event) => {
 // Background sync for offline actions
 self.addEventListener('sync', (event) => {
     if (event.tag === 'background-sync') {
-        console.log('Service Worker: Background sync triggered');
+        SWLogger.log('Background sync triggered');
         event.waitUntil(doBackgroundSync());
     }
 });
@@ -140,9 +153,9 @@ async function doBackgroundSync() {
         for (const data of pendingData) {
             await syncData(data);
         }
-        console.log('Service Worker: Background sync completed');
+        SWLogger.log('Background sync completed');
     } catch (error) {
-        console.error('Service Worker: Background sync failed:', error);
+        SWLogger.error('Background sync failed:', error);
     }
 }
 
@@ -211,7 +224,7 @@ self.addEventListener('message', (event) => {
             clearCache();
             break;
         default:
-            console.log('Service Worker: Unknown message type:', type);
+            SWLogger.log('Unknown message type:', type);
     }
 });
 
@@ -220,9 +233,9 @@ async function updateCache(data) {
     try {
         const cache = await caches.open(DYNAMIC_CACHE);
         await cache.put(data.url, data.response);
-        console.log('Service Worker: Cache updated for:', data.url);
+        SWLogger.log('Cache updated for:', data.url);
     } catch (error) {
-        console.error('Service Worker: Cache update failed:', error);
+        SWLogger.error('Cache update failed:', error);
     }
 }
 
@@ -232,9 +245,9 @@ async function clearCache() {
         await Promise.all(
             cacheNames.map(cacheName => caches.delete(cacheName))
         );
-        console.log('Service Worker: All caches cleared');
+        SWLogger.log('All caches cleared');
     } catch (error) {
-        console.error('Service Worker: Cache clear failed:', error);
+        SWLogger.error('Cache clear failed:', error);
     }
 }
 
@@ -248,7 +261,7 @@ async function getPendingData() {
 async function syncData(data) {
     // Sync data with server
     // This is a placeholder implementation
-    console.log('Service Worker: Syncing data:', data);
+    SWLogger.log('Syncing data:', data);
     return true;
 }
 
@@ -271,13 +284,13 @@ self.addEventListener('activate', (event) => {
 
 // Network status monitoring
 self.addEventListener('online', () => {
-    console.log('Service Worker: Network is online');
+    SWLogger.log('Network is online');
     // Trigger any pending syncs
     self.registration.sync.register('background-sync');
 });
 
 self.addEventListener('offline', () => {
-    console.log('Service Worker: Network is offline');
+    SWLogger.log('Network is offline');
 });
 
 // Performance monitoring
@@ -291,7 +304,7 @@ self.addEventListener('fetch', (event) => {
             
             // Log slow requests
             if (duration > 1000) {
-                console.warn('Service Worker: Slow request detected:', {
+                SWLogger.warn('Slow request detected:', {
                     url: event.request.url,
                     duration: duration
                 });
@@ -373,7 +386,7 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
         strategy(request)
             .catch(error => {
-                console.error('Service Worker: Cache strategy failed:', error);
+                SWLogger.error('Cache strategy failed:', error);
                 return new Response('Service worker error', {
                     status: 500,
                     statusText: 'Service worker error'
@@ -382,4 +395,4 @@ self.addEventListener('fetch', (event) => {
     );
 });
 
-console.log('Service Worker: Loaded');
+SWLogger.log('Service Worker Loaded');

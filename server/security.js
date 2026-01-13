@@ -7,6 +7,7 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const { createHash } = require('crypto');
 const middleware = require('./middleware');
+const logger = require('./utils/logger');
 
 class SecurityManager {
   constructor(app, config) {
@@ -188,7 +189,7 @@ class SecurityManager {
   }
 
   logSuspiciousActivity(ip, reason) {
-    console.warn(`[SECURITY] Suspicious activity from ${ip}: ${reason}`);
+    logger.security(`Suspicious activity from ${ip}: ${reason}`);
     
     // In production, you'd send this to a security monitoring service
     if (this.config.IS_PRODUCTION) {

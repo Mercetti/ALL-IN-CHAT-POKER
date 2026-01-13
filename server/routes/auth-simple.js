@@ -1,5 +1,6 @@
 const express = require('express');
 const config = require('../config');
+const logger = require('../utils/logger');
 const {
   createAdminJWT,
   getAdminCookieOptions,
@@ -58,7 +59,7 @@ function createSimpleAuthRouter() {
         }
       });
     } catch (error) {
-      console.error('Login error:', error);
+      logger.auth('Login error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -83,7 +84,7 @@ function createSimpleAuthRouter() {
         }
       });
     } catch (error) {
-      console.error('Token validation error:', error);
+      logger.auth('Token validation error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -101,7 +102,7 @@ function createSimpleAuthRouter() {
     try {
       res.json({ success: true, message: 'Logged out successfully' });
     } catch (error) {
-      console.error('Logout error:', error);
+      logger.auth('Logout error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });

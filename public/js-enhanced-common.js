@@ -129,23 +129,44 @@ class EnhancedCommon {
         this.initHighContrast();
     }
 
-    // Theme Management
+    // Theme Management - Updated to use Unified Theme Manager
     initTheme() {
-        const savedTheme = localStorage.getItem('theme') || 'dark';
+        // Wait for unified theme manager to be available
+        if (window.unifiedThemeManager) {
+            // Unified manager already handles initialization
+            return;
+        }
+        
+        // Fallback for pages without unified manager
+        const savedTheme = this.getLegacyTheme() || 'dark';
         this.setTheme(savedTheme);
 
         // Listen for system theme changes
         if (window.matchMedia) {
             const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
             mediaQuery.addListener((e) => {
-                if (!localStorage.getItem('theme')) {
+                if (!this.getLegacyTheme()) {
                     this.setTheme(e.matches ? 'light' : 'dark');
                 }
             });
         }
     }
 
+    getLegacyTheme() {
+        // Check multiple legacy keys for migration
+        return localStorage.getItem('theme') || 
+               localStorage.getItem('app_theme') || 
+               localStorage.getItem('theme-preference');
+    }
+
     setTheme(theme) {
+        // Use unified manager if available
+        if (window.unifiedThemeManager) {
+            window.unifiedThemeManager.setTheme(theme);
+            return;
+        }
+        
+        // Fallback behavior
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
         

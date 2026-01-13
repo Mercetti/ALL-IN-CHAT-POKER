@@ -578,7 +578,11 @@ class ThemeManager {
 
     applyTheme(themeName) {
         if (!this.themes[themeName]) {
-            console.error(`Theme "${themeName}" not found`);
+            if (typeof logger !== 'undefined') {
+                logger.theme(`Theme "${themeName}" not found`);
+            } else {
+                console.error(`Theme "${themeName}" not found`);
+            }
             return;
         }
 
@@ -833,9 +837,28 @@ class ThemeManager {
 }
 
 // Initialize theme manager
+// Legacy Theme Manager - DEPRECATED
+// This file is kept for backward compatibility
+// Use unified-theme-manager.js instead
+
 document.addEventListener('DOMContentLoaded', () => {
-    window.themeManager = new ThemeManager();
+    // Load unified theme manager
+    if (!window.unifiedThemeManager) {
+        const script = document.createElement('script');
+        script.src = 'unified-theme-manager.js';
+        script.onload = () => {
+            console.log('Unified theme manager loaded');
+        };
+        document.head.appendChild(script);
+    }
 });
 
 // Export for potential external use
-window.ThemeManager = ThemeManager;
+window.ThemeManager = class LegacyThemeManager {
+    constructor() {
+        console.warn('Legacy ThemeManager is deprecated. Use unified-theme-manager.js instead.');
+        if (window.unifiedThemeManager) {
+            return window.unifiedThemeManager;
+        }
+    }
+};

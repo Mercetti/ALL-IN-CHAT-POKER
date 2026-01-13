@@ -433,11 +433,3 @@ function EditUserForm({ user, onSubmit, onCancel }) {
     </form>
   );
 }
-
-export default function AdminUsersPage() {
-  return (
-    <ErrorBoundary>
-      <AdminUsersPageComponent />
-    </ErrorBoundary>
-  );
-}

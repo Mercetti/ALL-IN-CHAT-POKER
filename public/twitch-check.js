@@ -2,6 +2,16 @@
 // Usage: call ensureTwitchLinked({ required: true }) after login or on app init.
 // This version relies on our backend session cookies instead of Supabase.
 
+// Import logger (will be available if client-logger.js is loaded)
+if (typeof logger !== 'undefined') {
+  // Logger is available
+} else {
+  // Fallback to console if logger not available
+  var logger = {
+    auth: console.error.bind(console)
+  };
+}
+
 async function ensureTwitchLinked({ required = true } = {}) {
   try {
     const res = await fetch('/auth/link/status', {
@@ -37,7 +47,7 @@ async function ensureTwitchLinked({ required = true } = {}) {
     window.location.href = '/login.html?twitch=1';
     return { ok: true, linkingStarted: true };
   } catch (error) {
-    console.error('Failed to check Twitch link status', error);
+    logger.auth('Failed to check Twitch link status', error);
     return { ok: false, reason: 'network_error', error };
   }
 }
