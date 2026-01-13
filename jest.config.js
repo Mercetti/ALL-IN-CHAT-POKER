@@ -3,6 +3,8 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/tests/jest-setup.js'],
   resetMocks: false,
   restoreMocks: false,
+  testMatch: ['<rootDir>/tests/**/*.test.js'],
+  testPathIgnorePatterns: ['<rootDir>/test/'],
   globals: {
     express: true,
     jest: true,

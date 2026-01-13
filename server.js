@@ -20,6 +20,22 @@ const config = require('./server/config');
 const Logger = require('./server/logger');
 const payoutStore = require('./server/payout-store');
 const { PerformanceMonitor } = require('./server/utils/performance-monitor');
+let AIPerformanceMonitor;
+try {
+  AIPerformanceMonitor = require('./server/ai-performance-monitor');
+} catch (e) {
+  console.warn('Could not load AIPerformanceMonitor:', e.message);
+  AIPerformanceMonitor = class {
+    constructor() {
+      this.init = () => {};
+      this.startMonitoring = () => {};
+      this.stopMonitoring = () => {};
+      this.recordRequest = () => {};
+      this.analyzePerformance = () => {};
+      this.getMetrics = () => ({});
+    }
+  };
+}
 const UnifiedAISystem = require('./server/unified-ai');
 const { registerAdminAiControlRoutes } = require('./server/routes/admin-ai-control');
 const { createSimpleAdminAiControlRouter } = require('./server/routes/admin-ai-control-simple');
@@ -40,6 +56,23 @@ const unifiedAI = new UnifiedAISystem({
   enableCosmeticAI: true,
 });
 const connectionHardener = new ConnectionHardener();
+
+// Initialize performanceMonitor early
+let performanceMonitor;
+if (process.env.NODE_ENV !== 'test') {
+  performanceMonitor = new AIPerformanceMonitor();
+} else {
+  // Create a mock performanceMonitor for tests
+  performanceMonitor = {
+    init: jest.fn(),
+    startMonitoring: jest.fn(),
+    stopMonitoring: jest.fn(),
+    recordRequest: jest.fn(),
+    analyzePerformance: jest.fn(),
+    getMetrics: jest.fn(() => ({})),
+  };
+}
+
 const recentErrors = [];
 const recentSlowRequests = [];
 const recentSocketDisconnects = [];
@@ -285,21 +318,23 @@ if (process.env.NODE_ENV !== 'test') {
 
 // Initialize Poker Audio System
 let pokerAudioSystem;
-try {
-  pokerAudioSystem = new PokerAudioSystem({
-    outputDir: path.join(__dirname, 'public/assets/audio'),
-    enableGeneration: true,
-    dmcaSafe: true,
-    defaultMusicOff: true,
-    maxDuration: 90,
-    sampleRate: 44100
-  });
-  
-  // Initialize the audio system
-  pokerAudioSystem.init();
-  console.log('🎵 Poker Audio System initialized successfully');
-} catch (error) {
-  console.error('❌ Failed to create Poker Audio System:', error.message);
+if (process.env.NODE_ENV !== 'test') {
+  try {
+    // Check if PokerAudioSystem class exists
+    const PokerAudioSystem = require('./server/poker-audio-system');
+    pokerAudioSystem = new PokerAudioSystem({
+      outputDir: path.join(__dirname, 'public/assets/audio'),
+      enableGeneration: true,
+      dmcaSafe: true,
+      defaultMusicOff: true,
+    });
+    
+    // Initialize the audio system
+    pokerAudioSystem.init();
+    console.log('🎵 Poker Audio System initialized successfully');
+  } catch (error) {
+    console.error('❌ Failed to create Poker Audio System:', error.message);
+  }
 }
 
 // Health check endpoint
@@ -586,13 +621,6 @@ server.listen(PORT, HOST, () => {
     process.exit(1);
   }
 });
-
-// Wait a bit for server to be ready in test mode
-if (process.env.NODE_ENV === 'test') {
-  setTimeout(() => {
-    console.log('Test server ready');
-  }, 100);
-}
 
 // Handle graceful shutdown
 process.on('SIGTERM', () => {

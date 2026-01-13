@@ -1,10 +1,14 @@
 const request = require('supertest');
 
-const app = require('../server');
+// Initialize database before requiring server
+const db = require('../server/db');
+db.init();
+
+const { server } = require('../server');
 
 describe('Server Startup', () => {
   it('should start without errors', async () => {
-    const res = await request(app).get('/health');
+    const res = await request(server).get('/health');
     expect(res.status).toBe(200);
     expect(res.text).toBe('OK');
   });

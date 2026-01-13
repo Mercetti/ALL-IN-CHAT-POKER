@@ -46,10 +46,14 @@ function checkStartup() {
  */
 function checkEnvironment() {
   const issues = [];
+  const missingEnv = new Set();
 
   const isProd = config.IS_PRODUCTION;
 
-  const missing = (name) => issues.push(`${name} not set`);
+  const missing = (name) => {
+    issues.push(`${name} not set`);
+    missingEnv.add(name);
+  };
   const insecure = (name, msg) => issues.push(`${name} insecure: ${msg}`);
 
   if (!process.env.JWT_SECRET) {

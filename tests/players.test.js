@@ -209,5 +209,12 @@ describe('Player/Streamer Management', () => {
     // Cleanup test player
     const db = require('../server/db');
     db.db.prepare('DELETE FROM profiles WHERE login = ?').run('testplayer');
+    
+    // Close server to prevent open handles
+    if (server && server.close) {
+      await new Promise((resolve) => {
+        server.close(resolve);
+      });
+    }
   });
 });

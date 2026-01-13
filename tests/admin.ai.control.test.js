@@ -118,7 +118,7 @@ describe('Admin AI Control routes', () => {
         'Status update?',
         { login: 'mercetti' },
         null,
-        null,
+        { attachments: [] },
       );
     });
 

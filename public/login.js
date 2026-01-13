@@ -265,6 +265,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
           console.log('🔍 Redirect logic:', { login, role, isAdminRole, isConfiguredAdmin, desiredRole });
 
+          // Check if we have a redirect target first
+          if (redirectTarget) {
+            console.log('🔍 Redirecting to redirectTarget after login:', redirectTarget);
+            window.location.href = redirectTarget;
+            return;
+          }
+
           const goAdmin = async () => {
             console.log('🔍 Going to admin panel...');
             if (!isAdminRole && !isConfiguredAdmin && desiredRole === 'streamer') {

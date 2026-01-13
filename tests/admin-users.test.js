@@ -265,5 +265,12 @@ describe('Admin User Management', () => {
     // Cleanup test admin user
     const db = require('../server/db');
     db.db.prepare('DELETE FROM admin_users WHERE login = ?').run('testadmin');
+    
+    // Close server to prevent open handles
+    if (server && server.close) {
+      await new Promise((resolve) => {
+        server.close(resolve);
+      });
+    }
   });
 });
