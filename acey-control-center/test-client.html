@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Control Center Test Client</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .connected { background-color: #d4edda; color: #155724; }
+        .disconnected { background-color: #f8d7da; color: #721c24; }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 5px 0;
+        }
+        .test-data {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧠 AI Control Center Test Client</h1>
+    
+    <div class="container">
+        <h2>Connection Status</h2>
+        <div id="status" class="status disconnected">Disconnected</div>
+        <button id="connectBtn">Connect to Control Center</button>
+        <button id="disconnectBtn" disabled>Disconnect</button>
+    </div>
+
+    <div class="container">
+        <h2>Test Data</h2>
+        <div class="test-data">
+            <h3>Sample Acey Output:</h3>
+            <pre id="sampleData">{
+  "speech": "All-in! This is an amazing play!",
+  "intents": [
+    {
+      "type": "memory_proposal",
+      "scope": "event",
+      "summary": "Player went all-in with excitement",
+      "confidence": 0.9,
+      "ttl": "1h"
+    },
+    {
+      "type": "trust_signal",
+      "delta": 0.1,
+      "reason": "Positive engagement",
+      "reversible": true
+    }
+  ]
+}</pre>
+        </div>
+        <button id="sendTestDataBtn">Send Test Data</button>
+        <button id="sendRandomBtn">Send Random Data</button>
+    </div>
+
+    <div class="container">
+        <h2>Custom Test</h2>
+        <textarea id="customData" rows="8" placeholder="Enter custom JSON data to test..."></textarea>
+        <button id="sendCustomBtn">Send Custom Data</button>
+    </div>
+
+    <div class="container">
+        <h2>Event Log</h2>
+        <div id="log" class="log"></div>
+        <button id="clearLogBtn">Clear Log</button>
+    </div>
+
+    <script>
+        let socket = null;
+        const log = document.getElementById('log');
+        const status = document.getElementById('status');
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+
+        function addLog(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            log.innerHTML += `[${timestamp}] ${message}\n`;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function updateStatus(connected) {
+            if (connected) {
+                status.className = 'status connected';
+                status.textContent = 'Connected to AI Control Center';
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+            } else {
+                status.className = 'status disconnected';
+                status.textContent = 'Disconnected';
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+            }
+        }
+
+        function connect() {
+            addLog('Connecting to AI Control Center...');
+            socket = io('http://localhost:3001');
+
+            socket.on('connect', () => {
+                addLog('✅ Connected to AI Control Center');
+                updateStatus(true);
+            });
+
+            socket.on('disconnect', () => {
+                addLog('❌ Disconnected from AI Control Center');
+                updateStatus(false);
+            });
+
+            socket.on('output_processed', (data) => {
+                addLog(`📤 Response: ${JSON.stringify(data)}`);
+            });
+
+            socket.on('connect_error', (error) => {
+                addLog(`❌ Connection error: ${error.message}`);
+                updateStatus(false);
+            });
+        }
+
+        function disconnect() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+                updateStatus(false);
+            }
+        }
+
+        function sendTestData() {
+            if (!socket) {
+                addLog('❌ Not connected to Control Center');
+                return;
+            }
+
+            const testData = {
+                speech: "All-in! This is an amazing play!",
+                intents: [
+                    {
+                        type: "memory_proposal",
+                        scope: "event",
+                        summary: "Player went all-in with excitement",
+                        confidence: 0.9,
+                        ttl: "1h"
+                    },
+                    {
+                        type: "trust_signal",
+                        delta: 0.1,
+                        reason: "Positive engagement",
+                        reversible: true
+                    }
+                ]
+            };
+
+            addLog(`📤 Sending test data: ${JSON.stringify(testData)}`);
+            socket.emit('acey_output', testData);
+        }
+
+        function sendRandomData() {
+            if (!socket) {
+                addLog('❌ Not connected to Control Center');
+                return;
+            }
+
+            const randomData = {
+                speech: `Random test message ${Math.random()}`,
+                intents: [
+                    {
+                        type: "memory_proposal",
+                        scope: "event",
+                        summary: `Random event ${Math.random()}`,
+                        confidence: Math.random(),
+                        ttl: "1h"
+                    }
+                ]
+            };
+
+            addLog(`📤 Sending random data: ${JSON.stringify(randomData)}`);
+            socket.emit('acey_output', randomData);
+        }
+
+        function sendCustomData() {
+            if (!socket) {
+                addLog('❌ Not connected to Control Center');
+                return;
+            }
+
+            const customDataText = document.getElementById('customData').value;
+            if (!customDataText.trim()) {
+                addLog('❌ Please enter custom data');
+                return;
+            }
+
+            try {
+                const customData = JSON.parse(customDataText);
+                addLog(`📤 Sending custom data: ${JSON.stringify(customData)}`);
+                socket.emit('acey_output', customData);
+            } catch (error) {
+                addLog(`❌ Invalid JSON: ${error.message}`);
+            }
+        }
+
+        function clearLog() {
+            log.innerHTML = '';
+        }
+
+        // Event listeners
+        connectBtn.addEventListener('click', connect);
+        disconnectBtn.addEventListener('click', disconnect);
+        document.getElementById('sendTestDataBtn').addEventListener('click', sendTestData);
+        document.getElementById('sendRandomBtn').addEventListener('click', sendRandomData);
+        document.getElementById('sendCustomBtn').addEventListener('click', sendCustomData);
+        document.getElementById('clearLogBtn').addEventListener('click', clearLog);
+
+        // Initialize
+        updateStatus(false);
+        addLog('🚀 AI Control Center Test Client ready');
+    </script>
+</body>
+</html>

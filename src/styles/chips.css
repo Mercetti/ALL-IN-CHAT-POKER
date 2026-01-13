@@ -1,0 +1,530 @@
+/**
+ * Chips Styles
+ * Global styles for chip components and chip-related UI
+ */
+
+/* ===== CHIP DESIGN SYSTEM ===== */
+:root {
+  /* Chip dimensions */
+  --chip-width-small: 30px;
+  --chip-height-small: 30px;
+  --chip-width-medium: 40px;
+  --chip-height-medium: 40px;
+  --chip-width-large: 50px;
+  --chip-height-large: 50px;
+  --chip-width-xlarge: 60px;
+  --chip-height-xlarge: 60px;
+  
+  /* Chip colors */
+  --chip-white: #ffffff;
+  --chip-red: #e53e3e;
+  --chip-green: #48bb78;
+  --chip-blue: #4299e1;
+  --chip-black: #2d3748;
+  --chip-purple: #9f7aea;
+  --chip-orange: #ed8936;
+  --chip-yellow: #ecc94b;
+  
+  /* Chip effects */
+  --chip-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --chip-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --chip-shadow-selected: 0 0 0 3px rgba(49, 130, 206, 0.5), 0 8px 24px rgba(0, 0, 0, 0.3);
+  --chip-transition: all 0.3s ease;
+  --chip-hover-transform: translateY(-2px) scale(1.05);
+  --chip-selected-transform: translateY(-4px) scale(1.1);
+  
+  /* Chip spacing */
+  --chip-spacing-tight: -4px;
+  --chip-spacing-loose: -2px;
+  --chip-spacing-normal: 8px;
+  --chip-spacing-wide: 12px;
+}
+
+/* ===== BASE CHIP ===== */
+.chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  transition: var(--chip-transition);
+  font-weight: bold;
+  text-transform: uppercase;
+  box-shadow: var(--chip-shadow);
+  overflow: hidden;
+}
+
+.chip:hover {
+  transform: var(--chip-hover-transform);
+  box-shadow: var(--chip-shadow-hover);
+}
+
+.chip--selected {
+  transform: var(--chip-selected-transform);
+  box-shadow: var(--chip-shadow-selected);
+}
+
+.chip--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ===== CHIP SIZES ===== */
+.chip--small {
+  width: var(--chip-width-small);
+  height: var(--chip-height-small);
+  font-size: 10px;
+}
+
+.chip--medium {
+  width: var(--chip-width-medium);
+  height: var(--chip-height-medium);
+  font-size: 12px;
+}
+
+.chip--large {
+  width: var(--chip-width-large);
+  height: var(--chip-height-large);
+  font-size: 14px;
+}
+
+.chip--xlarge {
+  width: var(--chip-width-xlarge);
+  height: var(--chip-height-xlarge);
+  font-size: 16px;
+}
+
+/* ===== CHIP COLORS ===== */
+.chip--white {
+  background: linear-gradient(135deg, var(--chip-white) 0%, #f7fafc 100%);
+  color: #2d3748;
+  border: 2px solid #e2e8f0;
+}
+
+.chip--red {
+  background: linear-gradient(135deg, var(--chip-red) 0%, #c53030 100%);
+  color: white;
+  border: 2px solid #c53030;
+}
+
+.chip--green {
+  background: linear-gradient(135deg, var(--chip-green) 0%, #38a169 100%);
+  color: white;
+  border: 2px solid #38a169;
+}
+
+.chip--blue {
+  background: linear-gradient(135deg, var(--chip-blue) 0%, #3182ce 100%);
+  color: white;
+  border: 2px solid #3182ce;
+}
+
+.chip--black {
+  background: linear-gradient(135deg, var(--chip-black) 0%, #1a202c 100%);
+  color: white;
+  border: 2px solid #1a202c;
+}
+
+.chip--purple {
+  background: linear-gradient(135deg, var(--chip-purple) 0%, #805ad5 100%);
+  color: white;
+  border: 2px solid #805ad5;
+}
+
+.chip--orange {
+  background: linear-gradient(135deg, var(--chip-orange) 0%, #dd6b20 100%);
+  color: white;
+  border: 2px solid #dd6b20;
+}
+
+.chip--yellow {
+  background: linear-gradient(135deg, var(--chip-yellow) 0%, #d69e2e 100%);
+  color: #744210;
+  border: 2px solid #d69e2e;
+}
+
+/* ===== CHIP STATES ===== */
+.chip--stacked {
+  transform-style: preserve-3d;
+}
+
+.chip--animated {
+  animation: chipEntry 0.5s ease-out;
+}
+
+.chip--glowing {
+  animation: chipGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes chipEntry {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes chipGlow {
+  0% {
+    box-shadow: 0 0 10px rgba(49, 130, 206, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(49, 130, 206, 0.8);
+  }
+}
+
+/* ===== CHIP CONTAINERS ===== */
+.chip-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--chip-spacing-normal);
+  padding: 16px;
+}
+
+.chip-container--tight {
+  gap: var(--chip-spacing-tight);
+}
+
+.chip-container--loose {
+  gap: var(--chip-spacing-loose);
+}
+
+.chip-container--wide {
+  gap: var(--chip-spacing-wide);
+}
+
+/* ===== CHIP STACKS ===== */
+.chip-stack {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chip-stack--vertical .chip {
+  position: absolute;
+  transform: translateY(var(--stack-y, 0));
+}
+
+.chip-stack--horizontal .chip {
+  position: absolute;
+  transform: translateX(var(--stack-x, 0));
+}
+
+.chip-stack--pyramid .chip {
+  position: absolute;
+  transform: translateY(var(--stack-y, 0)) translateX(var(--stack-x, 0));
+}
+
+.chip-stack--fan .chip {
+  position: absolute;
+  transform-origin: bottom center;
+  transform: rotate(var(--fan-angle, 0deg)) translateY(var(--fan-y, 0));
+}
+
+/* ===== CHIP POTS ===== */
+.chip-pot {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  min-height: 120px;
+}
+
+.chip-pot--circle {
+  border-radius: 50%;
+}
+
+.chip-pot--square {
+  border-radius: 12px;
+}
+
+.chip-pot--rounded {
+  border-radius: 20px;
+}
+
+.chip-pot__surface {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(ellipse at center, #2a5434 0%, #1a3420 100%);
+  border-radius: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+/* ===== CHIP BETS ===== */
+.chip-bet {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  min-width: 300px;
+}
+
+.chip-bet__amount {
+  text-align: center;
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.chip-bet__amount-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: #2d3748;
+}
+
+/* ===== CHIP ANIMATIONS ===== */
+.chip-animation--stack {
+  /* Stack animation styles - chips stack vertically */
+}
+
+.chip-animation--cascade {
+  /* Cascade animation styles - chips fall in cascade pattern */
+}
+
+.chip-animation--spiral {
+  /* Spiral animation styles - chips arrange in spiral pattern */
+}
+
+.chip-animation--explode {
+  /* Explode animation styles - chips explode outward */
+}
+
+.chip-animation--shuffle {
+  /* Shuffle animation styles - chips shuffle randomly */
+}
+
+.chip-animation--deal {
+  /* Deal animation styles - chips deal like cards */
+}
+
+/* ===== CHIP EFFECTS ===== */
+.chip-effect--ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.chip-effect--ripple::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+}
+
+.chip-effect--ripple:active::after {
+  width: 200px;
+  height: 200px;
+}
+
+.chip-effect--bounce {
+  animation: chipBounce 0.6s ease-out;
+}
+
+@keyframes chipBounce {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.chip-effect--spin {
+  animation: chipSpin 1s ease-in-out;
+}
+
+@keyframes chipSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== CHIP THEMES ===== */
+.chip-theme--classic {
+  /* Classic casino chip theme */
+  background: linear-gradient(135deg, #f7fafc 0%, #e2e8f0 100%);
+  border: 3px solid #cbd5e0;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.chip-theme--modern {
+  /* Modern chip theme */
+  background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.chip-theme--neon {
+  /* Neon chip theme */
+  background: #1a202c;
+  border: 2px solid #00ff88;
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+}
+
+.chip-theme--neon.chip--red {
+  border-color: #ff0088;
+  box-shadow: 0 0 20px rgba(255, 0, 136, 0.5);
+}
+
+.chip-theme--neon.chip--black {
+  border-color: #00ff88;
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+}
+
+/* ===== MOBILE OPTIMIZATIONS ===== */
+@media (max-width: 767px) {
+  :root {
+    --chip-width-small: 25px;
+    --chip-height-small: 25px;
+    --chip-width-medium: 30px;
+    --chip-height-medium: 30px;
+    --chip-width-large: 35px;
+    --chip-height-large: 35px;
+    --chip-width-xlarge: 40px;
+    --chip-height-xlarge: 40px;
+    
+    --chip-spacing-tight: -3px;
+    --chip-spacing-loose: -1px;
+    --chip-spacing-normal: 6px;
+    --chip-spacing-wide: 10px;
+  }
+  
+  .chip-container {
+    padding: 12px;
+  }
+  
+  .chip-pot {
+    min-width: 100px;
+    min-height: 100px;
+  }
+  
+  .chip-bet {
+    padding: 16px;
+    min-width: 250px;
+  }
+  
+  .chip-bet__amount-value {
+    font-size: 20px;
+  }
+}
+
+/* ===== HIGH DPI SUPPORT ===== */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .chip {
+    border-width: 1px;
+  }
+  
+  .chip-theme--classic {
+    border-width: 2px;
+  }
+  
+  .chip-theme--modern {
+    border-width: 1px;
+  }
+  
+  .chip-theme--neon {
+    border-width: 1px;
+  }
+}
+
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  .chip,
+  .chip-animation,
+  .chip-effect {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* ===== DARK MODE ===== */
+@media (prefers-color-scheme: dark) {
+  .chip-bet {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  
+  .chip-bet__amount {
+    background: #2d3748;
+    color: white;
+  }
+  
+  .chip-bet__amount-value {
+    color: white;
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+.chip:focus-visible {
+  outline: 2px solid #3182ce;
+  outline-offset: 2px;
+}
+
+.chip:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.chip:hover:focus-visible {
+  transform: var(--chip-hover-transform) scale(1.02);
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .chip {
+    border-width: 3px;
+    border-color: #000;
+  }
+  
+  .chip--selected {
+    border-color: #0066cc;
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  .chip {
+    background: white !important;
+    border: 2px solid black !important;
+    color: black !important;
+    box-shadow: none !important;
+  }
+  
+  .chip-container,
+  .chip-pot,
+  .chip-bet {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+}

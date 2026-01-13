@@ -1,0 +1,233 @@
+/**
+ * Chip Animation Styles
+ * Advanced chip animation component styles
+ */
+
+/* ===== BASE CHIP ANIMATION ===== */
+.chip-animation {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 200px;
+  min-height: 200px;
+}
+
+.chip-animation--animating {
+  overflow: visible;
+}
+
+.chip-animation__chip-wrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 0.5s ease;
+  cursor: default;
+}
+
+/* ===== ANIMATION TYPES ===== */
+.chip-animation--stack .chip-animation__chip-wrapper {
+  transform-origin: center;
+}
+
+.chip-animation--cascade .chip-animation__chip-wrapper {
+  transform-origin: center top;
+}
+
+.chip-animation--spiral .chip-animation__chip-wrapper {
+  transform-origin: center;
+}
+
+.chip-animation--explode .chip-animation__chip-wrapper {
+  transform-origin: center;
+}
+
+.chip-animation--shuffle .chip-animation__chip-wrapper {
+  transform-origin: center;
+}
+
+.chip-animation--deal .chip-animation__chip-wrapper {
+  transform-origin: center;
+}
+
+/* ===== CHIP TRAIL ===== */
+.chip-trail {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 300px;
+  min-height: 100px;
+}
+
+.chip-trail__chip-wrapper {
+  position: absolute;
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.chip-trail--path .chip-trail__chip-wrapper {
+  transform-origin: center;
+}
+
+.chip-trail--wave .chip-trail__chip-wrapper {
+  transform-origin: center;
+}
+
+.chip-trail--circle .chip-trail__chip-wrapper {
+  transform-origin: center;
+}
+
+/* ===== CHIP FOUNTAIN ===== */
+.chip-fountain {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 200px;
+  height: 300px;
+  overflow: hidden;
+}
+
+.chip-fountain__source {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 40px;
+  background: radial-gradient(ellipse at center, #4299e1 0%, #3182ce 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 20px rgba(66, 153, 225, 0.6);
+}
+
+.chip-fountain__particle {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: all 0.1s linear;
+  pointer-events: none;
+}
+
+/* ===== ANIMATION KEYFRAMES ===== */
+@keyframes chipStackEntry {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) translateY(-20px) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) translateY(0) scale(1);
+  }
+}
+
+@keyframes chipCascadeEntry {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) translateY(-50px) translateX(-20px) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) translateY(0) translateX(0) scale(1);
+  }
+}
+
+@keyframes chipSpiralEntry {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5) rotate(0deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(360deg);
+  }
+}
+
+@keyframes chipExplodeEntry {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes chipShuffleEntry {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(0deg) scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(180deg) scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(360deg) scale(1);
+  }
+}
+
+@keyframes chipDealEntry {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) translateY(-100px) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) translateY(0) scale(1);
+  }
+}
+
+/* ===== MOBILE OPTIMIZATIONS ===== */
+@media (max-width: 767px) {
+  .chip-animation {
+    min-width: 150px;
+    min-height: 150px;
+  }
+  
+  .chip-trail {
+    min-width: 250px;
+    min-height: 80px;
+  }
+  
+  .chip-fountain {
+    width: 150px;
+    height: 250px;
+  }
+  
+  .chip-fountain__source {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  .chip-animation,
+  .chip-trail,
+  .chip-fountain {
+    animation: none;
+  }
+  
+  .chip-animation__chip-wrapper,
+  .chip-trail__chip-wrapper,
+  .chip-fountain__particle {
+    transition: none;
+  }
+}
+
+/* ===== DARK MODE ===== */
+@media (prefers-color-scheme: dark) {
+  .chip-fountain__source {
+    background: radial-gradient(ellipse at center, #2c5282 0%, #2a4365 100%);
+    box-shadow: 0 0 20px rgba(44, 82, 130, 0.6);
+  }
+}

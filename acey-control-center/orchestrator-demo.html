@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acey Orchestrator Dashboard Demo</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f3f4f6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-warning { background: #f59e0b; color: white; }
+        .btn-warning:hover { background: #d97706; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-secondary { background: #6b7280; color: white; }
+        .btn-secondary:hover { background: #4b5563; }
+        .form-control {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .grid {
+            display: grid;
+            gap: 20px;
+        }
+        .grid-2 { grid-template-columns: 1fr 1fr; }
+        .grid-4 { grid-template-columns: repeat(4, 1fr); }
+        .text-sm { font-size: 12px; }
+        .text-gray-500 { color: #6b7280; }
+        .text-gray-600 { color: #4b5563; }
+        .text-gray-700 { color: #374151; }
+        .font-medium { font-weight: 500; }
+        .font-semibold { font-weight: 600; }
+        .mb-2 { margin-bottom: 8px; }
+        .mb-4 { margin-bottom: 16px; }
+        .mt-2 { margin-top: 8px; }
+        .mt-4 { margin-top: 16px; }
+        .p-2 { padding: 8px; }
+        .p-4 { padding: 16px; }
+        .p-6 { padding: 24px; }
+        .rounded { border-radius: 4px; }
+        .rounded-md { border-radius: 6px; }
+        .rounded-lg { border-radius: 8px; }
+        .shadow { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); }
+        .shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+        .border { border: 1px solid #e5e7eb; }
+        .border-t { border-top: 1px solid #e5e7eb; }
+        .border-b { border-bottom: 1px solid #e5e5e7eb; }
+        .flex { display: flex; }
+        .flex-1 { flex: 1; }
+        .justify-between { justify-content: space-between; }
+        .items-center { align-items: center; }
+        .gap-2 { gap: 8px; }
+        .gap-4 { gap: 16px; }
+        .space-y-2 > * + * { margin-top: 8px; }
+        .space-y-2 > * + * { margin-top: 8px; }
+        .max-h-96 { max-height: 24rem; }
+        .overflow-y-auto { overflow-y: auto; }
+        .text-green-600 { color: #059669; }
+        .text-red-600 { color: #dc2626; }
+        .text-yellow-600 { color: #d97706; }
+        .text-blue-600 { color: #2563eb; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Mock schema definitions
+        const TaskType = {
+            GAME: "game",
+            WEBSITE: "website", 
+            GRAPHICS: "graphics",
+            AUDIO: "audio",
+            MODERATION: "moderation",
+            MEMORY: "memory",
+            TRUST: "trust",
+            PERSONA: "persona"
+        };
+
+        const PersonaMode = {
+            CALM: "calm",
+            HYPE: "hype", 
+            NEUTRAL: "neutral",
+            LOCKED: "locked"
+        };
+
+        // Mock orchestrator class
+        class MockAceyOrchestrator {
+            constructor(options) {
+            this.llmEndpoint = options.llmEndpoint;
+            this.personaMode = options.personaMode || PersonaMode.NEUTRAL;
+            this.autoApprove = options.autoApprove ?? true;
+            this.simulationMode = options.simulationMode ?? false;
+        }
+
+            updateConfig(newConfig) {
+            if (newConfig.personaMode) this.personaMode = newConfig.personaMode;
+            if (newConfig.autoApprove !== undefined) this.autoApprove = newConfig.autoApprove;
+            if (newConfig.simulationMode !== undefined) this.simulationMode = newConfig.simulationMode;
+        }
+
+            getStats() {
+                return {
+                    llmEndpoint: this.llmEndpoint,
+                    personaMode: this.personaMode,
+                    autoApprove: this.autoApprove,
+                    simulationMode: this.simulationMode
+                };
+            }
+
+            async runBatch(tasks) {
+                // Simulate processing delay
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                return tasks.map(task => ({
+                    speech: `[${task.taskType.toUpperCase()}] ${task.prompt} (${this.personaMode} mode)`,
+                    intents: [
+                        {
+                            type: "mock_intent",
+                            confidence: 0.8,
+                            taskType: task.taskType
+                        }
+                    ]
+                }));
+            }
+        }
+
+        // Orchestrator Dashboard Component
+        function OrchestratorDashboard({ orchestrator }) {
+            const [taskQueue, setTaskQueue] = useState([]);
+            const [simulationLogs, setSimulationLogs] = useState([]);
+            const [results, setResults] = useState([]);
+            const [isRunning, setIsRunning] = useState(false);
+            const [selectedTaskType, setSelectedTaskType] = useState(TaskType.GAME);
+            const [customPrompt, setCustomPrompt] = useState("");
+            const [customContext, setCustomContext] = useState("{}");
+            const [personaMode, setPersonaMode] = useState(PersonaMode.HYPE);
+            const [autoApprove, setAutoApprove] = useState(true);
+            const [simulationMode, setSimulationMode] = useState(true);
+
+            const addTask = (taskType, prompt, context) => {
+                const taskId = `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                setTaskQueue([...taskQueue, { taskType, prompt, context, id: taskId }]);
+            };
+
+            const addCustomTask = () => {
+                try {
+                    const context = JSON.parse(customContext);
+                    addTask(selectedTaskType, customPrompt, context);
+                    setCustomPrompt("");
+                    setCustomContext("{}");
+                } catch (error) {
+                    alert("Invalid JSON in context field");
+                }
+            };
+
+            const removeTask = (taskId) => {
+                setTaskQueue(taskQueue.filter(task => task.id !== taskId));
+            };
+
+            const runSimulation = async () => {
+                if (!taskQueue.length) return;
+                
+                setIsRunning(true);
+                try {
+                    orchestrator.updateConfig({
+                        personaMode,
+                        autoApprove,
+                        simulationMode: true
+                    });
+
+                    const tasks = taskQueue.map(({ taskType, prompt, context }) => ({ taskType, prompt, context }));
+                    const outputs = await orchestrator.runBatch(tasks);
+                    setResults(outputs);
+
+                    // Mock logs
+                    const mockLogs = tasks.map((task, index) => ({
+                        taskType: task.taskType,
+                        timestamp: new Date().toISOString(),
+                        context: { ...task.context, environment: "simulation" },
+                        llmPrompt: task.prompt,
+                        llmOutput: outputs[index].speech,
+                        aceyOutput: outputs[index],
+                        controlDecision: "approved",
+                        finalAction: "simulated",
+                        trustDelta: 0,
+                        personaMode: personaMode,
+                        performance: {
+                            responseTime: 1500,
+                            tokenCount: 50,
+                            cost: 0.001
+                        }
+                    }));
+                    setSimulationLogs(mockLogs);
+
+                } catch (error) {
+                    console.error("Simulation failed:", error);
+                    alert("Simulation failed. Check console for details.");
+                } finally {
+                    setIsRunning(false);
+                }
+            };
+
+            const resetSimulation = () => {
+                setTaskQueue([]);
+                setSimulationLogs([]);
+                setResults([]);
+            };
+
+            const clearLogs = () => {
+                setSimulationLogs([]);
+            };
+
+            const getTaskStats = () => {
+                const stats = {
+                    total: taskQueue.length,
+                    game: taskQueue.filter(t => t.taskType === TaskType.GAME).length,
+                    website: taskQueue.filter(t => t.taskType === TaskType.WEBSITE).length,
+                    graphics: taskQueue.filter(t => t.taskType === TaskType.GRAPHICS).length,
+                    audio: taskQueue.filter(t => t.taskType === TaskType.AUDIO).length,
+                    moderation: taskQueue.filter(t => t.taskType === TaskType.MODERATION).length,
+                    memory: taskQueue.filter(t => t.taskType === TaskType.MEMORY).length,
+                    trust: taskQueue.filter(t => t.taskType === TaskType.TRUST).length,
+                    persona: taskQueue.filter(t => t.taskType === TaskType.PERSONA).length
+                };
+                return stats;
+            };
+
+            const getLogStats = () => {
+                const stats = {
+                    total: simulationLogs.length,
+                    approved: simulationLogs.filter(log => log.controlDecision === "approved").length,
+                    rejected: simulationLogs.filter(log => log.controlDecision === "rejected").length,
+                    pending: simulationLogs.filter(log => log.controlDecision === "pending").length,
+                    modified: simulationLogs.filter(log => log.controlDecision === "modified").length,
+                    avgResponseTime: simulationLogs.length > 0 
+                        ? simulationLogs.reduce((sum, log) => sum + (log.performance?.responseTime || 0), 0) / simulationLogs.length 
+                        : 0
+                };
+                return stats;
+            };
+
+            return (
+                <div className="container">
+                    <h1>🎮 Acey Orchestrator Dashboard</h1>
+                    
+                    {/* Configuration Panel */}
+                    <div className="card">
+                        <h2>Configuration</h2>
+                        <div className="grid grid-4 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Persona Mode</label>
+                                <select 
+                                    value={personaMode} 
+                                    onChange={(e) => setPersonaMode(e.target.value)}
+                                    className="form-control"
+                                >
+                                    <option value={PersonaMode.CALM}>Calm</option>
+                                    <option value={PersonaMode.HYPE}>Hype</option>
+                                    <option value={PersonaMode.NEUTRAL}>Neutral</option>
+                                    <option value={PersonaMode.LOCKED}>Locked</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Auto Approve</label>
+                                <select 
+                                    value={autoApprove ? "true" : "false"}
+                                    onChange={(e) => setAutoApprove(e.target.value === "true")}
+                                    className="form-control"
+                                >
+                                    <option value="true">Enabled</option>
+                                    <option value="false">Disabled</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Simulation Mode</label>
+                                <select 
+                                    value={simulationMode ? "true" : "false"}
+                                    onChange={(e) => setSimulationMode(e.target.value === "true")}
+                                    className="form-control"
+                                >
+                                    <option value="true">Dry Run</option>
+                                    <option value="false">Live Mode</option>
+                                </select>
+                            </div>
+                            
+                            <div className="flex items-end">
+                                <button className="btn btn-secondary">
+                                    Export Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Task Queue Management */}
+                    <div className="card">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2>Task Queue ({taskQueue.length})</h2>
+                            <div className="text-sm text-gray-600">
+                                {Object.entries(getTaskStats()).map(([type, count]) => (
+                                    <span key={type} className="ml-4">{type}: {count}</span>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Quick Add Buttons */}
+                        <div className="mb-4 flex flex-wrap gap-2">
+                            <button
+                                onClick={() => addTask(TaskType.GAME, "All-in call, generate hype speech", { pot: 500 })}
+                                className="btn btn-primary"
+                            >
+                                Add Game Task
+                            </button>
+                            <button
+                                onClick={() => addTask(TaskType.GRAPHICS, "Generate neon badge", { subTier: 1 })}
+                                className="btn btn-success"
+                            >
+                                Add Graphics Task
+                            </button>
+                            <button
+                                onClick={() => addTask(TaskType.AUDIO, "Victory sound clip", { intensity: "high" })}
+                                className="btn btn-warning"
+                            >
+                                Add Audio Task
+                            </button>
+                            <button
+                                onClick={() => addTask(TaskType.WEBSITE, "Fix navigation issue", { page: "/home" })}
+                                className="btn btn-secondary"
+                            >
+                                Add Website Task
+                            </button>
+                            <button
+                                onClick={() => addTask(TaskType.MODERATION, "Check chat message", { message: "test message" })}
+                                className="btn btn-danger"
+                            >
+                                Add Moderation Task
+                            </button>
+                        </div>
+
+                        {/* Custom Task Input */}
+                        <div className="border-t pt-4">
+                            <h3 className="font-semibold mb-2">Custom Task</h3>
+                            <div className="grid grid-4 gap-2">
+                                <select 
+                                    value={selectedTaskType}
+                                    onChange={(e) => setSelectedTaskType(e.target.value)}
+                                    className="form-control"
+                                >
+                                    <option value={TaskType.GAME}>Game</option>
+                                    <option value={TaskType.WEBSITE}>Website</option>
+                                    <option value={TaskType.GRAPHICS}>Graphics</option>
+                                    <option value={TaskType.AUDIO}>Audio</option>
+                                    <option value={TaskType.MODERATION}>Moderation</option>
+                                    <option value={TaskType.MEMORY}>Memory</option>
+                                    <option value={TaskType.TRUST}>Trust</option>
+                                    <option value={TaskType.PERSONA}>Persona</option>
+                                </select>
+                                <input
+                                    type="text"
+                                    placeholder="Prompt"
+                                    value={customPrompt}
+                                    onChange={(e) => setCustomPrompt(e.target.value)}
+                                    className="form-control"
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Context (JSON)"
+                                    value={customContext}
+                                    onChange={(e) => setCustomContext(e.target.value)}
+                                    className="form-control"
+                                />
+                                <button
+                                    onClick={addCustomTask}
+                                    className="btn btn-primary"
+                                >
+                                    Add Task
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Task Queue Display */}
+                        {taskQueue.length > 0 && (
+                            <div className="border-t pt-4">
+                                <h3 className="font-semibold mb-2">Queued Tasks</h3>
+                                <div className="space-y-2 max-h-40 overflow-y-auto">
+                                    {taskQueue.map((task) => (
+                                        <div key={task.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                            <div>
+                                                <span className="font-medium">{task.taskType}</span>
+                                                <span className="text-sm text-gray-600 ml-2">{task.prompt.substring(0, 50)}...</span>
+                                            </div>
+                                            <button
+                                                onClick={() => removeTask(task.id)}
+                                                className="btn btn-danger btn-sm"
+                                            >
+                                                Remove
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Simulation Controls */}
+                    <div className="card">
+                        <h2>Simulation Controls</h2>
+                        <div className="flex gap-4">
+                            <button
+                                onClick={runSimulation}
+                                disabled={isRunning || taskQueue.length === 0}
+                                className={`btn ${isRunning ? 'btn-secondary' : 'btn-warning'} ${isRunning || taskQueue.length === 0 ? 'disabled' : ''}`}
+                            >
+                                {isRunning ? "Running..." : "Run Simulation"}
+                            </button>
+                            <button
+                                onClick={resetSimulation}
+                                className="btn btn-danger"
+                            >
+                                Reset
+                            </button>
+                            <button
+                                onClick={clearLogs}
+                                className="btn btn-secondary"
+                            >
+                                Clear Logs
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Results Display */}
+                    <div className="grid grid-2 gap-6">
+                        {/* Simulation Logs */}
+                        <div className="card">
+                            <div className="flex justify-between items-center mb-4">
+                                <h2>Simulation Logs</h2>
+                                <div className="text-sm text-gray-600">
+                                    {Object.entries(getLogStats()).map(([decision, count]) => (
+                                        <span key={decision} className="ml-4">{decision}: {count}</span>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            {simulationLogs.length === 0 ? (
+                                <p className="text-gray-500">No logs yet. Run a simulation to see results.</p>
+                            ) : (
+                                <div className="space-y-2 max-h-96 overflow-y-auto">
+                                    {simulationLogs.map((log, idx) => (
+                                        <div key={idx} className="border-b pb-2">
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex-1">
+                                                    <p className="text-sm text-gray-600">
+                                                        {new Date(log.timestamp).toLocaleTimeString()} | {log.taskType}
+                                                    </p>
+                                                    <p className="font-medium text-sm">{log.aceyOutput.speech}</p>
+                                                    <p className="text-xs text-gray-500">
+                                                        Decision: <span className={`font-semibold ${
+                                                            log.controlDecision === 'approved' ? 'text-green-600' :
+                                                            log.controlDecision === 'rejected' ? 'text-red-600' :
+                                                            log.controlDecision === 'pending' ? 'text-yellow-600' : 'text-blue-600'
+                                                        }`}>{log.controlDecision}</span>
+                                                    </p>
+                                                    {log.performance && (
+                                                        <p className="text-xs text-gray-500">
+                                                            Response: {log.performance.responseTime}ms | 
+                                                            Tokens: {log.performance.tokenCount || 0}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Simulation Results */}
+                        <div className="card">
+                            <h2>Simulation Results ({results.length})</h2>
+                            
+                            {results.length === 0 ? (
+                                <p className="text-gray-500">No results yet. Run a simulation to see outputs.</p>
+                            ) : (
+                                <div className="space-y-2 max-h-96 overflow-y-auto">
+                                    {results.map((res, idx) => (
+                                        <div key={idx} className="border-b pb-2">
+                                            <p className="font-medium">{res.speech}</p>
+                                            {res.intents && res.intents.length > 0 && (
+                                                <div className="mt-1">
+                                                    {res.intents.map((intent, iidx) => (
+                                                        <p key={iidx} className="text-xs text-gray-600">
+                                                            Intent: {intent.type} | 
+                                                            Confidence: {intent.confidence ? (intent.confidence * 100).toFixed(1) : 'N/A'}%
+                                                        </p>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Initialize orchestrator
+        const orchestrator = new MockAceyOrchestrator({
+            llmEndpoint: "https://your-llm-endpoint.com/generate",
+            personaMode: PersonaMode.HYPE,
+            autoApprove: true,
+            simulationMode: true
+        });
+
+        // Render the dashboard
+        ReactDOM.render(
+            <OrchestratorDashboard orchestrator={orchestrator} />,
+            document.getElementById("root")
+        );
+    </script>
+</body>
+</html>

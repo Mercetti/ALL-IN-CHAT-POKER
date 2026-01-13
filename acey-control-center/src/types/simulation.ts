@@ -43,3 +43,12 @@ export interface SimulationState {
   comparison: ModelComparison[];
   config: SimulationConfig;
 }
+
+export interface SimulationData {
+  events: SimulationEvent[];
+  comparison: ModelComparison[];
+  isDryRun: boolean;
+  autoRulesEnabled: boolean;
+  currentTime: number;
+  totalEvents: number;
+}

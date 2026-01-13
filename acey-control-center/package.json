@@ -1,1 +1,8 @@
-{"name": "acey-control-center", "version": "1.0.0", "description": "AI Control Center - Authority layer for Acey AI system", "main": "dist/server/index.js", "scripts": {"build": "tsc", "start": "node dist/server/index.js", "dev": "ts-node-dev --respawn src/server/index.ts", "clean": "rm -rf dist", "type-check": "tsc --noEmit"}, "dependencies": {"express": "^4.18.2", "socket.io": "^4.7.2", "zod": "^3.22.4", "ws": "^8.14.2", "react": "^18.2.0", "react-dom": "^18.2.0", "socket.io-client": "^4.7.2"}, "devDependencies": {"@types/express": "^4.17.21", "@types/node": "^20.10.5", "@types/ws": "^8.5.10", "@types/react": "^18.2.45", "@types/react-dom": "^18.2.18", "ts-node": "^10.9.1", "ts-node-dev": "^2.0.0", "typescript": "^5.3.3"}, "keywords": ["ai", "control-center", "acey", "poker", "twitch"], "author": "AI Control Center Team", "license": "MIT"}
+{"name": "acey-control-center", "version": "1.0.0", "description": "AI Control Center - Authority layer for Acey AI system", "main": "dist/server/index.js", "scripts": {
+    "build": "tsc",
+    "start": "node dist/server/index.js",
+    "dev": "npm run build && npm run start",
+    "dev:watch": "tsc --watch",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit"
+  }, "dependencies": {"express": "^4.18.2", "socket.io": "^4.7.2", "zod": "^3.22.4", "ws": "^8.14.2", "react": "^18.2.0", "react-dom": "^18.2.0", "socket.io-client": "^4.7.2"}, "devDependencies": {"@types/express": "^4.17.21", "@types/node": "^20.10.5", "@types/ws": "^8.5.10", "@types/react": "^18.2.45", "@types/react-dom": "^18.2.18", "ts-node": "^10.9.1", "ts-node-dev": "^2.0.0", "typescript": "^5.3.3"}, "keywords": ["ai", "control-center", "acey", "poker", "twitch"], "author": "AI Control Center Team", "license": "MIT"}

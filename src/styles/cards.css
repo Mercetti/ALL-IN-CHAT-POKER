@@ -1,0 +1,554 @@
+/**
+ * Cards Styles
+ * Global styles for card components and card-related UI
+ */
+
+/* ===== CARD DESIGN SYSTEM ===== */
+:root {
+  /* Card dimensions */
+  --card-width-small: 60px;
+  --card-height-small: 84px;
+  --card-width-medium: 80px;
+  --card-height-medium: 112px;
+  --card-width-large: 100px;
+  --card-height-large: 140px;
+  --card-width-xlarge: 120px;
+  --card-height-xlarge: 168px;
+  
+  /* Card colors */
+  --card-bg: white;
+  --card-border: #2d3748;
+  --card-border-radius: 8px;
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --card-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.15);
+  --card-shadow-selected: 0 0 0 3px rgba(49, 130, 206, 0.3), 0 8px 24px rgba(0, 0, 0, 0.15);
+  
+  /* Card suit colors */
+  --card-suit-red: #e53e3e;
+  --card-suit-black: #2d3748;
+  
+  /* Card back colors */
+  --card-back-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --card-back-border: #4a5568;
+  
+  /* Card animations */
+  --card-transition: all 0.3s ease;
+  --card-flip-duration: 0.6s;
+  --card-hover-transform: translateY(-4px);
+  --card-selected-transform: translateY(-8px);
+  
+  /* Card spacing */
+  --card-spacing-tight: -20px;
+  --card-spacing-loose: -10px;
+  --card-spacing-spread: 5px;
+  --card-spacing-normal: 8px;
+}
+
+/* ===== CARD BASE STYLES ===== */
+.card {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card-bg);
+  border: 2px solid var(--card-border);
+  border-radius: var(--card-border-radius);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  transition: var(--card-transition);
+  transform-style: preserve-3d;
+  box-shadow: var(--card-shadow);
+}
+
+.card:hover {
+  transform: var(--card-hover-transform);
+  box-shadow: var(--card-shadow-hover);
+}
+
+.card--selected {
+  border-color: #3182ce;
+  box-shadow: var(--card-shadow-selected);
+  transform: var(--card-selected-transform);
+}
+
+.card--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ===== CARD SIZES ===== */
+.card--small {
+  width: var(--card-width-small);
+  height: var(--card-height-small);
+  font-size: 12px;
+}
+
+.card--medium {
+  width: var(--card-width-medium);
+  height: var(--card-height-medium);
+  font-size: 16px;
+}
+
+.card--large {
+  width: var(--card-width-large);
+  height: var(--card-height-large);
+  font-size: 20px;
+}
+
+.card--xlarge {
+  width: var(--card-width-xlarge);
+  height: var(--card-height-xlarge);
+  font-size: 24px;
+}
+
+/* ===== CARD STATES ===== */
+.card--face-down {
+  background: var(--card-back-bg);
+  border-color: var(--card-back-border);
+}
+
+.card--face-up {
+  background: var(--card-bg);
+  border-color: var(--card-border);
+}
+
+.card--glowing {
+  animation: cardGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes cardGlow {
+  0% {
+    box-shadow: 0 0 10px rgba(49, 130, 206, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(49, 130, 206, 0.8);
+  }
+}
+
+.card--dealing {
+  animation: cardDeal 0.5s ease-out;
+}
+
+@keyframes cardDeal {
+  0% {
+    opacity: 0;
+    transform: translateY(-50px) rotate(180deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+  }
+}
+
+.card--flipping {
+  animation: cardFlip var(--card-flip-duration) ease-in-out;
+}
+
+@keyframes cardFlip {
+  0% {
+    transform: rotateY(0deg);
+  }
+  100% {
+    transform: rotateY(180deg);
+  }
+}
+
+/* ===== CARD SUITS ===== */
+.card-suit--hearts,
+.card-suit--diamonds {
+  color: var(--card-suit-red);
+}
+
+.card-suit--clubs,
+.card-suit--spades {
+  color: var(--card-suit-black);
+}
+
+/* ===== CARD RANKS ===== */
+.card-rank--ace,
+.card-rank--king,
+.card-rank--queen,
+.card-rank--jack {
+  font-weight: bold;
+}
+
+/* ===== CARD CONTAINERS ===== */
+.card-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--card-spacing-normal);
+  padding: 16px;
+}
+
+.card-container--tight {
+  gap: var(--card-spacing-tight);
+}
+
+.card-container--loose {
+  gap: var(--card-spacing-loose);
+}
+
+.card-container--spread {
+  gap: var(--card-spacing-spread);
+}
+
+/* ===== CARD DECKS ===== */
+.card-deck {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-deck--stacked .card {
+  position: absolute;
+  transform: translate(var(--stack-x, 0), var(--stack-y, 0));
+}
+
+.card-deck--fanned .card {
+  transform-origin: bottom center;
+}
+
+.card-deck--spread .card {
+  transform: translateX(var(--spread-x, 0));
+}
+
+/* ===== CARD HANDS ===== */
+.card-hand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--card-spacing-normal);
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  min-height: var(--card-height-medium);
+}
+
+.card-hand--player {
+  background: rgba(49, 130, 206, 0.1);
+  border: 2px solid rgba(49, 130, 206, 0.3);
+}
+
+.card-hand--dealer {
+  background: rgba(237, 137, 54, 0.1);
+  border: 2px solid rgba(237, 137, 54, 0.3);
+}
+
+.card-hand--community {
+  background: rgba(72, 187, 120, 0.1);
+  border: 2px solid rgba(72, 187, 120, 0.3);
+}
+
+/* ===== CARD TABLES ===== */
+.card-table {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  height: 400px;
+  margin: 0 auto;
+  background: radial-gradient(ellipse at center, #2a5434 0%, #1a3420 100%);
+  border-radius: 200px;
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.3), 0 10px 30px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.card-table--blackjack {
+  background: radial-gradient(ellipse at center, #1a365d 0%, #0f172a 100%);
+}
+
+.card-table--bridge {
+  background: radial-gradient(ellipse at center, #744210 0%, #451a03 100%);
+}
+
+/* ===== CARD ANIMATIONS ===== */
+.card-animation--slide-in {
+  animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-100px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.card-animation--fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.card-animation--bounce-in {
+  animation: bounceIn 0.6s ease-out;
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.card-animation--shuffle {
+  animation: shuffle 0.6s ease-in-out;
+}
+
+@keyframes shuffle {
+  0%, 100% {
+    transform: translateX(0) rotate(0deg);
+  }
+  25% {
+    transform: translateX(-20px) rotate(-5deg);
+  }
+  75% {
+    transform: translateX(20px) rotate(5deg);
+  }
+}
+
+/* ===== CARD EFFECTS ===== */
+.card-effect--ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.card-effect--ripple::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+}
+
+.card-effect--ripple:active::after {
+  width: 200px;
+  height: 200px;
+}
+
+.card-effect--glow {
+  box-shadow: 0 0 20px rgba(49, 130, 206, 0.6);
+}
+
+.card-effect--shadow {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== CARD THEMES ===== */
+.card-theme--classic {
+  background: white;
+  border: 2px solid #2d3748;
+  border-radius: 4px;
+}
+
+.card-theme--modern {
+  background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card-theme--neon {
+  background: #1a202c;
+  border: 2px solid #00ff88;
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+}
+
+.card-theme--neon .card-suit--hearts,
+.card-theme--neon .card-suit--diamonds {
+  color: #ff0088;
+}
+
+.card-theme--neon .card-suit--clubs,
+.card-theme--neon .card-suit--spades {
+  color: #00ff88;
+}
+
+/* ===== MOBILE OPTIMIZATIONS ===== */
+@media (max-width: 767px) {
+  :root {
+    --card-width-small: 50px;
+    --card-height-small: 70px;
+    --card-width-medium: 60px;
+    --card-height-medium: 84px;
+    --card-width-large: 70px;
+    --card-height-large: 98px;
+    --card-width-xlarge: 80px;
+    --card-height-xlarge: 112px;
+    
+    --card-spacing-tight: -15px;
+    --card-spacing-loose: -8px;
+    --card-spacing-spread: 3px;
+    --card-spacing-normal: 6px;
+  }
+  
+  .card-container {
+    padding: 12px;
+  }
+  
+  .card-hand {
+    gap: 6px;
+    padding: 12px;
+    min-height: var(--card-height-medium);
+  }
+  
+  .card-table {
+    height: 300px;
+    padding: 20px;
+  }
+}
+
+/* ===== HIGH DPI SUPPORT ===== */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .card {
+    border-width: 1px;
+  }
+  
+  .card-theme--classic {
+    border-width: 1px;
+  }
+  
+  .card-theme--modern {
+    border-width: 1px;
+  }
+  
+  .card-theme--neon {
+    border-width: 1px;
+  }
+}
+
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .card-animation--slide-in,
+  .card-animation--fade-in,
+  .card-animation--bounce-in,
+  .card-animation--shuffle,
+  .card--flipping,
+  .card--dealing,
+  .card--glowing {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* ===== DARK MODE ===== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --card-bg: #2d3748;
+    --card-border: #4a5568;
+    --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --card-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.4);
+    --card-shadow-selected: 0 0 0 3px rgba(49, 130, 206, 0.5), 0 8px 24px rgba(0, 0, 0, 0.4);
+    
+    --card-back-bg: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+    --card-back-border: #718096;
+  }
+  
+  .card-hand {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  
+  .card-hand--player {
+    background: rgba(49, 130, 206, 0.2);
+    border-color: rgba(49, 130, 206, 0.4);
+  }
+  
+  .card-hand--dealer {
+    background: rgba(237, 137, 54, 0.2);
+    border-color: rgba(237, 137, 54, 0.4);
+  }
+  
+  .card-hand--community {
+    background: rgba(72, 187, 120, 0.2);
+    border-color: rgba(72, 187, 120, 0.4);
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+.card:focus-visible {
+  outline: 2px solid #3182ce;
+  outline-offset: 2px;
+}
+
+.card:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.card:hover:focus-visible {
+  transform: var(--card-hover-transform) scale(1.02);
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .card {
+    border-width: 3px;
+    border-color: #000;
+  }
+  
+  .card--selected {
+    border-color: #0066cc;
+  }
+  
+  .card-suit--hearts,
+  .card-suit--diamonds {
+    color: #cc0000;
+  }
+  
+  .card-suit--clubs,
+  .card-suit--spades {
+    color: #000;
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  .card {
+    background: white !important;
+    border: 2px solid black !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+  
+  .card-container,
+  .card-hand,
+  .card-table {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+}

@@ -36,7 +36,9 @@ export function AIDashboard() {
       console.log("Connected to Control Center");
     });
 
-    return () => newSocket.close();
+    return () => {
+      newSocket.close();
+    };
   }, []);
 
   return (

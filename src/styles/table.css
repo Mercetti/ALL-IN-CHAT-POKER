@@ -1,0 +1,655 @@
+/**
+ * Table Styles
+ * Global styles for table components and table-related UI
+ */
+
+/* ===== TABLE DESIGN SYSTEM ===== */
+:root {
+  /* Table dimensions */
+  --table-width-small: 400px;
+  --table-height-small: 300px;
+  --table-width-medium: 600px;
+  --table-height-medium: 400px;
+  --table-width-large: 800px;
+  --table-height-large: 500px;
+  --table-width-xlarge: 1000px;
+  --table-height-xlarge: 600px;
+  
+  /* Table themes */
+  --table-classic-bg: radial-gradient(ellipse at center, #2a5434 0%, #1a3420 100%);
+  --table-classic-border: #8b4513;
+  --table-classic-shadow: inset 0 0 50px rgba(0, 0, 0, 0.3), 0 10px 30px rgba(0, 0, 0, 0.2);
+  
+  --table-modern-bg: radial-gradient(ellipse at center, #1a365d 0%, #0f172a 100%);
+  --table-modern-border: #2563eb;
+  --table-modern-shadow: inset 0 0 60px rgba(0, 0, 0, 0.4), 0 15px 40px rgba(0, 0, 0, 0.3);
+  
+  --table-luxury-bg: radial-gradient(ellipse at center, #744210 0%, #451a03 100%);
+  --table-luxury-border: #d97706;
+  --table-luxury-shadow: inset 0 0 70px rgba(0, 0, 0, 0.5), 0 20px 50px rgba(0, 0, 0, 0.4);
+  
+  --table-neon-bg: radial-gradient(ellipse at center, #1e293b 0%, #0f172a 100%);
+  --table-neon-border: #00ff88;
+  --table-neon-shadow: inset 0 0 80px rgba(0, 255, 136, 0.3), 0 25px 60px rgba(0, 0, 0, 0.5);
+  
+  --table-minimal-bg: radial-gradient(ellipse at center, #f8fafc 0%, #e2e8f0 100%);
+  --table-minimal-border: #cbd5e0;
+  --table-minimal-shadow: inset 0 0 30px rgba(0, 0, 0, 0.1), 0 5px 20px rgba(0, 0, 0, 0.1);
+  
+  /* Table elements */
+  --table-player-seat: #4a5568;
+  --table-community-area: rgba(0, 0, 0, 0.2);
+  --table-pot: rgba(0, 0, 0, 0.8);
+  --table-accent: #ffd700;
+  --table-transition: all 0.3s ease;
+}
+
+/* ===== BASE TABLE ===== */
+.table {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  transition: var(--table-transition);
+  overflow: hidden;
+}
+
+.table:hover {
+  transform: scale(1.02);
+}
+
+.table--interactive {
+  cursor: pointer;
+}
+
+.table--animated {
+  animation: tableEntry 1s ease-out;
+}
+
+.table--animating {
+  animation: tablePulse 2s ease-in-out infinite;
+}
+
+@keyframes tableEntry {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) rotate(180deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes tablePulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+/* ===== TABLE SIZES ===== */
+.table--small {
+  width: var(--table-width-small);
+  height: var(--table-height-small);
+  font-size: 12px;
+}
+
+.table--medium {
+  width: var(--table-width-medium);
+  height: var(--table-height-medium);
+  font-size: 14px;
+}
+
+.table--large {
+  width: var(--table-width-large);
+  height: var(--table-height-large);
+  font-size: 16px;
+}
+
+.table--xlarge {
+  width: var(--table-width-xlarge);
+  height: var(--table-height-xlarge);
+  font-size: 18px;
+}
+
+/* ===== TABLE THEMES ===== */
+.table--classic {
+  background: var(--table-classic-bg);
+  border: 4px solid var(--table-classic-border);
+  box-shadow: var(--table-classic-shadow);
+}
+
+.table--modern {
+  background: var(--table-modern-bg);
+  border: 4px solid var(--table-modern-border);
+  box-shadow: var(--table-modern-shadow);
+}
+
+.table--luxury {
+  background: var(--table-luxury-bg);
+  border: 4px solid var(--table-luxury-border);
+  box-shadow: var(--table-luxury-shadow);
+}
+
+.table--neon {
+  background: var(--table-neon-bg);
+  border: 4px solid var(--table-neon-border);
+  box-shadow: var(--table-neon-shadow);
+}
+
+.table--minimal {
+  background: var(--table-minimal-bg);
+  border: 4px solid var(--table-minimal-border);
+  box-shadow: var(--table-minimal-shadow);
+}
+
+/* ===== TABLE SURFACE ===== */
+.table__surface {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: inherit;
+  overflow: hidden;
+}
+
+/* ===== PLAYER SEATS ===== */
+.table__player-seat {
+  position: absolute;
+  background: var(--table-player-seat);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--table-transition);
+  z-index: 1;
+}
+
+.table__player-seat:hover {
+  transform: scale(1.1);
+  border-color: rgba(255, 255, 255, 0.5);
+  z-index: 10;
+}
+
+.table__player-seat--current {
+  border: 3px solid #3182ce;
+  animation: currentPlayerPulse 2s ease-in-out infinite;
+}
+
+.table__player-seat--dealer {
+  border-color: #d97706;
+}
+
+.table__player-seat--selected {
+  border-color: #10b981;
+  transform: scale(1.15);
+  z-index: 11;
+}
+
+@keyframes currentPlayerPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(49, 130, 206, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(49, 130, 206, 0);
+  }
+}
+
+/* ===== PLAYER INFO ===== */
+.table__player-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-bottom: 4px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.table__player-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.table__player-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.table__player-name {
+  font-size: 10px;
+  font-weight: 600;
+  color: white;
+  text-align: center;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60px;
+}
+
+.table__player-chips {
+  font-size: 9px;
+  color: var(--table-accent);
+  font-weight: 500;
+  text-align: center;
+}
+
+/* ===== DEALER BUTTON ===== */
+.table__dealer-button {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 20px;
+  height: 20px;
+  background: #d97706;
+  border: 2px solid white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  z-index: 5;
+}
+
+/* ===== CURRENT PLAYER INDICATOR ===== */
+.table__current-indicator {
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 8px solid #3182ce;
+  animation: currentIndicatorBounce 2s ease-in-out infinite;
+}
+
+@keyframes currentIndicatorBounce {
+  0%, 100% {
+    opacity: 0.6;
+    transform: translateX(-50%);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-2px);
+  }
+}
+
+/* ===== COMMUNITY CARDS ===== */
+.table__community-cards {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+}
+
+.table__community-area {
+  background: var(--table-community-area);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  gap: 8px;
+  backdrop-filter: blur(4px);
+}
+
+.table--modern .table__community-area {
+  background: rgba(37, 99, 235, 0.1);
+}
+
+.table--luxury .table__community-area {
+  background: rgba(217, 119, 6, 0.1);
+}
+
+.table--neon .table__community-area {
+  background: rgba(0, 255, 136, 0.05);
+}
+
+.table--minimal .table__community-area {
+  background: rgba(203, 213, 224, 0.3);
+}
+
+/* ===== POT ===== */
+.table__pot {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
+}
+
+.table__pot-display {
+  background: var(--table-pot);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  text-align: center;
+  backdrop-filter: blur(4px);
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  margin-bottom: 8px;
+}
+
+.table__pot-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.8;
+  margin-bottom: 4px;
+}
+
+.table__pot-amount {
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--table-accent);
+}
+
+.table__pot-chips {
+  display: flex;
+  justify-content: center;
+}
+
+/* ===== TABLE CENTER ===== */
+.table__center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+.table__logo {
+  font-size: 4em;
+  color: white;
+  font-weight: bold;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* ===== TABLE OVERLAY ===== */
+.table__overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.1) 100%);
+}
+
+/* ===== TABLE CONTAINERS ===== */
+.table-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+}
+
+.table-container--tight {
+  padding: 16px;
+}
+
+.table-container--loose {
+  padding: 32px;
+}
+
+/* ===== TABLE ANIMATIONS ===== */
+.table-animation--deal {
+  /* Deal animation styles - cards deal from center */
+}
+
+.table-animation--shuffle {
+  /* Shuffle animation styles - cards shuffle around table */
+}
+
+.table-animation--collect {
+  /* Collect animation styles - cards move to center */
+}
+
+.table-animation--reveal {
+  /* Reveal animation styles - cards flip to reveal */
+}
+
+/* ===== TABLE EFFECTS ===== */
+.table-effect--glow {
+  /* Glow effect styles - table glows with theme colors */
+}
+
+.table-effect--pulse {
+  /* Pulse effect styles - table pulses with rhythm */
+}
+
+.table-effect--rotate {
+  /* Rotate effect styles - table rotates slowly */
+}
+
+.table-effect--scale {
+  /* Scale effect styles - table scales up and down */
+}
+
+/* ===== TABLE THEMES ===== */
+.table-theme--classic {
+  /* Classic theme styles - traditional green felt */
+}
+
+.table-theme--modern {
+  /* Modern theme styles - sleek blue design */
+}
+
+.table-theme--luxury {
+  /* Luxury theme styles - premium gold theme */
+}
+
+.table-theme--neon {
+  /* Neon theme styles - cyberpunk neon glow */
+}
+
+.table-theme--minimal {
+  /* Minimal theme styles - clean simple design */
+}
+
+/* ===== MOBILE OPTIMIZATIONS ===== */
+@media (max-width: 767px) {
+  :root {
+    --table-width-small: 300px;
+    --table-height-small: 250px;
+    --table-width-medium: 400px;
+    --table-height-medium: 300px;
+    --table-width-large: 500px;
+    --table-height-large: 350px;
+    --table-width-xlarge: 600px;
+    --table-height-xlarge: 400px;
+  }
+  
+  .table__player-seat {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .table__player-avatar {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .table__player-avatar-placeholder {
+    font-size: 14px;
+  }
+  
+  .table__player-name {
+    font-size: 9px;
+  }
+  
+  .table__player-chips {
+    font-size: 8px;
+  }
+  
+  .table__dealer-button {
+    width: 16px;
+    height: 16px;
+    font-size: 8px;
+  }
+  
+  .table__pot {
+    top: 10px;
+    right: 10px;
+  }
+  
+  .table__pot-display {
+    padding: 6px 12px;
+  }
+  
+  .table__pot-label {
+    font-size: 10px;
+  }
+  
+  .table__pot-amount {
+    font-size: 14px;
+  }
+}
+
+/* ===== HIGH DPI SUPPORT ===== */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .table {
+    border-width: 2px;
+  }
+  
+  .table__player-seat {
+    border-width: 1px;
+  }
+  
+  .table__dealer-button {
+    border-width: 1px;
+  }
+  
+  .table__pot-display {
+    border-width: 1px;
+  }
+}
+
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  .table,
+  .table__player-seat {
+    transition: none;
+    animation: none;
+  }
+  
+  .table--animated,
+  .table--animating {
+    animation: none;
+  }
+  
+  .table__player-seat--current {
+    animation: none;
+  }
+  
+  .table__current-indicator {
+    animation: none;
+  }
+}
+
+/* ===== DARK MODE ===== */
+@media (prefers-color-scheme: dark) {
+  .table-container {
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+.table:focus-visible {
+  outline: 2px solid #3182ce;
+  outline-offset: 2px;
+}
+
+.table:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.table__player-seat:focus-visible {
+  outline: 2px solid #3182ce;
+  outline-offset: 2px;
+}
+
+.table__player-seat:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .table {
+    border-width: 6px;
+  }
+  
+  .table__player-seat {
+    border-width: 4px;
+    border-color: #000;
+  }
+  
+  .table__player-seat--current {
+    border-color: #0066cc;
+  }
+  
+  .table__dealer-button {
+    border-color: #000;
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  .table {
+    background: white !important;
+    border: 4px solid black !important;
+    box-shadow: none !important;
+  }
+  
+  .table__player-seat {
+    background: white !important;
+    border: 2px solid black !important;
+    color: black !important;
+  }
+  
+  .table__pot-display {
+    background: white !important;
+    border: 2px solid black !important;
+    color: black !important;
+  }
+  
+  .table-container {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+}

@@ -12,9 +12,19 @@ export function SimulationDashboard() {
     currentTime: 0,
     totalEvents: 0
   });
+  const [selectedEvent, setSelectedEvent] = useState<SimulationEvent | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
-  const [selectedEvent, setSelectedEvent] = useState<SimulationEvent | null>(null);
+  const [eventFilter, setEventFilter] = useState("all");
+  const [showStatistics, setShowStatistics] = useState(false);
+  const [statistics, setStatistics] = useState({
+    totalEvents: 0,
+    eventsByType: {} as Record<string, number>,
+    averageConfidence: 0,
+    timeSpan: 0,
+    autoRuleApplications: 0,
+    rejections: 0
+  });
 
   useEffect(() => {
     const newSocket = io("http://localhost:3001");
@@ -25,13 +35,15 @@ export function SimulationDashboard() {
     });
 
     newSocket.on("simulation_event", (event: SimulationEvent) => {
-      setSimulationData(prev => ({
+      setSimulationData((prev: SimulationData) => ({
         ...prev,
         events: [...prev.events, event]
       }));
     });
 
-    return () => newSocket.close();
+    return () => {
+      newSocket.close();
+    };
   }, []);
 
   const handleDryRunToggle = () => {
@@ -87,6 +99,42 @@ export function SimulationDashboard() {
 
   const handleStepForward = () => {
     socket?.emit("simulation_step");
+  };
+
+  const handleDryRun = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/api/dryrun', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          aceyOutput: selectedEvent ? {
+            speech: selectedEvent.intent.speech || '',
+            intents: [selectedEvent.intent]
+          } : {
+            speech: 'Test dry-run',
+            intents: []
+          },
+          config: {
+            dryRun: true,
+            autoRules: simulationData.autoRulesEnabled
+          }
+        })
+      });
+      
+      const result = await response.json();
+      console.log('Dry-run result:', result);
+      
+      // Update UI with dry-run results
+      if (result.success) {
+        console.log(`Dry-run decision: ${result.dryRun.decision}`);
+        console.log(`Action: ${result.dryRun.action}`);
+      }
+      
+    } catch (error) {
+      console.error('Dry-run failed:', error);
+    }
   };
 
   const getConfidenceColor = (confidence?: number) => {
@@ -215,6 +263,31 @@ export function SimulationDashboard() {
               </div>
 
               <div className="flex items-center justify-between">
+                <span>Dry-Run Test:</span>
+                <button
+                  onClick={handleDryRun}
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                  Test Selected
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span>Event Filter:</span>
+                <select
+                  value={eventFilter}
+                  onChange={(e) => setEventFilter(e.target.value)}
+                  className="px-3 py-1 border rounded"
+                >
+                  <option value="all">All Events</option>
+                  <option value="memory">Memory</option>
+                  <option value="persona">Persona</option>
+                  <option value="trust">Trust</option>
+                  <option value="moderation">Moderation</option>
+                </select>
+              </div>
+
+              <div className="flex items-center justify-between">
                 <span>Playback Speed:</span>
                 <select
                   value={playbackSpeed}
@@ -226,6 +299,20 @@ export function SimulationDashboard() {
                   <option value={2}>2x</option>
                   <option value={4}>4x</option>
                 </select>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span>Show Statistics:</span>
+                <button
+                  onClick={() => setShowStatistics(!showStatistics)}
+                  className={`px-4 py-2 rounded ${
+                    showStatistics
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-300 text-gray-700"
+                  }`}
+                >
+                  {showStatistics ? "HIDE" : "SHOW"}
+                </button>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
@@ -290,6 +377,67 @@ export function SimulationDashboard() {
             </div>
           </div>
         </div>
+
+        {/* Statistics Panel */}
+        {showStatistics && (
+          <div className="mt-6 bg-white rounded-lg shadow-md p-4">
+            <h2 className="text-xl font-semibold mb-4">📊 Simulation Statistics</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-blue-50 p-4 rounded">
+                <h3 className="font-medium text-blue-800">Events</h3>
+                <p className="text-2xl font-bold text-blue-600">{statistics.totalEvents}</p>
+                <p className="text-sm text-blue-600">Total processed</p>
+              </div>
+              <div className="bg-green-50 p-4 rounded">
+                <h3 className="font-medium text-green-800">Avg Confidence</h3>
+                <p className="text-2xl font-bold text-green-600">
+                  {(statistics.averageConfidence * 100).toFixed(1)}%
+                </p>
+                <p className="text-sm text-green-600">Across all events</p>
+              </div>
+              <div className="bg-purple-50 p-4 rounded">
+                <h3 className="font-medium text-purple-800">Time Span</h3>
+                <p className="text-2xl font-bold text-purple-600">
+                  {Math.round(statistics.timeSpan / 1000)}s
+                </p>
+                <p className="text-sm text-purple-600">Simulation duration</p>
+              </div>
+            </div>
+            
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-yellow-50 p-4 rounded">
+                <h3 className="font-medium text-yellow-800">Auto-Rule Applications</h3>
+                <p className="text-2xl font-bold text-yellow-600">{statistics.autoRuleApplications}</p>
+                <p className="text-sm text-yellow-600">Rules applied</p>
+              </div>
+              <div className="bg-red-50 p-4 rounded">
+                <h3 className="font-medium text-red-800">Rejections</h3>
+                <p className="text-2xl font-bold text-red-600">{statistics.rejections}</p>
+                <p className="text-sm text-red-600">Events rejected</p>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <h3 className="font-medium mb-2">Events by Type</h3>
+              <div className="space-y-2">
+                {Object.entries(statistics.eventsByType).map(([type, count]) => (
+                  <div key={type} className="flex justify-between items-center">
+                    <span className="text-sm font-medium capitalize">{type}</span>
+                    <div className="flex items-center">
+                      <div className="w-32 bg-gray-200 rounded-full h-2 mr-2">
+                        <div 
+                          className="bg-blue-500 h-2 rounded-full" 
+                          style={{ width: `${(count / statistics.totalEvents) * 100}%` }}
+                        ></div>
+                      </div>
+                      <span className="text-sm text-gray-600">{count}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Selected Event Details */}
         {selectedEvent && (

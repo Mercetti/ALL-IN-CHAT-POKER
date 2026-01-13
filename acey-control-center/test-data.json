@@ -1,0 +1,1 @@
+{"speech": "All-in test from file!", "intents": [{"type": "memory_proposal", "scope": "event", "summary": "Test all-in moment from file", "confidence": 0.9, "ttl": "1h"}, {"type": "trust_signal", "delta": 0.1, "reason": "Test positive engagement from file", "reversible": true}]}

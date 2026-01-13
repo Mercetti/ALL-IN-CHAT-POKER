@@ -1,0 +1,807 @@
+/**
+ * Responsive Component Styles
+ * Responsive styles for specific poker game components
+ */
+
+/* ===== RESPONSIVE POKER TABLE ===== */
+.poker-table-responsive {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.poker-table-wrapper {
+  position: relative;
+  width: 100%;
+  padding-bottom: 100%; /* 1:1 aspect ratio */
+}
+
+.poker-table-inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at center, #2a5434 0%, #1a3420 100%);
+  border-radius: 50%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .poker-table-wrapper {
+    padding-bottom: 80%; /* 5:4 aspect ratio on tablets */
+  }
+}
+
+@media (min-width: 992px) {
+  .poker-table-wrapper {
+    padding-bottom: 60%; /* 5:3 aspect ratio on desktop */
+  }
+}
+
+/* ===== RESPONSIVE PLAYER SEATS ===== */
+.player-seats-responsive {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.player-seat-responsive {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  background: var(--bg-secondary);
+  border: 3px solid var(--border-color);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.player-seat-responsive:hover {
+  transform: scale(1.05);
+  border-color: var(--primary-color);
+}
+
+.player-seat-responsive.active {
+  border-color: var(--success-color);
+  background: var(--success-color-light);
+}
+
+.player-seat-responsive.current-turn {
+  border-color: var(--warning-color);
+  background: var(--warning-color-light);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(var(--warning-color-rgb), 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(var(--warning-color-rgb), 0); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--warning-color-rgb), 0); }
+}
+
+/* Seat positioning for mobile */
+@media (max-width: 767px) {
+  .player-seat-responsive:nth-child(1) { top: 5%; left: 50%; transform: translateX(-50%); }
+  .player-seat-responsive:nth-child(2) { top: 20%; right: 10%; }
+  .player-seat-responsive:nth-child(3) { top: 50%; right: 5%; transform: translateY(-50%); }
+  .player-seat-responsive:nth-child(4) { bottom: 20%; right: 10%; }
+  .player-seat-responsive:nth-child(5) { bottom: 5%; left: 50%; transform: translateX(-50%); }
+  .player-seat-responsive:nth-child(6) { bottom: 20%; left: 10%; }
+  .player-seat-responsive:nth-child(7) { top: 50%; left: 5%; transform: translateY(-50%); }
+  .player-seat-responsive:nth-child(8) { top: 20%; left: 10%; }
+}
+
+/* Seat positioning for tablets */
+@media (min-width: 768px) and (max-width: 991px) {
+  .player-seat-responsive {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .player-seat-responsive:nth-child(1) { top: 5%; left: 50%; transform: translateX(-50%); }
+  .player-seat-responsive:nth-child(2) { top: 15%; right: 15%; }
+  .player-seat-responsive:nth-child(3) { top: 40%; right: 5%; transform: translateY(-50%); }
+  .player-seat-responsive:nth-child(4) { bottom: 15%; right: 15%; }
+  .player-seat-responsive:nth-child(5) { bottom: 5%; left: 50%; transform: translateX(-50%); }
+  .player-seat-responsive:nth-child(6) { bottom: 15%; left: 15%; }
+  .player-seat-responsive:nth-child(7) { top: 40%; left: 5%; transform: translateY(-50%); }
+  .player-seat-responsive:nth-child(8) { top: 15%; left: 15%; }
+}
+
+/* Seat positioning for desktop */
+@media (min-width: 992px) {
+  .player-seat-responsive {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .player-seat-responsive:nth-child(1) { top: 5%; left: 50%; transform: translateX(-50%); }
+  .player-seat-responsive:nth-child(2) { top: 15%; right: 20%; }
+  .player-seat-responsive:nth-child(3) { top: 35%; right: 8%; transform: translateY(-50%); }
+  .player-seat-responsive:nth-child(4) { bottom: 15%; right: 20%; }
+  .player-seat-responsive:nth-child(5) { bottom: 5%; left: 50%; transform: translateX(-50%); }
+  .player-seat-responsive:nth-child(6) { bottom: 15%; left: 20%; }
+  .player-seat-responsive:nth-child(7) { top: 35%; left: 8%; transform: translateY(-50%); }
+  .player-seat-responsive:nth-child(8) { top: 15%; left: 20%; }
+}
+
+/* ===== RESPONSIVE PLAYER INFO ===== */
+.player-info-responsive {
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.player-name-responsive {
+  font-size: 10px;
+  font-weight: 600;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.player-chips-responsive {
+  font-size: 9px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.player-status-responsive {
+  font-size: 8px;
+  margin-top: 2px;
+  padding: 1px 4px;
+  border-radius: 8px;
+  background: var(--primary-color);
+  color: white;
+}
+
+@media (min-width: 768px) {
+  .player-name-responsive {
+    font-size: 12px;
+  }
+  
+  .player-chips-responsive {
+    font-size: 10px;
+  }
+  
+  .player-status-responsive {
+    font-size: 9px;
+  }
+}
+
+@media (min-width: 992px) {
+  .player-name-responsive {
+    font-size: 14px;
+  }
+  
+  .player-chips-responsive {
+    font-size: 12px;
+  }
+  
+  .player-status-responsive {
+    font-size: 10px;
+  }
+}
+
+/* ===== RESPONSIVE PLAYER CARDS ===== */
+.player-cards-responsive {
+  display: flex;
+  gap: 2px;
+  margin-top: 4px;
+  justify-content: center;
+}
+
+.player-card-responsive {
+  width: 16px;
+  height: 22px;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 2px;
+  font-size: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  font-weight: bold;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+@media (min-width: 768px) {
+  .player-card-responsive {
+    width: 20px;
+    height: 28px;
+    font-size: 10px;
+  }
+}
+
+@media (min-width: 992px) {
+  .player-card-responsive {
+    width: 24px;
+    height: 34px;
+    font-size: 12px;
+  }
+}
+
+/* ===== RESPONSIVE POT DISPLAY ===== */
+.pot-display-responsive {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 20px;
+  text-align: center;
+  min-width: 80px;
+}
+
+.pot-amount-responsive {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.pot-label-responsive {
+  font-size: 10px;
+  opacity: 0.8;
+}
+
+@media (min-width: 768px) {
+  .pot-display-responsive {
+    padding: 10px 16px;
+    min-width: 100px;
+  }
+  
+  .pot-amount-responsive {
+    font-size: 16px;
+  }
+  
+  .pot-label-responsive {
+    font-size: 11px;
+  }
+}
+
+@media (min-width: 992px) {
+  .pot-display-responsive {
+    padding: 12px 20px;
+    min-width: 120px;
+  }
+  
+  .pot-amount-responsive {
+    font-size: 18px;
+  }
+  
+  .pot-label-responsive {
+    font-size: 12px;
+  }
+}
+
+/* ===== RESPONSIVE GAME CONTROLS ===== */
+.game-controls-responsive {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-primary);
+  border-top: 1px solid var(--border-color);
+  padding: var(--spacing-sm);
+  z-index: 1000;
+}
+
+@media (min-width: 768px) {
+  .game-controls-responsive {
+    position: relative;
+    border-top: none;
+    border-bottom: 1px solid var(--border-color);
+    padding: var(--spacing-md);
+  }
+}
+
+/* ===== RESPONSIVE ACTION BUTTONS ===== */
+.action-buttons-responsive {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-xs);
+}
+
+@media (min-width: 576px) {
+  .action-buttons-responsive {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .action-buttons-responsive {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-sm);
+  }
+}
+
+@media (min-width: 992px) {
+  .action-buttons-responsive {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.action-btn-responsive {
+  padding: var(--spacing-sm);
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+}
+
+@media (min-width: 768px) {
+  .action-btn-responsive {
+    padding: var(--spacing-md);
+    font-size: 14px;
+    min-height: 44px;
+  }
+}
+
+.action-btn-responsive.primary {
+  background: var(--primary-color);
+  color: white;
+}
+
+.action-btn-responsive.secondary {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.action-btn-responsive.danger {
+  background: var(--danger-color);
+  color: white;
+}
+
+.action-btn-responsive.success {
+  background: var(--success-color);
+  color: white;
+}
+
+.action-btn-responsive:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===== RESPONSIVE BETTING INTERFACE ===== */
+.betting-interface-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+@media (min-width: 768px) {
+  .betting-interface-responsive {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+/* ===== RESPONSIVE CHIP SELECTOR ===== */
+.chip-selector-responsive {
+  display: flex;
+  justify-content: space-around;
+  gap: var(--spacing-xs);
+}
+
+.chip-option-responsive {
+  flex: 1;
+  max-width: 60px;
+  height: 36px;
+  border: 2px solid var(--border-color);
+  border-radius: 18px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .chip-option-responsive {
+    max-width: 80px;
+    height: 44px;
+    font-size: 13px;
+  }
+}
+
+.chip-option-responsive.selected {
+  border-color: var(--primary-color);
+  background: var(--primary-color);
+  color: white;
+}
+
+/* ===== RESPONSIVE GAME INFO ===== */
+.game-info-responsive {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+@media (min-width: 768px) {
+  .game-info-responsive {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-md);
+  }
+}
+
+.info-card-responsive {
+  background: var(--bg-secondary);
+  border-radius: 0.5rem;
+  padding: var(--spacing-sm);
+  text-align: center;
+}
+
+.info-label-responsive {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.info-value-responsive {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+@media (min-width: 768px) {
+  .info-label-responsive {
+    font-size: 11px;
+  }
+  
+  .info-value-responsive {
+    font-size: 16px;
+  }
+}
+
+/* ===== RESPONSIVE HAND DISPLAY ===== */
+.hand-display-responsive {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  margin: var(--spacing-sm) 0;
+}
+
+.hand-card-responsive {
+  width: 40px;
+  height: 56px;
+  background: white;
+  border: 2px solid var(--border-color);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.hand-card-responsive:hover {
+  transform: translateY(-4px);
+}
+
+.hand-card-rank {
+  font-size: 16px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.hand-card-suit {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.hand-card-suit.hearts,
+.hand-card-suit.diamonds {
+  color: var(--danger-color);
+}
+
+.hand-card-suit.clubs,
+.hand-card-suit.spades {
+  color: var(--text-primary);
+}
+
+@media (min-width: 768px) {
+  .hand-card-responsive {
+    width: 50px;
+    height: 70px;
+  }
+  
+  .hand-card-rank {
+    font-size: 20px;
+  }
+  
+  .hand-card-suit {
+    font-size: 18px;
+  }
+}
+
+@media (min-width: 992px) {
+  .hand-card-responsive {
+    width: 60px;
+    height: 84px;
+  }
+  
+  .hand-card-rank {
+    font-size: 24px;
+  }
+  
+  .hand-card-suit {
+    font-size: 20px;
+  }
+}
+
+/* ===== RESPONSIVE CHAT ===== */
+.chat-responsive {
+  position: fixed;
+  bottom: 80px;
+  right: 0;
+  width: 100%;
+  max-width: 320px;
+  height: 200px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem 0 0 0.5rem;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  z-index: 999;
+}
+
+.chat-responsive.open {
+  transform: translateX(0);
+}
+
+@media (min-width: 768px) {
+  .chat-responsive {
+    position: relative;
+    bottom: auto;
+    right: auto;
+    width: 100%;
+    height: 300px;
+    border-radius: 0.5rem;
+    transform: none;
+  }
+}
+
+.chat-messages-responsive {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-sm);
+}
+
+.chat-message-responsive {
+  margin-bottom: var(--spacing-xs);
+  padding: var(--spacing-xs);
+  background: var(--bg-secondary);
+  border-radius: 0.5rem;
+  font-size: 12px;
+}
+
+.chat-message-author {
+  font-weight: 600;
+  color: var(--primary-color);
+  margin-bottom: 2px;
+}
+
+.chat-message-text {
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.chat-input-responsive {
+  display: flex;
+  padding: var(--spacing-sm);
+  border-top: 1px solid var(--border-color);
+}
+
+.chat-input-field {
+  flex: 1;
+  padding: var(--spacing-xs);
+  border: 1px solid var(--border-color);
+  border-radius: 0.25rem;
+  font-size: 12px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.chat-send-btn {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  margin-left: var(--spacing-xs);
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 0.25rem;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* ===== RESPONSIVE TOURNAMENT BRACKET ===== */
+.tournament-bracket-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.bracket-round-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.bracket-match-responsive {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  padding: var(--spacing-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bracket-player-responsive {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.bracket-score-responsive {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+@media (min-width: 768px) {
+  .tournament-bracket-responsive {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  
+  .bracket-round-responsive {
+    flex: 1;
+  }
+  
+  .bracket-player-responsive {
+    font-size: 14px;
+  }
+  
+  .bracket-score-responsive {
+    font-size: 14px;
+  }
+}
+
+/* ===== RESPONSIVE LEADERBOARD ===== */
+.leaderboard-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.leaderboard-item-responsive {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-sm);
+  background: var(--bg-secondary);
+  border-radius: 0.5rem;
+  gap: var(--spacing-sm);
+}
+
+.leaderboard-rank-responsive {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  min-width: 30px;
+  text-align: center;
+}
+
+.leaderboard-player-responsive {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.leaderboard-chips-responsive {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--success-color);
+}
+
+@media (min-width: 768px) {
+  .leaderboard-rank-responsive {
+    font-size: 18px;
+    min-width: 40px;
+  }
+  
+  .leaderboard-player-responsive {
+    font-size: 16px;
+  }
+  
+  .leaderboard-chips-responsive {
+    font-size: 16px;
+  }
+}
+
+/* ===== RESPONSIVE SETTINGS ===== */
+.settings-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.settings-section-responsive {
+  background: var(--bg-secondary);
+  border-radius: 0.5rem;
+  padding: var(--spacing-md);
+}
+
+.settings-title-responsive {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.settings-option-responsive {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm) 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.settings-option-responsive:last-child {
+  border-bottom: none;
+}
+
+.settings-label-responsive {
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.settings-control-responsive {
+  min-width: 60px;
+}
+
+@media (min-width: 768px) {
+  .settings-title-responsive {
+    font-size: 18px;
+  }
+  
+  .settings-label-responsive {
+    font-size: 16px;
+  }
+  
+  .settings-control-responsive {
+    min-width: 80px;
+  }
+}

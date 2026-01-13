@@ -1,0 +1,854 @@
+/**
+ * Responsive Design Styles
+ * Mobile-first responsive design for the poker game application
+ */
+
+/* ===== BASE RESPONSIVE VARIABLES ===== */
+:root {
+  /* Breakpoints */
+  --breakpoint-xs: 0px;      /* Extra small devices (phones) */
+  --breakpoint-sm: 576px;    /* Small devices (landscape phones) */
+  --breakpoint-md: 768px;    /* Medium devices (tablets) */
+  --breakpoint-lg: 992px;    /* Large devices (desktops) */
+  --breakpoint-xl: 1200px;   /* Extra large devices (large desktops) */
+  --breakpoint-2xl: 1400px;  /* Extra extra large devices */
+  
+  /* Container max widths */
+  --container-xs: 100%;
+  --container-sm: 540px;
+  --container-md: 720px;
+  --container-lg: 960px;
+  --container-xl: 1140px;
+  --container-2xl: 1320px;
+  
+  /* Spacing scale */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  
+  /* Typography scale */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-size-4xl: 2.25rem;
+  --font-size-5xl: 3rem;
+  
+  /* Component sizes */
+  --button-height-sm: 2rem;
+  --button-height-md: 2.5rem;
+  --button-height-lg: 3rem;
+  
+  --input-height-sm: 2rem;
+  --input-height-md: 2.5rem;
+  --input-height-lg: 3rem;
+  
+  --card-padding-sm: 1rem;
+  --card-padding-md: 1.5rem;
+  --card-padding-lg: 2rem;
+}
+
+/* ===== CONTAINER ===== */
+.container {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+}
+
+@media (min-width: 576px) {
+  .container {
+    max-width: var(--container-sm);
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: var(--container-md);
+    padding: 0 var(--spacing-lg);
+  }
+}
+
+@media (min-width: 992px) {
+  .container {
+    max-width: var(--container-lg);
+  }
+}
+
+@media (min-width: 1200px) {
+  .container {
+    max-width: var(--container-xl);
+    padding: 0 var(--spacing-xl);
+  }
+}
+
+@media (min-width: 1400px) {
+  .container {
+    max-width: var(--container-2xl);
+  }
+}
+
+.container-fluid {
+  width: 100%;
+  padding: 0 var(--spacing-md);
+}
+
+@media (min-width: 768px) {
+  .container-fluid {
+    padding: 0 var(--spacing-lg);
+  }
+}
+
+@media (min-width: 1200px) {
+  .container-fluid {
+    padding: 0 var(--spacing-xl);
+  }
+}
+
+/* ===== GRID SYSTEM ===== */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin: calc(-1 * var(--spacing-md));
+}
+
+.col {
+  flex: 1 0 0%;
+  padding: var(--spacing-md);
+}
+
+/* Column sizes */
+@media (min-width: 576px) {
+  .col-sm { flex: 1 0 0%; }
+  .col-sm-1 { flex: 0 0 8.333333%; }
+  .col-sm-2 { flex: 0 0 16.666667%; }
+  .col-sm-3 { flex: 0 0 25%; }
+  .col-sm-4 { flex: 0 0 33.333333%; }
+  .col-sm-5 { flex: 0 0 41.666667%; }
+  .col-sm-6 { flex: 0 0 50%; }
+  .col-sm-7 { flex: 0 0 58.333333%; }
+  .col-sm-8 { flex: 0 0 66.666667%; }
+  .col-sm-9 { flex: 0 0 75%; }
+  .col-sm-10 { flex: 0 0 83.333333%; }
+  .col-sm-11 { flex: 0 0 91.666667%; }
+  .col-sm-12 { flex: 0 0 100%; }
+}
+
+@media (min-width: 768px) {
+  .col-md { flex: 1 0 0%; }
+  .col-md-1 { flex: 0 0 8.333333%; }
+  .col-md-2 { flex: 0 0 16.666667%; }
+  .col-md-3 { flex: 0 0 25%; }
+  .col-md-4 { flex: 0 0 33.333333%; }
+  .col-md-5 { flex: 0 0 41.666667%; }
+  .col-md-6 { flex: 0 0 50%; }
+  .col-md-7 { flex: 0 0 58.333333%; }
+  .col-md-8 { flex: 0 0 66.666667%; }
+  .col-md-9 { flex: 0 0 75%; }
+  .col-md-10 { flex: 0 0 83.333333%; }
+  .col-md-11 { flex: 0 0 91.666667%; }
+  .col-md-12 { flex: 0 0 100%; }
+}
+
+@media (min-width: 992px) {
+  .col-lg { flex: 1 0 0%; }
+  .col-lg-1 { flex: 0 0 8.333333%; }
+  .col-lg-2 { flex: 0 0 16.666667%; }
+  .col-lg-3 { flex: 0 0 25%; }
+  .col-lg-4 { flex: 0 0 33.333333%; }
+  .col-lg-5 { flex: 0 0 41.666667%; }
+  .col-lg-6 { flex: 0 0 50%; }
+  .col-lg-7 { flex: 0 0 58.333333%; }
+  .col-lg-8 { flex: 0 0 66.666667%; }
+  .col-lg-9 { flex: 0 0 75%; }
+  .col-lg-10 { flex: 0 0 83.333333%; }
+  .col-lg-11 { flex: 0 0 91.666667%; }
+  .col-lg-12 { flex: 0 0 100%; }
+}
+
+@media (min-width: 1200px) {
+  .col-xl { flex: 1 0 0%; }
+  .col-xl-1 { flex: 0 0 8.333333%; }
+  .col-xl-2 { flex: 0 0 16.666667%; }
+  .col-xl-3 { flex: 0 0 25%; }
+  .col-xl-4 { flex: 0 0 33.333333%; }
+  .col-xl-5 { flex: 0 0 41.666667%; }
+  .col-xl-6 { flex: 0 0 50%; }
+  .col-xl-7 { flex: 0 0 58.333333%; }
+  .col-xl-8 { flex: 0 0 66.666667%; }
+  .col-xl-9 { flex: 0 0 75%; }
+  .col-xl-10 { flex: 0 0 83.333333%; }
+  .col-xl-11 { flex: 0 0 91.666667%; }
+  .col-xl-12 { flex: 0 0 100%; }
+}
+
+/* ===== TYPOGRAPHY ===== */
+/* Mobile-first typography */
+.text-xs { font-size: var(--font-size-xs); }
+.text-sm { font-size: var(--font-size-sm); }
+.text-base { font-size: var(--font-size-base); }
+.text-lg { font-size: var(--font-size-lg); }
+.text-xl { font-size: var(--font-size-xl); }
+.text-2xl { font-size: var(--font-size-2xl); }
+.text-3xl { font-size: var(--font-size-3xl); }
+.text-4xl { font-size: var(--font-size-4xl); }
+.text-5xl { font-size: var(--font-size-5xl); }
+
+@media (min-width: 768px) {
+  .text-md-responsive {
+    font-size: var(--font-size-md);
+  }
+}
+
+@media (min-width: 992px) {
+  .text-lg-responsive {
+    font-size: var(--font-size-lg);
+  }
+}
+
+@media (min-width: 1200px) {
+  .text-xl-responsive {
+    font-size: var(--font-size-xl);
+  }
+}
+
+/* ===== SPACING ===== */
+.p-xs { padding: var(--spacing-xs); }
+.p-sm { padding: var(--spacing-sm); }
+.p-md { padding: var(--spacing-md); }
+.p-lg { padding: var(--spacing-lg); }
+.p-xl { padding: var(--spacing-xl); }
+.p-2xl { padding: var(--spacing-2xl); }
+
+.px-xs { padding-left: var(--spacing-xs); padding-right: var(--spacing-xs); }
+.px-sm { padding-left: var(--spacing-sm); padding-right: var(--spacing-sm); }
+.px-md { padding-left: var(--spacing-md); padding-right: var(--spacing-md); }
+.px-lg { padding-left: var(--spacing-lg); padding-right: var(--spacing-lg); }
+.px-xl { padding-left: var(--spacing-xl); padding-right: var(--spacing-xl); }
+.px-2xl { padding-left: var(--spacing-2xl); padding-right: var(--spacing-2xl); }
+
+.py-xs { padding-top: var(--spacing-xs); padding-bottom: var(--spacing-xs); }
+.py-sm { padding-top: var(--spacing-sm); padding-bottom: var(--spacing-sm); }
+.py-md { padding-top: var(--spacing-md); padding-bottom: var(--spacing-md); }
+.py-lg { padding-top: var(--spacing-lg); padding-bottom: var(--spacing-lg); }
+.py-xl { padding-top: var(--spacing-xl); padding-bottom: var(--spacing-xl); }
+.py-2xl { padding-top: var(--spacing-2xl); padding-bottom: var(--spacing-2xl); }
+
+.m-xs { margin: var(--spacing-xs); }
+.m-sm { margin: var(--spacing-sm); }
+.m-md { margin: var(--spacing-md); }
+.m-lg { margin: var(--spacing-lg); }
+.m-xl { margin: var(--spacing-xl); }
+.m-2xl { margin: var(--spacing-2xl); }
+
+.mx-xs { margin-left: var(--spacing-xs); margin-right: var(--spacing-xs); }
+.mx-sm { margin-left: var(--spacing-sm); margin-right: var(--spacing-sm); }
+.mx-md { margin-left: var(--spacing-md); margin-right: var(--spacing-md); }
+.mx-lg { margin-left: var(--spacing-lg); margin-right: var(--spacing-lg); }
+.mx-xl { margin-left: var(--spacing-xl); margin-right: var(--spacing-xl); }
+.mx-2xl { margin-left: var(--spacing-2xl); margin-right: var(--spacing-2xl); }
+
+.my-xs { margin-top: var(--spacing-xs); margin-bottom: var(--spacing-xs); }
+.my-sm { margin-top: var(--spacing-sm); margin-bottom: var(--spacing-sm); }
+.my-md { margin-top: var(--spacing-md); margin-bottom: var(--spacing-md); }
+.my-lg { margin-top: var(--spacing-lg); margin-bottom: var(--spacing-lg); }
+.my-xl { margin-top: var(--spacing-xl); margin-bottom: var(--spacing-xl); }
+.my-2xl { margin-top: var(--spacing-2xl); margin-bottom: var(--spacing-2xl); }
+
+/* ===== DISPLAY ===== */
+.d-none { display: none !important; }
+
+@media (max-width: 575px) {
+  .d-xs-none { display: none !important; }
+  .d-xs-block { display: block !important; }
+  .d-xs-flex { display: flex !important; }
+  .d-xs-inline { display: inline !important; }
+  .d-xs-inline-block { display: inline-block !important; }
+  .d-xs-grid { display: grid !important; }
+  .d-xs-table { display: table !important; }
+}
+
+@media (min-width: 576px) and (max-width: 767px) {
+  .d-sm-none { display: none !important; }
+  .d-sm-block { display: block !important; }
+  .d-sm-flex { display: flex !important; }
+  .d-sm-inline { display: inline !important; }
+  .d-sm-inline-block { display: inline-block !important; }
+  .d-sm-grid { display: grid !important; }
+  .d-sm-table { display: table !important; }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  .d-md-none { display: none !important; }
+  .d-md-block { display: block !important; }
+  .d-md-flex { display: flex !important; }
+  .d-md-inline { display: inline !important; }
+  .d-md-inline-block { display: inline-block !important; }
+  .d-md-grid { display: grid !important; }
+  .d-md-table { display: table !important; }
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+  .d-lg-none { display: none !important; }
+  .d-lg-block { display: block !important; }
+  .d-lg-flex { display: flex !important; }
+  .d-lg-inline { display: inline !important; }
+  .d-lg-inline-block { display: inline-block !important; }
+  .d-lg-grid { display: grid !important; }
+  .d-lg-table { display: table !important; }
+}
+
+@media (min-width: 1200px) {
+  .d-xl-none { display: none !important; }
+  .d-xl-block { display: block !important; }
+  .d-xl-flex { display: flex !important; }
+  .d-xl-inline { display: inline !important; }
+  .d-xl-inline-block { display: inline-block !important; }
+  .d-xl-grid { display: grid !important; }
+  .d-xl-table { display: table !important; }
+}
+
+/* ===== FLEXBOX ===== */
+.flex { display: flex; }
+.flex-row { flex-direction: row; }
+.flex-column { flex-direction: column; }
+.flex-wrap { flex-wrap: wrap; }
+.flex-nowrap { flex-wrap: nowrap; }
+
+.justify-start { justify-content: flex-start; }
+.justify-center { justify-content: center; }
+.justify-end { justify-content: flex-end; }
+.justify-between { justify-content: space-between; }
+.justify-around { justify-content: space-around; }
+.justify-evenly { justify-content: space-evenly; }
+
+.items-start { align-items: flex-start; }
+.items-center { align-items: center; }
+.items-end { align-items: flex-end; }
+.items-stretch { align-items: stretch; }
+.items-baseline { align-items: baseline; }
+
+.flex-1 { flex: 1; }
+.flex-auto { flex: 1 1 auto; }
+.flex-initial { flex: 0 1 auto; }
+.flex-none { flex: none; }
+
+/* ===== POKER GAME SPECIFIC RESPONSIVE ===== */
+
+/* Game Table */
+.game-table {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+@media (min-width: 768px) {
+  .game-table {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+}
+
+@media (min-width: 1200px) {
+  .game-table {
+    max-width: 1200px;
+  }
+}
+
+/* Player Seats */
+.player-seats {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-sm);
+}
+
+@media (min-width: 768px) {
+  .player-seats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 992px) {
+  .player-seats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1200px) {
+  .player-seats {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Game Controls */
+.game-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+@media (min-width: 768px) {
+  .game-controls {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-sm);
+}
+
+@media (min-width: 576px) {
+  .action-buttons {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .action-buttons {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 992px) {
+  .action-buttons {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+/* Betting Interface */
+.betting-interface {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+@media (min-width: 768px) {
+  .betting-interface {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+/* Chip Stack */
+.chip-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .chip-stack {
+    gap: var(--spacing-sm);
+  }
+}
+
+/* Game Info Panel */
+.game-info {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-md);
+}
+
+@media (min-width: 768px) {
+  .game-info {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 992px) {
+  .game-info {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Navigation */
+.nav-mobile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+@media (min-width: 768px) {
+  .nav-mobile {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.nav-desktop {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .nav-desktop {
+    display: flex;
+  }
+  .nav-mobile {
+    display: none;
+  }
+}
+
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -100%;
+  width: 280px;
+  height: 100vh;
+  background: var(--bg-primary);
+  transition: left 0.3s ease;
+  z-index: 1000;
+}
+
+.sidebar.open {
+  left: 0;
+}
+
+@media (min-width: 768px) {
+  .sidebar {
+    position: relative;
+    left: 0;
+    width: 300px;
+  }
+}
+
+/* Main Content */
+.main-content {
+  margin-left: 0;
+  min-height: 100vh;
+  transition: margin-left 0.3s ease;
+}
+
+@media (min-width: 768px) {
+  .main-content {
+    margin-left: 300px;
+  }
+}
+
+/* Cards */
+.card {
+  padding: var(--card-padding-sm);
+}
+
+@media (min-width: 768px) {
+  .card {
+    padding: var(--card-padding-md);
+  }
+}
+
+@media (min-width: 1200px) {
+  .card {
+    padding: var(--card-padding-lg);
+  }
+}
+
+/* Forms */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+@media (min-width: 768px) {
+  .form-group {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-md);
+  }
+  
+  .form-group > label {
+    flex: 0 0 200px;
+  }
+  
+  .form-group > input,
+  .form-group > select,
+  .form-group > textarea {
+    flex: 1;
+  }
+}
+
+/* Buttons */
+.btn {
+  width: 100%;
+  height: var(--button-height-sm);
+}
+
+@media (min-width: 576px) {
+  .btn {
+    width: auto;
+    height: var(--button-height-md);
+  }
+}
+
+@media (min-width: 768px) {
+  .btn {
+    height: var(--button-height-lg);
+  }
+}
+
+.btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+@media (min-width: 576px) {
+  .btn-group {
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+
+/* Tables */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  width: 100%;
+  min-width: 600px;
+}
+
+@media (min-width: 768px) {
+  .table {
+    min-width: auto;
+  }
+}
+
+/* Modals */
+.modal {
+  width: 95%;
+  max-width: 500px;
+  margin: var(--spacing-md) auto;
+}
+
+@media (min-width: 768px) {
+  .modal {
+    width: 90%;
+    max-width: 600px;
+  }
+}
+
+@media (min-width: 992px) {
+  .modal {
+    width: 80%;
+    max-width: 800px;
+  }
+}
+
+/* Header */
+.header {
+  padding: var(--spacing-sm);
+}
+
+@media (min-width: 768px) {
+  .header {
+    padding: var(--spacing-md);
+  }
+}
+
+@media (min-width: 1200px) {
+  .header {
+    padding: var(--spacing-lg);
+  }
+}
+
+/* Footer */
+.footer {
+  padding: var(--spacing-md);
+}
+
+@media (min-width: 768px) {
+  .footer {
+    padding: var(--spacing-lg);
+  }
+}
+
+/* ===== UTILITY CLASSES ===== */
+.w-100 { width: 100%; }
+.h-100 { height: 100%; }
+.min-h-screen { min-height: 100vh; }
+
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.rounded { border-radius: 0.375rem; }
+.rounded-lg { border-radius: 0.5rem; }
+.rounded-xl { border-radius: 0.75rem; }
+
+.shadow { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); }
+.shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+
+.border { border: 1px solid var(--border-color); }
+.border-t { border-top: 1px solid var(--border-color); }
+.border-b { border-bottom: 1px solid var(--border-color); }
+.border-l { border-left: 1px solid var(--border-color); }
+.border-r { border-right: 1px solid var(--border-color); }
+
+.bg-white { background-color: white; }
+.bg-gray-50 { background-color: #f9fafb; }
+.bg-gray-100 { background-color: #f3f4f6; }
+
+.text-gray-900 { color: #111827; }
+.text-gray-600 { color: #4b5563; }
+.text-gray-500 { color: #6b7280; }
+
+/* ===== MOBILE OPTIMIZATIONS ===== */
+@media (max-width: 767px) {
+  /* Hide non-essential elements on mobile */
+  .desktop-only {
+    display: none !important;
+  }
+  
+  /* Optimize touch targets */
+  .btn,
+  .btn-sm,
+  .btn-lg {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Larger tap areas for mobile */
+  .clickable {
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Prevent horizontal scroll on mobile */
+  .no-scroll-mobile {
+    overflow-x: hidden;
+  }
+  
+  /* Full width on mobile */
+  .w-full-mobile {
+    width: 100% !important;
+  }
+  
+  /* Stack on mobile */
+  .stack-mobile {
+    flex-direction: column;
+  }
+  
+  /* Center content on mobile */
+  .center-mobile {
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* Hide text on mobile */
+  .hidden-mobile {
+    display: none !important;
+  }
+  
+  /* Show only on mobile */
+  .mobile-only {
+    display: block !important;
+  }
+}
+
+@media (min-width: 768px) {
+  /* Show only on desktop */
+  .desktop-only {
+    display: block !important;
+  }
+  
+  /* Hide on desktop */
+  .hidden-desktop {
+    display: none !important;
+  }
+  
+  /* Hide mobile-only elements */
+  .mobile-only {
+    display: none !important;
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+  
+  * {
+    color: black !important;
+    background: white !important;
+  }
+  
+  .container {
+    max-width: none !important;
+    width: 100% !important;
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  /* Dark mode styles can be added here */
+}
+
+/* ===== CUSTOM BREAKPOINTS ===== */
+@media (max-height: 600px) {
+  .short-screen {
+    /* Adjustments for very short screens */
+    font-size: 0.875rem;
+  }
+}
+
+@media (orientation: landscape) {
+  .landscape-only {
+    display: block !important;
+  }
+  
+  .portrait-only {
+    display: none !important;
+  }
+}
+
+@media (orientation: portrait) {
+  .portrait-only {
+    display: block !important;
+  }
+  
+  .landscape-only {
+    display: none !important;
+  }
+}
+
+/* ===== HIGH DPI SUPPORT ===== */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* Retina display optimizations */
+  .retina {
+    /* High DPI specific styles */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}

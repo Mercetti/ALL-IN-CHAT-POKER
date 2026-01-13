@@ -45,9 +45,15 @@ try {
 const UnifiedAISystem = require('./server/unified-ai');
 const { registerAdminAiControlRoutes } = require('./server/routes/admin-ai-control');
 const { createSimpleAdminAiControlRouter } = require('./server/routes/admin-ai-control-simple');
+const { createAdminAILearningRoutes } = require('./server/routes/admin-ai-learning');
 const { createAdminRouter } = require('./server/routes/admin');
 const { createAuthRouter } = require('./server/routes/auth');
 const createPublicRouter = require('./server/routes/public');
+const loggingRouter = require('./server/routes/logging');
+const datasetRouter = require('./server/routes/dataset');
+const simulationRouter = require('./server/routes/simulation');
+const workflowRouter = require('./server/routes/workflow');
+const commandsRouter = require('./server/routes/commands');
 const createPartnersRouter = require('./server/routes/partners');
 const createCatalogRouter = require('./server/routes/catalog');
 const createAdminServicesRouter = require('./server/routes/admin-services');
@@ -326,6 +332,13 @@ const adminAiControlRoutes = createSimpleAdminAiControlRouter();
 app.use('/admin/ai', adminAiControlRoutes);
 app.use('/admin/ai-tools', adminAiControlRoutes); // Alias for simple endpoints
 
+// Logging routes for LLM interaction tracking
+app.use('/api', loggingRouter);
+app.use('/api', datasetRouter);
+app.use('/api', simulationRouter);
+app.use('/api', workflowRouter);
+app.use('/api', commandsRouter);
+
 // Register full AI Control Center routes (authenticated, feature-complete)
 if (!config.isTest()) {
   registerAdminAiControlRoutes(app, {
@@ -334,6 +347,15 @@ if (!config.isTest()) {
     collectAiOverviewPanels,
     unifiedAI,
     sendMonitorAlert,
+    logger,
+  });
+
+  // Register AI Learning routes
+  const learningOrchestrator = createAdminAILearningRoutes(app, {
+    auth,
+    unifiedAI,
+    sendMonitorAlert,
+    performanceMonitor,
     logger,
   });
 }
@@ -574,6 +596,126 @@ try {
 }
 console.log('AceyEngine created successfully');
 
+// ======================
+// AI Control Center Integration
+// ======================
+let aceyBridge;
+try {
+  // Import the AceyBridge class and filter utilities
+  const { AceyBridge } = require('./acey-control-center/dist/server/aceyBridge');
+  const { filterAceyLogs, applyAutoRulesToOutput } = require('./server/utils/filter');
+  
+  // Initialize the bridge to connect Acey with AI Control Center
+  aceyBridge = new AceyBridge({
+    controlCenterUrl: 'http://localhost:3001',
+    aceySystemUrl: 'http://localhost:8080', // Your existing server
+    autoRulesEnabled: true,
+    dryRunMode: false // Set to true for testing
+  });
+  
+  // Start the bridge connection
+  aceyBridge.connect().then(() => {
+    console.log('🔗 Acey Bridge connected - Acey ↔ AI Control Center');
+  }).catch(error => {
+    console.warn('⚠️ Acey Bridge connection failed, running without Control Center:', error.message);
+  });
+  
+  // Override Acey Engine's addChatMessage to route through Control Center
+  const originalAddChatMessage = aceyEngine.addChatMessage;
+  aceyEngine.addChatMessage = async function(data) {
+    try {
+      // Convert chat message to Acey output format
+      const aceyOutput = {
+        speech: data.message || data.text || '',
+        intents: [
+          {
+            type: "memory_proposal",
+            scope: "event",
+            summary: `Chat: ${data.message || data.text || ''}`,
+            confidence: 0.8,
+            ttl: "1h"
+          }
+        ]
+      };
+      
+      // Apply auto-rules for live processing
+      const filteredOutput = applyAutoRulesToOutput(aceyOutput);
+      
+      if (!filteredOutput) {
+        console.log('🚫 Chat message rejected by auto-rules');
+        return; // Don't process rejected messages
+      }
+      
+      // Send to Control Center via bridge
+      if (aceyBridge && aceyBridge.getStatus().connected) {
+        await aceyBridge.handleAceyOutput(filteredOutput);
+      }
+      
+      // Still call original method for local processing with filtered output
+      return originalAddChatMessage.call(this, {
+        ...data,
+        filteredOutput // Add filtered output for reference
+      });
+    } catch (error) {
+      console.error('Bridge chat processing failed:', error);
+      // Fallback to original processing
+      return originalAddChatMessage.call(this, data);
+    }
+  };
+  
+  // Override Acey Engine's addGameEvent to route through Control Center  
+  const originalAddGameEvent = aceyEngine.addGameEvent;
+  aceyEngine.addGameEvent = async function(sessionId, event) {
+    try {
+      const { type, player, card } = event;
+      const aceyOutput = {
+        speech: `Game event: ${type} by ${player}`,
+        intents: [
+          {
+            type: "memory_proposal", 
+            scope: "event",
+            summary: `Game: ${type} - ${player} ${card ? `drew ${card}` : ''}`,
+            confidence: 0.9,
+            ttl: "2h"
+          },
+          {
+            type: "trust_signal",
+            delta: type === 'all-in' ? 0.1 : 0.05,
+            reason: `Game engagement: ${type}`,
+            reversible: true
+          }
+        ]
+      };
+      
+      // Apply auto-rules for live processing
+      const filteredOutput = applyAutoRulesToOutput(aceyOutput);
+      
+      if (!filteredOutput) {
+        console.log('🚫 Game event rejected by auto-rules');
+        return; // Don't process rejected events
+      }
+      
+      // Send to Control Center via bridge
+      if (aceyBridge && aceyBridge.getStatus().connected) {
+        await aceyBridge.handleAceyOutput(filteredOutput);
+      }
+      
+      // Still call original method for local processing
+      return originalAddGameEvent.call(this, sessionId, event);
+    } catch (error) {
+      console.error('Bridge game event processing failed:', error);
+      // Fallback to original processing
+      return originalAddGameEvent.call(this, sessionId, event);
+    }
+  };
+  
+  console.log('🤖 AI Control Center integration enabled with auto-rules');
+  
+} catch (error) {
+  console.warn('⚠️ Could not initialize AI Control Center Bridge:', error.message);
+  console.log('🔄 Running without AI Control Center - all features will work locally');
+}
+
 // Socket.IO connection handling (legacy, kept for compatibility)
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
@@ -648,6 +790,9 @@ server.listen(PORT, HOST, () => {
 process.on('SIGTERM', () => {
   console.log('SIGTERM received, shutting down gracefully...');
   aceyWebSocket.stop();  // Add Acey shutdown
+  if (aceyBridge) {
+    aceyBridge.disconnect();  // Add Bridge shutdown
+  }
   server.close(() => {
     console.log('Server closed');
     process.exit(0);
@@ -657,6 +802,9 @@ process.on('SIGTERM', () => {
 process.on('SIGINT', () => {
   console.log('SIGINT received, shutting down gracefully...');
   aceyWebSocket.stop();  // Add Acey shutdown
+  if (aceyBridge) {
+    aceyBridge.disconnect();  // Add Bridge shutdown
+  }
   server.close(() => {
     console.log('Server closed');
     process.exit(0);
