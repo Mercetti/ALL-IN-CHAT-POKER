@@ -16,8 +16,14 @@ const startup = require('./server/startup');
 const ConnectionHardener = require('./server/connection-hardener');
 const db = require('./server/db');
 const auth = require('./server/auth');
-const config = require('./server/config');
+const config = require('./server/config/env');
 const Logger = require('./server/logger');
+
+// Validate environment configuration
+if (!config.validateCriticalEnvVars()) {
+  console.error('❌ Critical environment variables are missing. Please check your .env file.');
+  process.exit(1);
+}
 const payoutStore = require('./server/payout-store');
 const { PerformanceMonitor } = require('./server/utils/performance-monitor');
 let AIPerformanceMonitor;
@@ -62,7 +68,7 @@ const connectionHardener = new ConnectionHardener();
 
 // Initialize performanceMonitor early
 let performanceMonitor;
-if (process.env.NODE_ENV !== 'test') {
+if (!config.isTest()) {
   performanceMonitor = new AIPerformanceMonitor();
 } else {
   // Create a mock performanceMonitor for tests
@@ -321,7 +327,7 @@ app.use('/admin/ai', adminAiControlRoutes);
 app.use('/admin/ai-tools', adminAiControlRoutes); // Alias for simple endpoints
 
 // Register full AI Control Center routes (authenticated, feature-complete)
-if (process.env.NODE_ENV !== 'test') {
+if (!config.isTest()) {
   registerAdminAiControlRoutes(app, {
     auth,
     performanceMonitor,
@@ -334,7 +340,7 @@ if (process.env.NODE_ENV !== 'test') {
 
 // Initialize Poker Audio System
 let pokerAudioSystem;
-if (process.env.NODE_ENV !== 'test') {
+if (!config.isTest()) {
   try {
     // Check if PokerAudioSystem class exists
     const PokerAudioSystem = require('./server/poker-audio-system');
@@ -610,21 +616,21 @@ const aceyWebSocket = new AceyWebSocket({
 });
 
 // Start Acey WebSocket service
-if (process.env.NODE_ENV !== 'test') {
+if (!config.isTest()) {
   aceyWebSocket.start();
   console.log('🎤 Acey WebSocket server initialized');
 }
 
 // Start server
-const PORT = process.env.NODE_ENV === 'test' ? 0 : (process.env.PORT || 8080);
-const HOST = '0.0.0.0';
+const serverConfig = config.getServerConfig();
+const { PORT, HOST } = serverConfig;
 
-if (process.env.NODE_ENV !== 'test') {
+if (!config.isTest()) {
   console.log(`Starting server on ${HOST}:${PORT}`);
 }
 
 server.listen(PORT, HOST, () => {
-  if (process.env.NODE_ENV !== 'test') {
+  if (!config.isTest()) {
     console.log(`Server running at http://${HOST}:${PORT}`);
   }
 }).on('error', (err) => {
@@ -633,7 +639,7 @@ server.listen(PORT, HOST, () => {
   } else {
     console.error('Server startup failed:', err);
   }
-  if (process.env.NODE_ENV !== 'test') {
+  if (!config.isTest()) {
     process.exit(1);
   }
 });
