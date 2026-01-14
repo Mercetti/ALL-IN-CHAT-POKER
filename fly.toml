@@ -10,6 +10,9 @@ primary_region = "iad"
   DB_FILE = "/data/data.db"
   NODE_ENV = "production"
   PORT = "8080"
+  DATABASE_URL = "sqlite:/data/data.db"
+  JWT_SECRET = "production-jwt-secret-key-change-this-in-production"
+  SESSION_SECRET = "production-session-secret-key-change-this-in-production"
 
 [processes]
   app = "sh fly-entrypoint.sh"
