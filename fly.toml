@@ -13,6 +13,11 @@ primary_region = "iad"
   DATABASE_URL = "sqlite:/data/data.db"
   JWT_SECRET = "production-jwt-secret-key-change-this-in-production"
   SESSION_SECRET = "production-session-secret-key-change-this-in-production"
+  DISCORD_PUBLIC_KEY = "placeholder-discord-public-key"
+  DISCORD_CLIENT_ID = "placeholder-discord-client-id"
+  DISCORD_CLIENT_SECRET = "placeholder-discord-client-secret"
+  DISCORD_REDIRECT_URI = "https://all-in-chat-poker.fly.dev/auth/discord/callback"
+  APP_BASE_URL = "https://all-in-chat-poker.fly.dev"
 
 [processes]
   app = "sh fly-entrypoint.sh"
