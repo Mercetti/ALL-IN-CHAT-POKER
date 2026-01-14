@@ -5,13 +5,15 @@
 ### Core Positioning (1 sentence)
 **Acey is a modular AI operator that runs your stream, tools, and workflows — safely, visibly, and under your control.**
 
-### NOT This:
+### NOT This
+
 - "AI assistant" (implies subservient chatbot)
 - "chatbot" (implies basic conversation only)
 - "bot host" (implies hosting others' bots)
 - "autonomous AI" (implies acts without permission)
 
-### This:
+### This
+
 - **AI operator** (implies professional capability and control)
 - **Modular** (implies skill-based architecture)
 - **Runs your workflows** (implies integration and automation)
@@ -19,20 +21,25 @@
 ### Primary Audience (Launch Focus)
 
 #### 🎯 **Tier 1 (Launch)**
+
 ### 🎯 **Creators / Streamers / Solo Builders**
+
 - Twitch / YouTube creators
 - Indie developers
 - Tech-savvy streamers
 - Solo content creators
 
 **Pain Points:**
+
 - Tool fragmentation across different platforms
 - AI assistants that can't integrate with their workflow
 - Fear of losing control to "autonomous AI"
 - Need for visible, trustworthy AI operations
 
 #### 🎯 **Tier 2 (Shortly After)**
+
 ### 🎯 **Teams**
+
 - Streamer agencies
 - Esports organizations
 - Dev teams
@@ -41,8 +48,9 @@
 
 ### Public Messaging Pillars
 
-#### 🧠 **1. Control First**
-### 🧠 **"Acey never acts without your permission."**
+#### 🧠 **1 Control First**
+
+### 🧠 **Acey never acts without your permission**
 
 - ✅ Approvals required for significant actions
 - ✅ Complete audit logs of all operations
@@ -53,6 +61,7 @@
 **This immediately differentiates from "autonomous AI fear" narrative.**
 
 #### 🧩 **2. Skills, Not Prompts**
+
 ### 🧩 **"Install what you need. Nothing you don't."**
 
 - ✅ Skill Store with modular capabilities
@@ -64,6 +73,7 @@
 **People understand this instantly - no complex pricing to decipher.**
 
 #### 🔍 **3. Visible AI (Trust)**
+
 ### 🔍 **"See what Acey is doing — live."**
 
 - ✅ Live previews for all skill outputs
@@ -74,8 +84,9 @@
 
 **No black box behavior - full visibility builds trust.**
 
-#### 🚀 **4. Grows With You**
-### 🚀 **"Acey learns from approvals — not accidents."**
+#### 🚀 **4 Grows With You**
+
+### 🚀 **Acey learns from approvals — not accidents**
 
 - ✅ Feedback-driven learning system
 - ✅ Rollback-safe improvements
@@ -88,7 +99,8 @@
 ### Launch Page Sections (Suggested)
 
 #### Hero Section
-### **"Built for creators. Ready for teams."**
+
+### **Built for creators Ready for teams**
 
 - Short video/GIF showing live skill operation
 - Skill Store examples with quick install
@@ -96,6 +108,7 @@
 - Clear tier comparison
 
 #### What Acey Does (Live Previews)
+
 - Code generation with live preview
 - Audio creation with waveform visualization
 - Graphics generation with instant thumbnails
@@ -103,12 +116,14 @@
 - Stream analytics with live metrics
 
 #### Safety & Control Section
+
 - Permission matrix visualization
 - Audit log examples
 - Emergency lock demonstration
 - Multi-tenant isolation explanation
 
 #### Pricing Tiers
+
 - Free: 3 skills, 10 outputs/day
 - Pro: 6 skills, 50 outputs/day
 - Enterprise: 9+ skills, 200 outputs/day
@@ -117,11 +132,12 @@
 
 ## 2️⃣ **First Enterprise Onboarding Flow**
 
-### This is NOT self-serve enterprise yet. It's guided.
+### This is NOT self-serve enterprise yet It's guided
 
 #### Step 1: Enterprise Flag
 **Admin enables:**
-```
+
+```text
 Tenant Mode: Enterprise
 ├─ Multi-tenant isolation
 ├─ Advanced audit logging
@@ -133,7 +149,8 @@ Tenant Mode: Enterprise
 
 #### Step 2: Skill Scoping (Critical)
 **Enterprise admin chooses:**
-```
+
+```text
 Allowed Skills:
 ├─ Code Helper Pro → Auto-approve
 ├─ Audio Maestro → Manager approval
@@ -154,7 +171,8 @@ Restricted Skills:
 
 #### Step 3: Authority Weights
 **Each human gets a weight:**
-```
+
+```text
 Role          Weight  Decision Power
 Owner          100    Full control
 Admin           70     Major decisions, owner approval for critical
@@ -167,7 +185,8 @@ Higher weight wins + governance rules apply
 
 #### Step 4: Dry-Run Simulation
 **Before going live:**
-```
+
+```text
 Enterprise Simulation Mode:
 ├─ Replay common workflows
 ├─ Test approval chains
@@ -185,7 +204,8 @@ Rules:
 
 #### Step 5: Go Live (Scoped)
 **Only selected skills activate:**
-```
+
+```text
 Enterprise Launch:
 ├─ Scoped skill activation
 ├─ Tenant isolation enforced
@@ -211,13 +231,14 @@ Only Results + Logs:
 
 ## 3️⃣ **Acey Failure Scenarios + Recovery**
 
-### This is what investors and enterprises care about.
+### This is what investors and enterprises care about
 
 #### 🔥 **Scenario 1: Hallucinated Action**
 **Problem:** Acey claims to fix something she didn't.
 
 **Detection:**
-```
+
+```text
 Hallucination Detection:
 ├─ Output mismatch vs available tools
 ├─ Confidence anomaly detection
@@ -233,7 +254,8 @@ Triggers:
 ```
 
 **Recovery:**
-```
+
+```text
 Immediate Response:
 ├─ Action marked "unverified"
 ├─ User notified of potential issue
@@ -252,7 +274,8 @@ Follow-up:
 **Problem:** Acey attempts to use a locked skill.
 
 **Detection:**
-```
+
+```text
 Permission Leak Detection:
 ├─ Permission gate intercept
 ├─ Skill access log monitoring
