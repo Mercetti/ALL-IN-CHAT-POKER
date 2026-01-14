@@ -1,5 +1,5 @@
 const express = require('express');
-const { auth } = require('../auth-contract');
+const auth = require('../auth');
 const logger = require('../logger');
 const db = require('../db');
 
@@ -7,7 +7,7 @@ function createUnlockRouter({ db: dbParam, logger: loggerParam }) {
   const router = express.Router();
 
   // Stage 1: Request unlock ceremony
-  router.post('/request', auth.requireOwner, async (req, res) => {
+  router.post('/request', auth.requireAdmin, async (req, res) => {
     try {
       const { device_id, owner_id, reason } = req.body;
       
@@ -43,7 +43,7 @@ function createUnlockRouter({ db: dbParam, logger: loggerParam }) {
   });
 
   // Stage 2: Approve unlock (owner confirmation)
-  router.post('/approve', auth.requireOwner, async (req, res) => {
+  router.post('/approve', auth.requireAdmin, async (req, res) => {
     try {
       const { request_id, approved } = req.body;
       

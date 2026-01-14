@@ -1,5 +1,5 @@
 const express = require('express');
-const { auth } = require('../auth-contract');
+const auth = require('../auth');
 const logger = require('../logger');
 const db = require('../db');
 
@@ -7,7 +7,7 @@ function createIncidentRouter({ db, logger }) {
   const router = express.Router();
 
   // Create new incident
-  router.post('/create', auth.requireOwner, async (req, res) => {
+  router.post('/create', auth.requireAdmin, async (req, res) => {
     try {
       const { severity, trigger, affected_systems, root_cause, description } = req.body;
 
@@ -90,7 +90,7 @@ function createIncidentRouter({ db, logger }) {
   });
 
   // Get active incidents
-  router.get('/active', auth.requireOwner, async (req, res) => {
+  router.get('/active', auth.requireAdmin, async (req, res) => {
     try {
       const incidents = db.prepare('SELECT * FROM incidents WHERE status = "OPEN" ORDER BY created_at DESC').all();
       
@@ -106,7 +106,7 @@ function createIncidentRouter({ db, logger }) {
   });
 
   // Get incident details
-  router.get('/:incident_id', auth.requireOwner, async (req, res) => {
+  router.get('/:incident_id', auth.requireAdmin, async (req, res) => {
     try {
       const { incident_id } = req.params;
 
@@ -140,7 +140,7 @@ function createIncidentRouter({ db, logger }) {
   });
 
   // Update incident status
-  router.post('/:incident_id/status', auth.requireOwner, async (req, res) => {
+  router.post('/:incident_id/status', auth.requireAdmin, async (req, res) => {
     try {
       const { incident_id } = req.params;
       const { status, resolution, action_taken } = req.body;
@@ -209,7 +209,7 @@ function createIncidentRouter({ db, logger }) {
   });
 
   // Add action to incident
-  router.post('/:incident_id/action', auth.requireOwner, async (req, res) => {
+  router.post('/:incident_id/action', auth.requireAdmin, async (req, res) => {
     try {
       const { incident_id } = req.params;
       const { action, biometric_verified } = req.body;
@@ -281,7 +281,7 @@ function createIncidentRouter({ db, logger }) {
   });
 
   // Get incident history
-  router.get('/history', auth.requireOwner, async (req, res) => {
+  router.get('/history', auth.requireAdmin, async (req, res) => {
     try {
       const { limit = 50, severity, start_date, end_date } = req.query;
       
@@ -320,7 +320,7 @@ function createIncidentRouter({ db, logger }) {
   });
 
   // Close incident with learning
-  router.post('/:incident_id/close', auth.requireOwner, async (req, res) => {
+  router.post('/:incident_id/close', auth.requireAdmin, async (req, res) => {
     try {
       const { incident_id } = req.params;
       const { resolution, learning_enabled } = req.body;
@@ -375,7 +375,7 @@ function createIncidentRouter({ db, logger }) {
   });
 
   // Get incident statistics
-  router.get('/stats', auth.requireOwner, async (req, res) => {
+  router.get('/stats', auth.requireAdmin, async (req, res) => {
     try {
       const stats = db.prepare(`
         SELECT 
