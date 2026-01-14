@@ -11,17 +11,10 @@ import GameScreen from './screens/GameScreen';
 import BiometricAuth from './components/BiometricAuth';
 import PushNotificationService from './services/PushNotificationService';
 import AppShortcutsService from './services/AppShortcutsService';
-
-// Import theme provider and screens
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet } from 'react-native';
 
-// Initialize services
-const pushNotificationService = new PushNotificationService();
-const appShortcutsService = new AppShortcutsService();
-
-// Create stack navigator
 const Stack = createStackNavigator();
 
 const App = () => {
@@ -29,42 +22,60 @@ const App = () => {
 
   React.useEffect(() => {
     // Initialize services
-    pushNotificationService.initialize();
-    appShortcutsService.initialize();
+    PushNotificationService.initialize();
+    AppShortcutsService.initialize();
   }, []);
 
-  return (
-    <ThemeProvider theme={theme}>
-      <SafeAreaProvider style={styles.container}>
-        <NavigationContainer>
-          <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
-          <Stack.Navigator>
-            <Stack.Screen
-              name="Game"
-              component={GameScreen}
-              options={{
+  return React.createElement(
+    ThemeProvider,
+    { theme: theme },
+    React.createElement(
+      SafeAreaProvider,
+      { style: styles.container },
+      React.createElement(
+        NavigationContainer,
+        {},
+        React.createElement(
+          StatusBar,
+          {
+            barStyle: "light-content",
+            backgroundColor: theme.colors.background
+          }
+        ),
+        React.createElement(
+          Stack.Navigator,
+          {},
+          React.createElement(
+            Stack.Screen,
+            {
+              name: 'Game',
+              component: GameScreen,
+              options: {
                 title: 'All-In Chat Poker',
                 headerStyle: {
                   backgroundColor: theme.colors.primary,
                 },
                 headerTintColor: theme.colors.surface,
-              }}
-            />
-            <Stack.Screen
-              name="BiometricAuth"
-              component={BiometricAuth}
-              options={{
+              }
+            }
+          ),
+          React.createElement(
+            Stack.Screen,
+            {
+              name: 'BiometricAuth',
+              component: BiometricAuth,
+              options: {
                 title: 'Secure Login',
                 headerStyle: {
                   backgroundColor: theme.colors.primary,
                 },
                 headerTintColor: theme.colors.surface,
-              }}
-            />
-          </Stack.Navigator>
-        </NavigationContainer>
-      </SafeAreaProvider>
-    </ThemeProvider>
+              }
+            }
+          )
+        )
+      )
+    )
   );
 };
 
