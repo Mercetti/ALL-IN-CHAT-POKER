@@ -74,28 +74,28 @@
 }
 
 .health-indicator.good {
-  background: #4ade80;
-  box-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+  background: var(--color-success);
+  box-shadow: var(--shadow-success);
 }
 
 .health-indicator.warning {
-  background: #fbbf24;
-  box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+  background: var(--color-warning);
+  box-shadow: var(--shadow-warning);
 }
 
 .health-indicator.error {
-  background: #ef4444;
-  box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+  background: var(--color-error);
+  box-shadow: var(--shadow-error);
 }
 
 /* ===== PERFORMANCE PANEL ===== */
 .performance-panel {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 24px;
+  background: var(--gradient-surface);
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--border-radius-base);
+  padding: var(--space-6);
   backdrop-filter: blur(20px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-lg);
   margin-bottom: 32px;
 }
 

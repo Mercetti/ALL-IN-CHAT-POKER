@@ -1,15 +1,25 @@
 :root {
-  --color-bg: #030712;
-  --color-panel: rgba(7, 13, 28, 0.9);
-  --color-panel-border: rgba(41, 84, 255, 0.35);
-  --color-text: #f2f5ff;
-  --color-text-dim: #8ca0d7;
-  --color-accent: #4adeff;
-  --color-accent-strong: #9d6bff;
-  --gradient-header: linear-gradient(135deg, #161b2e 0%, #0d1c33 50%, #0b1121 100%);
-  --panel-radius: 20px;
-  --panel-shadow: 0 20px 40px rgba(4, 10, 25, 0.5);
-  font-family: 'Space Grotesk', 'Segoe UI', system-ui;
+  /* Colors - using unified design system */
+  --color-bg: var(--color-bg-primary);
+  --color-panel: var(--color-bg-surface);
+  --color-panel-border: rgba(var(--color-primary-rgb), 0.35);
+  --color-text: var(--color-primary);
+  --color-text-dim: var(--color-gray-500);
+  --color-accent: var(--color-primary);
+  --color-accent-strong: var(--color-primary-dark);
+  
+  /* Typography - using unified design system */
+  --font-family-primary: var(--font-family-primary);
+  --font-size-base: var(--font-size-base);
+  --font-weight-medium: var(--font-weight-medium);
+  --line-height-normal: var(--line-height-normal);
+  
+  /* Spacing - using unified design system */
+  --panel-radius: var(--border-radius-lg);
+  --panel-shadow: var(--shadow-lg);
+  
+  /* Gradients - using unified design system */
+  --gradient-header: var(--gradient-surface);
   color: var(--color-text);
   background-color: var(--color-bg);
 }

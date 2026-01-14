@@ -387,8 +387,8 @@ input, textarea, [contenteditable] {
 }
 
 .mobile-chip-option.selected {
-  border-color: var(--primary-color);
-  background: var(--primary-color);
+  border-color: var(--color-primary);
+  background: var(--color-primary);
   color: white;
 }
 
@@ -905,7 +905,7 @@ input, textarea, [contenteditable] {
   }
   
   .mobile-player-seat {
-    width: 60px;
+    border-radius: var(--border-radius-base);
     height: 60px;
   }
   

@@ -1,13 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Sora:wght@400;600&display=swap');
 
 :root {
-  --acey-bg: linear-gradient(135deg, rgba(19, 20, 31, 0.92), rgba(63, 29, 90, 0.88));
-  --acey-border: rgba(255, 255, 255, 0.15);
-  --acey-shadow: 0 10px 30px rgba(10, 6, 26, 0.55);
-  --acey-text: #f9f6ff;
-  --acey-accent: #ff6bd6;
-  --acey-secondary: #7ef0ff;
-  --acey-pulse: rgba(255, 107, 214, 0.45);
+  /* Colors - using unified design system */
+  --acey-bg: var(--gradient-overlay);
+  --acey-border: var(--color-gray-300);
+  --acey-shadow: var(--shadow-lg);
+  --acey-text: var(--color-text);
+  --acey-accent: var(--color-secondary);
+  --acey-secondary: var(--color-primary-light);
+  --acey-pulse: rgba(var(--color-primary-rgb), 0.45);
 }
 
 .acey-overlay {

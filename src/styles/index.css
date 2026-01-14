@@ -4,11 +4,13 @@
  */
 
 /* Import base styles */
+@import './design-system.css';
+@import './typography.css';
 @import './responsive.css';
 @import './mobile.css';
 @import './responsive-components.css';
+@import './components.css';
 
 /* Additional style imports can be added here */
 /* @import './theme.css'; */
 /* @import './animations.css'; */
-/* @import './components.css'; */

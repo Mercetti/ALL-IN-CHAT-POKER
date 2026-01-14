@@ -1,0 +1,151 @@
+{
+  "name": "All-In Chat Poker",
+  "short_name": "Poker Game",
+  "description": "Professional streaming poker and blackjack game with tournaments, cosmetics, and chat-powered play",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#030712",
+  "theme_color": "#4adeff",
+  "orientation": "any",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {
+      "src": "assets/logo-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "assets/logo-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "assets/logo-128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "assets/logo-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "assets/logo-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "assets/logo-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Quick Game",
+      "short_name": "Play",
+      "description": "Start a quick poker game",
+      "url": "/index.html",
+      "icons": [
+        {
+          "src": "assets/logo-96.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "My Profile",
+      "short_name": "Profile",
+      "description": "View player profile and stats",
+      "url": "/profile-enhanced.html",
+      "icons": [
+        {
+          "src": "assets/logo-96.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Tournaments",
+      "short_name": "Tournaments",
+      "description": "Browse and join tournaments",
+      "url": "/index.html#tournaments",
+      "icons": [
+        {
+          "src": "assets/logo-96.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "assets/screenshot-mobile-1.png",
+      "sizes": "375x667",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mobile gameplay"
+    },
+    {
+      "src": "assets/screenshot-mobile-2.png",
+      "sizes": "375x667",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Tournament view"
+    },
+    {
+      "src": "assets/screenshot-desktop-1.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Desktop experience"
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details/com.allinchat.poker",
+      "id": "com.allinchat.poker"
+    },
+    {
+      "platform": "itunes",
+      "url": "https://apps.apple.com/app/all-in-chat-poker/id123456789",
+      "id": "com.allinchat.poker.ios"
+    }
+  ],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "share_target": {
+    "url": "https://all-in-chat-poker.com/share",
+    "method": "POST"
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+poker",
+      "url": "/index.html?game=%s"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "load-game",
+      "accept": {
+        "application/json": ["poker-game"]
+      }
+    }
+  ],
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "navigate-new"]
+  },
+  "handle_links": "preferred",
+  "capture_links": "existing-client-navigate"
+}

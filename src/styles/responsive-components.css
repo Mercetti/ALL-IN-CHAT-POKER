@@ -1,6 +1,6 @@
 /**
  * Responsive Component Styles
- * Responsive styles for specific poker game components
+ * Using unified design system for consistent breakpoints and spacing
  */
 
 /* ===== RESPONSIVE POKER TABLE ===== */
@@ -18,17 +18,24 @@
 }
 
 .poker-table-inner {
+  position: relative;
+  width: 100%;
+  max-width: var(--breakpoint-xl);
+  margin: 0 auto;
+  background: var(--color-bg-surface);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.poker-table-wrapper::before {
+  content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(ellipse at center, #2a5434 0%, #1a3420 100%);
-  border-radius: 50%;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: var(--gradient-surface);
+  z-index: 1;
 }
 
 @media (min-width: 768px) {
@@ -40,6 +47,24 @@
 @media (min-width: 992px) {
   .poker-table-wrapper {
     padding-bottom: 60%; /* 5:3 aspect ratio on desktop */
+  }
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .poker-table-inner {
+    max-width: 100%;
+    border-radius: var(--border-radius-base);
+  }
+  
+  .poker-table-wrapper::before {
+    background: var(--gradient-primary);
+  }
+}
+
+@media (max-width: 480px) {
+  .poker-table-inner {
+    padding: var(--space-4);
   }
 }
 
@@ -205,16 +230,16 @@
 .player-card-responsive {
   width: 16px;
   height: 22px;
-  background: white;
-  border: 1px solid var(--border-color);
-  border-radius: 2px;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--border-radius-sm);
   font-size: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-primary);
-  font-weight: bold;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  color: var(--color-text);
+  font-weight: var(--font-weight-bold);
+  box-shadow: var(--shadow-sm);
 }
 
 @media (min-width: 768px) {

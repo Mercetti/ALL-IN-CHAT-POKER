@@ -729,8 +729,8 @@
 /* ===== TOAST CONTAINER ===== */
 .toast-container {
   position: fixed;
-  top: var(--spacing-lg);
-  right: var(--spacing-lg);
+  top: var(--space-8);
+  right: var(--space-8);
   z-index: 1000;
   pointer-events: none;
 }

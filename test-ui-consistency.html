@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UI Consistency Test</title>
+  <link rel="stylesheet" href="src/styles/design-system.css">
+  <link rel="stylesheet" href="src/styles/typography.css">
+  <link rel="stylesheet" href="src/styles/components.css">
+  <style>
+    body {
+      padding: var(--space-6);
+      background: var(--color-bg-primary);
+      color: var(--color-text);
+    }
+    .test-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: var(--space-6);
+    }
+    .test-section {
+      background: var(--color-bg-surface);
+      border: 1px solid var(--color-gray-300);
+      border-radius: var(--border-radius-lg);
+      padding: var(--space-6);
+      margin-bottom: var(--space-6);
+      box-shadow: var(--shadow-md);
+    }
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: var(--space-6);
+    }
+    .test-title {
+      font-size: var(--font-size-xl);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-primary);
+      margin-bottom: var(--space-4);
+    }
+    .test-description {
+      color: var(--color-text-dim);
+      margin-bottom: var(--space-4);
+      line-height: var(--line-height-relaxed);
+    }
+    .viewport-info {
+      background: var(--color-bg-tertiary);
+      border-radius: var(--border-radius-base);
+      padding: var(--space-4);
+      margin-bottom: var(--space-4);
+      font-family: var(--font-family-mono);
+      font-size: var(--font-size-sm);
+    }
+    .component-showcase {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-4);
+      align-items: stretch;
+    }
+    .component-demo {
+      flex: 1;
+      min-width: 200px;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <h1 class="test-title">🎨 UI Consistency Test Suite</h1>
+    <p class="test-description">Testing unified design system across all applications</p>
+    
+    <div class="test-grid">
+      <!-- Color System Test -->
+      <div class="test-section">
+        <h2>Color System</h2>
+        <div class="component-showcase">
+          <div class="component-demo">
+            <button class="btn btn--primary">Primary Button</button>
+          </div>
+          <div class="component-demo">
+            <button class="btn btn--secondary">Secondary Button</button>
+          </div>
+          <div class="component-demo">
+            <button class="btn btn--success">Success Button</button>
+          </div>
+          <div class="component-demo">
+            <button class="btn btn--danger">Danger Button</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Typography Test -->
+      <div class="test-section">
+        <h2>Typography System</h2>
+        <div class="component-showcase">
+          <div class="component-demo">
+            <h3>Heading 3</h3>
+            <p>Body text with consistent font family and sizing</p>
+          </div>
+          <div class="component-demo">
+            <h4>Heading 4</h4>
+            <p class="text-sm">Small text with proper spacing</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Spacing Test -->
+      <div class="test-section">
+        <h2>Spacing System</h2>
+        <div class="component-showcase">
+          <div class="component-demo">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Card Title</h3>
+              </div>
+              <div class="card-content">
+                <p>Content with consistent spacing</p>
+              </div>
+            </div>
+          </div>
+          <div class="component-demo">
+            <div class="form">
+              <div class="form-group">
+                <label class="form-label">Input Label</label>
+                <input type="text" class="form-input" placeholder="Test input">
+              </div>
+              <button class="btn btn--primary">Submit</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Border Radius Test -->
+      <div class="test-section">
+        <h2>Border Radius Consistency</h2>
+        <div class="component-showcase">
+          <div class="component-demo">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Small Radius</h3>
+              </div>
+              <div class="card-content">
+                <p>Using var(--border-radius-base)</p>
+              </div>
+            </div>
+          </div>
+          <div class="component-demo">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Large Radius</h3>
+              </div>
+              <div class="card-content">
+                <p>Using var(--border-radius-lg)</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shadow System Test -->
+      <div class="test-section">
+        <h2>Shadow System</h2>
+        <div class="component-showcase">
+          <div class="component-demo">
+            <div class="card card--interactive">
+              <div class="card-header">
+                <h3 class="card-title">Base Shadow</h3>
+              </div>
+              <div class="card-content">
+                <p>Using var(--shadow-md)</p>
+              </div>
+            </div>
+          </div>
+          <div class="component-demo">
+            <div class="card card--interactive">
+              <div class="card-header">
+                <h3 class="card-title">Large Shadow</h3>
+              </div>
+              <div class="card-content">
+                <p>Using var(--shadow-lg)</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Viewport Information -->
+    <div class="viewport-info">
+      <p><strong>Viewport:</strong> <span id="viewport-width"></span> × <span id="viewport-height"></span></p>
+      <p><strong>Breakpoint:</strong> <span id="breakpoint"></span></p>
+      <p><strong>Device:</strong> <span id="device-type"></span></p>
+    </div>
+  </div>
+
+  <script>
+    // Viewport detection
+    function updateViewportInfo() {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const breakpoint = getBreakpoint(width);
+      const deviceType = getDeviceType(width);
+      
+      document.getElementById('viewport-width').textContent = width + 'px';
+      document.getElementById('viewport-height').textContent = height + 'px';
+      document.getElementById('breakpoint').textContent = breakpoint;
+      document.getElementById('device-type').textContent = deviceType;
+    }
+
+    function getBreakpoint(width) {
+      if (width < 640) return 'Mobile (sm)';
+      if (width < 768) return 'Mobile (md)';
+      if (width < 1024) return 'Tablet (lg)';
+      if (width < 1280) return 'Desktop (xl)';
+      return 'Desktop (2xl)';
+    }
+
+    function getDeviceType(width) {
+      if (width < 768) return 'Mobile';
+      if (width < 1024) return 'Tablet';
+      return 'Desktop';
+    }
+
+    // Update on load and resize
+    window.addEventListener('load', updateViewportInfo);
+    window.addEventListener('resize', updateViewportInfo);
+  </script>
+</body>
+</html>

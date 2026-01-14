@@ -1,7 +1,69 @@
-// Service Worker for All-In Chat Poker Enhanced Pages
-const CACHE_NAME = 'allinchatpoker-v1';
-const STATIC_CACHE = 'static-v1';
-const DYNAMIC_CACHE = 'dynamic-v1';
+/**
+ * Enhanced Service Worker for All-In Chat Poker PWA
+ * Provides offline capabilities, caching, and push notifications
+ */
+
+const CACHE_NAME = 'allinchatpoker-v2';
+const STATIC_CACHE = 'static-v2';
+const DYNAMIC_CACHE = 'dynamic-v2';
+const CACHE_VERSION = '2.0.0';
+
+// Enhanced file list with design system assets
+const STATIC_ASSETS = [
+  '/',
+  '/index.html',
+  '/index-enhanced.html',
+  '/login.html',
+  '/login-enhanced.html',
+  '/style.css',
+  '/style-enhanced.css',
+  '/style-theme.css',
+  '/style-cards.css',
+  '/src/styles/design-system.css',
+  '/src/styles/typography.css',
+  '/src/styles/components.css',
+  '/assets/logo.png',
+  '/manifest.json',
+  // Add design system assets
+  '/test-ui-consistency.html',
+  '/about-enhanced.html',
+  '/help-enhanced.html',
+  '/contact-enhanced.html',
+  '/store-enhanced.html',
+  '/setup-enhanced.html',
+  '/profile-enhanced.html',
+  '/admin-enhanced.html',
+  '/overlay-editor-enhanced.html',
+  '/welcome-enhanced.html',
+  '/component-demo.html',
+  '/theme-demo.html',
+  '/style-enhanced-common.css',
+  '/js-enhanced-common.js',
+  '/theme-manager.js',
+  '/components.js',
+  '/performance-optimizer.js',
+  '/ai-help-integration.js',
+  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
+  'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap'
+];
+
+// API endpoints for caching
+const API_ENDPOINTS = [
+  '/api/health',
+  '/api/game/status',
+  '/api/players',
+  '/api/tournaments',
+  '/api/game/state'
+];
+
+// Game state for offline functionality
+const OFFLINE_GAME_STATE = {
+  version: CACHE_VERSION,
+  timestamp: Date.now(),
+  playerData: null,
+  gameStatus: 'offline',
+  lastSync: null
+};
 
 // Service Worker Logger
 const SWLogger = {
@@ -16,13 +78,6 @@ const SWLogger = {
   }
 };
 
-const STATIC_ASSETS = [
-    '/',
-    '/index-enhanced.html',
-    '/about-enhanced.html',
-    '/help-enhanced.html',
-    '/contact-enhanced.html',
-    '/store-enhanced.html',
     '/setup-enhanced.html',
     '/profile-enhanced.html',
     '/admin-enhanced.html',

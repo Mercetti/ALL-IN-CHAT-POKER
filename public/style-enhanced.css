@@ -1,16 +1,21 @@
-/**
- * Enhanced visual styles for modern UI
- * Adds animations, gradients, and micro-interactions
- */
+/* Enhanced visual styles for modern UI */
+@import '../src/styles/typography.css';
+
+/* ===== ENHANCED COMPONENTS ===== */
 
 /* Enhanced color palette with gradients */
 :root {
-  /* Enhanced colors */
-  --accent-primary: #00d4ff;
-  --accent-secondary: #ff00ff;
-  --accent-success: #00ff88;
-  --accent-warning: #ffaa00;
-  --accent-danger: #ff3366;
+  /* Enhanced colors - using unified design system */
+  --color-primary: #4adeff;
+  --color-primary-dark: #2c5aa0;
+  --color-primary-light: #7ec8ff;
+  --color-primary-rgb: 74, 173, 255;
+  
+  --accent-primary: var(--color-primary);
+  --accent-secondary: #ff6bd6;
+  --accent-success: #10b981;
+  --accent-warning: #f59e0b;
+  --accent-danger: #ef4444;
   
   /* Neon colors for poker theme */
   --neon-blue: #00ffff;
@@ -19,20 +24,21 @@
   --neon-yellow: #ffff00;
   --neon-purple: #9d00ff;
   
-  /* Enhanced gradients */
-  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --gradient-success: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-  --gradient-danger: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
-  --gradient-warning: linear-gradient(135deg, #f2994a 0%, #f2c94c 100%);
-  --gradient-info: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%);
-  --gradient-dark: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
-  --gradient-card: linear-gradient(135deg, #2a2a4e 0%, #16213e 100%);
+  /* Enhanced gradients - using unified design system */
+  --gradient-primary: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  --gradient-success: linear-gradient(135deg, var(--color-success) 0%, #059669 100%);
+  --gradient-danger: linear-gradient(135deg, var(--color-error) 0%, var(--color-error-dark) 100%);
+  --gradient-warning: linear-gradient(135deg, var(--color-warning) 0%, var(--color-warning-dark) 100%);
+  --gradient-info: linear-gradient(135deg, var(--color-info) 0%, var(--color-info-dark) 100%);
+  --gradient-dark: linear-gradient(135deg, var(--color-bg-secondary) 0%, var(--color-bg-tertiary) 100%);
+  --gradient-card: linear-gradient(135deg, var(--color-bg-surface) 0%, var(--color-bg-surface-secondary) 100%);
   
-  /* Enhanced shadows */
-  --shadow-neon: 0 0 20px rgba(0, 212, 255, 0.5);
-  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.3);
-  --shadow-hover: 0 12px 40px rgba(0, 212, 255, 0.3);
-  --shadow-glow: 0 0 30px rgba(0, 212, 255, 0.6);
+  /* Enhanced shadows - using unified design system */
+  --shadow-neon: var(--shadow-lg);
+  --shadow-card: var(--shadow-md);
+  --shadow-hover: var(--shadow-lg);
+  --shadow-glow: var(--shadow-xl);
+  --shadow-primary: var(--shadow-primary);
   
   /* Animation durations */
   --transition-fast: 0.2s;
