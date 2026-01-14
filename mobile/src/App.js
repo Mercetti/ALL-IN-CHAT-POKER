@@ -3,48 +3,41 @@
  * Entry point for the All-In Chat Poker mobile app
  */
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/stack';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, Text } from 'react-native';
-
-// Import theme provider and screens
-import { ThemeProvider } from './theme/ThemeContext';
+import { createStackNavigator } from '@react-navigation/stack';
+import { ThemeProvider, useTheme } from './theme/ThemeContext';
 import GameScreen from './screens/GameScreen';
 import BiometricAuth from './components/BiometricAuth';
 import PushNotificationService from './services/PushNotificationService';
 import AppShortcutsService from './services/AppShortcutsService';
+
+// Import theme provider and screens
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
+import { StyleSheet, View, Text } from 'react-native';
 
 // Initialize services
 const pushNotificationService = new PushNotificationService();
 const appShortcutsService = new AppShortcutsService();
 
 // Create stack navigator
-const Stack = createNativeStackNavigator();
+const Stack = createStackNavigator();
 
 const App = () => {
-  useEffect(() => {
-    // Initialize platform-specific services
-    const initializeServices = async () => {
-      try {
-        await pushNotificationService.initialize();
-        await appShortcutsService.initialize();
-        console.log('Platform services initialized successfully');
-      } catch (error) {
-        console.error('Failed to initialize platform services:', error);
-      }
-    };
+  const { theme } = useTheme();
 
-    initializeServices();
+  React.useEffect(() => {
+    // Initialize services
+    pushNotificationService.initialize();
+    appShortcutsService.initialize();
   }, []);
 
   return (
-    <ThemeProvider>
+    <ThemeProvider theme={theme}>
       <SafeAreaProvider style={styles.container}>
         <NavigationContainer>
-          <StatusBar barStyle="light-content" backgroundColor="#030712" />
+          <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
           <Stack.Navigator>
             <Stack.Screen
               name="Game"
@@ -52,9 +45,9 @@ const App = () => {
               options={{
                 title: 'All-In Chat Poker',
                 headerStyle: {
-                  backgroundColor: '#4adeff',
+                  backgroundColor: theme.colors.primary,
                 },
-                headerTintColor: '#ffffff',
+                headerTintColor: theme.colors.surface,
               }}
             />
             <Stack.Screen
@@ -63,9 +56,9 @@ const App = () => {
               options={{
                 title: 'Secure Login',
                 headerStyle: {
-                  backgroundColor: '#4adeff',
+                  backgroundColor: theme.colors.primary,
                 },
-                headerTintColor: '#ffffff',
+                headerTintColor: theme.colors.surface,
               }}
             />
           </Stack.Navigator>

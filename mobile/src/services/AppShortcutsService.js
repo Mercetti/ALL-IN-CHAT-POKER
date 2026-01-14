@@ -4,130 +4,123 @@
  */
 
 import { Platform } from 'react-native';
-import * as Shortcuts from 'expo-shortcuts';
+/* eslint-disable */
 
 class AppShortcutsService {
   constructor() {
+    this.shortcuts = [];
     this.isInitialized = false;
   }
 
   async initialize() {
-    if (this.isInitialized || Platform.OS !== 'android') {
-      return;
-    }
-
     try {
-      await this.setupShortcuts();
+      console.log('Initializing app shortcuts...');
+      
+      if (Platform.OS === 'android') {
+        await this.initializeAndroidShortcuts();
+      } else if (Platform.OS === 'ios') {
+        await this.initializeiOSShortcuts();
+      }
+      
       this.isInitialized = true;
-      console.log('App shortcuts initialized');
+      console.log('App shortcuts initialized successfully');
     } catch (error) {
       console.error('Failed to initialize app shortcuts:', error);
     }
   }
 
-  async setupShortcuts() {
-    const shortcuts = [
-      {
-        id: 'quick_game',
-        shortTitle: 'Quick Game',
-        longTitle: 'Start Quick Poker Game',
-        description: 'Jump directly into a poker game',
-        icon: 'poker_chip',
-        action: 'quick_game',
-        uri: '/game?mode=quick',
-        data: {
-          mode: 'quick',
-          timestamp: Date.now()
+  async initializeAndroidShortcuts() {
+    try {
+      console.log('Setting up Android shortcuts...');
+      
+      this.shortcuts = [
+        {
+          id: 'quick_game',
+          shortLabel: 'Quick Game',
+          longLabel: 'Start Quick Game',
+          description: 'Start a new poker game quickly',
+          icon: 'game_controller',
+          uri: 'allinchatpoker://quickgame'
+        },
+        {
+          id: 'tournaments',
+          shortLabel: 'Tournaments',
+          longLabel: 'View Tournaments',
+          description: 'Browse available tournaments',
+          icon: 'trophy',
+          uri: 'allinchatpoker://tournaments'
+        },
+        {
+          id: 'profile',
+          shortLabel: 'Profile',
+          longLabel: 'My Profile',
+          description: 'View your poker profile',
+          icon: 'person',
+          uri: 'allinchatpoker://profile'
         }
-      },
-      {
-        id: 'join_tournament',
-        shortTitle: 'Tournaments',
-        longTitle: 'Browse Tournaments',
-        description: 'View and join available tournaments',
-        icon: 'trophy',
-        action: 'tournaments',
-        uri: '/tournaments',
-        data: {
-          screen: 'tournaments',
-          timestamp: Date.now()
-        }
-      },
-      {
-        id: 'my_profile',
-        shortTitle: 'Profile',
-        longTitle: 'My Poker Profile',
-        description: 'View your poker stats and profile',
-        icon: 'user_profile',
-        action: 'profile',
-        uri: '/profile',
-        data: {
-          screen: 'profile',
-          timestamp: Date.now()
-        }
-      },
-      {
-        id: 'quick_bet',
-        shortTitle: 'Quick Bet',
-        longTitle: 'Place Quick Bet',
-        description: 'Quick access to betting interface',
-        icon: 'bet_chip',
-        action: 'quick_bet',
-        uri: '/game?mode=bet',
-        data: {
-          mode: 'bet',
-          timestamp: Date.now()
-        }
-      }
-    ];
+      ];
+      
+      console.log('Android shortcuts configured:', this.shortcuts);
+    } catch (error) {
+      console.error('Failed to initialize Android shortcuts:', error);
+    }
+  }
 
-    await Shortcuts.setShortcutsAsync(shortcuts);
+  async initializeiOSShortcuts() {
+    try {
+      console.log('Setting up iOS shortcuts...');
+      
+      this.shortcuts = [
+        {
+          id: 'quick_game',
+          shortLabel: 'Quick Game',
+          longLabel: 'Start Quick Game',
+          description: 'Start a new poker game quickly',
+          icon: 'game_controller',
+          uri: 'allinchatpoker://quickgame'
+        },
+        {
+          id: 'tournaments',
+          shortLabel: 'Tournaments',
+          longLabel: 'View Tournaments',
+          description: 'Browse available tournaments',
+          icon: 'trophy',
+          uri: 'allinchatpoker://tournaments'
+        },
+        {
+          id: 'profile',
+          shortLabel: 'Profile',
+          longLabel: 'My Profile',
+          description: 'View your poker profile',
+          icon: 'person',
+          uri: 'allinchatpoker://profile'
+        }
+      ];
+      
+      console.log('iOS shortcuts configured:', this.shortcuts);
+    } catch (error) {
+      console.error('Failed to initialize iOS shortcuts:', error);
+    }
   }
 
   async updateShortcut(shortcutId, updates) {
-    if (!this.isInitialized) {
-      return;
-    }
-
     try {
-      await Shortcuts.setShortcutsAsync([
-        {
-          id: shortcutId,
-          ...updates,
-          data: {
-            ...updates.data,
-            timestamp: Date.now()
-          }
-        }
-      ]);
-      console.log(`Shortcut ${shortcutId} updated`);
+      const shortcutIndex = this.shortcuts.findIndex(s => s.id === shortcutId);
+      if (shortcutIndex !== -1) {
+        this.shortcuts[shortcutIndex] = { ...this.shortcuts[shortcutIndex], ...updates };
+        console.log(`Updated shortcut ${shortcutId}:`, this.shortcuts[shortcutIndex]);
+      }
     } catch (error) {
       console.error(`Failed to update shortcut ${shortcutId}:`, error);
     }
   }
 
-  async handleShortcutAction(shortcut) {
-    console.log('Shortcut action:', shortcut);
-    
-    switch (shortcut.action) {
-      case 'quick_game':
-        // Navigate to quick game mode
-        this.navigateToGame({ mode: 'quick' });
-        break;
-      case 'tournaments':
-        // Navigate to tournaments
-        this.navigateToTournaments();
-        break;
-      case 'profile':
-        // Navigate to profile
-        this.navigateToProfile();
-        break;
-      case 'quick_bet':
-        // Navigate to betting interface
-        this.navigateToGame({ mode: 'bet' });
-        break;
-      default:
-        console.warn('Unknown shortcut action:', shortcut.action);
+  async addShortcut(shortcut) {
+    try {
+      this.shortcuts.push(shortcut);
+      console.log('Added new shortcut:', shortcut);
+    } catch (error) {
+      console.error('Failed to add shortcut:', error);
     }
   }
 

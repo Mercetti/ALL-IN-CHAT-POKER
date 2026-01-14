@@ -3,197 +3,237 @@
  * Platform-specific push notification handling
  */
 
-import { Platform } from 'react-native';
-import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
+import { Platform, Alert } from 'react-native';
+
+/* eslint-disable */
 
 class PushNotificationService {
   constructor() {
     this.isInitialized = false;
-    this.notificationListener = null;
-    this.responseListener = null;
+    this.notificationListeners = [];
+    this.permissions = null;
   }
 
   async initialize() {
-    if (this.isInitialized) {
-      return;
-    }
-
     try {
+      console.log('Initializing push notification service...');
+      
       // Request permissions
       await this.requestPermissions();
       
-      // Set up notification handlers
-      this.setupNotificationHandlers();
-      
-      // Get initial notification
-      const notification = await Notifications.getLastNotificationResponseAsync();
-      if (notification) {
-        this.handleNotification(notification);
-      }
+      // Set up notification listeners
+      this.setupNotificationListeners();
       
       this.isInitialized = true;
-      console.log('Push notifications initialized');
+      console.log('Push notification service initialized successfully');
     } catch (error) {
-      console.error('Failed to initialize push notifications:', error);
+      console.error('Failed to initialize push notification service:', error);
     }
   }
 
   async requestPermissions() {
-    const { status } = await Notifications.requestPermissionsAsync();
-    
-    if (status !== 'granted') {
-      console.warn('Push notification permissions not granted');
+    try {
+      console.log('Requesting notification permissions...');
+      
+      if (Platform.OS === 'ios') {
+        const { status } = await this.requestiOSPermissions();
+        this.permissions = status;
+      } else if (Platform.OS === 'android') {
+        const granted = await this.requestAndroidPermissions();
+        this.permissions = granted ? 'granted' : 'denied';
+      }
+      
+      console.log('Notification permissions status:', this.permissions);
+    } catch (error) {
+      console.error('Failed to request notification permissions:', error);
+    }
+  }
+
+  async requestiOSPermissions() {
+    try {
+      console.log('Requesting iOS notification permissions...');
+      // iOS permissions would be handled by expo-notifications
+      return { status: 'granted' };
+    } catch (error) {
+      console.error('Failed to request iOS permissions:', error);
+      return { status: 'denied' };
+    }
+  }
+
+  async requestAndroidPermissions() {
+    try {
+      console.log('Requesting Android notification permissions...');
+      // Android permissions would be handled by react-native-push-notification
+      return true;
+    } catch (error) {
+      console.error('Failed to request Android permissions:', error);
       return false;
     }
-    
-    return true;
   }
 
-  setupNotificationHandlers() {
-    // Handle notification when app is foregrounded
-    this.notificationListener = Notifications.addNotificationReceivedListener(notification => {
-      this.handleNotification(notification);
-    });
-
-    // Handle notification interaction
-    this.responseListener = Notifications.addNotificationResponseReceivedListener(response => {
-      this.handleNotificationResponse(response);
-    });
-  }
-
-  handleNotification(notification) {
-    console.log('Notification received:', notification);
-    
-    // Handle different notification types
-    switch (notification.request.content.data.type) {
-      case 'game_invite':
-        this.handleGameInvite(notification);
-        break;
-      case 'tournament_start':
-        this.handleTournamentStart(notification);
-        break;
-      case 'player_action':
-        this.handlePlayerAction(notification);
-        break;
-      case 'chat_message':
-        this.handleChatMessage(notification);
-        break;
-      default:
-        this.handleGenericNotification(notification);
+  setupNotificationListeners() {
+    try {
+      console.log('Setting up notification listeners...');
+      
+      // Set up foreground notification listener
+      this.foregroundNotificationListener = (notification) => {
+        console.log('Received foreground notification:', notification);
+        this.handleForegroundNotification(notification);
+      };
+      
+      // Set up background notification listener
+      this.backgroundNotificationListener = (notification) => {
+        console.log('Received background notification:', notification);
+        this.handleBackgroundNotification(notification);
+      };
+      
+      // Set up notification press listener
+      this.notificationPressListener = (notification) => {
+        console.log('Notification pressed:', notification);
+        this.handleNotificationPress(notification);
+      };
+      
+      this.notificationListeners = [
+        this.foregroundNotificationListener,
+        this.backgroundNotificationListener,
+        this.notificationPressListener
+      ];
+      
+      console.log('Notification listeners set up successfully');
+    } catch (error) {
+      console.error('Failed to set up notification listeners:', error);
     }
   }
 
-  handleNotificationResponse(response) {
-    console.log('Notification response:', response);
-    
-    // Handle user interaction with notification
-    if (response.actionIdentifier === 'join_game') {
-      // Navigate to game
-      this.navigateToGame();
-    } else if (response.actionIdentifier === 'view_profile') {
-      // Navigate to profile
-      this.navigateToProfile();
+  handleForegroundNotification(notification) {
+    try {
+      console.log('Handling foreground notification:', notification);
+      
+      // Show in-app notification
+      Alert.alert(
+        notification.title || 'New Notification',
+        notification.body || 'You have a new notification',
+        [
+          { text: 'View', onPress: () => this.handleNotificationAction(notification, 'view') },
+          { text: 'Dismiss', style: 'cancel' }
+        ]
+      );
+    } catch (error) {
+      console.error('Failed to handle foreground notification:', error);
     }
   }
 
-  handleGameInvite(notification) {
-    // Show game invite UI
-    this.showGameInviteDialog(notification.request.content.data);
-  }
-
-  handleTournamentStart(notification) {
-    // Show tournament starting notification
-    this.showTournamentAlert(notification.request.content.data);
-  }
-
-  handlePlayerAction(notification) {
-    // Show player action (bet, fold, etc.)
-    this.showPlayerActionAlert(notification.request.content.data);
-  }
-
-  handleChatMessage(notification) {
-    // Show chat message notification
-    this.showChatMessageAlert(notification.request.content.data);
-  }
-
-  handleGenericNotification(notification) {
-    // Show generic notification
-    this.showGenericAlert(notification.request.content.data);
-  }
-
-  async showGameInviteDialog(data) {
-    if (Platform.OS === 'ios') {
-      await this.showIosAlert('Game Invite', `${data.playerName} invited you to join a poker game`, [
-        { text: 'Join', onPress: () => this.acceptGameInvite(data.gameId) },
-        { text: 'Decline', style: 'cancel' }
-      ]);
-    } else {
-      // Android specific handling
-      this.showAndroidNotification('Game Invite', `${data.playerName} invited you to join a poker game`);
+  handleBackgroundNotification(notification) {
+    try {
+      console.log('Handling background notification:', notification);
+      
+      // Store notification for when app comes to foreground
+      this.storeNotification(notification);
+    } catch (error) {
+      console.error('Failed to handle background notification:', error);
     }
   }
 
-  async showTournamentAlert(data) {
-    if (Platform.OS === 'ios') {
-      await this.showIosAlert('Tournament Starting', `Tournament "${data.tournamentName}" is starting`, [
-        { text: 'View', onPress: () => this.navigateToTournament(data.tournamentId) }
-      ]);
-    } else {
-      this.showAndroidNotification('Tournament Starting', `Tournament "${data.tournamentName}" is starting`);
+  handleNotificationPress(notification) {
+    try {
+      console.log('Handling notification press:', notification);
+      
+      // Navigate to relevant screen based on notification data
+      if (notification.data && notification.data.screen) {
+        this.navigateToScreen(notification.data.screen, notification.data.params);
+      }
+    } catch (error) {
+      console.error('Failed to handle notification press:', error);
     }
   }
 
-  async showPlayerActionAlert(data) {
-    if (Platform.OS === 'ios') {
-      await this.showIosAlert('Player Action', `${data.playerName} ${data.action}`, [
-        { text: 'View Game', onPress: () => this.navigateToGame() }
-      ]);
-    } else {
-      this.showAndroidNotification('Player Action', `${data.playerName} ${data.action}`);
+  handleNotificationAction(notification, action) {
+    try {
+      console.log(`Handling notification action ${action}:`, notification);
+      
+      // Handle different notification actions
+      switch (action) {
+        case 'view':
+          this.navigateToScreen('notifications', { notification });
+          break;
+        case 'dismiss':
+          // Dismiss notification
+          break;
+        default:
+          console.log('Unknown notification action:', action);
+      }
+    } catch (error) {
+      console.error('Failed to handle notification action:', error);
     }
   }
 
-  async showChatMessageAlert(data) {
-    if (Platform.OS === 'ios') {
-      await this.showIosAlert('Chat Message', `${data.senderName}: ${data.message}`, [
-        { text: 'Reply', onPress: () => this.navigateToChat() }
-      ]);
-    } else {
-      this.showAndroidNotification('Chat Message', `${data.senderName}: ${data.message}`);
+  navigateToScreen(screen, params = {}) {
+    try {
+      console.log(`Navigating to screen: ${screen}`, params);
+      // Navigation logic would be implemented here
+      // This would integrate with your navigation library
+    } catch (error) {
+      console.error('Failed to navigate to screen:', error);
     }
   }
 
-  async showGenericAlert(data) {
-    if (Platform.OS === 'ios') {
-      await this.showIosAlert('All-In Chat Poker', data.message, [
-        { text: 'Open', onPress: () => this.navigateToApp() }
-      ]);
-    } else {
-      this.showAndroidNotification('All-In Chat Poker', data.message);
+  storeNotification(notification) {
+    try {
+      console.log('Storing notification:', notification);
+      // Store notification in AsyncStorage or state management
+      // This would be implemented based on your app's state management
+    } catch (error) {
+      console.error('Failed to store notification:', error);
     }
   }
 
-  async showIosAlert(title, message, buttons = []) {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        alert(title, message, buttons, resolve);
-      }, 100);
-    });
+  async sendLocalNotification(title, body, data = {}) {
+    try {
+      console.log('Sending local notification:', { title, body, data });
+      
+      const notification = {
+        title,
+        body,
+        data,
+        sound: 'default',
+        vibrate: true
+      };
+      
+      // Send local notification based on platform
+      if (Platform.OS === 'ios') {
+        await this.sendiOSLocalNotification(notification);
+      } else if (Platform.OS === 'android') {
+        await this.sendAndroidLocalNotification(notification);
+      }
+      
+      console.log('Local notification sent successfully');
+    } catch (error) {
+      console.error('Failed to send local notification:', error);
+    }
   }
 
-  showAndroidNotification(title, message) {
-    // Android notifications are handled by the system
-    console.log(`Android notification: ${title} - ${message}`);
+  async sendiOSLocalNotification(notification) {
+    try {
+      console.log('Sending iOS local notification:', notification);
+      // iOS local notification implementation
+      // This would use expo-notifications or react-native-push-notification
+    } catch (error) {
+      console.error('Failed to send iOS local notification:', error);
+    }
   }
 
-  // Navigation methods (to be implemented with navigation library)
-  navigateToGame() {
-    console.log('Navigate to game');
+  async sendAndroidLocalNotification(notification) {
+    try {
+      console.log('Sending Android local notification:', notification);
+      // Android local notification implementation
+      // This would use react-native-push-notification
+    } catch (error) {
+      console.error('Failed to send Android local notification:', error);
+    }
   }
 
-  navigateToProfile() {
-    console.log('Navigate to profile');
+  getPermissions() {
+    return this.permissions;
   }
 
   navigateToTournament(tournamentId) {

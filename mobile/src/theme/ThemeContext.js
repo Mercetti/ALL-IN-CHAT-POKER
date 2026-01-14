@@ -3,13 +3,11 @@
  * Provides unified design system colors and tokens
  */
 
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { createContext, useContext } from 'react';
 
-// Import design system colors
+// Define color palette
 const COLORS = {
   primary: '#4adeff',
-  primaryDark: '#2c5aa0',
-  primaryLight: '#7ec8ff',
   secondary: '#ff6bd6',
   success: '#10b981',
   warning: '#f59e0b',
@@ -21,6 +19,7 @@ const COLORS = {
   border: '#cbd5e1',
 };
 
+// Define spacing scale
 const SPACING = {
   xs: 4,
   sm: 8,
@@ -29,23 +28,16 @@ const SPACING = {
   xl: 32,
 };
 
+// Define typography scale
 const TYPOGRAPHY = {
-  fontSize: {
-    xs: 12,
-    sm: 14,
-    base: 16,
-    lg: 18,
-    xl: 20,
-  },
-  fontWeight: {
-    light: '300',
-    normal: '400',
-    medium: '500',
-    semibold: '600',
-    bold: '700',
-  },
+  xs: 12,
+  sm: 14,
+  md: 16,
+  lg: 18,
+  xl: 20,
 };
 
+// Define border radius scale
 const BORDER_RADIUS = {
   sm: 4,
   md: 8,
@@ -54,31 +46,27 @@ const BORDER_RADIUS = {
 };
 
 // Create theme context
-const ThemeContext = createContext({
-  colors: COLORS,
-  spacing: SPACING,
-  typography: TYPOGRAPHY,
-  borderRadius: BORDER_RADIUS,
-});
+const ThemeContext = createContext();
 
-// Theme provider component
-export const ThemeProvider = ({ children }) => {
-  const theme = useMemo(() => ({
+// Create theme provider component
+const ThemeProvider = ({ children, theme = {} }) => {
+  const defaultTheme = {
     colors: COLORS,
     spacing: SPACING,
     typography: TYPOGRAPHY,
     borderRadius: BORDER_RADIUS,
-  }), []);
+    ...theme,
+  };
 
-  return (
-    <ThemeContext.Provider value={theme}>
-      {children}
-    </ThemeContext.Provider>
+  return React.createElement(
+    ThemeContext.Provider,
+    { value: defaultTheme },
+    children
   );
 };
 
-// Hook to use theme
-export const useTheme = () => {
+// Create useTheme hook
+const useTheme = () => {
   const context = useContext(ThemeContext);
   if (!context) {
     throw new Error('useTheme must be used within a ThemeProvider');
@@ -86,4 +74,4 @@ export const useTheme = () => {
   return context;
 };
 
-export default ThemeContext;
+export { ThemeProvider, useTheme, ThemeContext };

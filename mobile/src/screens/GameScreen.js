@@ -4,75 +4,62 @@
  */
 
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, ScrollView } from 'react-native';
+import { ScrollView, View, Text } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import Button from '../components/Button';
 import Card from '../components/Card';
 import Input from '../components/Input';
 
 const GameScreen = () => {
-  const theme = useTheme();
+  const { colors, spacing, borderRadius } = useTheme();
   const [gameState, setGameState] = useState('waiting');
   const [playerChips, setPlayerChips] = useState(1000);
-  const [betAmount, setBetAmount] = useState(10);
+  const [betAmount, setBetAmount] = useState(0);
 
   const handleBet = () => {
-    if (betAmount <= playerChips) {
-      setPlayerChips(prev => prev - betAmount);
-      setGameState('playing');
+    if (betAmount > 0 && betAmount <= playerChips) {
+      setPlayerChips(playerChips - betAmount);
+      setGameState('betting');
     }
   };
 
   const handleFold = () => {
-    setGameState('waiting');
+    setGameState('folded');
   };
 
   const handleCheck = () => {
-    setGameState('playing');
+    setGameState('checked');
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>🎰 All-In Chat Poker</Text>
-        <Text style={styles.subtitle}>Mobile Game</Text>
-      </View>
-
-      <Card title="Game Status" style={styles.statusCard}>
-        <Text style={styles.statusText}>
-          Status: {gameState}
+    <ScrollView style={{ flex: 1, backgroundColor: colors.background }}>
+      <View style={{ padding: spacing.lg }}>
+        <Text style={{ color: colors.text, fontSize: 24, marginBottom: spacing.lg }}>
+          All-In Chat Poker
         </Text>
-        <Text style={styles.chipsText}>
-          Chips: ${playerChips}
+      </View>
+      <Card style={{ marginBottom: spacing.lg }}>
+        <Text style={{ color: colors.text, marginBottom: spacing.md }}>
+          Game Status: {gameState}
         </Text>
       </Card>
-
-      <Card title="Betting" style={styles.bettingCard}>
+      <Card style={{ marginBottom: spacing.lg }}>
+        <Text style={{ color: colors.text, marginBottom: spacing.md }}>
+          Your Chips: ${playerChips}
+        </Text>
         <Input
-          label="Bet Amount"
+          placeholder="Enter bet amount"
           value={betAmount.toString()}
           onChangeText={setBetAmount}
           keyboardType="numeric"
+          style={{ marginBottom: spacing.md }}
         />
-        <View style={styles.buttonRow}>
-          <Button
-            title="Bet"
-            onPress={handleBet}
-            variant="primary"
-          />
-          <Button
-            title="Check"
-            onPress={handleCheck}
-            variant="secondary"
-          />
-          <Button
-            title="Fold"
-            onPress={handleFold}
-            variant="danger"
-          />
-        </View>
       </Card>
-
+      <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+        <Button title="Bet" onPress={handleBet} variant="primary" />
+        <Button title="Check" onPress={handleCheck} variant="secondary" />
+        <Button title="Fold" onPress={handleFold} variant="outline" />
+      </View>
       <Card title="Game Actions" style={styles.actionsCard}>
         <Button
           title="View Profile"

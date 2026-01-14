@@ -4,100 +4,103 @@
  */
 
 import React from 'react';
-import { StyleSheet, TouchableOpacity, Text, View } from 'react-native';
-import { useTheme } from '@react-navigation/native';
+import { TouchableOpacity, Text, View } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
 
-const Button = ({ 
-  title, 
-  onPress, 
-  variant = 'primary', 
-  size = 'medium', 
-  disabled = false, 
-  loading = false, 
-  icon = null,
-  style = {} 
+const Button = ({
+  title,
+  onPress,
+  variant = 'primary',
+  size = 'medium',
+  disabled = false,
+  loading = false,
+  icon,
+  style,
 }) => {
-  const theme = useTheme();
-  
+  const { colors, spacing, borderRadius, typography } = useTheme();
+
+  const baseStyle = {
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 120,
+  };
+
+  const variants = {
+    primary: {
+      backgroundColor: colors.primary,
+    },
+    secondary: {
+      backgroundColor: colors.secondary,
+    },
+    outline: {
+      backgroundColor: 'transparent',
+      borderWidth: 1,
+      borderColor: colors.primary,
+    },
+  };
+
+  const sizes = {
+    small: {
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+      minWidth: 80,
+    },
+    large: {
+      paddingVertical: spacing.lg,
+      paddingHorizontal: spacing.xl,
+      minWidth: 160,
+    },
+  };
+
   const getButtonStyle = () => {
-    const baseStyle = {
-      borderRadius: 12,
-      paddingVertical: 12,
-      paddingHorizontal: 24,
-      alignItems: 'center',
-      justifyContent: 'center',
-      minWidth: 44,
-      minHeight: 44,
-    };
-
-    const variants = {
-      primary: {
-        backgroundColor: theme.colors.primary,
-        ...baseStyle,
-      },
-      secondary: {
-        backgroundColor: theme.colors.secondary,
-        ...baseStyle,
-      },
-      outline: {
-        backgroundColor: 'transparent',
-        borderWidth: 2,
-        borderColor: theme.colors.primary,
-        ...baseStyle,
-      },
-      ghost: {
-        backgroundColor: 'transparent',
-        ...baseStyle,
-      },
-      danger: {
-        backgroundColor: theme.colors.error,
-        ...baseStyle,
-      },
-      success: {
-        backgroundColor: theme.colors.success,
-        ...baseStyle,
-      },
-    };
-
-    const sizes = {
-      small: {
-        paddingVertical: 8,
-        paddingHorizontal: 16,
-        fontSize: 14,
-        minHeight: 32,
-      },
-      medium: {
-        ...baseStyle,
-      },
-      large: {
-        paddingVertical: 16,
-        paddingHorizontal: 32,
-        fontSize: 18,
-        minHeight: 56,
-      },
-    };
-
     const buttonStyle = [
+      baseStyle,
       variants[variant],
       sizes[size],
-      disabled && { opacity: 0.6 },
-      style
+      style,
     ];
 
-    return (
-      <TouchableOpacity
-        onPress={onPress}
-        disabled={disabled}
-        style={buttonStyle}
-        activeOpacity={0.8}
-      accessibilityRole="button"
-        accessibilityLabel={title}
-      >
-        <View style={styles.container}>
-          {icon && <Text style={styles.icon}>{icon}</Text>}
-          <Text style={styles.text}>{title}</Text>
-        </View>
-      </TouchableOpacity>
-    );
+    if (disabled) {
+      buttonStyle.push({ opacity: 0.5 });
+    }
+
+    return buttonStyle;
   };
-}
+
+  const getTextStyle = () => {
+    return [
+      {
+        color: variant === 'outline' ? colors.primary : colors.surface,
+        fontSize: typography.md,
+        fontWeight: '600',
+        textAlign: 'center',
+      },
+      disabled && { color: colors.textSecondary },
+    ];
+  };
+
+  return React.createElement(
+    TouchableOpacity,
+    {
+      onPress: onPress,
+      style: getButtonStyle(),
+      disabled: disabled,
+      activeOpacity: 0.8
+    },
+    React.createElement(
+      View,
+      { style: { flexDirection: 'row', alignItems: 'center' } },
+      icon && React.createElement(View, { style: { marginRight: spacing.sm } }, icon),
+      React.createElement(
+        Text,
+        { style: getTextStyle() },
+        loading ? 'Loading...' : title
+      )
+    )
+  );
+};
+
+export default Button;

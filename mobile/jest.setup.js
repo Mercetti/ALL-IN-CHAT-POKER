@@ -3,20 +3,35 @@
  * Global test configuration and mocks
  */
 
+/* eslint-disable */
 import 'react-native-gesture-handler/jestSetup';
 
 // Mock console methods for testing
 global.console = {
-  ...console,
-  // Suppress console.log in tests unless explicitly enabled
   log: jest.fn(),
   warn: jest.fn(),
   error: jest.fn(),
+  info: jest.fn(),
+  debug: jest.fn(),
 };
 
-// Mock AsyncStorage for tests
-jest.mock('@react-native-async-storage/AsyncStorage', () =>
-  require('@react-native-async-storage/AsyncStorage').default);
+// Mock alert for testing
+global.alert = jest.fn();
+
+// Mock setTimeout for testing
+global.setTimeout = jest.fn();
+
+// Mock Device for testing
+jest.mock('react-native-device-info', () => ({
+  Platform: {
+    OS: 'ios',
+    Version: '14.0',
+  },
+}));
+
+// Mock AsyncStorage for testing
+jest.mock('@react-native-async-storage/async-storage', () =>
+  require('@react-native-async-storage/async-storage/jest/async-storage-mock'));
 
 // Mock expo-notifications
 jest.mock('expo-notifications', () => ({
