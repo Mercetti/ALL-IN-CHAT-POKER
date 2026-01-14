@@ -3,6 +3,16 @@ import { createServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { processAceyOutput } from "./intentProcessor";
 import { AceyOutputSchema } from "./validators";
+import AceyLibraryManager from "./utils/libraryManager";
+import { ConstitutionalIntelligence } from "./utils/constitutionalIntelligence";
+
+// Initialize Constitutional Intelligence Layer
+ConstitutionalIntelligence.initialize();
+console.log("🏛️ Constitutional Intelligence Layer initialized");
+
+// Initialize Acey Library Manager at server startup
+AceyLibraryManager.initLibrary();
+console.log("📚 Acey Library initialized on D: drive");
 
 const app = express();
 const server = createServer(app);
@@ -67,6 +77,56 @@ io.on("connection", (socket) => {
 // HTTP endpoint for health check
 app.get("/health", (req, res) => {
   res.json({ status: "healthy", timestamp: Date.now() });
+});
+
+// HTTP endpoint for constitutional intelligence stats
+app.get("/governance/stats", (req, res) => {
+  try {
+    const stats = ConstitutionalIntelligence.getStats();
+    res.json(stats);
+  } catch (error) {
+    console.error("Error fetching governance stats:", error);
+    res.status(500).json({ error: "Failed to fetch governance stats" });
+  }
+});
+
+// HTTP endpoint for constitutional audit
+app.get("/governance/audit", (req, res) => {
+  try {
+    const audit = ConstitutionalIntelligence.exportForAudit();
+    res.json(audit);
+  } catch (error) {
+    console.error("Error generating audit:", error);
+    res.status(500).json({ error: "Failed to generate audit" });
+  }
+});
+
+// HTTP endpoint for human feedback
+app.post("/governance/feedback", (req, res) => {
+  try {
+    const { actionId, feedback, reason } = req.body;
+    
+    if (!actionId || !feedback) {
+      return res.status(400).json({ error: "actionId and feedback required" });
+    }
+    
+    ConstitutionalIntelligence.recordHumanFeedback(actionId, feedback, reason);
+    res.json({ success: true, message: "Feedback recorded" });
+  } catch (error) {
+    console.error("Error recording feedback:", error);
+    res.status(500).json({ error: "Failed to record feedback" });
+  }
+});
+
+// Auto-governance endpoint (run periodically)
+app.post("/governance/auto-govern", (req, res) => {
+  try {
+    const results = ConstitutionalIntelligence.runAutoGovernance();
+    res.json(results);
+  } catch (error) {
+    console.error("Error running auto-governance:", error);
+    res.status(500).json({ error: "Failed to run auto-governance" });
+  }
 });
 
 // HTTP endpoint for manual testing

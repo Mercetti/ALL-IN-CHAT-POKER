@@ -602,13 +602,14 @@ input:checked + .toggle-slider:before {
 }
 
 .cosmetic-card .equipped-badge,
-.cosmetic-card .owned-badge {
+.cosmetic-card .owned-badge,
+.cosmetic-card .locked-badge {
   position: absolute;
   top: 12px;
   left: 12px;
-  padding: 0.25rem 0.5rem;
-  border-radius: 999px;
-  font-size: 0.65rem;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
 }
@@ -621,6 +622,12 @@ input:checked + .toggle-slider:before {
 .cosmetic-card .equipped-badge {
   background: linear-gradient(135deg, var(--primary-color, #44ffd2), var(--secondary-color, #9333ea));
   color: #050505;
+}
+
+.cosmetic-card .locked-badge {
+  background: rgba(239, 68, 68, 0.8);
+  color: white;
+  border: 1px solid rgba(239, 68, 68, 0.9);
 }
 
 .cosmetic-info h4 {
@@ -641,6 +648,24 @@ input:checked + .toggle-slider:before {
   font-size: 0.7rem;
   text-transform: uppercase;
   border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.unlock-info {
+  font-size: 0.7rem;
+  color: var(--primary-color, #44ffd2);
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
+.cosmetic-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.cosmetic-actions .btn {
+  flex: 1;
+  font-size: 0.75rem;
+  padding: 0.5rem;
 }
 
 .cosmetic-card.skeleton {

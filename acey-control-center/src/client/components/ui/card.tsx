@@ -6,6 +6,17 @@ interface CardProps {
   onClick?: () => void;
 }
 
+export const CardTitle: React.FC<{ children: React.ReactNode; className?: string }> = ({ 
+  children, 
+  className = '' 
+}) => {
+  return (
+    <h3 className={`text-lg font-semibold text-gray-900 ${className}`}>
+      {children}
+    </h3>
+  );
+};
+
 export const Card: React.FC<CardProps> = ({ children, className = '', onClick }) => {
   return (
     <div 

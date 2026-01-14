@@ -28,6 +28,9 @@ class DBHelper {
       this.initSchema();
       this.initialized = true;
       logger.info('Database initialized', { path: dbPath });
+      
+      // Grant some default cosmetics to test users
+      this.grantDefaultCosmetics();
     } catch (err) {
       logger.error('Failed to initialize database', { error: err.message });
       throw err;
@@ -418,6 +421,14 @@ class DBHelper {
         PRIMARY KEY (tournament_id, round, login)
       )
     `);
+
+    // Seed cosmetics catalog if empty
+    const existingCosmetics = this.db.prepare('SELECT COUNT(*) as count FROM cosmetics').get();
+    if (existingCosmetics.count === 0) {
+      const { COSMETIC_CATALOG } = require('./cosmetic-catalog');
+      this.seedCosmetics(COSMETIC_CATALOG);
+      logger.info('Seeded cosmetics catalog', { count: COSMETIC_CATALOG.length });
+    }
   }
 
   // ============ BALANCES ============
@@ -1221,6 +1232,72 @@ class DBHelper {
     return this.db.prepare('SELECT * FROM cosmetics WHERE id = ?').get(id);
   }
 
+  getCosmeticsForLogin(login) {
+    if (!login) return {};
+    
+    // Get user's equipped cosmetics
+    const equippedCosmetics = this.db.prepare(`
+      SELECT c.* FROM user_cosmetics uc
+      JOIN cosmetics c ON uc.item_id = c.id
+      WHERE uc.login = ? AND uc.equipped = 1
+    `).all(login);
+    
+    // Convert to overlay format
+    const cosmetics = {};
+    equippedCosmetics.forEach(cosmetic => {
+      switch (cosmetic.type) {
+        case 'table':
+          cosmetics.tableTint = cosmetic.tint || cosmetic.color;
+          cosmetics.tableTexture = cosmetic.texture_url || cosmetic.image_url;
+          cosmetics.tableLogoColor = cosmetic.color;
+          break;
+        case 'cardBack':
+          cosmetics.cardBackImage = cosmetic.image_url || cosmetic.preview;
+          cosmetics.cardBackTint = cosmetic.tint || cosmetic.color;
+          cosmetics.cardBackVariant = cosmetic.rarity;
+          break;
+        case 'avatarRing':
+          cosmetics.avatarRingColor = cosmetic.color;
+          cosmetics.avatarRingImage = cosmetic.image_url || cosmetic.preview;
+          break;
+        case 'nameplate':
+          cosmetics.profileCardBorder = cosmetic.color;
+          break;
+      }
+    });
+    
+    return cosmetics;
+  }
+
+  equipCosmetic(login, cosmeticId) {
+    if (!login || !cosmeticId) return false;
+    
+    try {
+      // Get cosmetic info
+      const cosmetic = this.getCosmeticById(cosmeticId);
+      if (!cosmetic) return false;
+      
+      // Unequip other cosmetics of same type
+      this.db.prepare(`
+        UPDATE user_cosmetics SET equipped = 0 
+        WHERE login = ? AND item_id IN (
+          SELECT id FROM cosmetics WHERE type = ?
+        )
+      `).run(login, cosmetic.type);
+      
+      // Equip new cosmetic
+      this.db.prepare(`
+        INSERT OR REPLACE INTO user_cosmetics (login, item_id, equipped)
+        VALUES (?, ?, 1)
+      `).run(login, cosmeticId);
+      
+      return true;
+    } catch (error) {
+      logger.error('Failed to equip cosmetic', { login, cosmeticId, error: error.message });
+      return false;
+    }
+  }
+
   grantCosmetic(login, itemId) {
     const item = this.getCosmeticById(itemId);
     if (!item) return null;
@@ -1228,20 +1305,6 @@ class DBHelper {
       INSERT OR IGNORE INTO user_cosmetics (login, item_id, slot, equipped)
       VALUES (?, ?, ?, 0)
     `).run(login, itemId, item.type);
-    return this.getUserInventory(login);
-  }
-
-  equipCosmetic(login, itemId) {
-    const item = this.getCosmeticById(itemId);
-    if (!item) return null;
-    const owned = this.db.prepare('SELECT 1 FROM user_cosmetics WHERE login = ? AND item_id = ?').get(login, itemId);
-    if (!owned) return null;
-    const slot = item.type;
-    const tx = this.db.transaction(() => {
-      this.db.prepare('UPDATE user_cosmetics SET equipped = 0 WHERE login = ? AND slot = ?').run(login, slot);
-      this.db.prepare('UPDATE user_cosmetics SET equipped = 1 WHERE login = ? AND item_id = ?').run(login, itemId);
-    });
-    tx();
     return this.getUserInventory(login);
   }
 
@@ -1254,6 +1317,24 @@ class DBHelper {
         VALUES (?, ?, ?, 0)
       `).run(login, itemId, item.type);
     });
+  }
+
+  grantDefaultCosmetics() {
+    // Grant some free cosmetics to all existing users for testing
+    const freeCosmetics = [
+      'card-back-black',
+      'card-back-blue', 
+      'card-back-green',
+      'card-back-orange',
+      'table-neon-green'
+    ];
+    
+    const users = this.db.prepare('SELECT DISTINCT login FROM profiles').all();
+    users.forEach(user => {
+      this.ensureDefaultCosmetics(user.login, freeCosmetics);
+    });
+    
+    logger.info('Granted default cosmetics to users', { count: users.length });
   }
 
   getUserInventory(login) {

@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 interface TabsProps {
   children: React.ReactNode;
   defaultValue?: string;
+  value?: string;
+  onValueChange?: (value: string) => void;
   className?: string;
 }
 
@@ -34,8 +36,10 @@ export const TabsContext = React.createContext<{
   setActiveValue: () => {}
 });
 
-export const Tabs: React.FC<TabsProps> = ({ children, defaultValue, className = '' }) => {
-  const [activeValue, setActiveValue] = useState(defaultValue || '');
+export const Tabs: React.FC<TabsProps> = ({ children, defaultValue, value, onValueChange, className = '' }) => {
+  const [internalValue, setInternalValue] = useState(defaultValue || '');
+  const activeValue = value !== undefined ? value : internalValue;
+  const setActiveValue = onValueChange || setInternalValue;
 
   return (
     <TabsContext.Provider value={{ activeValue, setActiveValue }}>

@@ -1,0 +1,181 @@
+/* Error Boundary Styles */
+.error-boundary {
+  background: var(--color-panel);
+  border: 1px solid var(--color-panel-border);
+  border-radius: var(--panel-radius);
+  padding: 24px;
+  box-shadow: var(--panel-shadow);
+  margin: 16px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.error-boundary__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+}
+
+.error-boundary__icon {
+  color: #ff6b81;
+  opacity: 0.8;
+}
+
+.error-boundary__title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.error-boundary__message {
+  color: var(--color-text-dim);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.error-boundary__details {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: left;
+}
+
+.error-boundary__details summary {
+  color: var(--color-accent);
+  cursor: pointer;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.error-boundary__details summary:hover {
+  color: var(--color-accent-strong);
+}
+
+.error-boundary__stack {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 12px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.75rem;
+  color: #f2f5ff;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 8px 0 0 0;
+}
+
+.error-boundary__actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.error-boundary__button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  font-size: 0.875rem;
+}
+
+.error-boundary__button--primary {
+  background: var(--color-accent);
+  color: #020617;
+}
+
+.error-boundary__button--primary:hover {
+  background: #22d3ee;
+  transform: translateY(-1px);
+}
+
+.error-boundary__button--secondary {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.error-boundary__button--secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.error-boundary__button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.error-boundary__warning {
+  color: #ffbf47;
+  font-size: 0.875rem;
+  margin: 8px 0 0 0;
+  opacity: 0.9;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .error-boundary {
+    margin: 8px;
+    padding: 20px;
+  }
+
+  .error-boundary__title {
+    font-size: 1.25rem;
+  }
+
+  .error-boundary__actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .error-boundary__button {
+    width: 100%;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .error-boundary__button {
+    transition: none;
+  }
+
+  .error-boundary__button--primary:hover {
+    transform: none;
+  }
+}
+
+/* High DPI Displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .error-boundary__button {
+    border-width: 0.5px;
+  }
+}
+
+/* Focus Styles */
+.error-boundary__button:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.error-boundary__button:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Dark Mode Adjustments */
+@media (prefers-color-scheme: dark) {
+  .error-boundary__stack {
+    background: rgba(0, 0, 0, 0.5);
+    color: #f2f5ff;
+  }
+}

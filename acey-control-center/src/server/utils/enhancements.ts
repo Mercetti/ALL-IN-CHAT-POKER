@@ -165,15 +165,15 @@ export class MultiPersonaManager {
     // Adapt response based on persona traits
     let adaptedResponse = baseResponse;
     
-    if (persona.traits.energy > 0.7) {
+    if (persona && persona.traits.energy > 0.7) {
       adaptedResponse = adaptedResponse.toUpperCase();
       adaptedResponse = adaptedResponse.replace(/\./g, '!');
-    } else if (persona.traits.energy < 0.4) {
+    } else if (persona && persona.traits.energy < 0.4) {
       adaptedResponse = adaptedResponse.toLowerCase();
       adaptedResponse = adaptedResponse.replace(/!/g, '.');
     }
-
-    if (persona.traits.formality > 0.7) {
+    
+    if (persona && persona.traits.formality > 0.7) {
       adaptedResponse = adaptedResponse.replace(/hey/gi, 'greetings');
       adaptedResponse = adaptedResponse.replace(/thanks/gi, 'thank you');
     }
@@ -621,7 +621,7 @@ export class AutoEvaluationSystem {
   } {
     const total = this.evaluationHistory.length;
     const approved = this.evaluationHistory.filter(e => e.evaluation.approved).length;
-    const requiresReview = this.evaluationHistory.filter(e => e.evaluation.requiresHumanReview).length;
+    const requiresReview = this.evaluationHistory.filter(e => e.evaluation.action === 'review').length;
 
     // Count rejection reasons
     const rejectionReasons = new Map<string, number>();
@@ -760,7 +760,7 @@ export class AceyUtilities {
 
     try {
       const content = await fs.readFile(datasetPath, 'utf-8');
-      const lines = content.split('\n').filter(line => line.trim());
+      const lines = content.split('\n').filter((line: string) => line.trim());
       
       const errors: string[] = [];
       const warnings: string[] = [];

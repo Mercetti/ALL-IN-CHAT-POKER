@@ -163,6 +163,28 @@ function createAdminRouter({ auth, middleware, config, logger, rateLimit, db, tm
     res.json({ snapshot });
   });
 
+  // Refresh cosmetics catalog
+  router.post('/refresh-cosmetics', auth.requireAdmin, async (req, res) => {
+    try {
+      logger.info('Admin refreshing cosmetics catalog', { admin: getAdminSession(req)?.login });
+      
+      // Clear existing cosmetics and reseed
+      db.db.prepare('DELETE FROM cosmetics').run();
+      
+      const { COSMETIC_CATALOG } = require('../cosmetic-catalog');
+      db.seedCosmetics(COSMETIC_CATALOG);
+      
+      res.json({ 
+        success: true, 
+        message: 'Cosmetics catalog refreshed',
+        count: COSMETIC_CATALOG.length 
+      });
+    } catch (error) {
+      logger.error('Failed to refresh cosmetics catalog', { error: error.message });
+      res.status(500).json({ error: 'Failed to refresh cosmetics catalog' });
+    }
+  });
+
   return router;
 }
 

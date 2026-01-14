@@ -7,7 +7,7 @@ import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Alert, AlertDescription } from './ui/alert';
-import { Play, Pause, Settings, BarChart3, Brain, Zap, Plus, Trash2, RefreshCw } from 'lucide-react';
+import { Play, Pause, Settings, BarChart3, Brain, Zap, Plus, Trash2, RefreshCw, HardDrive, AlertTriangle, Shield, TrendingUp, Target, Scale } from 'lucide-react';
 
 // Import orchestrator modules (these would be imported from server/utils)
 // For now, we'll create mock interfaces for the demo
@@ -173,6 +173,13 @@ export const AceyControlCenter: React.FC = () => {
   const [isLearningEnabled, setIsLearningEnabled] = useState(true);
   const [autoApproval, setAutoApproval] = useState(true);
   
+  // Storage stats
+  const [storageStats, setStorageStats] = useState<any>(null);
+  const [storageHealth, setStorageHealth] = useState<any>(null);
+  
+  // Governance stats
+  const [governanceStats, setGovernanceStats] = useState<any>(null);
+  
   // Configuration
   const [config, setConfig] = useState({
     llmEndpoint: 'https://your-llm-endpoint.com',
@@ -188,6 +195,59 @@ export const AceyControlCenter: React.FC = () => {
   // Initialize system
   const initializeSystem = useCallback(async () => {
     console.log('[Dashboard] Initializing Acey system...');
+    
+    // Load storage stats
+    try {
+      // Mock storage stats for demo
+      setStorageStats({
+        audio: 45,
+        datasets: 23,
+        images: 67,
+        models: 8,
+        logs: 156,
+        archive: 89
+      });
+      
+      // Mock storage health
+      setStorageHealth({
+        freeGB: 234.5,
+        totalGB: 500.0,
+        usedPercent: 53.1,
+        warning: false,
+        critical: false
+      });
+    } catch (error) {
+      console.error('[Dashboard] Failed to load storage stats:', error);
+    }
+    
+    // Load governance stats
+    try {
+      // Mock governance stats for demo
+      setGovernanceStats({
+        governance: {
+          totalContracts: 2,
+          activeContracts: 2
+        },
+        economics: {
+          totalSkills: 5,
+          highValueSkills: 3,
+          lowValueSkills: 1
+        },
+        goals: {
+          totalGoals: 4,
+          activeGoals: 3,
+          avgConfidence: 0.78
+        },
+        ethics: {
+          totalConstraints: 5,
+          activeConstraints: 5,
+          violationRate: 0.02,
+          complianceScore: 0.94
+        }
+      });
+    } catch (error) {
+      console.error('[Dashboard] Failed to load governance stats:', error);
+    }
     
     // In production, this would create real instances
     // For now, we use mock implementations
@@ -296,7 +356,7 @@ export const AceyControlCenter: React.FC = () => {
       );
       
       // Process results
-      const processedResults: SimulationResult[] = results.map((result, index) => ({
+      const processedResults: SimulationResult[] = results.map((result: any, index: number) => ({
         taskDefinition: batch[index],
         output: result.output,
         processed: result.processed,
@@ -480,6 +540,81 @@ export const AceyControlCenter: React.FC = () => {
           </CardContent>
         </Card>
 
+        {/* Storage Health */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <HardDrive className="w-5 h-5" />
+              Storage Health
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {storageHealth ? (
+              <div className="space-y-3">
+                {/* Storage Warning Banner */}
+                {storageHealth.warning && (
+                  <Alert className="border-yellow-200 bg-yellow-50">
+                    <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                    <AlertDescription className="text-yellow-800">
+                      Disk usage is {storageHealth.usedPercent}% - consider archiving old files
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
+                {/* Disk Usage Bar */}
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>Disk Usage</span>
+                    <span className={storageHealth.critical ? 'text-red-600' : storageHealth.warning ? 'text-yellow-600' : 'text-green-600'}>
+                      {storageHealth.usedPercent}%
+                    </span>
+                  </div>
+                  <Progress 
+                    value={storageHealth.usedPercent} 
+                    className={`h-2 ${storageHealth.critical ? 'bg-red-100' : storageHealth.warning ? 'bg-yellow-100' : ''}`}
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    <span>{storageHealth.freeGB} GB free</span>
+                    <span>{storageHealth.totalGB} GB total</span>
+                  </div>
+                </div>
+                
+                {/* File Counts */}
+                {storageStats && (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>Audio:</span>
+                      <Badge variant="outline">{storageStats.audio}</Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Images:</span>
+                      <Badge variant="outline">{storageStats.images}</Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Datasets:</span>
+                      <Badge variant="outline">{storageStats.datasets}</Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Models:</span>
+                      <Badge variant="outline">{storageStats.models}</Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Logs:</span>
+                      <Badge variant="outline">{storageStats.logs}</Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Archive:</span>
+                      <Badge variant="secondary">{storageStats.archive}</Badge>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div>Loading storage health...</div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Fine-Tune Stats */}
         <Card>
           <CardHeader>
@@ -510,7 +645,7 @@ export const AceyControlCenter: React.FC = () => {
             <div className="mt-4">
               <h4 className="text-sm font-medium mb-2">Queue by Task Type</h4>
               <div className="space-y-1">
-                {Object.entries(fineTuneStats.queue.byType).map(([taskType, count]) => (
+                {Object.entries(fineTuneStats.queue.byType).map(([taskType, count]: [string, any]) => (
                   <div key={taskType} className="flex justify-between text-sm">
                     <span>{taskType}</span>
                     <Badge variant="outline">{count}</Badge>
@@ -529,7 +664,7 @@ export const AceyControlCenter: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {recommendations.map((rec, index) => (
+                {recommendations.map((rec: string, index: number) => (
                   <Alert key={index}>
                     <Zap className="w-4 h-4" />
                     <AlertDescription>{rec}</AlertDescription>
@@ -539,6 +674,130 @@ export const AceyControlCenter: React.FC = () => {
             </CardContent>
           </Card>
         )}
+      </div>
+    );
+  };
+
+  const renderGovernancePanel = () => {
+    if (!governanceStats) return <div>Loading governance stats...</div>;
+
+    const { governance, economics, goals, ethics } = governanceStats;
+
+    return (
+      <div className="space-y-4">
+        {/* Governance Contracts */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Shield className="w-5 h-5" />
+              Governance Contracts
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold">{governance.totalContracts}</div>
+                <div className="text-sm text-muted-foreground">Total Contracts</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">{governance.activeContracts}</div>
+                <div className="text-sm text-muted-foreground">Active</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Skill Economics */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <TrendingUp className="w-5 h-5" />
+              Skill Economics
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold">{economics.totalSkills}</div>
+                <div className="text-sm text-muted-foreground">Total Skills</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">{economics.highValueSkills}</div>
+                <div className="text-sm text-muted-foreground">High Value</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-red-600">{economics.lowValueSkills}</div>
+                <div className="text-sm text-muted-foreground">Low Value</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Long-Term Goals */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Target className="w-5 h-5" />
+              Long-Term Goals
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold">{goals.totalGoals}</div>
+                <div className="text-sm text-muted-foreground">Total Goals</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">{goals.activeGoals}</div>
+                <div className="text-sm text-muted-foreground">Active</div>
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="flex justify-between text-sm mb-1">
+                <span>Avg Confidence</span>
+                <span>{Math.round(goals.avgConfidence * 100)}%</span>
+              </div>
+              <Progress value={goals.avgConfidence * 100} className="h-2" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Ethical Constraints */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Scale className="w-5 h-5" />
+              Ethical Constraints
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold">{ethics.totalConstraints}</div>
+                <div className="text-sm text-muted-foreground">Total Constraints</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">{ethics.activeConstraints}</div>
+                <div className="text-sm text-muted-foreground">Active</div>
+              </div>
+            </div>
+            <div className="mt-4 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Compliance Score</span>
+                <span className={ethics.complianceScore > 0.9 ? 'text-green-600' : ethics.complianceScore > 0.7 ? 'text-yellow-600' : 'text-red-600'}>
+                  {Math.round(ethics.complianceScore * 100)}%
+                </span>
+              </div>
+              <Progress value={ethics.complianceScore * 100} className="h-2" />
+              <div className="flex justify-between text-sm">
+                <span>Violation Rate</span>
+                <span className={ethics.violationRate < 0.05 ? 'text-green-600' : 'text-yellow-600'}>
+                  {(ethics.violationRate * 100).toFixed(1)}%
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   };
@@ -596,6 +855,7 @@ export const AceyControlCenter: React.FC = () => {
         <TabsList>
           <TabsTrigger value="simulation">Simulation</TabsTrigger>
           <TabsTrigger value="learning">Learning Stats</TabsTrigger>
+          <TabsTrigger value="governance">Governance</TabsTrigger>
           <TabsTrigger value="results">Results</TabsTrigger>
         </TabsList>
 
@@ -670,6 +930,11 @@ export const AceyControlCenter: React.FC = () => {
         {/* Learning Stats Tab */}
         <TabsContent value="learning">
           {renderLearningStats()}
+        </TabsContent>
+
+        {/* Governance Tab */}
+        <TabsContent value="governance">
+          {renderGovernancePanel()}
         </TabsContent>
 
         {/* Results Tab */}

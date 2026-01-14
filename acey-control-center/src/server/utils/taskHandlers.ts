@@ -149,7 +149,7 @@ export class TaskHandlers {
         validation.syntax = false;
         validation.errors.push({
           type: 'syntax',
-          message: `Syntax error: ${error.message}`,
+          message: `Syntax error: ${(error as Error).message}`,
           severity: 'error'
         });
       }
@@ -205,7 +205,7 @@ export class TaskHandlers {
   private static async runCodeTests(code: string, testCases: CodingTaskContext["testCases"]): Promise<CodingGenerationResult["testResults"]> {
     const results = [];
     
-    for (const testCase of testCases) {
+    for (const testCase of testCases || []) {
       const startTime = Date.now();
       let passed = false;
       let error = '';
@@ -260,10 +260,16 @@ export class TaskHandlers {
   static async validateTask(taskType: "audio" | "coding", context: AudioTaskContext | CodingTaskContext, result: AudioGenerationResult | CodingGenerationResult): Promise<TaskValidationResult> {
     const taskId = `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
-    const validationSteps = [
+    const validationSteps: Array<{
+    step: string;
+    status: "pending" | "passed" | "failed";
+    result?: any;
+    error?: string;
+    timestamp: string;
+  }> = [
       {
         step: "Initial validation",
-        status: "passed" as const,
+        status: "passed",
         timestamp: new Date().toISOString()
       }
     ];
@@ -276,7 +282,7 @@ export class TaskHandlers {
         // Validate duration
         validationSteps.push({
           step: "Duration validation",
-          status: audioResult.duration <= (audioResult.metadata.lengthSeconds || 10) ? "passed" as const : "failed" as const,
+          status: audioResult.duration <= (audioResult.metadata.lengthSeconds || 10) ? "passed" : "failed",
           timestamp: new Date().toISOString(),
           result: { actualDuration: audioResult.duration, maxDuration: audioResult.metadata.lengthSeconds || 10 }
         });
@@ -284,7 +290,7 @@ export class TaskHandlers {
         // Validate format
         validationSteps.push({
           step: "Format validation",
-          status: audioResult.format === audioResult.metadata.format ? "passed" as const : "failed" as const,
+          status: audioResult.format === audioResult.metadata.format ? "passed" : "failed",
           timestamp: new Date().toISOString(),
           result: { actualFormat: audioResult.format, expectedFormat: audioResult.metadata.format }
         });
@@ -292,7 +298,7 @@ export class TaskHandlers {
         // Validate file size
         validationSteps.push({
           step: "File size validation",
-          status: audioResult.fileSize > 0 ? "passed" as const : "failed" as const,
+          status: audioResult.fileSize > 0 ? "passed" : "failed",
           timestamp: new Date().toISOString(),
           result: { fileSize: audioResult.fileSize }
         });
@@ -305,7 +311,7 @@ export class TaskHandlers {
         // Use existing validation
         validationSteps.push({
           step: "Code validation",
-          status: codingResult.validation.syntax && codingResult.validation.security ? "passed" as const : "failed" as const,
+          status: codingResult.validation.syntax && codingResult.validation.security ? "passed" : "failed",
           timestamp: new Date().toISOString(),
           result: { validation: codingResult.validation }
         });
@@ -314,7 +320,7 @@ export class TaskHandlers {
         const allTestsPassed = codingResult.testResults.every(r => r.passed);
         validationSteps.push({
           step: "Test validation",
-          status: allTestsPassed ? "passed" as const : "failed" as const,
+          status: allTestsPassed ? "passed" : "failed",
           timestamp: new Date().toISOString(),
           result: { testResults: codingResult.testResults }
         });
@@ -339,7 +345,7 @@ export class TaskHandlers {
     } catch (error) {
       validationSteps.push({
         step: "Validation error",
-        status: "failed" as const,
+        status: "failed",
         timestamp: new Date().toISOString(),
         error: error instanceof Error ? error.message : "Unknown validation error"
       });

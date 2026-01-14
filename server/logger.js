@@ -73,4 +73,16 @@ class Logger {
   }
 }
 
+// Export both the class and a default instance
 module.exports = Logger;
+module.exports.Logger = Logger;
+
+// Create a default instance for backward compatibility
+const defaultLogger = new Logger('poker-game');
+module.exports.default = defaultLogger;
+
+// For direct usage (backward compatibility)
+module.exports.error = defaultLogger.error.bind(defaultLogger);
+module.exports.warn = defaultLogger.warn.bind(defaultLogger);
+module.exports.info = defaultLogger.info.bind(defaultLogger);
+module.exports.debug = defaultLogger.debug.bind(defaultLogger);

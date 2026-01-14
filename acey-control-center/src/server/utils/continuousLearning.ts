@@ -119,10 +119,10 @@ export class ContinuousLearningLoop {
     
     try {
       // Update metrics
-      this.updateMetrics(taskType, approved, confidence);
+      this.updateMetrics(taskType, approved, confidence, output);
       
       // Auto-approval logic
-      const finalApproved = this.determineApproval(approved, confidence, output);
+      const finalApproved = this.determineApproval(confidence, output, approved);
       
       if (!finalApproved) {
         console.log(`[ContinuousLearning] Output rejected for ${taskType} (confidence: ${confidence})`);
@@ -339,9 +339,9 @@ export class ContinuousLearningLoop {
    */
 
   private determineApproval(
-    manualApproval?: boolean,
     confidence: number,
-    output: AceyOutput
+    output: AceyOutput,
+    manualApproval?: boolean
   ): boolean {
     // Use manual approval if provided
     if (manualApproval !== undefined) {
@@ -441,6 +441,7 @@ export class ContinuousLearningLoop {
       game: ["audio", "coding"],
       website: ["coding", "graphics"],
       graphics: ["website", "game"],
+      images: ["graphics", "website"],
       moderation: ["audio", "trust"],
       memory: ["persona", "trust"],
       trust: ["moderation", "memory"],
@@ -484,7 +485,7 @@ export class ContinuousLearningLoop {
     return Math.min(confidence, 1.0);
   }
 
-  private updateMetrics(taskType: TaskType, approved?: boolean, confidence: number = 0.8): void {
+  private updateMetrics(taskType: TaskType, approved?: boolean, confidence: number = 0.8, output?: AceyOutput): void {
     this.metrics.totalOutputs++;
     
     if (approved) {
@@ -498,7 +499,8 @@ export class ContinuousLearningLoop {
       this.metrics.taskPerformance[taskType] = {
         outputs: 0,
         approved: 0,
-        avgConfidence: 0
+        avgConfidence: 0,
+        avgTrust: 0
       };
     }
     
@@ -512,9 +514,19 @@ export class ContinuousLearningLoop {
     // Update average confidence
     taskMetrics.avgConfidence = (taskMetrics.avgConfidence * (taskMetrics.outputs - 1) + confidence) / taskMetrics.outputs;
     
+    // Update average trust
+    if (output && output.trust !== undefined) {
+      taskMetrics.avgTrust = (taskMetrics.avgTrust * (taskMetrics.outputs - 1) + output.trust) / taskMetrics.outputs;
+    }
+    
     // Update overall success rate
     this.metrics.successRate = this.metrics.approvedOutputs / this.metrics.totalOutputs;
     this.metrics.avgConfidence = (this.metrics.avgConfidence * (this.metrics.totalOutputs - 1) + confidence) / this.metrics.totalOutputs;
+    
+    // Update overall average trust
+    if (output && output.trust !== undefined) {
+      this.metrics.avgTrust = (this.metrics.avgTrust * (this.metrics.totalOutputs - 1) + output.trust) / this.metrics.totalOutputs;
+    }
     
     this.metrics.lastUpdated = new Date().toISOString();
   }
@@ -664,6 +676,7 @@ export class ContinuousLearningLoop {
       fineTuneJobs: 0,
       successRate: 0,
       avgConfidence: 0,
+      avgTrust: 0,
       taskPerformance: {} as Record<TaskType, any>,
       lastUpdated: new Date().toISOString()
     };

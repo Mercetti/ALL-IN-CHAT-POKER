@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Badge } from './ui/badge';
-import { Progress } from './ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Alert, AlertDescription } from './ui/alert';
+import { Card, CardContent, CardHeader, CardTitle } from '../client/components/ui/card';
+import { Button } from '../client/components/ui/button';
+import { Badge } from '../client/components/ui/badge';
+import { Progress } from '../client/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../client/components/ui/tabs';
+import { Alert, AlertDescription } from '../client/components/ui/alert';
 import { Play, Pause, Settings, BarChart3, Brain, Zap } from 'lucide-react';
 
 // Import our orchestrator modules
@@ -100,7 +100,7 @@ export const InteractiveAceyDashboard: React.FC = () => {
       const audioCodingOrchestrator = new AudioCodingOrchestrator({
         baseOrchestrator,
         simulationMode: config.simulationMode,
-        autoApprove,
+        autoApprove: autoApproval,
         enableValidation: config.enableValidation,
         enableDatasetPrep: config.enableDatasetPrep
       });

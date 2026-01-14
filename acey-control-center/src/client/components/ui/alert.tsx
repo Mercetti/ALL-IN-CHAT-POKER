@@ -7,6 +7,17 @@ interface AlertProps {
   onClose?: () => void;
 }
 
+export const AlertDescription: React.FC<{ children: React.ReactNode; className?: string }> = ({ 
+  children, 
+  className = ''
+}) => {
+  return (
+    <div className={`text-sm ${className}`}>
+      {children}
+    </div>
+  );
+};
+
 export const Alert: React.FC<AlertProps> = ({ 
   children, 
   variant = 'info',

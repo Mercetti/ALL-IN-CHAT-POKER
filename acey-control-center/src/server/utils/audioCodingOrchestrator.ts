@@ -477,7 +477,7 @@ export class AudioCodingOrchestrator {
         }
       }
       
-          const datasetEntry = {
+      const datasetEntry = {
         id: `${taskType}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         taskType,
         prompt,
@@ -491,6 +491,8 @@ export class AudioCodingOrchestrator {
       
       // Write to dataset file
       fs.appendFileSync(filePath, JSON.stringify(datasetEntry) + '\n');
+    } catch (error) {
+      console.error('[DATASET] Failed to append to dataset:', error);
     }
   }
 

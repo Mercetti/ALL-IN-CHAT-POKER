@@ -1,0 +1,226 @@
+/* Error Boundary Styles for Main Website */
+
+.error-boundary-fallback {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 15, 25, 0.95);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.error-boundary-fallback--visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.error-boundary-content {
+  background: linear-gradient(135deg, #1a1f36 0%, #2d3748 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  color: #e2e8f0;
+}
+
+.error-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  animation: error-pulse 2s ease-in-out infinite;
+}
+
+@keyframes error-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.error-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: #fff;
+}
+
+.error-message {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0 0 2rem 0;
+  color: #a0aec0;
+}
+
+.error-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.error-retry-btn,
+.error-report-btn {
+  background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.error-retry-btn:hover,
+.error-report-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(66, 153, 225, 0.3);
+}
+
+.error-retry-btn:active,
+.error-report-btn:active {
+  transform: translateY(0);
+}
+
+.error-report-btn {
+  background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
+}
+
+.error-details {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: left;
+  margin-top: 1rem;
+}
+
+.error-details summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: #cbd5e0;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.error-details summary:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.error-details[open] summary {
+  margin-bottom: 1rem;
+}
+
+#error-details-content {
+  background: #1a202c;
+  border: 1px solid #2d3748;
+  border-radius: 4px;
+  padding: 1rem;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: #e2e8f0;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .error-boundary-content {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+  
+  .error-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .error-retry-btn,
+  .error-report-btn {
+    width: 100%;
+    max-width: 200px;
+  }
+  
+  .error-title {
+    font-size: 1.3rem;
+  }
+  
+  .error-message {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .error-boundary-content {
+    padding: 1rem;
+  }
+  
+  .error-icon {
+    font-size: 2.5rem;
+  }
+  
+  .error-title {
+    font-size: 1.2rem;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .error-boundary-content {
+    background: linear-gradient(135deg, #0f1419 0%, #1a1f36 100%);
+    border-color: rgba(255, 255, 255, 0.05);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .error-boundary-fallback {
+    transition: opacity 0.3s ease;
+  }
+  
+  .error-icon {
+    animation: none;
+  }
+  
+  .error-retry-btn,
+  .error-report-btn {
+    transition: none;
+  }
+  
+  .error-retry-btn:hover,
+  .error-report-btn:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .error-boundary-content {
+    border: 2px solid #fff;
+  }
+  
+  .error-retry-btn,
+  .error-report-btn {
+    border: 2px solid #fff;
+  }
+}

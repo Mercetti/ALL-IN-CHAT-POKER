@@ -794,12 +794,22 @@
   font-size: 0.75rem;
   color: rgba(232, 249, 255, 0.8);
   letter-spacing: 0.1em;
-  text-transform: uppercase;
+}
+
+.action-card--cosmetics {
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.2), rgba(79, 70, 229, 0.3));
+  border-color: rgba(147, 51, 234, 0.3);
+}
+
+.action-card--cosmetics:hover {
+  border-color: rgba(147, 51, 234, 0.5);
+  box-shadow: 0 20px 45px rgba(147, 51, 234, 0.3);
 }
 
 .action-icon {
   font-size: 2rem;
   opacity: 0.8;
+  text-transform: uppercase;
 }
 
 .action-title {

@@ -29,7 +29,7 @@ const envSchema = Joi.object({
     .when('NODE_ENV', {
       is: 'test',
       then: Joi.optional(),
-      otherwise: Joi.required()
+      otherwise: Joi.string().required()
     })
     .description('Database connection URL'),
   
@@ -53,8 +53,8 @@ const envSchema = Joi.object({
   DATABASE_PASSWORD: Joi.string()
     .when('NODE_ENV', {
       is: 'production',
-      then: Joi.required(),
-      otherwise: Joi.optional()
+      then: Joi.string().required(),
+      otherwise: Joi.string().optional()
     })
     .description('Database password'),
   
@@ -62,16 +62,16 @@ const envSchema = Joi.object({
   JWT_SECRET: Joi.string()
     .when('NODE_ENV', {
       is: 'production',
-      then: Joi.required().min(32),
-      otherwise: Joi.optional().default('dev-secret-key-change-in-production')
+      then: Joi.string().min(32).required(),
+      otherwise: Joi.string().default('dev-secret-key-change-in-production')
     })
     .description('JWT secret key'),
   
   SESSION_SECRET: Joi.string()
     .when('NODE_ENV', {
       is: 'production',
-      then: Joi.required().min(32),
-      otherwise: Joi.optional().default('dev-session-secret-change-in-production')
+      then: Joi.string().min(32).required(),
+      otherwise: Joi.string().default('dev-session-secret-change-in-production')
     })
     .description('Session secret key'),
   
@@ -127,24 +127,24 @@ const envSchema = Joi.object({
   TWITCH_CLIENT_ID: Joi.string()
     .when('NODE_ENV', {
       is: 'production',
-      then: Joi.required(),
-      otherwise: Joi.optional()
+      then: Joi.string().required(),
+      otherwise: Joi.string().optional()
     })
     .description('Twitch client ID'),
   
   TWITCH_CLIENT_SECRET: Joi.string()
     .when('NODE_ENV', {
       is: 'production',
-      then: Joi.required(),
-      otherwise: Joi.optional()
+      then: Joi.string().required(),
+      otherwise: Joi.string().optional()
     })
     .description('Twitch client secret'),
   
   OPENAI_API_KEY: Joi.string()
     .when('NODE_ENV', {
       is: 'production',
-      then: Joi.required(),
-      otherwise: Joi.optional()
+      then: Joi.string().required(),
+      otherwise: Joi.string().optional()
     })
     .description('OpenAI API key'),
   
@@ -186,16 +186,16 @@ const envSchema = Joi.object({
   ENABLE_SWAGGER: Joi.boolean()
     .when('NODE_ENV', {
       is: 'development',
-      then: Joi.default(true),
-      otherwise: Joi.default(false)
+      then: Joi.boolean().default(true),
+      otherwise: Joi.boolean().default(false)
     })
     .description('Enable Swagger documentation'),
   
   ENABLE_DEBUG_ROUTES: Joi.boolean()
     .when('NODE_ENV', {
       is: 'development',
-      then: Joi.default(true),
-      otherwise: Joi.default(false)
+      then: Joi.boolean().default(true),
+      otherwise: Joi.boolean().default(false)
     })
     .description('Enable debug routes'),
   

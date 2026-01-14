@@ -5,7 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 const config = require('./config');
-const Logger = require('./logger');
+const { Logger } = require('./logger');
 
 const logger = new Logger('startup');
 

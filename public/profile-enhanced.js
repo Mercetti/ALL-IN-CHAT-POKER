@@ -534,9 +534,16 @@ class EnhancedProfile {
   async loadCosmetics() {
     try {
       // Load cosmetics from API
-      const response = await fetch('/catalog');
-      const cosmetics = await response.json();
-      this.cosmetics = cosmetics || [];
+      const [catalogResponse, inventoryResponse] = await Promise.all([
+        fetch('/catalog'),
+        fetch('/catalog/inventory')
+      ]);
+      
+      const catalog = await catalogResponse.json();
+      const inventory = await inventoryResponse.json();
+      
+      this.cosmetics = catalog || [];
+      this.userInventory = inventory || { owned: [], equipped: [] };
       
       this.renderCosmetics();
     } catch (error) {
@@ -571,26 +578,32 @@ class EnhancedProfile {
     
     const isOwned = this.checkIfOwned(cosmetic.id);
     const isEquipped = this.checkIfEquipped(cosmetic.id);
+    const isLocked = !isOwned && cosmetic.price_cents > 0;
     
     card.innerHTML = `
       <div class="cosmetic-visual">
-        <img src="${cosmetic.preview || '/assets/cosmetics/default.png'}" alt="${cosmetic.name}">
+        <img src="${cosmetic.preview || '/assets/cosmetics/default.png'}" alt="${cosmetic.name}" loading="lazy">
         ${isEquipped ? '<div class="equipped-badge">EQUIPPED</div>' : ''}
         ${isOwned ? '<div class="owned-badge">OWNED</div>' : ''}
+        ${isLocked ? '<div class="locked-badge">🔒</div>' : ''}
       </div>
       <div class="cosmetic-info">
         <h4>${cosmetic.name}</h4>
         <span class="cosmetic-type">${this.getTypeLabel(cosmetic.type)}</span>
         <span class="cosmetic-rarity ${cosmetic.rarity}">${cosmetic.rarity}</span>
+        ${cosmetic.unlock_type ? `<div class="unlock-info">${this.getUnlockInfo(cosmetic)}</div>` : ''}
       </div>
       <div class="cosmetic-actions">
         ${isOwned ? 
           `<button class="btn ${isEquipped ? 'btn-success' : 'btn-secondary'} btn-sm" 
-                  onclick="enhancedProfile.equipCosmetic('${cosmetic.id}')">
+                  onclick="enhancedProfile.equipCosmetic('${cosmetic.id}')"
+                  ${isEquipped ? 'disabled' : ''}>
             ${isEquipped ? 'Equipped' : 'Equip'}
           </button>` :
-          `<button class="btn btn-primary btn-sm" onclick="enhancedProfile.purchaseCosmetic('${cosmetic.id}')">
-            ${cosmetic.price ? `$${cosmetic.price}` : 'Free'}
+          `<button class="btn btn-primary btn-sm" 
+                  onclick="enhancedProfile.purchaseCosmetic('${cosmetic.id}')"
+                  ${isLocked ? 'disabled' : ''}>
+            ${cosmetic.price_cents ? `$${cosmetic.price_cents / 100}` : 'Free'}
           </button>`
         }
       </div>
@@ -600,15 +613,28 @@ class EnhancedProfile {
   }
 
   checkIfOwned(cosmeticId) {
-    // Check if cosmetic is owned (from localStorage or API)
-    const ownedCosmetics = JSON.parse(localStorage.getItem('ownedCosmetics') || '[]');
-    return ownedCosmetics.includes(cosmeticId);
+    // Check if cosmetic is owned from user inventory
+    return this.userInventory && this.userInventory.owned && this.userInventory.owned.includes(cosmeticId);
   }
 
   checkIfEquipped(cosmeticId) {
-    // Check if cosmetic is equipped
-    const equippedCosmetics = JSON.parse(localStorage.getItem('equippedCosmetics') || '{}');
-    return Object.values(equippedCosmetics).includes(cosmeticId);
+    // Check if cosmetic is equipped from user inventory
+    return this.userInventory && this.userInventory.equipped && this.userInventory.equipped.includes(cosmeticId);
+  }
+
+  getUnlockInfo(cosmetic) {
+    if (!cosmetic.unlock_type) return '';
+    
+    switch (cosmetic.unlock_type) {
+      case 'subscriber':
+        return '🎁 Subscriber Exclusive';
+      case 'streamer_goal':
+        return `🎯 Streamer Goal: ${cosmetic.unlock_value || 0}`;
+      case 'twitch_drop':
+        return '🎁 Twitch Drop';
+      default:
+        return '';
+    }
   }
 
   getTypeLabel(type) {
@@ -625,32 +651,58 @@ class EnhancedProfile {
     return labels[type] || 'Cosmetic';
   }
 
-  equipCosmetic(cosmeticId) {
+  async equipCosmetic(cosmeticId) {
     const cosmetic = this.cosmetics.find(c => c.id === cosmeticId);
     if (!cosmetic) return;
     
-    // Save equipped cosmetic
-    const equippedCosmetics = JSON.parse(localStorage.getItem('equippedCosmetics') || '{}');
-    equippedCosmetics[cosmetic.type] = cosmeticId;
-    localStorage.setItem('equippedCosmetics', JSON.stringify(equippedCosmetics));
-    
-    this.showToast(`${cosmetic.name} equipped!`, 'success');
-    this.renderCosmetics();
+    try {
+      const response = await fetch('/catalog/equip', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ cosmeticId })
+      });
+      
+      if (response.ok) {
+        this.showToast(`${cosmetic.name} equipped!`, 'success');
+        this.renderCosmetics();
+      } else {
+        const error = await response.json();
+        this.showToast(error.error || 'Failed to equip cosmetic', 'error');
+      }
+    } catch (error) {
+      console.error('Error equipping cosmetic:', error);
+      this.showToast('Failed to equip cosmetic', 'error');
+    }
   }
 
-  purchaseCosmetic(cosmeticId) {
+  async purchaseCosmetic(cosmeticId) {
     const cosmetic = this.cosmetics.find(c => c.id === cosmeticId);
     if (!cosmetic) return;
     
-    // In a real app, this would process payment
-    this.showToast(`${cosmetic.name} purchased!`, 'success');
-    
-    // Add to owned cosmetics
-    const ownedCosmetics = JSON.parse(localStorage.getItem('ownedCosmetics') || '[]');
-    ownedCosmetics.push(cosmeticId);
-    localStorage.setItem('ownedCosmetics', JSON.stringify(ownedCosmetics));
-    
-    this.renderCosmetics();
+    // Free cosmetics can be "purchased" - grant them to the user
+    try {
+      const response = await fetch('/catalog/grant', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ cosmeticId })
+      });
+      
+      if (response.ok) {
+        this.showToast(`${cosmetic.name} added to collection!`, 'success');
+        // Reload inventory to reflect changes
+        this.loadCosmetics();
+      } else {
+        const error = await response.json();
+        this.showToast(error.error || 'Failed to add cosmetic', 'error');
+      }
+    } catch (error) {
+      console.error('Error purchasing cosmetic:', error);
+      this.showToast('Failed to add cosmetic', 'error');
+    }
   }
 
   renderCosmeticsLoading() {

@@ -71,6 +71,7 @@ class EnhancedAdminDashboard {
     document.getElementById('quick-refresh-data')?.addEventListener('click', () => this.refreshAllData());
     document.getElementById('quick-export')?.addEventListener('click', () => this.exportData());
     document.getElementById('quick-ai-test')?.addEventListener('click', () => this.runAITest());
+    document.getElementById('refresh-cosmetics')?.addEventListener('click', () => this.refreshCosmetics());
 
     // Game controls
     document.getElementById('start-round-btn')?.addEventListener('click', () => this.startRound());
@@ -596,6 +597,22 @@ class EnhancedAdminDashboard {
       console.log('AI Test Results:', results);
     } catch (error) {
       this.showToast('AI tests failed', 'error');
+    }
+  }
+
+  async refreshCosmetics() {
+    this.showToast('Refreshing cosmetics catalog...', 'info');
+    try {
+      const results = await this.fetchAPI('/admin/refresh-cosmetics', { method: 'POST' });
+      this.showToast('Cosmetics catalog refreshed successfully', 'success');
+      console.log('Cosmetics Refresh Results:', results);
+      
+      // Refresh the cosmetics display if it's currently visible
+      if (document.querySelector('.cosmetics-stage')) {
+        this.loadCosmeticsCatalog();
+      }
+    } catch (error) {
+      this.showToast('Failed to refresh cosmetics', 'error');
     }
   }
 

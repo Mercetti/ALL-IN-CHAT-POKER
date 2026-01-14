@@ -50,10 +50,10 @@ const { createAdminRouter } = require('./server/routes/admin');
 const { createAuthRouter } = require('./server/routes/auth');
 const createPublicRouter = require('./server/routes/public');
 const loggingRouter = require('./server/routes/logging');
-const datasetRouter = require('./server/routes/dataset');
-const simulationRouter = require('./server/routes/simulation');
-const workflowRouter = require('./server/routes/workflow');
-const commandsRouter = require('./server/routes/commands');
+const datasetRouter = require('./server/routes/dataset.js');
+const simulationRouter = require('./server/routes/simulation.js');
+const workflowRouter = require('./server/routes/workflow.js');
+const commandsRouter = require('./server/routes/commands.js');
 const createPartnersRouter = require('./server/routes/partners');
 const createCatalogRouter = require('./server/routes/catalog');
 const createAdminServicesRouter = require('./server/routes/admin-services');
@@ -761,6 +761,17 @@ const aceyWebSocket = new AceyWebSocket({
 if (!config.isTest()) {
   aceyWebSocket.start();
   console.log('🎤 Acey WebSocket server initialized');
+}
+
+// Initialize database
+try {
+  db.init();
+  console.log('🗄️ Database initialized successfully');
+} catch (error) {
+  console.error('❌ Database initialization failed:', error);
+  if (!config.isTest()) {
+    process.exit(1);
+  }
 }
 
 // Start server

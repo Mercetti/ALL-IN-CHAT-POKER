@@ -438,6 +438,7 @@ export class RealTimeFineTune {
       game: 0.0001,
       website: 0.00005,
       graphics: 0.0001,
+      images: 0.0001,
       moderation: 0.00002,
       memory: 0.00005,
       trust: 0.00002,
@@ -467,7 +468,7 @@ export class RealTimeFineTune {
       if (fs.existsSync(versionsFile)) {
         const data = fs.readFileSync(versionsFile, 'utf-8');
         const versions = JSON.parse(data);
-        this.modelVersions = new Map(Object.entries(versions));
+        this.modelVersions = new Map(Object.entries(versions) as [TaskType, string][]);
       }
     } catch (error) {
       console.error('[RealTimeFineTune] Failed to load model versions:', error);
