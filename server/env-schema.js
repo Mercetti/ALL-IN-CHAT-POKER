@@ -53,7 +53,11 @@ const envSchema = Joi.object({
   DATABASE_PASSWORD: Joi.string()
     .when('NODE_ENV', {
       is: 'production',
-      then: Joi.string().required(),
+      then: Joi.when('DATABASE_URL', {
+        is: Joi.string().regex(/^postgresql:/),
+        then: Joi.string().required(),
+        otherwise: Joi.string().optional()
+      }),
       otherwise: Joi.string().optional()
     })
     .description('Database password'),
