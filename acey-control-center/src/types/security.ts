@@ -99,7 +99,7 @@ export interface BiometricRequirement {
   cooldownPeriod?: number;
 }
 
-export interface PermissionScope = 
+export type PermissionScope = 
   | 'AUTO_FIX_UI'
   | 'AUDIO_GENERATION'
   | 'DEPLOY_CODE'

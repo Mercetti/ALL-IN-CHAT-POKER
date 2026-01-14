@@ -1,12 +1,12 @@
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 import { TierOverviewScreen } from '../screens/TierOverviewScreen';
 import { SkillStoreScreen } from '../screens/SkillStoreScreen';
 import { UpgradeConfirmationScreen } from '../screens/UpgradeConfirmationScreen';
 import { UpgradeSuccessScreen } from '../screens/UpgradeSuccessScreen';
 import { UpgradePromptModal } from '../screens/UpgradePromptModal';
 
-export type { RootStackParamList } = {
+export type RootStackParamList = {
   TierOverview: undefined;
   SkillStore: undefined;
   UpgradeConfirmation: { tierId?: string; skillId?: string; fromFeature?: string; };

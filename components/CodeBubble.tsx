@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { GeneratedCode, ProgrammingLanguage } from '../types/codeHelper';
 import { 
   addOutputToMemory, 
@@ -24,6 +24,11 @@ export const CodeBubble: React.FC<CodeBubbleProps> = ({
   onDownload,
   onDiscard,
   onStoreLearning
+}: {
+  output: any;
+  onDownload: any;
+  onDiscard: any;
+  onStoreLearning: any;
 }) => {
   const handleStoreLearning = () => {
     const logicSteps = window.prompt('Add logic steps (comma-separated):', '');

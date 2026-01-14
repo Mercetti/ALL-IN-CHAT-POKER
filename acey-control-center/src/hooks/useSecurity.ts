@@ -310,9 +310,9 @@ export const withSecurity = <P extends object>(
   Component: React.ComponentType<P>,
   requiredAction?: SensitiveAction
 ) => {
-  return React.forwardRef<any, P>((props, ref) => {
+  return React.forwardRef<any, P>((props: P, ref: React.Ref<any>) => {
     const security = useSecurity();
-
+    
     const handleAction = useCallback(async (action: () => void) => {
       if (requiredAction) {
         const hasPermission = await security.hasPermission(requiredAction);
@@ -321,7 +321,7 @@ export const withSecurity = <P extends object>(
           return;
         }
       }
-
+      
       const needsReauth = await security.requiresReauth();
       if (needsReauth) {
         const authenticated = await security.authenticate('Authentication required for this action');
@@ -329,11 +329,11 @@ export const withSecurity = <P extends object>(
           return;
         }
       }
-
+      
       action();
     }, [security, requiredAction]);
-
-    return <Component {...props} ref={ref} handleSecureAction={handleAction} />;
+    
+    return React.createElement(Component, { ...props, ref } as any);
   });
 };
 

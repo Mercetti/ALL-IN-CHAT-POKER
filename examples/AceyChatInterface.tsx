@@ -32,7 +32,7 @@ export const AceyChatInterface: React.FC = () => {
       timestamp: new Date()
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev: ChatMessage[]) => [...prev, userMessage]);
     setInputValue('');
     setIsLoading(true);
 
@@ -47,7 +47,7 @@ export const AceyChatInterface: React.FC = () => {
         timestamp: new Date()
       };
 
-      setMessages(prev => [...prev, aceyMessage]);
+      setMessages((prev: ChatMessage[]) => [...prev, aceyMessage]);
 
       // If there's an output, create and add to memory
       if (response.output) {
@@ -61,7 +61,7 @@ export const AceyChatInterface: React.FC = () => {
         };
 
         addToMemory(output);
-        setOutputs(prev => [...prev, output]);
+        setOutputs((prev: GeneratedOutput[]) => [...prev, output]);
 
         const outputMessage: ChatMessage = {
           id: generateOutputId(),
@@ -71,7 +71,7 @@ export const AceyChatInterface: React.FC = () => {
           outputId: output.id
         };
 
-        setMessages(prev => [...prev, outputMessage]);
+        setMessages((prev: ChatMessage[]) => [...prev, outputMessage]);
       }
     } catch (error) {
       console.error('Error processing request:', error);
@@ -81,14 +81,14 @@ export const AceyChatInterface: React.FC = () => {
   };
 
   const handleDownload = (outputId: string) => {
-    const output = outputs.find(o => o.id === outputId);
+    const output = outputs.find((o: GeneratedOutput) => o.id === outputId);
     if (output) {
       downloadOutput(output);
     }
   };
 
   const handleCopy = async (outputId: string) => {
-    const output = outputs.find(o => o.id === outputId);
+    const output = outputs.find((o: GeneratedOutput) => o.id === outputId);
     if (output) {
       try {
         await copyToClipboard(output);
@@ -115,8 +115,8 @@ export const AceyChatInterface: React.FC = () => {
   const handleDiscard = (outputId: string) => {
     const success = discardOutput(outputId);
     if (success) {
-      setOutputs(prev => prev.filter(o => o.id !== outputId));
-      setMessages(prev => prev.filter(m => m.outputId !== outputId));
+      setOutputs((prev: GeneratedOutput[]) => prev.filter((o: GeneratedOutput) => o.id !== outputId));
+      setMessages((prev: ChatMessage[]) => prev.filter((m: ChatMessage) => m.outputId !== outputId));
     }
   };
 
@@ -182,11 +182,11 @@ console.log('Shuffled deck:', shuffledDeck);`,
       </div>
 
       <div className="chat-messages">
-        {messages.map(message => (
+        {messages.map((message: ChatMessage) => (
           <div key={message.id} className={`message ${message.type}`}>
             {message.type === 'output' && message.outputId ? (
               <OutputBubble
-                output={outputs.find(o => o.id === message.outputId)!}
+                output={outputs.find((o: GeneratedOutput) => o.id === message.outputId)!}
                 onDownload={() => handleDownload(message.outputId!)}
                 onApprove={() => handleApprove(message.outputId!)}
                 onDiscard={() => handleDiscard(message.outputId!)}
@@ -218,8 +218,8 @@ console.log('Shuffled deck:', shuffledDeck);`,
         <input
           type="text"
           value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInputValue(e.target.value)}
+          onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleSendMessage()}
           placeholder="Ask Acey to generate code, graphics, or audio..."
           disabled={isLoading}
         />
@@ -238,7 +238,7 @@ console.log('Shuffled deck:', shuffledDeck);`,
         <button onClick={() => {
           if (confirm('Clear all outputs from memory?')) {
             setOutputs([]);
-            setMessages(prev => prev.filter(m => m.type !== 'output'));
+            setMessages(prev => prev.filter((m: ChatMessage) => m.type !== 'output'));
           }
         }}>
           🗑️ Clear Memory

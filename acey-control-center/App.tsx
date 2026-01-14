@@ -1,16 +1,14 @@
-import React, { useEffect } from 'react';
-import { useAceyStore } from './src/state/aceyStore';
-import { RootStackNavigator } from './src/navigation/RootStackNavigator';
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { Provider as PaperProvider } from 'react-native-paper';
+import RootNavigator from './src/navigation/RootNavigator';
 
-const App: React.FC = () => {
-  const { clearError } = useAceyStore();
-
-  useEffect(() => {
-    // Clear any existing errors on app start
-    clearError();
-  }, []);
-
-  return <RootStackNavigator />;
-};
-
-export default App;
+export default function App() {
+  return (
+    <PaperProvider>
+      <NavigationContainer>
+        <RootNavigator />
+      </NavigationContainer>
+    </PaperProvider>
+  );
+}

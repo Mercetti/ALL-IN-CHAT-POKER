@@ -19,7 +19,7 @@
 ### Primary Audience (Launch Focus)
 
 #### 🎯 **Tier 1 (Launch)**
-**Creators / Streamers / Solo Builders**
+### 🎯 **Creators / Streamers / Solo Builders**
 - Twitch / YouTube creators
 - Indie developers
 - Tech-savvy streamers
@@ -32,7 +32,7 @@
 - Need for visible, trustworthy AI operations
 
 #### 🎯 **Tier 2 (Shortly After)**
-**Teams**
+### 🎯 **Teams**
 - Streamer agencies
 - Esports organizations
 - Dev teams
@@ -42,7 +42,7 @@
 ### Public Messaging Pillars
 
 #### 🧠 **1. Control First**
-**"Acey never acts without your permission."**
+### 🧠 **"Acey never acts without your permission."**
 
 - ✅ Approvals required for significant actions
 - ✅ Complete audit logs of all operations
@@ -53,7 +53,7 @@
 **This immediately differentiates from "autonomous AI fear" narrative.**
 
 #### 🧩 **2. Skills, Not Prompts**
-**"Install what you need. Nothing you don't."**
+### 🧩 **"Install what you need. Nothing you don't."**
 
 - ✅ Skill Store with modular capabilities
 - ✅ Tier-based access control
@@ -64,7 +64,7 @@
 **People understand this instantly - no complex pricing to decipher.**
 
 #### 🔍 **3. Visible AI (Trust)**
-**"See what Acey is doing — live."**
+### 🔍 **"See what Acey is doing — live."**
 
 - ✅ Live previews for all skill outputs
 - ✅ Simulation mode for testing
@@ -75,7 +75,7 @@
 **No black box behavior - full visibility builds trust.**
 
 #### 🚀 **4. Grows With You**
-**"Acey learns from approvals — not accidents."**
+### 🚀 **"Acey learns from approvals — not accidents."**
 
 - ✅ Feedback-driven learning system
 - ✅ Rollback-safe improvements
@@ -88,7 +88,7 @@
 ### Launch Page Sections (Suggested)
 
 #### Hero Section
-**"Built for creators. Ready for teams."**
+### **"Built for creators. Ready for teams."**
 
 - Short video/GIF showing live skill operation
 - Skill Store examples with quick install

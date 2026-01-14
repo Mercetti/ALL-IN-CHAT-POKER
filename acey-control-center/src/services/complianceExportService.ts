@@ -652,7 +652,7 @@ ${JSON.stringify(data, null, 2)}
    */
   getExports(tenantId: string): ComplianceExport[] {
     return Array.from(this.exports.values())
-      .filter(export => export.request.tenantId === tenantId)
+      .filter(exportItem => exportItem.request.tenantId === tenantId)
       .sort((a, b) => b.createdAt - a.createdAt);
   }
 
@@ -680,20 +680,20 @@ ${JSON.stringify(data, null, 2)}
     let exports = Array.from(this.exports.values());
     
     if (tenantId) {
-      exports = exports.filter(export => export.request.tenantId === tenantId);
+      exports = exports.filter(exportItem => exportItem.request.tenantId === tenantId);
     }
 
-    const byStatus = exports.reduce((acc, export) => {
-      acc[export.status] = (acc[export.status] || 0) + 1;
+    const byStatus = exports.reduce((acc, exportItem) => {
+      acc[exportItem.status] = (acc[exportItem.status] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
-    const byType = exports.reduce((acc, export) => {
-      acc[export.request.type] = (acc[export.request.type] || 0) + 1;
+    const byType = exports.reduce((acc, exportItem) => {
+      acc[exportItem.request.type] = (acc[exportItem.request.type] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
-    const totalSize = exports.reduce((sum, export) => sum + (export.fileSize || 0), 0);
+    const totalSize = exports.reduce((sum, exportItem) => sum + (exportItem.fileSize || 0), 0);
 
     return {
       total: exports.length,

@@ -43,10 +43,40 @@ export interface LaunchMetrics {
   revenue: string[];
 }
 
+export interface HeroSection {
+  headline: string;
+  subheadline: string;
+  cta: string;
+}
+
+export interface PricingTier {
+  free: {
+    price: string;
+    features: string[];
+  };
+  pro: {
+    price: string;
+    features: string[];
+  };
+  creator: {
+    price: string;
+    features: string[];
+  };
+  enterprise: {
+    price: string;
+    features: string[];
+  };
+}
+
+export interface UseCase {
+  title: string;
+  description: string;
+}
+
 class PublicLaunchManager {
-  private messaging: LaunchMessaging;
-  private positioning: Positioning;
-  private strategy: LaunchStrategy;
+  private messaging!: LaunchMessaging;
+  private positioning!: Positioning;
+  private strategy!: LaunchStrategy;
   
   constructor() {
     this.initializeMessaging();
@@ -58,7 +88,7 @@ class PublicLaunchManager {
    * Initialize core launch messaging
    */
   private initializeMessaging(): void {
-    this.messaging = {
+    const messaging: LaunchMessaging = {
       headline: "Acey: The AI Skills Platform That Runs Your Stream",
       subheadline: "Not a chatbot. Not autonomous chaos. Your AI, your control.",
       description: `
@@ -84,6 +114,7 @@ class PublicLaunchManager {
       ],
       callToAction: "Start with one skill. Unlock more as you grow."
     };
+    this.messaging = messaging;
   }
   
   /**
@@ -433,7 +464,7 @@ acey.ai/${channel.toLowerCase()}
   /**
    * Generate landing page content
    */
-  private generateLandingPage(messaging: LaunchMessaging, channel: string): string {
+  private generateLandingPage(messaging: LaunchMessaging, channel: string): any {
     return {
       hero: {
         headline: messaging.headline,

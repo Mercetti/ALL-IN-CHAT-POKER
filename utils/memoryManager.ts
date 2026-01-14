@@ -300,7 +300,7 @@ function extractTags(code: string, metadata?: any): string[] {
   if (metadata?.category) tags.push(metadata.category);
   if (metadata?.dependencies) tags.push(...metadata.dependencies.map((d: string) => `dependency:${d}`));
   
-  return [...new Set(tags)]; // Remove duplicates
+  return Array.from(new Set(tags)); // Remove duplicates
 }
 
 function getFileExtension(language: ProgrammingLanguage): string {

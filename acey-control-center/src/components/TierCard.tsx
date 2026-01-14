@@ -8,9 +8,10 @@ interface TierCardProps {
   currentTierId: string;
   onUpgradePress: () => void;
   upgrading?: boolean;
+  compact?: boolean;
 }
 
-export const TierCard: React.FC<TierCardProps> = ({ tier, currentTierId, onUpgradePress, upgrading = false }) => {
+export const TierCard: React.FC<TierCardProps> = ({ tier, currentTierId, onUpgradePress, upgrading = false, compact = false }) => {
   const isCurrent = tier.id === currentTierId;
   const isPopular = tier.popular;
   const isUpgrade = !isCurrent && tier.id !== 'Free';
@@ -28,40 +29,7 @@ export const TierCard: React.FC<TierCardProps> = ({ tier, currentTierId, onUpgra
       )}
       
       <View style={styles.header}>
-        <Text style={styles.name}>{tier.name}</Text>
-        <Text style={styles.price}>${tier.price}/month</Text>
-      </View>
-      
-      <Text style={styles.description}>{tier.description}</Text>
-      
-      <View style={styles.features}>
-        {tier.features.map((feature, index) => (
-          <View key={index} style={styles.featureItem}>
-            <Icon name="check" size={16} color="#4CAF50" />
-            <Text style={styles.featureText}>{feature}</Text>
-          </View>
-        ))}
-      </View>
-      
-      <TouchableOpacity
-        style={[
-          styles.upgradeButton,
-          isCurrent && styles.currentButton,
-          upgrading && styles.disabledButton
-        ]}
-        onPress={onUpgradePress}
-        disabled={isCurrent || upgrading}
-      >
-        <Text style={[
-          styles.upgradeButtonText,
-          isCurrent && styles.currentButtonText
-        ]}>
-          {isCurrent ? 'Current Tier' : upgrading ? 'Upgrading...' : `Upgrade to ${tier.name}`}
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
-};
+        <Text style={[styles.name, compact && styles.compactName]}>{tier.name}</Text>
         <Text style={[styles.price, compact && styles.compactPrice]}>
           {tier.price === 0 ? 'FREE' : `$${tier.price}/mo`}
         </Text>

@@ -1,151 +1,225 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import { Skill } from '../types/upgrade';
+import { View, Text, Button, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import CodeSnippet from './CodeSnippet';
+
+interface Skill {
+  id: string;
+  name: string;
+  description: string;
+  type: 'audio' | 'image' | 'code' | 'graphics' | 'clips';
+  tier: string;
+  preview?: string;
+  features: string[];
+  usageCount?: number;
+  avgRating?: number;
+  isLive?: boolean;
+  isApproved?: boolean;
+}
+
+interface UserAccess {
+  tier: string;
+  trials?: Array<{
+    skillName: string;
+    expiresInHours: number;
+  }>;
+  trialRemaining?: number;
+  unlockedSkills: string[];
+  role: string;
+}
 
 interface SkillCardProps {
   skill: Skill;
-  onInstallPress: () => void;
-  currentTierId: string;
-  compact?: boolean;
-  installing?: boolean;
+  userAccess: UserAccess;
+  onUnlock: (skillId: string) => void;
+  onStartTrial?: (skillId: string) => void;
 }
 
-export const SkillCard: React.FC<SkillCardProps> = ({ skill, onInstallPress, currentTierId, compact = false, installing = false }) => {
-  const isCompatible = checkSkillCompatibility(skill.requiredTierId, currentTierId);
-  const upgradeRequired = !isCompatible ? skill.requiredTierId : null;
-
-  // Get icon based on category for our specific skills
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'monitoring': return 'visibility';
-      case 'creative': return 'palette';
-      case 'optimization': return 'speed';
-      case 'ops_automation': return 'auto-fix-high';
-      default: return 'extension';
+export default function SkillCard({ skill, userAccess, onUnlock, onStartTrial }: SkillCardProps) {
+  const isUnlocked = userAccess?.unlockedSkills?.includes(skill.id) || false;
+  const trial = userAccess?.trials?.find(t => t.skillName === skill.id);
+  const inTrial = !!trial;
+  const canAccess = isUnlocked || inTrial;
+  
+  const getTierColor = (tier: string) => {
+    switch (tier.toLowerCase()) {
+      case 'free': return '#34C759';
+      case 'pro': return '#007AFF';
+      case 'creator+': return '#AF52DE';
+      case 'enterprise': return '#FF9500';
+      default: return '#8E8E93';
     }
   };
 
-  // Get color based on category
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'monitoring': return '#2196F3';
-      case 'creative': return '#9C27B0';
-      case 'optimization': return '#FF9800';
-      case 'ops_automation': return '#F44336';
-      default: return '#9E9E9E';
+  const getStatusBadge = () => {
+    if (isUnlocked) {
+      return { text: 'UNLOCKED', color: '#34C759', icon: '✓' };
     }
+    if (inTrial) {
+      const hoursLeft = trial?.expiresInHours || 0;
+      const urgency = hoursLeft <= 6 ? 'high' : hoursLeft <= 24 ? 'medium' : 'low';
+      const color = urgency === 'high' ? '#FF3B30' : urgency === 'medium' ? '#FF9500' : '#007AFF';
+      return { 
+        text: `TRIAL - ${hoursLeft}h left`, 
+        color, 
+        icon: '⏰' 
+      };
+    }
+    return { 
+      text: `LOCKED - ${skill.tier}+`, 
+      color: '#8E8E93', 
+      icon: '🔒' 
+    };
+  };
+
+  const statusBadge = getStatusBadge();
+
+  const renderPreview = () => {
+    if (!skill.preview || !canAccess) return null;
+
+    switch (skill.type) {
+      case 'image':
+        return (
+          <View style={styles.imagePreview}>
+            <Image 
+              source={{ uri: skill.preview }} 
+              style={styles.previewImage}
+              resizeMode="cover"
+            />
+          </View>
+        );
+      case 'code':
+        return <CodeSnippet snippet={skill.preview} />;
+      default:
+        return (
+          <View style={styles.placeholderPreview}>
+            <Text style={styles.placeholderIcon}>📄</Text>
+            <Text style={styles.placeholderText}>Preview Available</Text>
+          </View>
+        );
+    }
+  };
+
+  const handleUnlock = () => {
+    if (isUnlocked || inTrial) return;
+    onUnlock(skill.id);
+  };
+
+  const handleTrial = () => {
+    if (isUnlocked || inTrial) return;
+    onStartTrial?.(skill.id);
   };
 
   return (
-    <View style={[
-      styles.card,
-      compact && styles.compactCard,
-      !isCompatible && styles.incompatibleCard
-    ]}>
+    <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <View style={styles.titleSection}>
-          <View style={[styles.iconContainer, { backgroundColor: getCategoryColor(skill.category) }]}>
-            <Icon name={getCategoryIcon(skill.category)} size={20} color="#FFFFFF" />
-          </View>
-          <View style={styles.titleText}>
-            <Text style={[styles.name, compact && styles.compactName]}>{skill.name}</Text>
-            <Text style={[styles.category, compact && styles.compactCategory]}>{skill.category}</Text>
-          </View>
-        </View>
-        <Text style={[styles.price, compact && styles.compactPrice]}>
-          ${skill.price}/mo
-        </Text>
-      </View>
-      
-      {!compact && (
-        <Text style={styles.description}>{skill.description}</Text>
-      )}
-      
-      <View style={styles.footer}>
-        <View style={styles.requirements}>
-          {!isCompatible ? (
-            <Text style={styles.upgradeRequired}>
-              Requires {upgradeRequired}
-            </Text>
-          ) : (
-            <Text style={styles.compatible}>
-              Compatible with your plan
-            </Text>
-          )}
-          {skill.trialDays && (
-            <Text style={styles.trial}>
-              {skill.trialDays}-day trial
-            </Text>
-          )}
+          <Text style={styles.skillName}>{skill.name}</Text>
+          <Text style={styles.description}>{skill.description}</Text>
         </View>
         
-        {skill.rating && !compact && (
-          <View style={styles.rating}>
-            <Icon name="star" size={14} color="#FFD700" />
-            <Text style={styles.ratingText}>{skill.rating}</Text>
-            {skill.reviews && (
-              <Text style={styles.reviewsText}>({skill.reviews})</Text>
-            )}
+        {/* Status Badge */}
+        <View style={[styles.statusBadge, { backgroundColor: statusBadge.color }]}>
+          <Text style={styles.statusIcon}>{statusBadge.icon}</Text>
+          <Text style={styles.statusText}>{statusBadge.text}</Text>
+        </View>
+      </View>
+
+      {/* Features */}
+      <View style={styles.featuresSection}>
+        {skill.features.slice(0, 3).map((feature, index) => (
+          <View key={index} style={styles.featureItem}>
+            <Text style={styles.featureIcon}>✓</Text>
+            <Text style={styles.featureText}>{feature}</Text>
           </View>
+        ))}
+        {skill.features.length > 3 && (
+          <Text style={styles.moreFeaturesText}>+{skill.features.length - 3} more</Text>
         )}
       </View>
-      
-      <TouchableOpacity
-        style={[
-          styles.installButton,
-          !isCompatible && styles.upgradeButton,
-          compact && styles.compactButton,
-          installing && styles.disabledButton
-        ]}
-        onPress={onInstallPress}
-        disabled={installing || skill.installed}
-      >
-        <Text style={[
-          styles.installButtonText,
-          !isCompatible && styles.upgradeButtonText,
-          compact && styles.compactButtonText
-        ]}>
-          {installing ? 'Installing...' : skill.installed ? 'Installed' : 
-           isCompatible ? (compact ? 'Install' : 'Install Skill →') : 
-           (compact ? 'Upgrade' : 'View Requirements →')}
-        </Text>
-      </TouchableOpacity>
+
+      {/* Preview */}
+      {renderPreview() && (
+        <View style={styles.previewSection}>
+          <Text style={styles.previewLabel}>Preview</Text>
+          {renderPreview()}
+        </View>
+      )}
+
+      {/* Stats */}
+      {(skill.usageCount || skill.avgRating) && (
+        <View style={styles.statsSection}>
+          {skill.usageCount && (
+            <View style={styles.statItem}>
+              <Text style={styles.statIcon}>📈</Text>
+              <Text style={styles.statText}>{skill.usageCount.toLocaleString()} uses</Text>
+            </View>
+          )}
+          {skill.avgRating && (
+            <View style={styles.statItem}>
+              <Text style={styles.statIcon}>⭐</Text>
+              <Text style={styles.statText}>{skill.avgRating.toFixed(1)} stars</Text>
+            </View>
+          )}
+        </View>
+      )}
+
+      {/* Action Buttons */}
+      <View style={styles.actionSection}>
+        {!isUnlocked && !inTrial && (
+          <>
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.unlockButton]}
+              onPress={handleUnlock}
+            >
+              <Text style={styles.buttonText}>🔓 Unlock</Text>
+            </TouchableOpacity>
+            
+            {skill.tier !== 'Free' && (
+              <TouchableOpacity 
+                style={[styles.actionButton, styles.trialButton]}
+                onPress={handleTrial}
+              >
+                <Text style={[styles.buttonText, styles.trialButtonText]}>⏰ Start Trial</Text>
+              </TouchableOpacity>
+            )}
+          </>
+        )}
+        
+        {isUnlocked && (
+          <TouchableOpacity style={[styles.actionButton, styles.useButton]}>
+            <Text style={styles.buttonText}>▶️ Use Skill</Text>
+          </TouchableOpacity>
+        )}
+        
+        {inTrial && (
+          <TouchableOpacity style={[styles.actionButton, styles.extendButton]}>
+            <Text style={styles.buttonText}>➕ Extend Trial</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* Tier Badge */}
+      <View style={[styles.tierBadge, { backgroundColor: getTierColor(skill.tier) }]}>
+        <Text style={styles.tierText}>{skill.tier}</Text>
+      </View>
     </View>
   );
-};
-
-const checkSkillCompatibility = (requiredTier: string, currentTier: string): boolean => {
-  const tierHierarchy = {
-    'free': 0,
-    'creator-plus': 1,
-    'pro': 2,
-    'enterprise': 3
-  };
-  
-  const requiredLevel = tierHierarchy[requiredTier as keyof typeof tierHierarchy] || 0;
-  const currentLevel = tierHierarchy[currentTier as keyof typeof tierHierarchy] || 0;
-  
-  return currentLevel >= requiredLevel;
-};
+}
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#1E1E1E',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#333333',
-  },
-  compactCard: {
-    padding: 16,
-    marginBottom: 12,
+  container: {
+    backgroundColor: '#fff',
     borderRadius: 12,
-  },
-  incompatibleCard: {
-    borderColor: '#FF9800',
-    borderWidth: 1,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    borderLeftWidth: 3,
+    borderLeftColor: '#007AFF',
   },
   header: {
     flexDirection: 'row',
@@ -154,117 +228,165 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   titleSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
     flex: 1,
     marginRight: 12,
   },
-  iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  titleText: {
-    flex: 1,
-  },
-  name: {
+  skillName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 2,
-  },
-  compactName: {
-    fontSize: 16,
-  },
-  category: {
-    fontSize: 12,
-    color: '#9E9E9E',
-    textTransform: 'capitalize',
-  },
-  compactCategory: {
-    fontSize: 10,
-  },
-  price: {
-    fontSize: 16,
-    color: '#2196F3',
-    fontWeight: 'bold',
-  },
-  compactPrice: {
-    fontSize: 14,
+    color: '#1d1d1f',
+    marginBottom: 4,
   },
   description: {
     fontSize: 14,
-    color: '#E0E0E0',
-    marginBottom: 16,
-    lineHeight: 20,
+    color: '#666',
+    lineHeight: 18,
   },
-  footer: {
+  statusBadge: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    minWidth: 80,
   },
-  requirements: {
-    flex: 1,
-  },
-  upgradeRequired: {
+  statusIcon: {
     fontSize: 12,
-    color: '#FF9800',
-    fontWeight: '500',
+    color: '#fff',
+    marginRight: 4,
   },
-  compatible: {
+  statusText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  featuresSection: {
+    marginBottom: 12,
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  featureIcon: {
     fontSize: 12,
-    color: '#4CAF50',
+    color: '#34C759',
+    marginRight: 6,
   },
-  trial: {
+  featureText: {
+    fontSize: 12,
+    color: '#333',
+  },
+  moreFeaturesText: {
     fontSize: 11,
-    color: '#9E9E9E',
+    color: '#007AFF',
+    fontStyle: 'italic',
     marginTop: 2,
   },
-  rating: {
+  previewSection: {
+    marginBottom: 12,
+  },
+  previewLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#666',
+    marginBottom: 6,
+  },
+  imagePreview: {
+    borderRadius: 8,
+    overflow: 'hidden',
+    height: 120,
+  },
+  previewImage: {
+    width: '100%',
+    height: '100%',
+  },
+  placeholderPreview: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 80,
+  },
+  placeholderIcon: {
+    fontSize: 24,
+    color: '#8E8E93',
+    marginBottom: 8,
+  },
+  placeholderText: {
+    fontSize: 12,
+    color: '#8E8E93',
+  },
+  statsSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  statItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
   },
-  ratingText: {
-    fontSize: 12,
-    color: '#E0E0E0',
-    marginLeft: 4,
-  },
-  reviewsText: {
-    fontSize: 11,
-    color: '#9E9E9E',
-    marginLeft: 2,
-  },
-  installButton: {
-    backgroundColor: '#FF9800',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  upgradeButton: {
-    backgroundColor: '#2196F3',
-  },
-  compactButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-  },
-  installButtonText: {
-    color: '#FFFFFF',
+  statIcon: {
     fontSize: 14,
-    fontWeight: 'bold',
+    marginRight: 4,
   },
-  upgradeButtonText: {
-    color: '#FFFFFF',
+  statText: {
+    fontSize: 11,
+    color: '#333',
+    fontWeight: '500',
   },
-  compactButtonText: {
+  actionSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    minWidth: 100,
+  },
+  unlockButton: {
+    backgroundColor: '#007AFF',
+  },
+  trialButton: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#007AFF',
+  },
+  useButton: {
+    backgroundColor: '#34C759',
+  },
+  extendButton: {
+    backgroundColor: '#FF9500',
+  },
+  buttonText: {
     fontSize: 12,
+    fontWeight: '600',
+    color: '#fff',
+    marginLeft: 6,
   },
-  disabledButton: {
-    backgroundColor: '#666666',
-    opacity: 0.6,
+  trialButtonText: {
+    color: '#007AFF',
+  },
+  tierBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  tierText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#fff',
   },
 });

@@ -3,6 +3,21 @@
  * Ethical, scalable, non-gambling revenue model
  */
 
+import axios from 'axios';
+import { UserAccess } from './authService';
+import { sendUserNotification, sendOwnerNotification } from './notificationService';
+
+const BASE_URL = 'http://localhost:8080/api';
+
+export interface SkillPricing {
+  skillId: string;
+  name: string;
+  price: number;
+  tier: string;
+  trialDays: number;
+  features: string[];
+}
+
 export interface ControlPlan {
   id: string;
   name: string;
@@ -588,4 +603,141 @@ class MonetizationService {
   }
 }
 
+export async function getSkillPricing(): Promise<SkillPricing[]> {
+  try {
+    const { data } = await axios.get(`${BASE_URL}/skills/pricing`);
+    return data;
+  } catch (error) {
+    console.error('Error fetching skill pricing:', error);
+    // Fallback pricing
+    return [
+      {
+        skillId: 'code',
+        name: 'Code Helper',
+        price: 0,
+        tier: 'Free',
+        trialDays: 0,
+        features: ['Basic code analysis', 'Bug detection', 'Syntax help']
+      },
+      {
+        skillId: 'link',
+        name: 'Link Review Pro',
+        price: 15,
+        tier: 'Pro',
+        trialDays: 7,
+        features: ['Advanced link analysis', 'Security scanning', 'Content summary']
+      },
+      {
+        skillId: 'audio',
+        name: 'Audio Maestro',
+        price: 35,
+        tier: 'Creator+',
+        trialDays: 7,
+        features: ['Custom audio generation', 'Voice synthesis', 'Music creation']
+      },
+      {
+        skillId: 'graphics',
+        name: 'Graphics Wizard',
+        price: 35,
+        tier: 'Creator+',
+        trialDays: 7,
+        features: ['Image generation', 'Style transfer', 'Brand assets']
+      }
+    ];
+  }
+}
+
+export async function startTrial(userToken: string, skillId: string): Promise<UserAccess> {
+  try {
+    const { data } = await axios.post(
+      `${BASE_URL}/user/start-trial`,
+      { skillId },
+      { headers: { Authorization: `Bearer ${userToken}` } }
+    );
+    return data;
+  } catch (error) {
+    console.error('Error starting trial:', error);
+    throw error;
+  }
+}
+
 export const monetizationService = new MonetizationService();
+
+// Additional notification functions
+export async function unlockSkill(userToken: string, skillName: string, username: string, ownerToken: string) {
+  const { data } = await axios.post(
+    `${BASE_URL}/user/unlock-skill`,
+    { skillName },
+    { headers: { Authorization: `Bearer ${userToken}` } }
+  );
+
+  // Notify user
+  sendUserNotification('Skill Unlocked', `You've unlocked ${skillName}!`);
+
+  // Notify owner/dev
+  sendOwnerNotification(ownerToken, 'User Skill Unlock', `${username} unlocked ${skillName}.`);
+
+  return data; // updated access info
+}
+
+export async function getAllUsersWithTrials() {
+  try {
+    const { data } = await axios.get(`${BASE_URL}/admin/users-with-trials`);
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch users with trials:', error);
+    // Mock data for demo
+    return [
+      {
+        userId: 'user123',
+        username: 'demo_user',
+        userToken: 'mock_token',
+        trials: [
+          { skillName: 'code_helper', expiresInHours: 12 },
+          { skillName: 'audio_maestro', expiresInHours: 48 }
+        ]
+      }
+    ];
+  }
+}
+
+export async function logAccessAttempt(userToken: string, skillName: string, username: string, ownerToken: string) {
+  sendOwnerNotification(ownerToken, 'Locked Skill Attempt', `${username} attempted to access locked skill ${skillName}.`);
+}
+
+export async function checkTrialExpirationsForOwner(ownerToken: string, userList: { username: string; trials: { skillName: string; expiresInHours: number }[] }[]) {
+  userList.forEach(user => {
+    user.trials.forEach(trial => {
+      if (trial.expiresInHours <= 24) {
+        sendOwnerNotification(ownerToken, 'Trial Expiring', `${user.username}'s trial for ${trial.skillName} expires in ${trial.expiresInHours} hours.`);
+      }
+    });
+  });
+}
+
+export async function checkTrialExpirations(userToken: string, trials: { skillName: string; expiresInHours: number }[]) {
+  trials.forEach(trial => {
+    if (trial.expiresInHours <= 24) {
+      sendUserNotification(
+        'Trial Ending Soon',
+        `Your trial for ${trial.skillName} ends in ${trial.expiresInHours} hours. Upgrade to continue using it.` 
+      );
+    }
+  });
+}
+
+export async function getUserAccess(userToken: string) {
+  const { data } = await axios.get(
+    `${BASE_URL}/user/access`,
+    { headers: { Authorization: `Bearer ${userToken}` } }
+  );
+  return data;
+}
+
+export async function getApprovedOutputs(ownerToken: string) {
+  const { data } = await axios.get(
+    `${BASE_URL}/admin/approved-outputs`,
+    { headers: { Authorization: `Bearer ${ownerToken}` } }
+  );
+  return data;
+}
