@@ -172,7 +172,17 @@ class DOMTestEnvironment {
    * Get computed styles
    */
   getComputedStyle(element) {
-    return this.window.getComputedStyle(element);
+    const styles = this.window.getComputedStyle(element);
+    
+    // Mock style object to avoid JSDOM CSS parsing issues
+    return {
+      ...styles,
+      // Mock CSSStyleDeclaration methods that JSDOM doesn't support
+      setProperty: jest.fn(),
+      getPropertyValue: jest.fn(() => styles.getPropertyValue),
+      removeProperty: jest.fn(),
+      parentRule: null
+    };
   }
 
   /**

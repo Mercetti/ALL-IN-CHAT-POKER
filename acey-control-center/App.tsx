@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import AppNavigator from './src/navigation/AppNavigator';
 import { useAceyStore } from './src/state/aceyStore';
+import { RootStackNavigator } from './src/navigation/RootStackNavigator';
 
 const App: React.FC = () => {
   const { clearError } = useAceyStore();
@@ -11,11 +10,7 @@ const App: React.FC = () => {
     clearError();
   }, []);
 
-  return (
-    <NavigationContainer>
-      <AppNavigator />
-    </NavigationContainer>
-  );
+  return <RootStackNavigator />;
 };
 
 export default App;

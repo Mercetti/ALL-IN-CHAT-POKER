@@ -10,6 +10,14 @@ import DashboardScreen from '../screens/DashboardScreen';
 import ApprovalsScreen from '../screens/ApprovalsScreen';
 import LogsScreen from '../screens/LogsScreen';
 import CommandsScreen from '../screens/CommandsScreen';
+import IncidentDashboardScreen from '../screens/IncidentDashboardScreen';
+import UnlockCeremonyScreen from '../screens/UnlockCeremonyScreen';
+import { FullDashboardScreen } from '../screens/FullDashboardScreen';
+import { SkillStoreScreen } from '../screens/SkillStoreScreen';
+import { FutureSkillScreen } from '../screens/FutureSkillScreen';
+import { UpgradeDashboardScreen } from '../screens/UpgradeDashboardScreen';
+import AuditReplay from '../components/AuditReplay';
+import TimedPermissions from '../components/TimedPermissions';
 
 // Import stores
 import { useAceyStore } from '../state/aceyStore';
@@ -28,6 +36,18 @@ const MainTabNavigator: React.FC = () => {
           switch (route.name) {
             case 'Dashboard':
               iconName = 'dashboard';
+              break;
+            case 'FullDashboard':
+              iconName = 'dashboard';
+              break;
+            case 'SkillStore':
+              iconName = 'extension';
+              break;
+            case 'FutureSkills':
+              iconName = 'update';
+              break;
+            case 'UpgradeDashboard':
+              iconName = 'stars';
               break;
             case 'Approvals':
               iconName = 'approval';
@@ -60,24 +80,34 @@ const MainTabNavigator: React.FC = () => {
       })}
     >
       <Tab.Screen 
-        name="Dashboard" 
-        component={DashboardScreen}
-        options={{ title: 'Dashboard' }}
+        name="FullDashboard" 
+        component={FullDashboardScreen}
+        options={{ title: 'Control Center' }}
       />
       <Tab.Screen 
-        name="Approvals" 
-        component={ApprovalsScreen}
-        options={{ title: 'Approvals' }}
+        name="SkillStore" 
+        component={SkillStoreScreen}
+        options={{ title: 'Skill Store' }}
       />
       <Tab.Screen 
-        name="Logs" 
-        component={LogsScreen}
-        options={{ title: 'Logs' }}
+        name="FutureSkills" 
+        component={FutureSkillScreen}
+        options={{ title: 'Future Skills' }}
       />
       <Tab.Screen 
-        name="Commands" 
-        component={CommandsScreen}
-        options={{ title: 'Commands' }}
+        name="UpgradeDashboard" 
+        component={UpgradeDashboardScreen}
+        options={{ title: 'Upgrade' }}
+      />
+      <Tab.Screen 
+        name="Incidents" 
+        component={IncidentDashboardScreen}
+        options={{ 
+          title: 'Incidents',
+          tabBarIcon: ({ color, size }) => (
+            <Icon name="warning" size={size} color={color} />
+          )
+        }}
       />
     </Tab.Navigator>
   );

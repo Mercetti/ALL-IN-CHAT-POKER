@@ -1,0 +1,204 @@
+/* Output Bubble Styles */
+.output-bubble {
+  padding: 16px;
+  margin: 8px 0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid;
+  transition: all 0.2s ease;
+  max-width: 600px;
+}
+
+.output-bubble:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.bubble-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.skill-type {
+  font-size: 14px;
+  font-weight: bold;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.timestamp {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.code-preview {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 12px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 12px;
+  border-radius: 6px;
+  margin: 8px 0;
+  max-height: 150px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.binary-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  margin: 8px 0;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+}
+
+.binary-text {
+  font-size: 14px;
+  color: #fff;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.size-text {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.bubble-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.button:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+.button:active {
+  transform: translateY(0);
+}
+
+.download-button {
+  background: #007AFF;
+}
+
+.copy-button {
+  background: #34C759;
+}
+
+.approve-button {
+  background: #FF9500;
+}
+
+.discard-button {
+  background: #FF3B30;
+}
+
+/* Skill-specific colors */
+.output-bubble.code {
+  background: #2C3E50;
+  border-left-color: #3498DB;
+}
+
+.output-bubble.graphics {
+  background: #1A1A1A;
+  border-left-color: #9B59B6;
+}
+
+.output-bubble.audio {
+  background: #2C3E50;
+  border-left-color: #E74C3C;
+}
+
+.output-bubble.analytics {
+  background: #34495E;
+  border-left-color: #F39C12;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .output-bubble {
+    margin: 8px 16px;
+    max-width: none;
+  }
+  
+  .bubble-buttons {
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .output-bubble {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .output-bubble:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* Animation for new bubbles */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.output-bubble {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Scrollbar styling for code preview */
+.code-preview::-webkit-scrollbar {
+  width: 6px;
+}
+
+.code-preview::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.code-preview::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.code-preview::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}

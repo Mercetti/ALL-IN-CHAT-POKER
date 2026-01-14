@@ -45,7 +45,7 @@ try {
 const UnifiedAISystem = require('./server/unified-ai');
 const { registerAdminAiControlRoutes } = require('./server/routes/admin-ai-control');
 const { createSimpleAdminAiControlRouter } = require('./server/routes/admin-ai-control-simple');
-const { createAdminAILearningRoutes } = require('./server/routes/admin-ai-learning');
+const createAdminAILearningRoutes = require('./server/routes/admin-ai-learning');
 const { createAdminRouter } = require('./server/routes/admin');
 const { createAuthRouter } = require('./server/routes/auth');
 const createPublicRouter = require('./server/routes/public');
@@ -58,6 +58,8 @@ const createPartnersRouter = require('./server/routes/partners');
 const createCatalogRouter = require('./server/routes/catalog');
 const createAdminServicesRouter = require('./server/routes/admin-services');
 const { createSimpleAdminServicesRouter } = require('./server/routes/admin-services-simple');
+const { createUnlockRouter } = require('./server/routes/unlock');
+const { createIncidentRouter } = require('./server/routes/incident');
 const { getActorFromReq, recordLoginAttempt, getAdminActivitySummary, clearAdminLoginHistory } = require('./server/admin/ops');
 const { validateBody } = require('./server/utils/file-ops');
 const { validateLocalLogin } = require('./server/routes/auth-simple');
@@ -334,6 +336,13 @@ app.use('/admin/ai-tools', adminAiControlRoutes); // Alias for simple endpoints
 
 // Logging routes for LLM interaction tracking
 app.use('/api', loggingRouter);
+
+// Security and governance routes
+const unlockRoutes = createUnlockRouter({ auth, db, logger });
+app.use('/unlock', unlockRoutes);
+
+const incidentRoutes = createIncidentRouter({ auth, db, logger });
+app.use('/incidents', incidentRoutes);
 app.use('/api', datasetRouter);
 app.use('/api', simulationRouter);
 app.use('/api', workflowRouter);
@@ -351,13 +360,14 @@ if (!config.isTest()) {
   });
 
   // Register AI Learning routes
-  const learningOrchestrator = createAdminAILearningRoutes(app, {
-    auth,
-    unifiedAI,
-    sendMonitorAlert,
-    performanceMonitor,
-    logger,
-  });
+  // const learningOrchestrator = createAdminAILearningRoutes(app, {
+  //   auth,
+  //   unifiedAI,
+  //   sendMonitorAlert,
+  //   performanceMonitor,
+  //   logger,
+  // });
+  console.log('⚠️ AI Learning routes temporarily disabled');
 }
 
 // Initialize Poker Audio System

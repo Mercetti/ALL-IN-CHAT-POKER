@@ -277,10 +277,11 @@ describe('Overlay Component Tests', () => {
         }
       ];
 
+      // Create players container and add to main test container
       const playersContainer = domEnv.createElement('div', {
         className: 'players-container'
       });
-
+      
       players.forEach(player => {
         const playerElement = domEnv.createElement('div', {
           className: 'player-info',
@@ -292,14 +293,16 @@ describe('Overlay Component Tests', () => {
           <div class="player-balance">$${player.balance}</div>
           <div class="player-bet">Bet: $${player.bet}</div>
           <div class="player-status ${player.status}">${player.status}</div>
+          <div class="player-cards"></div>
         `;
 
         playersContainer.appendChild(playerElement);
       });
-
+      
+      // Add to main test container
       domEnv.appendToContainer(playersContainer);
 
-      // Verify all players are rendered
+      // Verify all players are rendered in the main document
       const playerElements = domEnv.document.querySelectorAll('.player-info');
       expect(playerElements.length).toBe(2);
 

@@ -12,4 +12,13 @@ describe('Server Startup', () => {
     expect(res.status).toBe(200);
     expect(res.text).toBe('OK');
   });
+
+  afterAll(async () => {
+    // Close server to prevent hanging
+    if (server && server.close) {
+      await new Promise((resolve) => {
+        server.close(resolve);
+      });
+    }
+  });
 });

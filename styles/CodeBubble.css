@@ -1,0 +1,282 @@
+/* Code Helper Bubble Styles */
+.code-output-bubble {
+  padding: 16px;
+  margin: 8px 0;
+  border-radius: 12px;
+  border-left: 4px solid;
+  background: #2C3E50;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  max-width: 600px;
+}
+
+.code-output-bubble:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.bubble-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.language {
+  font-size: 14px;
+  font-weight: bold;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.timestamp {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.code-container {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  padding: 12px;
+  margin: 8px 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.code {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+  font-size: 12px;
+  color: #fff;
+  line-height: 1.5;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.metadata {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 12px;
+  margin: 8px 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.metadata-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.value {
+  font-size: 12px;
+  color: #fff;
+  font-weight: 600;
+}
+
+.bubble-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.button:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+.button:active {
+  transform: translateY(0);
+}
+
+.download-button {
+  background: #007AFF;
+}
+
+.copy-button {
+  background: #34C759;
+}
+
+.learn-button {
+  background: #FF9500;
+}
+
+.discard-button {
+  background: #FF3B30;
+}
+
+/* Language-specific colors */
+.code-output-bubble.typescript {
+  border-left-color: #3498DB;
+}
+
+.code-output-bubble.javascript {
+  border-left-color: #F39C12;
+}
+
+.code-output-bubble.python {
+  border-left-color: #27AE60;
+}
+
+.code-output-bubble.java {
+  border-left-color: #E74C3C;
+}
+
+.code-output-bubble.csharp {
+  border-left-color: #9B59B6;
+}
+
+.code-output-bubble.go {
+  border-left-color: #00ADD8;
+}
+
+.code-output-bubble.rust {
+  border-left-color: #CE422B;
+}
+
+/* Scrollbar styling for code container */
+.code-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.code-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.code-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.code-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .code-output-bubble {
+    margin: 8px 16px;
+    max-width: none;
+  }
+  
+  .bubble-buttons {
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .button {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .metadata {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Animation for new bubbles */
+@keyframes slideInCode {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.code-output-bubble {
+  animation: slideInCode 0.3s ease-out;
+}
+
+/* Syntax highlighting (basic) */
+.code .keyword {
+  color: #FF79C6;
+}
+
+.code .string {
+  color: #50FA7B;
+}
+
+.code .comment {
+  color: #6272A4;
+  font-style: italic;
+}
+
+.code .function {
+  color: #8BE9FD;
+}
+
+.code .number {
+  color: #BD93F9;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .code-output-bubble {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .code-output-bubble:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* Focus states */
+.button:focus {
+  outline: 2px solid #007AFF;
+  outline-offset: 2px;
+}
+
+/* Loading state */
+.code-output-bubble.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.code-output-bubble.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid #007AFF;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

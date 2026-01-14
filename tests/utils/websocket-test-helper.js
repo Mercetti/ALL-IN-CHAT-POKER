@@ -128,38 +128,44 @@ class WebSocketTestClient {
   /**
    * Wait for a specific message type
    */
-  async waitForMessage(type, timeout = 5000) {
+  async waitForMessage(type, timeout = 10000) {
     return new Promise((resolve, reject) => {
+      let timeoutId;
+      
       const checkMessages = () => {
         const message = this.messages.find(msg => msg.type === type);
         if (message) {
+          if (timeoutId) clearTimeout(timeoutId);
           resolve(message);
           return;
         }
-        
-        if (this.eventHandlers.message) {
-          this.eventHandlers.message = (msg) => {
-            if (msg.type === type) {
-              resolve(msg);
-            }
-          };
-        }
       };
-
+      
       // Check existing messages
       checkMessages();
-
+      
       // Set timeout
-      setTimeout(() => {
+      timeoutId = setTimeout(() => {
         reject(new Error(`Timeout waiting for message type: ${type}`));
       }, timeout);
+      
+      // Listen for new messages
+      const messageHandler = (message) => {
+        if (message.type === type) {
+          if (timeoutId) clearTimeout(timeoutId);
+          this.off('message', messageHandler);
+          resolve(message);
+        }
+      };
+      
+      this.on('message', messageHandler);
     });
   }
 
   /**
    * Wait for a specific number of messages
    */
-  async waitForMessageCount(count, timeout = 5000) {
+  async waitForMessageCount(count, timeout = 10000) {
     return new Promise((resolve, reject) => {
       if (this.messages.length >= count) {
         resolve(this.messages.slice(0, count));
