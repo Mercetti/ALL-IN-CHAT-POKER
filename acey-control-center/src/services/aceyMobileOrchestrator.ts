@@ -1,6 +1,6 @@
-// import { fetchOrchestratorData, triggerSkillInstall, verifySubscription, logApprovedOutput } from './orchestratorAPI';
+import { fetchOrchestratorData, triggerSkillInstall, verifySubscription, logApprovedOutput } from './orchestratorAPI';
 import { notifySkillUnlock, notifyTrialExpiration, notifyApprovedOutput } from './aceyMobileNotifier';
-import { getUserAccess } from './authService';
+import { getUserAccess, UserAccess } from './authService';
 
 export interface Skill {
   id: string;
@@ -36,16 +36,7 @@ export interface UpdateProposal {
 }
 
 export interface UserData {
-  userAccess: {
-    tier: string;
-    trials?: Array<{
-      skillName: string;
-      expiresInHours: number;
-    }>;
-    trialRemaining?: number;
-    unlockedSkills: string[];
-    role: string;
-  };
+  userAccess: UserAccess;
   skillsList: Skill[];
 }
 

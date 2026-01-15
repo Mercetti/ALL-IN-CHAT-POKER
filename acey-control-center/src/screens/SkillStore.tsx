@@ -3,10 +3,10 @@ import { ScrollView, View, Text, RefreshControl, StyleSheet } from 'react-native
 import SkillCard from '../components/SkillCard';
 import TrialTierBanner from '../components/TrialTierBanner';
 import OwnerNotificationPanel from '../components/OwnerNotificationPanel';
-import { AceyMobileOrchestrator, Skill, UserAccess } from '../services/aceyMobileOrchestrator';
+import { AceyMobileOrchestrator, Skill } from '../services/aceyMobileOrchestrator';
 import { UserAccess as AuthUserAccess } from '../services/authService';
 
-export default function SkillStore({ userToken, userRole }: { userToken: string; userRole: string }) {
+export default function SkillStore({ userToken = 'demo-token', userRole = 'user' }: { userToken?: string; userRole?: string }) {
   const [userAccess, setUserAccess] = useState<AuthUserAccess | null>(null);
   const [skillsList, setSkillsList] = useState<Skill[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -114,7 +114,12 @@ export default function SkillStore({ userToken, userRole }: { userToken: string;
           <SkillCard
             key={skill.id}
             skill={skill}
-            userAccess={userAccess || {}}
+            userAccess={userAccess || {
+              tier: 'Free',
+              trialRemaining: 0,
+              unlockedSkills: [],
+              role: 'user'
+            }}
             onUnlock={handleUnlock}
             onStartTrial={handleStartTrial}
           />
