@@ -349,6 +349,15 @@ function verifyPassword(password, stored) {
   return crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(verifyHash, 'hex'));
 }
 
+/**
+ * Get channel from Socket.IO socket
+ */
+function getChannelFromSocket(socket) {
+  const authChannel = socket?.handshake?.auth?.channel;
+  const queryChannel = socket?.handshake?.query?.channel;
+  return authChannel || queryChannel || 'default';
+}
+
 module.exports = {
   getHeader,
   extractAdminToken,
@@ -364,4 +373,5 @@ module.exports = {
   requireUser,
   hashPassword,
   verifyPassword,
+  getChannelFromSocket,
 };
