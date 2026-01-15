@@ -24,9 +24,9 @@ export async function getUserAccess(userToken: string): Promise<UserAccess> {
     return {
       tier: 'Pro',
       trialRemaining: 3,
-      unlockedSkills: ['code', 'link'],
+      unlockedSkills: ['code', 'link', 'overlay-testing'],
       role: 'dev',
-      permissions: ['basic', 'lab_access']
+      permissions: ['basic', 'lab_access', 'overlay_testing']
     };
   } catch (error) {
     console.error('Error fetching user access:', error);
