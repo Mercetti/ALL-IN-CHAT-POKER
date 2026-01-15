@@ -47,6 +47,11 @@ export default function LandingPage() {
           <Text style={styles.featureTitle}>🔗 Link Review</Text>
           <Text style={styles.featureDescription}>Content safety and review tools</Text>
         </View>
+
+        <View style={styles.featureCard}>
+          <Text style={styles.featureTitle}>🧪 Overlay Testing Pro</Text>
+          <Text style={styles.featureDescription}>Automated Playwright test generation and maintenance</Text>
+        </View>
       </View>
 
       <View style={styles.actions}>
@@ -78,6 +83,12 @@ export default function LandingPage() {
           title="Acey Lab"
           onPress={() => navigation.navigate('AceyLab')}
           color="#FF3B30"
+        />
+        
+        <Button
+          title="🧪 Overlay Testing"
+          onPress={() => navigation.navigate('OverlayTesting')}
+          color="#5856D6"
         />
         
         <Button

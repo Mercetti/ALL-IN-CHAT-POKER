@@ -8,6 +8,7 @@ import Settings from '../screens/Settings';
 import LearningDashboard from '../screens/LearningDashboard';
 import AceyLab from '../screens/AceyLab';
 import AceyLabScreen from '../screens/AceyLabScreen';
+import OverlayTestingScreen from '../screens/OverlayTestingScreen';
 
 export type RootStackParamList = {
   Landing: undefined;
@@ -18,6 +19,7 @@ export type RootStackParamList = {
   LearningDashboard: undefined;
   AceyLab: undefined;
   AceyLabScreen: undefined;
+  OverlayTesting: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -33,6 +35,7 @@ export default function RootNavigator() {
       <Stack.Screen name="LearningDashboard" component={LearningDashboard} />
       <Stack.Screen name="AceyLab" component={AceyLab} />
       <Stack.Screen name="AceyLabScreen" component={AceyLabScreen} />
+      <Stack.Screen name="OverlayTesting" component={OverlayTestingScreen} />
     </Stack.Navigator>
   );
 }

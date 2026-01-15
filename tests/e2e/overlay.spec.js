@@ -3,6 +3,9 @@
  * Tests the streaming overlay functionality
  */
 
+/* eslint-env browser, node */
+/* eslint-disable no-undef */
+
 const { test, expect } = require('@playwright/test');
 
 test.describe('Streaming Overlay', () => {

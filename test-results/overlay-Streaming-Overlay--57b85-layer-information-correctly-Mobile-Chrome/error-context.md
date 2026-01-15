@@ -1,0 +1,114 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]: Connecting...
+      - generic [ref=e5]: 0 / 8 seated
+      - generic [ref=e6]: "Mode: -"
+      - generic [ref=e7]: "Channel: -"
+      - button "⚙️" [ref=e8] [cursor=pointer]
+    - generic [ref=e9]:
+      - generic [ref=e11]:
+        - generic [ref=e12]: All-In
+        - generic [ref=e13]: Chat
+        - generic [ref=e14]: Poker
+      - generic:
+        - generic:
+          - generic:
+            - img "Open seat"
+          - generic: Open Seat
+        - generic:
+          - generic:
+            - img "Open seat"
+          - generic: Open Seat
+        - generic:
+          - generic:
+            - img "Open seat"
+          - generic: Open Seat
+        - generic:
+          - generic:
+            - img "Open seat"
+          - generic: Open Seat
+        - generic:
+          - generic:
+            - img "Open seat"
+          - generic: Open Seat
+        - generic:
+          - generic:
+            - img "Open seat"
+          - generic: Open Seat
+        - generic:
+          - generic:
+            - img "Open seat"
+          - generic: Open Seat
+        - generic:
+          - generic:
+            - img "Open seat"
+          - generic: Open Seat
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - generic [ref=e17]:
+            - generic [ref=e18]: 🎯
+            - generic [ref=e19]: Phase
+          - generic [ref=e20]: Waiting
+        - generic [ref=e21]:
+          - generic [ref=e22]:
+            - generic [ref=e23]: ⏱️
+            - generic [ref=e24]: Timer
+          - generic [ref=e25]: 00:00
+        - generic [ref=e26]:
+          - generic [ref=e27]:
+            - generic [ref=e28]: 💰
+            - generic [ref=e29]: Total Pot
+          - generic [ref=e30]: $0
+        - generic [ref=e31]:
+          - generic [ref=e32]:
+            - generic [ref=e33]: 🪑
+            - generic [ref=e34]: Queue
+          - generic [ref=e35]: 0 None
+          - generic [ref=e37]: Queue is open
+    - generic [ref=e38]:
+      - generic [ref=e39]:
+        - generic [ref=e40]: Live Chat
+        - button "×" [ref=e41] [cursor=pointer]
+      - generic [ref=e43]:
+        - textbox "Type message..." [ref=e44]
+        - button "Send" [ref=e45]
+    - img "All-In Chat Poker" [ref=e47]
+    - generic [ref=e48]: All-In Chat Poker
+    - generic [ref=e49]:
+      - generic [ref=e50]:
+        - generic [ref=e51]: Game Statistics
+        - button "×" [ref=e52] [cursor=pointer]
+      - generic [ref=e53]:
+        - generic [ref=e54]: "Hands: 0"
+        - generic [ref=e55]: "Win Rate: 0%"
+        - generic [ref=e56]: "Avg Pot: $0"
+    - generic:
+      - generic:
+        - generic: 🎴
+    - generic:
+      - generic:
+        - generic: 🪙
+    - generic:
+      - generic:
+        - generic: 🪙
+    - generic:
+      - generic:
+        - generic: WINNER!
+        - generic: 🎉
+    - generic [ref=e65]:
+      - generic [ref=e66]: WINNER!
+      - generic [ref=e67]:
+        - generic [ref=e68]: Player Name
+        - generic [ref=e69]: Hand Type
+  - generic [ref=e71]:
+    - heading "Spinning up the table…" [level=2] [ref=e73]
+    - paragraph [ref=e74]: We’re syncing seats, cosmetics, and FX for your overlay.
+  - generic:
+    - generic:
+      - generic: ✦ Acey
+      - generic: Booting dealer personality…
+```
