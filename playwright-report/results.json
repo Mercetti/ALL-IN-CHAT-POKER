@@ -10,9 +10,7 @@
     "grep": {},
     "grepInvert": null,
     "maxFailures": 0,
-    "metadata": {
-      "actualWorkers": 1
-    },
+    "metadata": {},
     "preserveOutput": "always",
     "reporter": [
       [
@@ -46,9 +44,7 @@
         "outputDir": "C:/Users/merce/Documents/poker-game/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 1
-        },
+        "metadata": {},
         "id": "chromium",
         "name": "chromium",
         "testDir": "C:/Users/merce/Documents/poker-game/tests/e2e",
@@ -62,9 +58,7 @@
         "outputDir": "C:/Users/merce/Documents/poker-game/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 1
-        },
+        "metadata": {},
         "id": "firefox",
         "name": "firefox",
         "testDir": "C:/Users/merce/Documents/poker-game/tests/e2e",
@@ -78,9 +72,7 @@
         "outputDir": "C:/Users/merce/Documents/poker-game/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 1
-        },
+        "metadata": {},
         "id": "webkit",
         "name": "webkit",
         "testDir": "C:/Users/merce/Documents/poker-game/tests/e2e",
@@ -94,9 +86,7 @@
         "outputDir": "C:/Users/merce/Documents/poker-game/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 1
-        },
+        "metadata": {},
         "id": "Mobile Chrome",
         "name": "Mobile Chrome",
         "testDir": "C:/Users/merce/Documents/poker-game/tests/e2e",
@@ -110,9 +100,7 @@
         "outputDir": "C:/Users/merce/Documents/poker-game/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 1
-        },
+        "metadata": {},
         "id": "Mobile Safari",
         "name": "Mobile Safari",
         "testDir": "C:/Users/merce/Documents/poker-game/tests/e2e",
@@ -126,9 +114,7 @@
         "outputDir": "C:/Users/merce/Documents/poker-game/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 1
-        },
+        "metadata": {},
         "id": "iPad",
         "name": "iPad",
         "testDir": "C:/Users/merce/Documents/poker-game/tests/e2e",
@@ -152,106 +138,19 @@
       "timeout": 120000
     }
   },
-  "suites": [
+  "suites": [],
+  "errors": [
     {
-      "title": "overlay.spec.js",
-      "file": "overlay.spec.js",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "Streaming Overlay",
-          "file": "overlay.spec.js",
-          "line": 8,
-          "column": 6,
-          "specs": [
-            {
-              "title": "should handle chat overlay integration",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 6647,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.chat-messages')\nExpected substring: \u001b[32m\"Great game!\"\u001b[39m\nReceived string:    \u001b[31m\"\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.chat-messages')\u001b[22m\n\u001b[2m    9 × locator resolved to <div id=\"chat-messages\" class=\"chat-messages\"></div>\u001b[22m\n\u001b[2m      - unexpected value \"\"\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.chat-messages')\nExpected substring: \u001b[32m\"Great game!\"\u001b[39m\nReceived string:    \u001b[31m\"\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.chat-messages')\u001b[22m\n\u001b[2m    9 × locator resolved to <div id=\"chat-messages\" class=\"chat-messages\"></div>\u001b[22m\n\u001b[2m      - unexpected value \"\"\u001b[22m\n\n    at C:\\Users\\merce\\Documents\\poker-game\\tests\\e2e\\overlay.spec.js:266:50",
-                        "location": {
-                          "file": "C:\\Users\\merce\\Documents\\poker-game\\tests\\e2e\\overlay.spec.js",
-                          "column": 50,
-                          "line": 266
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 264 |\u001b[39m     \n \u001b[90m 265 |\u001b[39m     \u001b[90m// Check message appears\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 266 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'.chat-messages'\u001b[39m))\u001b[33m.\u001b[39mtoContainText(\u001b[32m'Great game!'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 267 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 268 |\u001b[39m\n \u001b[90m 269 |\u001b[39m   test(\u001b[32m'should support overlay branding'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "C:\\Users\\merce\\Documents\\poker-game\\tests\\e2e\\overlay.spec.js",
-                            "column": 50,
-                            "line": 266
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.chat-messages')\nExpected substring: \u001b[32m\"Great game!\"\u001b[39m\nReceived string:    \u001b[31m\"\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.chat-messages')\u001b[22m\n\u001b[2m    9 × locator resolved to <div id=\"chat-messages\" class=\"chat-messages\"></div>\u001b[22m\n\u001b[2m      - unexpected value \"\"\u001b[22m\n\n\n\u001b[0m \u001b[90m 264 |\u001b[39m     \n \u001b[90m 265 |\u001b[39m     \u001b[90m// Check message appears\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 266 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'.chat-messages'\u001b[39m))\u001b[33m.\u001b[39mtoContainText(\u001b[32m'Great game!'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 267 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 268 |\u001b[39m\n \u001b[90m 269 |\u001b[39m   test(\u001b[32m'should support overlay branding'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at C:\\Users\\merce\\Documents\\poker-game\\tests\\e2e\\overlay.spec.js:266:50\u001b[22m"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-01-15T05:43:13.786Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "C:\\Users\\merce\\Documents\\poker-game\\test-results\\overlay-Streaming-Overlay--bc05b-le-chat-overlay-integration-chromium\\test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "C:\\Users\\merce\\Documents\\poker-game\\test-results\\overlay-Streaming-Overlay--bc05b-le-chat-overlay-integration-chromium\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\merce\\Documents\\poker-game\\test-results\\overlay-Streaming-Overlay--bc05b-le-chat-overlay-integration-chromium\\error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "C:\\Users\\merce\\Documents\\poker-game\\tests\\e2e\\overlay.spec.js",
-                        "column": 50,
-                        "line": 266
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "c69a00ff2b25313d3bb8-5e65f129196c8f2c5232",
-              "file": "overlay.spec.js",
-              "line": 249,
-              "column": 3
-            }
-          ]
-        }
-      ]
+      "message": "Error: Process from config.webServer was not able to start. Exit code: 1",
+      "stack": "Error: Process from config.webServer was not able to start. Exit code: 1"
     }
   ],
-  "errors": [],
   "stats": {
-    "startTime": "2026-01-15T05:43:12.375Z",
-    "duration": 8287.462,
+    "startTime": "2026-01-15T05:44:34.585Z",
+    "duration": 111036.217,
     "expected": 0,
     "skipped": 0,
-    "unexpected": 1,
+    "unexpected": 0,
     "flaky": 0
   }
 }
