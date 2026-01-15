@@ -1,4 +1,10 @@
-const { applyAutoRules } = require('../acey-control-center/dist/server/autoRules');
+let applyAutoRules;
+try {
+  applyAutoRules = require('../acey-control-center/dist/server/autoRules').applyAutoRules;
+} catch (error) {
+  console.warn('AI Control Center auto-rules not available, using fallback');
+  applyAutoRules = (output, options) => output; // Fallback: return output as-is
+}
 
 /**
  * Filter Acey logs based on auto-rules
