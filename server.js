@@ -786,7 +786,7 @@ try {
 
 // Start server
 const serverConfig = config.getServerConfig();
-const { PORT, HOST } = serverConfig;
+const { port: PORT, host: HOST } = serverConfig;
 
 if (!config.isTest()) {
   console.log(`Starting server on ${HOST}:${PORT}`);
