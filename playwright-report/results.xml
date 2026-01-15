@@ -1,6 +1,6 @@
-<testsuites id="" name="" tests="1" failures="1" skipped="0" errors="0" time="8.284426">
-<testsuite name="overlay.spec.js" timestamp="2026-01-15T05:47:33.576Z" hostname="chromium" tests="1" failures="1" skipped="0" time="6.607" errors="0">
-<testcase name="Streaming Overlay › should handle chat overlay integration" classname="overlay.spec.js" time="6.607">
+<testsuites id="" name="" tests="1" failures="1" skipped="0" errors="0" time="8.455232">
+<testsuite name="overlay.spec.js" timestamp="2026-01-15T05:52:43.237Z" hostname="chromium" tests="1" failures="1" skipped="0" time="6.78" errors="0">
+<testcase name="Streaming Overlay › should handle chat overlay integration" classname="overlay.spec.js" time="6.78">
 <failure message="overlay.spec.js:249:3 should handle chat overlay integration" type="FAILURE">
 <![CDATA[  [chromium] › overlay.spec.js:249:3 › Streaming Overlay › should handle chat overlay integration ──
 
@@ -18,14 +18,14 @@
           - unexpected value ""
 
 
-      264 |     
-      265 |     // Check message appears
-    > 266 |     await expect(page.locator('.chat-messages')).toContainText('Great game!');
+      270 |     
+      271 |     // Check message appears
+    > 272 |     await expect(page.locator('.chat-messages')).toContainText('Great game!');
           |                                                  ^
-      267 |   });
-      268 |
-      269 |   test('should support overlay branding', async ({ page }) => {
-        at C:\Users\merce\Documents\poker-game\tests\e2e\overlay.spec.js:266:50
+      273 |   });
+      274 |
+      275 |   test('should support overlay branding', async ({ page }) => {
+        at C:\Users\merce\Documents\poker-game\tests\e2e\overlay.spec.js:272:50
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ..\..\test-results\overlay-Streaming-Overlay--bc05b-le-chat-overlay-integration-chromium\test-failed-1.png

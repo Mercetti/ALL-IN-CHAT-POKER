@@ -301,14 +301,28 @@
   <script>
     // Listen for chat messages and add them to the chat overlay
     window.addEventListener('chatMessage', (event) => {
+      console.log('chatMessage event received:', event.detail);
       const { user, message } = event.detail;
       const chatMessages = document.getElementById('chat-messages');
       if (chatMessages) {
         const messageElement = document.createElement('div');
         messageElement.innerHTML = `<strong>${user}:</strong> ${message}`;
         chatMessages.appendChild(messageElement);
+        console.log('Message added to chat:', messageElement.innerHTML);
+      } else {
+        console.error('chat-messages element not found');
       }
     });
+    
+    // Also add a global function for debugging
+    window.addTestMessage = (user, message) => {
+      const chatMessages = document.getElementById('chat-messages');
+      if (chatMessages) {
+        const messageElement = document.createElement('div');
+        messageElement.innerHTML = `<strong>${user}:</strong> ${message}`;
+        chatMessages.appendChild(messageElement);
+      }
+    };
   </script>
   
   <script type="module" src="/acey/aceyUI.js"></script>

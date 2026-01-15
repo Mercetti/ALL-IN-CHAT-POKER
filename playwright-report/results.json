@@ -182,31 +182,31 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 6607,
+                      "duration": 6780,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.chat-messages')\nExpected substring: \u001b[32m\"Great game!\"\u001b[39m\nReceived string:    \u001b[31m\"\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.chat-messages')\u001b[22m\n\u001b[2m    9 × locator resolved to <div id=\"chat-messages\" class=\"chat-messages\"></div>\u001b[22m\n\u001b[2m      - unexpected value \"\"\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.chat-messages')\nExpected substring: \u001b[32m\"Great game!\"\u001b[39m\nReceived string:    \u001b[31m\"\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.chat-messages')\u001b[22m\n\u001b[2m    9 × locator resolved to <div id=\"chat-messages\" class=\"chat-messages\"></div>\u001b[22m\n\u001b[2m      - unexpected value \"\"\u001b[22m\n\n    at C:\\Users\\merce\\Documents\\poker-game\\tests\\e2e\\overlay.spec.js:266:50",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.chat-messages')\nExpected substring: \u001b[32m\"Great game!\"\u001b[39m\nReceived string:    \u001b[31m\"\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.chat-messages')\u001b[22m\n\u001b[2m    9 × locator resolved to <div id=\"chat-messages\" class=\"chat-messages\"></div>\u001b[22m\n\u001b[2m      - unexpected value \"\"\u001b[22m\n\n    at C:\\Users\\merce\\Documents\\poker-game\\tests\\e2e\\overlay.spec.js:272:50",
                         "location": {
                           "file": "C:\\Users\\merce\\Documents\\poker-game\\tests\\e2e\\overlay.spec.js",
                           "column": 50,
-                          "line": 266
+                          "line": 272
                         },
-                        "snippet": "\u001b[0m \u001b[90m 264 |\u001b[39m     \n \u001b[90m 265 |\u001b[39m     \u001b[90m// Check message appears\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 266 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'.chat-messages'\u001b[39m))\u001b[33m.\u001b[39mtoContainText(\u001b[32m'Great game!'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 267 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 268 |\u001b[39m\n \u001b[90m 269 |\u001b[39m   test(\u001b[32m'should support overlay branding'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                        "snippet": "\u001b[0m \u001b[90m 270 |\u001b[39m     \n \u001b[90m 271 |\u001b[39m     \u001b[90m// Check message appears\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 272 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'.chat-messages'\u001b[39m))\u001b[33m.\u001b[39mtoContainText(\u001b[32m'Great game!'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 273 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 274 |\u001b[39m\n \u001b[90m 275 |\u001b[39m   test(\u001b[32m'should support overlay branding'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
                       },
                       "errors": [
                         {
                           "location": {
                             "file": "C:\\Users\\merce\\Documents\\poker-game\\tests\\e2e\\overlay.spec.js",
                             "column": 50,
-                            "line": 266
+                            "line": 272
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.chat-messages')\nExpected substring: \u001b[32m\"Great game!\"\u001b[39m\nReceived string:    \u001b[31m\"\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.chat-messages')\u001b[22m\n\u001b[2m    9 × locator resolved to <div id=\"chat-messages\" class=\"chat-messages\"></div>\u001b[22m\n\u001b[2m      - unexpected value \"\"\u001b[22m\n\n\n\u001b[0m \u001b[90m 264 |\u001b[39m     \n \u001b[90m 265 |\u001b[39m     \u001b[90m// Check message appears\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 266 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'.chat-messages'\u001b[39m))\u001b[33m.\u001b[39mtoContainText(\u001b[32m'Great game!'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 267 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 268 |\u001b[39m\n \u001b[90m 269 |\u001b[39m   test(\u001b[32m'should support overlay branding'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at C:\\Users\\merce\\Documents\\poker-game\\tests\\e2e\\overlay.spec.js:266:50\u001b[22m"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.chat-messages')\nExpected substring: \u001b[32m\"Great game!\"\u001b[39m\nReceived string:    \u001b[31m\"\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.chat-messages')\u001b[22m\n\u001b[2m    9 × locator resolved to <div id=\"chat-messages\" class=\"chat-messages\"></div>\u001b[22m\n\u001b[2m      - unexpected value \"\"\u001b[22m\n\n\n\u001b[0m \u001b[90m 270 |\u001b[39m     \n \u001b[90m 271 |\u001b[39m     \u001b[90m// Check message appears\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 272 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'.chat-messages'\u001b[39m))\u001b[33m.\u001b[39mtoContainText(\u001b[32m'Great game!'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 273 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 274 |\u001b[39m\n \u001b[90m 275 |\u001b[39m   test(\u001b[32m'should support overlay branding'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at C:\\Users\\merce\\Documents\\poker-game\\tests\\e2e\\overlay.spec.js:272:50\u001b[22m"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-15T05:47:34.660Z",
+                      "startTime": "2026-01-15T05:52:44.324Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -228,7 +228,7 @@
                       "errorLocation": {
                         "file": "C:\\Users\\merce\\Documents\\poker-game\\tests\\e2e\\overlay.spec.js",
                         "column": 50,
-                        "line": 266
+                        "line": 272
                       }
                     }
                   ],
@@ -247,8 +247,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-01-15T05:47:33.208Z",
-    "duration": 8284.426,
+    "startTime": "2026-01-15T05:52:42.886Z",
+    "duration": 8455.232,
     "expected": 0,
     "skipped": 0,
     "unexpected": 1,
