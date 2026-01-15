@@ -295,6 +295,21 @@
       isUltra: Boolean(window.currentUser && window.currentUser.isUltra)
     });
   </script>
+  
+  <!-- Chat Message Handler for Tests -->
+  <script>
+    // Listen for chat messages and add them to the chat overlay
+    window.addEventListener('chatMessage', (event) => {
+      const { user, message } = event.detail;
+      const chatMessages = document.getElementById('chat-messages');
+      if (chatMessages) {
+        const messageElement = document.createElement('div');
+        messageElement.innerHTML = `<strong>${user}:</strong> ${message}`;
+        chatMessages.appendChild(messageElement);
+      }
+    });
+  </script>
+  
   <script type="module" src="/acey/aceyUI.js"></script>
 </body>
 </html>
