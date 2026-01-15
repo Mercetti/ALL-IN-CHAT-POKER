@@ -73,7 +73,6 @@
   "author": "Mercetti",
   "license": "MIT",
   "dependencies": {
-    "better-sqlite3": "^12.6.0",
     "cookie-parser": "^1.4.7",
     "diff": "^5.2.0",
     "discord.js": "^14.25.1",
