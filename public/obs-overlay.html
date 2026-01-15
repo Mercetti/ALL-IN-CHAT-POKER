@@ -284,7 +284,8 @@
   <script src="js/code-formatter.js" defer></script>
   <script src="js/security-guidelines-documentation.js" defer></script>
   <script>
-    enforceAuthenticatedPage({ page: 'overlay' });
+    // Note: Authentication disabled for overlay - should be publicly accessible for streaming
+    // enforceAuthenticatedPage({ page: 'overlay' });
   </script>
   <script type="module" src="overlay.js"></script>
   <script>

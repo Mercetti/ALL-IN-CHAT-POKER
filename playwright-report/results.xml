@@ -1,6 +1,6 @@
-<testsuites id="" name="" tests="1" failures="1" skipped="0" errors="0" time="8.037484">
-<testsuite name="overlay.spec.js" timestamp="2026-01-15T05:41:14.854Z" hostname="chromium" tests="1" failures="1" skipped="0" time="6.413" errors="0">
-<testcase name="Streaming Overlay › should handle chat overlay integration" classname="overlay.spec.js" time="6.413">
+<testsuites id="" name="" tests="1" failures="1" skipped="0" errors="0" time="8.287462">
+<testsuite name="overlay.spec.js" timestamp="2026-01-15T05:43:12.734Z" hostname="chromium" tests="1" failures="1" skipped="0" time="6.647" errors="0">
+<testcase name="Streaming Overlay › should handle chat overlay integration" classname="overlay.spec.js" time="6.647">
 <failure message="overlay.spec.js:249:3 should handle chat overlay integration" type="FAILURE">
 <![CDATA[  [chromium] › overlay.spec.js:249:3 › Streaming Overlay › should handle chat overlay integration ──
 

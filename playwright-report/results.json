@@ -182,7 +182,7 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 6413,
+                      "duration": 6647,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.chat-messages')\nExpected substring: \u001b[32m\"Great game!\"\u001b[39m\nReceived string:    \u001b[31m\"\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.chat-messages')\u001b[22m\n\u001b[2m    9 × locator resolved to <div id=\"chat-messages\" class=\"chat-messages\"></div>\u001b[22m\n\u001b[2m      - unexpected value \"\"\u001b[22m\n",
                         "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.chat-messages')\nExpected substring: \u001b[32m\"Great game!\"\u001b[39m\nReceived string:    \u001b[31m\"\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.chat-messages')\u001b[22m\n\u001b[2m    9 × locator resolved to <div id=\"chat-messages\" class=\"chat-messages\"></div>\u001b[22m\n\u001b[2m      - unexpected value \"\"\u001b[22m\n\n    at C:\\Users\\merce\\Documents\\poker-game\\tests\\e2e\\overlay.spec.js:266:50",
@@ -206,7 +206,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-15T05:41:15.902Z",
+                      "startTime": "2026-01-15T05:43:13.786Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -247,8 +247,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-01-15T05:41:14.500Z",
-    "duration": 8037.4839999999995,
+    "startTime": "2026-01-15T05:43:12.375Z",
+    "duration": 8287.462,
     "expected": 0,
     "skipped": 0,
     "unexpected": 1,
