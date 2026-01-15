@@ -220,7 +220,6 @@ if (typeof window !== 'undefined' && !window.__DISABLE_AUTO_REFRESH) {
   window.addEventListener('DOMContentLoaded', () => {
     ensureTokenBadge();
     normalizeLinkTargets();
-    initDebugTools();
   });
   setInterval(() => refreshUserTokenIfNeeded(), 20 * 60 * 1000);
 }

@@ -30,7 +30,7 @@ class EnhancedAdminDashboard {
     this.currentTab = 'dashboard';
     this.refreshInterval = null;
     this.toastContainer = document.getElementById('toast-container');
-    this.channelParam = this.extractChannelParam();
+    this.channelParam = extractChannelParam();
     this.panelConfigs = {
       activity: { container: 'activity-list', empty: 'activity-empty', error: 'activity-error', type: 'list', loadingRows: 2 },
       players: { container: 'players-tbody', empty: 'players-empty', error: 'players-error', type: 'table', columns: 5, loadingRows: 3 },
