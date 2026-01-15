@@ -28,9 +28,7 @@
       "versionCode": 1,
       "permissions": [
         "INTERNET"
-      ],
-      "compileSdkVersion": 33,
-      "targetSdkVersion": 33
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
