@@ -1,69 +1,86 @@
-import React, { useEffect, useState } from 'react';
-import { ScrollView, View, Text, TouchableOpacity, StyleSheet, RefreshControl } from 'react-native';
-import { fetchFineTuneStatus, fetchDatasetMetrics, fetchSkillApprovals } from '../services/aceyMobileOrchestrator';
+import React, { useState, useEffect } from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  ScrollView, 
+  TouchableOpacity, 
+  RefreshControl,
+  ActivityIndicator
+} from 'react-native';
 
 interface FineTuneStatus {
   progress: number;
-  lastRun: string;
-  datasetSize: number;
-  estimatedCompletion: string;
+  status: 'running' | 'completed' | 'failed';
+  estimatedTime?: number;
 }
 
 interface DatasetMetrics {
+  totalSamples: number;
+  approvedSamples: number;
+  pendingSamples: number;
   qualityScore: number;
-  provenanceCount: number;
-  trustDecay: number;
-  memoryCorruption: boolean;
-  hallucinationRate: number;
 }
 
 interface Approval {
   id: string;
-  skillName: string;
-  type: string;
-  description: string;
+  type: 'skill' | 'response' | 'model';
+  content: string;
+  timestamp: Date;
   status: 'pending' | 'approved' | 'rejected';
-  submittedAt: string;
-  submittedBy: string;
   data?: {
-    read?: boolean;
+    read: boolean;
   };
 }
 
-interface OwnerDashboardProps {
-  userToken: string;
-}
-
-export default function OwnerDashboard({ userToken }: OwnerDashboardProps) {
+const OwnerDashboard: React.FC = () => {
+  const [refreshing, setRefreshing] = useState(false);
   const [fineTuneStatus, setFineTuneStatus] = useState<FineTuneStatus | null>(null);
   const [datasetMetrics, setDatasetMetrics] = useState<DatasetMetrics | null>(null);
   const [approvals, setApprovals] = useState<Approval[]>([]);
-  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadOwnerData().finally(() => setRefreshing(false));
+  };
 
   const loadOwnerData = async () => {
     try {
-      const [tuneStatus, metrics, approvalList] = await Promise.all([
-        fetchFineTuneStatus(userToken),
-        fetchDatasetMetrics(userToken),
-        fetchSkillApprovals(userToken)
-      ]);
+      // Mock data for now
+      setFineTuneStatus({
+        progress: 75,
+        status: 'running',
+        estimatedTime: 15
+      });
       
-      setFineTuneStatus(tuneStatus);
-      setDatasetMetrics(metrics);
-      setApprovals(approvalList);
+      setDatasetMetrics({
+        totalSamples: 1250,
+        approvedSamples: 980,
+        pendingSamples: 270,
+        qualityScore: 87.5
+      });
+      
+      setApprovals([
+        {
+          id: '1',
+          type: 'skill',
+          content: 'New poker analysis skill',
+          timestamp: new Date(),
+          status: 'pending',
+          data: { read: false }
+        },
+        {
+          id: '2',
+          type: 'response',
+          content: 'Customer service response template',
+          timestamp: new Date(Date.now() - 3600000),
+          status: 'pending',
+          data: { read: true }
+        }
+      ]);
     } catch (error) {
       console.error('Failed to load owner data:', error);
     }
-  };
-
-  useEffect(() => {
-    loadOwnerData();
-  }, [userToken]);
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await loadOwnerData();
-    setRefreshing(false);
   };
 
   const handleApprove = async (approvalId: string) => {
@@ -100,6 +117,10 @@ export default function OwnerDashboard({ userToken }: OwnerDashboardProps) {
     return '#FF3B30';
   };
 
+  useEffect(() => {
+    loadOwnerData();
+  }, []);
+
   return (
     <ScrollView 
       style={styles.container}
@@ -118,37 +139,21 @@ export default function OwnerDashboard({ userToken }: OwnerDashboardProps) {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>🎯 LLM Fine-Tune Status</Text>
           </View>
-          <View style={styles.sectionContent}>
-            <View style={styles.progressRow}>
-              <Text style={styles.progressLabel}>Progress</Text>
-              <View style={styles.progressBar}>
-                <View 
-                  style={[
-                    styles.progressFill,
-                    { width: `${fineTuneStatus.progress}%`, backgroundColor: getProgressColor(fineTuneStatus.progress) }
-                  ]} 
-                />
-              </View>
-              <Text style={styles.progressText}>{fineTuneStatus.progress}%</Text>
+          <View style={styles.progressContainer}>
+            <View style={styles.progressBar}>
+              <View 
+                style={[
+                  styles.progressFill, 
+                  { width: `${fineTuneStatus.progress}%`, backgroundColor: getProgressColor(fineTuneStatus.progress) }
+                ]} 
+              />
             </View>
-            
-            <View style={styles.metricsRow}>
-              <View style={styles.metricItem}>
-                <Text style={styles.metricLabel}>Dataset Size</Text>
-                <Text style={styles.metricValue}>{fineTuneStatus.datasetSize.toLocaleString()} entries</Text>
-              </View>
-              
-              <View style={styles.metricItem}>
-                <Text style={styles.metricLabel}>Last Run</Text>
-                <Text style={styles.metricValue}>{new Date(fineTuneStatus.lastRun).toLocaleString()}</Text>
-              </View>
-              
-              <View style={styles.metricItem}>
-                <Text style={styles.metricLabel}>Est. Completion</Text>
-                <Text style={styles.metricValue}>{fineTuneStatus.estimatedCompletion}</Text>
-              </View>
-            </View>
+            <Text style={styles.progressText}>{fineTuneStatus.progress}%</Text>
           </View>
+          <Text style={styles.statusText}>
+            Status: {fineTuneStatus.status}
+            {fineTuneStatus.estimatedTime && ` • ~${fineTuneStatus.estimatedTime}min remaining`}
+          </Text>
         </View>
       )}
 
@@ -158,36 +163,24 @@ export default function OwnerDashboard({ userToken }: OwnerDashboardProps) {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>📊 Dataset Metrics</Text>
           </View>
-          <View style={styles.sectionContent}>
-            <View style={styles.metricsGrid}>
-              <View style={styles.metricItem}>
-                <Text style={styles.metricLabel}>Quality Score</Text>
-                <Text style={[styles.metricValue, { color: getQualityColor(datasetMetrics.qualityScore) }]}>
-                  {datasetMetrics.qualityScore.toFixed(1)}
-                </Text>
-              </View>
-              
-              <View style={styles.metricItem}>
-                <Text style={styles.metricLabel}>Provenance Graphs</Text>
-                <Text style={styles.metricValue}>{datasetMetrics.provenanceCount.toLocaleString()}</Text>
-              </View>
-              
-              <View style={styles.metricItem}>
-                <Text style={styles.metricLabel}>Trust Decay</Text>
-                <Text style={styles.metricValue}>{datasetMetrics.trustDecay.toFixed(2)}%</Text>
-              </View>
-              
-              <View style={styles.metricItem}>
-                <Text style={styles.metricLabel}>Memory Corruption</Text>
-                <Text style={[styles.metricValue, { color: datasetMetrics.memoryCorruption ? '#FF3B30' : '#34C759' }]}>
-                  {datasetMetrics.memoryCorruption ? 'DETECTED' : 'CLEAN'}
-                </Text>
-              </View>
-              
-              <View style={styles.metricItem}>
-                <Text style={styles.metricLabel}>Hallucination Rate</Text>
-                <Text style={styles.metricValue}>{(datasetMetrics.hallucinationRate * 100).toFixed(2)}%</Text>
-              </View>
+          <View style={styles.metricsGrid}>
+            <View style={styles.metricItem}>
+              <Text style={styles.metricValue}>{datasetMetrics.totalSamples}</Text>
+              <Text style={styles.metricLabel}>Total Samples</Text>
+            </View>
+            <View style={styles.metricItem}>
+              <Text style={styles.metricValue}>{datasetMetrics.approvedSamples}</Text>
+              <Text style={styles.metricLabel}>Approved</Text>
+            </View>
+            <View style={styles.metricItem}>
+              <Text style={styles.metricValue}>{datasetMetrics.pendingSamples}</Text>
+              <Text style={styles.metricLabel}>Pending</Text>
+            </View>
+            <View style={styles.metricItem}>
+              <Text style={[styles.metricValue, { color: getQualityColor(datasetMetrics.qualityScore) }]}>
+                {datasetMetrics.qualityScore.toFixed(1)}%
+              </Text>
+              <Text style={styles.metricLabel}>Quality Score</Text>
             </View>
           </View>
         </View>
@@ -196,60 +189,52 @@ export default function OwnerDashboard({ userToken }: OwnerDashboardProps) {
       {/* Pending Approvals */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>📋 Pending Approvals</Text>
-          <Text style={styles.approvalCount}>{approvals.length} items</Text>
+          <Text style={styles.sectionTitle}>⚡ Pending Approvals</Text>
+          <TouchableOpacity style={styles.viewAllButton}>
+            <Text style={styles.viewAllText}>View All</Text>
+          </TouchableOpacity>
         </View>
-        <View style={styles.sectionContent}>
-          {approvals.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyText}>No pending approvals</Text>
-              <Text style={styles.emptySubtext}>All caught up!</Text>
-            </View>
-          ) : (
-            approvals.map((item, index) => (
-              <View key={item.id} style={styles.approvalItem}>
-                {!item.data?.read && (
-                  <View style={styles.unreadDot} />
-                )}
-                <View style={styles.approvalHeader}>
-                  <View style={styles.approvalInfo}>
-                    <Text style={styles.skillName}>{item.skillName}</Text>
-                    <Text style={styles.skillType}>({item.type})</Text>
-                    <Text style={styles.approvalStatus}>{item.status.toUpperCase()}</Text>
-                  </View>
-                  <Text style={styles.submittedTime}>
-                    {new Date(item.submittedAt).toLocaleString()}
+        
+        {approvals.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyText}>No pending approvals</Text>
+            <Text style={styles.emptySubtext}>All caught up! 🎉</Text>
+          </View>
+        ) : (
+          approvals.map((approval) => (
+            <View key={approval.id} style={styles.approvalItem}>
+              <View style={styles.approvalHeader}>
+                <View style={styles.approvalInfo}>
+                  <Text style={styles.approvalType}>{approval.type.toUpperCase()}</Text>
+                  <Text style={styles.approvalContent}>{approval.content}</Text>
+                  <Text style={styles.approvalTime}>
+                    {approval.timestamp.toLocaleTimeString()}
                   </Text>
                 </View>
-                
-                <Text style={styles.approvalDescription}>{item.description}</Text>
-                
-                <View style={styles.approvalActions}>
-                  <TouchableOpacity 
-                    style={[styles.actionButton, styles.approveButton]}
-                    onPress={() => handleApprove(item.id)}
-                  >
-                    <Text style={styles.actionButtonText}>✓ Approve</Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity 
-                    style={[styles.actionButton, styles.rejectButton]}
-                    onPress={() => handleReject(item.id)}
-                  >
-                    <Text style={styles.actionButtonText}>✗ Reject</Text>
-                  </TouchableOpacity>
-                </View>
+                {!approval.data?.read && <View style={styles.unreadDot} />}
               </View>
-            ))
-          )}
-        </View>
-      </View>
-      )}
-    </View>
+              
+              <View style={styles.approvalActions}>
+                <TouchableOpacity 
+                  style={[styles.actionButton, styles.approveButton]}
+                  onPress={() => handleApprove(approval.id)}
+                >
+                  <Text style={styles.actionButtonText}>✓ Approve</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.actionButton, styles.rejectButton]}
+                  onPress={() => handleReject(approval.id)}
+                >
+                  <Text style={styles.actionButtonText}>✗ Reject</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))
+        )}
       </View>
     </ScrollView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -260,19 +245,18 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: '#e9ecef',
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#1d1d1f',
-    textAlign: 'center',
   },
   section: {
     backgroundColor: '#fff',
     margin: 16,
     borderRadius: 12,
-    padding: 16,
+    padding: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -287,42 +271,32 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: '#1d1d1f',
   },
-  sectionContent: {
-    // Content styles defined per section
-  },
-  progressRow: {
-    marginBottom: 16,
-  },
-  progressLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
+  progressContainer: {
+    alignItems: 'center',
   },
   progressBar: {
+    width: '100%',
     height: 8,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#e9ecef',
     borderRadius: 4,
-    overflow: 'hidden',
+    marginBottom: 8,
   },
   progressFill: {
     height: '100%',
     borderRadius: 4,
   },
   progressText: {
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: '600',
-    color: '#333',
-    textAlign: 'center',
-    marginTop: 4,
+    color: '#1d1d1f',
   },
-  metricsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+  statusText: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4,
   },
   metricsGrid: {
     flexDirection: 'row',
@@ -331,95 +305,36 @@ const styles = StyleSheet.create({
   },
   metricItem: {
     width: '48%',
+    alignItems: 'center',
+    padding: 16,
     backgroundColor: '#f8f9fa',
-    padding: 12,
     borderRadius: 8,
-    marginBottom: 8,
+    marginBottom: 12,
+  },
+  metricValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1d1d1f',
   },
   metricLabel: {
     fontSize: 12,
     color: '#666',
-    marginBottom: 4,
+    marginTop: 4,
   },
-  metricValue: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#1d1d1f',
-  },
-  approvalCount: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '600',
-  },
-  approvalItem: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: '#007AFF',
-  },
-  approvalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-  },
-  approvalInfo: {
-    flex: 1,
-  },
-  skillName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1d1d1f',
-    marginBottom: 2,
-  },
-  skillType: {
-    fontSize: 12,
-    color: '#666',
-    fontStyle: 'italic',
-  },
-  approvalStatus: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#007AFF',
-    textTransform: 'uppercase',
-  },
-  submittedTime: {
-    fontSize: 10,
-    color: '#999',
-  },
-  approvalDescription: {
-    fontSize: 14,
-    color: '#333',
-    lineHeight: 18,
-    marginBottom: 12,
-  },
-  approvalActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  actionButton: {
+  viewAllButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
+    backgroundColor: '#007AFF',
     borderRadius: 6,
-    minWidth: 80,
   },
-  approveButton: {
-    backgroundColor: '#34C759',
-  },
-  rejectButton: {
-    backgroundColor: '#FF3B30',
-  },
-  actionButtonText: {
+  viewAllText: {
+    color: '#fff',
     fontSize: 12,
     fontWeight: '600',
-    color: '#fff',
-    textAlign: 'center',
   },
   emptyState: {
     alignItems: 'center',
-    paddingVertical: 20,
+    padding: 40,
   },
   emptyText: {
     fontSize: 16,
@@ -430,5 +345,69 @@ const styles = StyleSheet.create({
   emptySubtext: {
     fontSize: 14,
     color: '#999',
+    fontStyle: 'italic',
+  },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#FF3B30',
+    position: 'absolute',
+    top: 8,
+    right: 8,
+  },
+  approvalItem: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+    paddingVertical: 16,
+  },
+  approvalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  approvalInfo: {
+    flex: 1,
+  },
+  approvalType: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#007AFF',
+    marginBottom: 4,
+  },
+  approvalContent: {
+    fontSize: 14,
+    color: '#1d1d1f',
+    marginBottom: 4,
+  },
+  approvalTime: {
+    fontSize: 12,
+    color: '#666',
+  },
+  approvalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+  },
+  actionButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  approveButton: {
+    backgroundColor: '#34C759',
+  },
+  rejectButton: {
+    backgroundColor: '#FF3B30',
+  },
+  actionButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });
+
+export default OwnerDashboard;

@@ -617,7 +617,7 @@ class EnhancedAdminDashboard {
   }
 
   openOBSOverlay() {
-    const url = this.buildChannelUrl('obs-overlay.html');
+    const url = buildChannelUrl('obs-overlay.html');
     window.open(url, '_blank', 'noopener'); // OBS overlay needs new tab
   }
 
@@ -639,11 +639,11 @@ class EnhancedAdminDashboard {
   }
 
   goToProfile() {
-    window.location.href = this.buildChannelUrl('profile-enhanced.html');
+    window.location.href = buildChannelUrl('profile-enhanced.html');
   }
 
   goToOverlayEditor() {
-    window.location.href = this.buildChannelUrl('overlay-editor-enhanced.html');
+    window.location.href = buildChannelUrl('overlay-editor-enhanced.html');
   }
 
   logout() {

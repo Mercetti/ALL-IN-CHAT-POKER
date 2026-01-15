@@ -869,7 +869,7 @@ socket.on('readyStatus', (data) => {
 socket.on('profile', (profile) => {
   console.log('Profile received:', profile);
   if (profile && profile.login) {
-    userLogin = profile.login;
+    setUserLogin(profile.login);
   }
   updateProfile(profile);
 });
@@ -1435,7 +1435,7 @@ function updateProfile(profile) {
 }
 
 function updateActionButtons() {
-  const disableBJ = overlayMode !== 'blackjack';
+  const disableBJ = overlayState.overlayMode !== 'blackjack' || isMultiStream;
   if (btnHit) btnHit.disabled = disableBJ;
   if (btnStand) btnStand.disabled = disableBJ;
   if (btnDouble) btnDouble.disabled = disableBJ;
@@ -1451,10 +1451,10 @@ function updateActionButtons() {
   if (btnPrevHand) btnPrevHand.disabled = disableBJ;
   if (btnNextHand) btnNextHand.disabled = disableBJ;
 
-  if (disableBJ || !userLogin) return;
+  if (disableBJ || !overlayState.userLogin) return;
 
-  const me = overlayPlayers.find(p => p.login === userLogin) || {};
-  const upcardAce = currentDealerHand && currentDealerHand[0] && currentDealerHand[0].rank === 'A';
+  const me = getOverlayPlayers().find(p => p.login === overlayState.userLogin) || {};
+  const upcardAce = overlayState.currentDealerHand && overlayState.currentDealerHand[0] && overlayState.currentDealerHand[0].rank === 'A';
   const canInsurance = upcardAce && !me.insurancePlaced && !me.insurance;
   if (btnInsurance) {
     btnInsurance.disabled = !canInsurance;
@@ -1484,8 +1484,9 @@ if (btnDraw) {
   btnDraw.addEventListener('click', () => {
     if (socket.connected) {
       const heldBy = {};
-      if (userLogin) {
-        heldBy[userLogin] = Array.from(selectedHeld);
+      const currentLogin = overlayState.userLogin;
+      if (currentLogin) {
+        heldBy[currentLogin] = Array.from(getSelectedHeld());
       }
       socket.emit('forceDraw', { heldBy });
     }
@@ -1698,16 +1699,14 @@ loadLeaderboard();
 timerManager.setInterval(loadLeaderboard, 30000);
 
 // User authentication helper: read user JWT from localStorage and decode username (simple parse)
-function initUserFromToken() {
-  const token = getUserToken();
-  if (!token) return;
+function decodeLoginFromJwt(token) {
+  if (!token) return null;
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
-    userLogin = payload.user;
+    return payload.user || payload.login || null;
   } catch (err) {
     console.warn('Failed to parse user token', err);
+    return null;
   }
 }
-
-initUserFromToken();
 applyVisualSettings();

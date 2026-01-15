@@ -1,170 +1,221 @@
 import React from 'react';
-
-interface GeneratedOutput {
-  id: string;
-  skill: string;
-  content: any;
-  metadata?: any;
-  timestamp: Date;
-  filename?: string;
-}
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 
 interface OutputBubbleProps {
-  output: GeneratedOutput;
-  onDownload: () => void;
-  onApprove: () => void;
-  onDiscard: () => void;
-  onCopy?: () => void;
+  output: {
+    id: string;
+    skill: string;
+    content: string | Uint8Array;
+    timestamp: Date;
+    approved?: boolean;
+  };
+  onApprove?: (id: string) => void;
+  onDiscard?: (id: string) => void;
+  onLearn?: (id: string) => void;
+  onUpload?: (id: string) => void;
 }
 
-export const OutputBubble: React.FC<OutputBubbleProps> = ({
-  output,
-  onDownload,
-  onApprove,
-  onDiscard,
-  onCopy
+const OutputBubble: React.FC<OutputBubbleProps> = ({ 
+  output, 
+  onApprove, 
+  onDiscard, 
+  onLearn,
+  onUpload
 }) => {
-  const handleDownload = () => {
-    if (window.confirm(`Save ${output.skill} output to your device?`)) {
-      onDownload();
-    }
-  };
-
   const handleApprove = () => {
-    if (window.confirm('Add this output to Acey\'s learning dataset?')) {
-      onApprove();
+    if (onApprove) {
+      onApprove(output.id);
     }
   };
 
   const handleDiscard = () => {
-    if (window.confirm('Remove this output from memory? This cannot be undone.')) {
-      onDiscard();
+    Alert.alert(
+      'Discard Output',
+      'Are you sure you want to discard this output?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Discard', style: 'destructive', onPress: () => onDiscard?.(output.id) }
+      ]
+    );
+  };
+
+  const handleLearn = () => {
+    if (onLearn) {
+      onLearn(output.id);
     }
   };
 
-  const handleCopy = async () => {
-    if (onCopy && typeof output.content === 'string') {
-      try {
-        await navigator.clipboard.writeText(output.content);
-        alert('Content copied to clipboard!');
-      } catch (error) {
-        alert('Failed to copy to clipboard');
-      }
+  const handleUpload = () => {
+    if (onUpload) {
+      onUpload(output.id);
     }
   };
 
   const renderContentPreview = () => {
     if (typeof output.content === 'string') {
-      // Code/text content - show first 200 characters
-      const preview = output.content.length > 200 
-        ? output.content.substring(0, 200) + '...' 
+      // Text content
+      const preview = output.content.length > 100 
+        ? output.content.substring(0, 100) + '...' 
         : output.content;
       
-      return React.createElement('div', { style: codePreviewStyle }, preview);
+      return (
+        <View style={styles.codePreview}>
+          <Text style={styles.codeText}>{preview}</Text>
+        </View>
+      );
     } else {
       // Binary content (graphics/audio)
-      return React.createElement('div', { style: binaryPreviewStyle }, 
-        React.createElement('div', { style: binaryTextStyle }, `[${output.skill.toUpperCase()} Content]`),
-        React.createElement('div', { style: sizeTextStyle }, `Size: ${output.content ? (output.content.byteLength / 1024).toFixed(1) : '0'} KB`)
+      return (
+        <View style={styles.binaryPreview}>
+          <Text style={styles.binaryText}>[{output.skill.toUpperCase()} Content]</Text>
+          <Text style={styles.sizeText}>
+            Size: {output.content ? (output.content.byteLength / 1024).toFixed(1) : '0'} KB
+          </Text>
+        </View>
       );
     }
   };
 
-  const getSkillColor = (skill: string) => {
-    switch (skill.toLowerCase()) {
-      case 'code': return '#2C3E50';
-      case 'graphics': return '#1A1A1A';
-      case 'audio': return '#2C3E50';
-      case 'analytics': return '#34495E';
-      default: return '#666666';
-    }
+  const renderActions = () => {
+    return (
+      <View style={styles.actions}>
+        {onApprove && (
+          <TouchableOpacity 
+            style={[styles.button, styles.approveButton]} 
+            onPress={handleApprove}
+          >
+            <Text style={styles.buttonText}>Approve</Text>
+          </TouchableOpacity>
+        )}
+        
+        {onLearn && (
+          <TouchableOpacity 
+            style={[styles.button, styles.learnButton]} 
+            onPress={handleLearn}
+          >
+            <Text style={styles.buttonText}>Learn</Text>
+          </TouchableOpacity>
+        )}
+        
+        {onUpload && (
+          <TouchableOpacity 
+            style={[styles.button, styles.uploadButton]} 
+            onPress={handleUpload}
+          >
+            <Text style={styles.buttonText}>Upload</Text>
+          </TouchableOpacity>
+        )}
+        
+        {onDiscard && (
+          <TouchableOpacity 
+            style={[styles.button, styles.discardButton]} 
+            onPress={handleDiscard}
+          >
+            <Text style={styles.buttonText}>Discard</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
   };
 
-  const buttonStyle = {
-    padding: '8px 12px',
-    borderRadius: '6px',
-    minWidth: '60px',
-    cursor: 'pointer',
-    border: 'none',
-    fontSize: '12px',
-    fontWeight: '600',
-    color: '#fff',
-  };
-
-  const codePreviewStyle: any = {
-    fontFamily: 'monospace', 
-    fontSize: 12,
-    color: '#fff',
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    padding: 8,
-    borderRadius: 6,
-    marginTop: 8,
-    maxHeight: 100,
-  };
-  
-  const binaryPreviewStyle: any = {
-    display: 'flex',
-    alignItems: 'center',
-    padding: 16,
-    marginTop: 8,
-  };
-  
-  const binaryTextStyle: any = {
-    fontSize: 14,
-    color: '#fff',
-    marginBottom: 4,
-  };
-  
-  const sizeTextStyle: any = {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.7)',
-  };
-
-  return React.createElement('div', {
-    style: {
-      padding: '16px',
-      margin: '8px',
-      borderRadius: '12px',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-      backgroundColor: '#fff',
-      borderLeft: `4px solid ${getSkillColor(output.skill)}`,
-      maxWidth: '400px',
-    }
-  }, 
-    React.createElement('div', {
-      style: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '12px'
-      }
-    }, 
-    React.createElement('div', { style: { fontSize: '14px', fontWeight: 'bold', color: '#fff' } }, output.skill.toUpperCase()),
-      React.createElement('div', { style: { fontSize: '12px', color: 'rgba(255,255,255,0.7)' } }, output.timestamp.toLocaleTimeString()),
-      renderContentPreview(),
-      React.createElement('div', {
-        style: {
-          display: 'flex',
-          justifyContent: 'space-around',
-          marginTop: '12px'
-        }
-      }, 
-      React.createElement('button', {
-        style: buttonStyle,
-        onClick: handleDownload
-      }, 'Download'),
-      onCopy && typeof output.content === 'string' && React.createElement('button', {
-        style: { ...buttonStyle, backgroundColor: '#34C759' },
-        onClick: handleCopy
-      }, 'Copy'),
-      React.createElement('button', {
-        style: { ...buttonStyle, backgroundColor: '#FF9500' },
-        onClick: handleApprove
-      }, 'Learn'),
-      React.createElement('button', {
-        style: { ...buttonStyle, backgroundColor: '#FF3B30' },
-        onClick: handleDiscard
-      }, 'Discard'),
-    )
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.skillName}>{output.skill}</Text>
+        <Text style={styles.timestamp}>
+          {output.timestamp.toLocaleTimeString()}
+        </Text>
+      </View>
+      
+      {renderContentPreview()}
+      
+      {renderActions()}
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    margin: 8,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  skillName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333333',
+  },
+  timestamp: {
+    fontSize: 12,
+    color: '#666666',
+  },
+  codePreview: {
+    backgroundColor: '#f5f5f5',
+    padding: 12,
+    borderRadius: 8,
+    marginVertical: 8,
+  },
+  codeText: {
+    fontFamily: 'monospace',
+    fontSize: 12,
+    color: '#333333',
+  },
+  binaryPreview: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: 16,
+    marginVertical: 8,
+  },
+  binaryText: {
+    fontSize: 14,
+    color: '#333333',
+    marginBottom: 4,
+  },
+  sizeText: {
+    fontSize: 12,
+    color: '#666666',
+  },
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 12,
+  },
+  button: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  approveButton: {
+    backgroundColor: '#10b981', // Success color from unified design system
+  },
+  learnButton: {
+    backgroundColor: '#3b82f6', // Info color from unified design system
+  },
+  uploadButton: {
+    backgroundColor: '#f59e0b', // Warning color from unified design system
+  },
+  discardButton: {
+    backgroundColor: '#ef4444', // Error color from unified design system
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+});
+
+export default OutputBubble;
