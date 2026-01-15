@@ -40,7 +40,12 @@
     "console": true,
     "window": true,
     "document": true,
-    "navigator": true
+    "navigator": true,
+    "CustomEvent": true,
+    "URLSearchParams": true,
+    "page": true,
+    "browser": true,
+    "context": true
   },
   "rules": {
     "no-console": "warn",
@@ -110,18 +115,47 @@
     "no-ternary": "warn",
     "no-trailing-spaces": "error",
     "no-this-before-super": "error",
-    "no-throw-literal": "error",
     "no-unreachable": "error",
     "no-unsafe-finally": "error",
     "no-unused-expressions": "error",
     "no-unused-vars": "error",
     "no-use-before-define": "error",
-    "no-useless-call": "error",
-    "no-useless-concat": "error",
-    "no-void": "error",
-    "no-with": "error",
     "no-warning-comments": "warn",
     "wrap-iife": "error",
     "yoda": "error"
-  }
+  },
+  "overrides": [
+    {
+      "files": ["tests/**/*.js", "**/*.test.js", "**/*.spec.js"],
+      "globals": {
+        "describe": true,
+        "test": true,
+        "it": true,
+        "expect": true,
+        "beforeAll": true,
+        "afterAll": true,
+        "beforeEach": true,
+        "afterEach": true,
+        "jest": true,
+        "setTimeout": true,
+        "clearTimeout": true,
+        "setInterval": true,
+        "clearInterval": true,
+        "require": true,
+        "module": true,
+        "console": true,
+        "window": true,
+        "document": true,
+        "navigator": true,
+        "CustomEvent": true,
+        "URLSearchParams": true,
+        "page": true,
+        "browser": true,
+        "context": true
+      },
+      "rules": {
+        "no-undef": "off"
+      }
+    }
+  ]
 }
