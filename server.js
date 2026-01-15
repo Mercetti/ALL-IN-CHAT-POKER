@@ -401,6 +401,11 @@ app.get('/', (req, res) => {
   res.send('Server is running!');
 });
 
+// Overlay route - serve the overlay page
+app.get('/overlay', (req, res) => {
+  res.sendFile('obs-overlay.html', { root: './public' });
+});
+
 // Critical Functions for System Health
 async function runSyntheticCheck() {
   try {
