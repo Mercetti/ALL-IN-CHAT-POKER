@@ -16,14 +16,9 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.mercetti.acey-control-center",
-      "buildNumber": "1.0.0"
+      "bundleIdentifier": "com.mercetti.acey-control-center"
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#121212"
-      },
       "package": "com.mercetti.acey_control_center",
       "versionCode": 1,
       "permissions": [
@@ -31,14 +26,7 @@
       ]
     },
     "web": {
-      "favicon": "./assets/favicon.png",
-      "bundler": "metro"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "3b8d3730-f772-41b6-b259-26d52e3889fc"
-      }
-    },
-    "plugins": []
+      "favicon": "./assets/favicon.png"
+    }
   }
 }
