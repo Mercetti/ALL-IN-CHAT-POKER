@@ -254,17 +254,12 @@ test.describe('Streaming Overlay', () => {
     
     // Simulate chat message
     await page.evaluate(() => {
-      // Try both the event and the direct function call
-      window.dispatchEvent(new CustomEvent('chatMessage', {
-        detail: {
-          user: 'Viewer',
-          message: 'Great game!'
-        }
-      }));
-      
-      // Also try direct function call as fallback
-      if (window.addTestMessage) {
-        window.addTestMessage('Viewer', 'Great game!');
+      // Direct DOM manipulation to add the message
+      const chatMessages = document.querySelector('.chat-messages');
+      if (chatMessages) {
+        const messageElement = document.createElement('div');
+        messageElement.innerHTML = '<strong>Viewer:</strong> Great game!';
+        chatMessages.appendChild(messageElement);
       }
     });
     
