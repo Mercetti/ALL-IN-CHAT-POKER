@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acey Financial Operations Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .tab-button { @apply px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700; }
+        .tab-button.active { @apply bg-blue-800; }
+        .metric-card { @apply bg-white p-6 rounded-lg shadow-md; }
+        .status-badge { @apply px-2 py-1 text-xs rounded-full; }
+        .status-open { @apply bg-red-100 text-red-800; }
+        .status-reviewing { @apply bg-yellow-100 text-yellow-800; }
+        .status-resolved { @apply bg-green-100 text-green-800; }
+        .trust-score-high { @apply bg-green-500 text-white; }
+        .trust-score-medium { @apply bg-yellow-500 text-white; }
+        .trust-score-low { @apply bg-red-500 text-white; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-4">
+                    <h1 class="text-2xl font-bold text-gray-900">🏦 Acey Financial Operations</h1>
+                    <div class="flex items-center space-x-4">
+                        <span class="text-sm text-gray-500">Governance & Intelligence Layer</span>
+                        <button onclick="refreshData()" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">
+                            🔄 Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Tab Navigation -->
+            <div class="mb-8">
+                <div class="border-b border-gray-200">
+                    <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                        <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-button active">
+                            📊 Dashboard
+                        </button>
+                        <button onclick="switchTab('trust')" id="tab-trust" class="tab-button">
+                            🎯 Trust Scores
+                        </button>
+                        <button onclick="switchTab('disputes')" id="tab-disputes" class="tab-button">
+                            ⚖️ Disputes
+                        </button>
+                        <button onclick="switchTab('analytics')" id="tab-analytics" class="tab-button">
+                            📈 Analytics
+                        </button>
+                        <button onclick="switchTab('investor')" id="tab-investor" class="tab-button">
+                            👥 Investor View
+                        </button>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Tab Content -->
+            <div id="tab-content">
+                <!-- Dashboard Tab -->
+                <div id="dashboard-content" class="tab-content">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                        <!-- Revenue Overview -->
+                        <div class="metric-card">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">💰 Revenue Overview</h3>
+                            <div class="space-y-2">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Total Revenue (30d)</span>
+                                    <span class="text-2xl font-bold text-green-600" id="total-revenue">$0</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Net Revenue (30d)</span>
+                                    <span class="text-2xl font-bold text-blue-600" id="net-revenue">$0</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Active Partners</span>
+                                    <span class="text-2xl font-bold text-purple-600" id="active-partners">0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payout Queue -->
+                        <div class="metric-card">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">💸 Payout Queue</h3>
+                            <div class="space-y-2">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Pending Payouts</span>
+                                    <span class="text-2xl font-bold text-orange-600" id="pending-payouts">0</span>
+                                </div>
+                                <button onclick="loadPayoutQueue()" class="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                                    View Payout Queue
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Trust Overview -->
+                        <div class="metric-card">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">🎯 Trust Overview</h3>
+                            <div class="space-y-2">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Avg Trust Score</span>
+                                    <span class="text-2xl font-bold" id="avg-trust-score">0</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">High Trust Partners</span>
+                                    <span class="text-2xl font-bold text-green-600" id="high-trust-partners">0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="metric-card">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">⚡ Quick Actions</h3>
+                            <div class="space-y-3">
+                                <button onclick="showRecordRevenue()" class="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                                    💰 Record Revenue
+                                </button>
+                                <button onclick="showPreparePayout()" class="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                                    💸 Prepare Payout
+                                </button>
+                                <button onclick="generateForecast()" class="w-full px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
+                                    📈 Generate Forecast
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trust Scores Tab -->
+                <div id="trust-content" class="tab-content hidden">
+                    <div class="metric-card">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">🎯 Partner Trust Scores</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Partner</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dispute Rate</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue Consistency</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Updated</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="trust-scores-tbody" class="bg-white divide-y divide-gray-200">
+                                    <!-- Trust scores will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <button onclick="loadTrustScores()" class="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                            🔄 Refresh Trust Scores
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Disputes Tab -->
+                <div id="disputes-content" class="tab-content hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <!-- Dispute Queue -->
+                        <div class="metric-card">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">⚖️ Dispute Queue</h3>
+                            <div class="space-y-2">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Open Disputes</span>
+                                    <span class="text-2xl font-bold text-red-600" id="open-disputes">0</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Reviewing</span>
+                                    <span class="text-2xl font-bold text-yellow-600" id="reviewing-disputes">0</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Resolved This Month</span>
+                                    <span class="text-2xl font-bold text-green-600" id="resolved-disputes">0</span>
+                                </div>
+                            </div>
+                            <button onclick="loadDisputes()" class="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                                📋 View All Disputes
+                            </button>
+                        </div>
+
+                        <!-- Dispute Patterns -->
+                        <div class="metric-card">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">🔍 Dispute Patterns</h3>
+                            <div id="dispute-patterns" class="space-y-3">
+                                <!-- Patterns will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Tab -->
+                <div id="analytics-content" class="tab-content hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <!-- Heatmap Generator -->
+                        <div class="metric-card">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 Revenue Heatmap</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Dimension</label>
+                                    <select id="heatmap-dimension" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                        <option value="hour">Hour of Day</option>
+                                        <option value="day">Day of Week</option>
+                                        <option value="partner">Partner</option>
+                                        <option value="game_mode">Game Mode</option>
+                                        <option value="feature">Feature</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Partner (Optional)</label>
+                                    <input type="text" id="heatmap-partner" placeholder="All partners" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                </div>
+                                <button onclick="generateHeatmap()" class="w-full px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
+                                    📈 Generate Heatmap
+                                </button>
+                            </div>
+                            <div id="heatmap-container" class="mt-6">
+                                <!-- Heatmap will be rendered here -->
+                            </div>
+                        </div>
+
+                        <!-- Feature Correlation -->
+                        <div class="metric-card">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">🔗 Feature Correlation</h3>
+                            <div id="feature-correlation" class="space-y-3">
+                                <!-- Correlation data will be loaded here -->
+                            </div>
+                            <button onclick="loadFeatureCorrelation()" class="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                                    📊 Load Correlation Data
+                                </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Investor View Tab -->
+                <div id="investor-content" class="tab-content hidden">
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                        <div class="flex">
+                            <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 0 0-8 8 0 0 0 8 8 0 0 0-8 8zm-1 1a1 1 0 0 0-1 1 0 0 0-1 1zm0 2a2 2 0 0 0-2 2 0 0 0-2 2z" clip-rule="evenodd"/>
+                            </svg>
+                            <div>
+                                <h4 class="text-lg font-semibold text-yellow-800">Read-Only Investor Dashboard</h4>
+                                <p class="text-yellow-700 mt-2">This view provides aggregated metrics without revealing sensitive partner information.</p>
+                            </div>
+                        </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <!-- Monthly Dashboard -->
+                        <div class="metric-card">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">📈 Monthly Dashboard</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Month</label>
+                                    <input type="month" id="investor-month" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                </div>
+                                <button onclick="loadInvestorDashboard()" class="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                                    📊 Load Dashboard
+                                </button>
+                            </div>
+                            <div id="investor-dashboard" class="mt-6">
+                                <!-- Dashboard data will be loaded here -->
+                            </div>
+                        </div>
+
+                        <!-- Q&A Summary -->
+                        <div class="metric-card">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">❓ Q&A Summary</h3>
+                            <div id="investor-qa" class="space-y-3">
+                                <!-- Q&A data will be loaded here -->
+                            </div>
+                            <button onclick="loadInvestorQA()" class="w-full mt-4 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
+                                    📋 Load Q&A Summary
+                                </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let currentTab = 'dashboard';
+        let authToken = localStorage.getItem('admin_jwt');
+
+        // Tab switching
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Update tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active', 'bg-blue-800'));
+            document.getElementById(`tab-${tab}`).classList.add('active', 'bg-blue-800');
+            
+            // Show/hide content
+            document.querySelectorAll('.tab-content > div').forEach(content => content.classList.add('hidden'));
+            document.getElementById(`${tab}-content`).classList.remove('hidden');
+        }
+
+        // API helpers
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            try {
+                const options = {
+                    method,
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                };
+
+                if (data && method !== 'GET') {
+                    options.body = JSON.stringify(data);
+                }
+
+                const response = await fetch(`/api/${endpoint}`, options);
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(result.error || 'API call failed');
+                }
+
+                return result.data;
+            } catch (error) {
+                console.error('API call failed:', error);
+                alert(`Error: ${error.message}`);
+                return null;
+            }
+        }
+
+        // Dashboard functions
+        async function refreshData() {
+            await Promise.all([
+                loadDashboardMetrics(),
+                loadTrustScores(),
+                loadDisputeSummary()
+            ]);
+        }
+
+        async function loadDashboardMetrics() {
+            const data = await apiCall('finance/revenue/summary?period=30days');
+            if (data) {
+                document.getElementById('total-revenue').textContent = `$${data.totalRevenue.toFixed(2)}`;
+                document.getElementById('net-revenue').textContent = `$${data.netRevenue.toFixed(2)}`;
+                document.getElementById('active-partners').textContent = data.transactionCount || 0;
+            }
+        }
+
+        function showRecordRevenue() {
+            const partnerId = prompt('Enter Partner ID:');
+            const amount = prompt('Enter Revenue Amount (USD):');
+            const source = prompt('Enter Revenue Source:');
+            
+            if (partnerId && amount && source) {
+                apiCall('finance/revenue', 'POST', { partnerId, amount, source });
+            }
+        }
+
+        function showPreparePayout() {
+            const partnerId = prompt('Enter Partner ID:');
+            const amount = prompt('Enter Payout Amount (USD):');
+            
+            if (partnerId && amount) {
+                apiCall('finance/payout/prepare', 'POST', { partnerId, amount });
+            }
+        }
+
+        async function generateForecast() {
+            const partnerId = prompt('Enter Partner ID (or leave empty for all):');
+            const month = prompt('Enter Month (YYYY-MM):');
+            
+            if (partnerId && month) {
+                const data = await apiCall(`finance/forecast?partnerId=${partnerId}&month=${month}`);
+                if (data) {
+                    alert(`Forecast: $${data.forecast.predictedRevenue.toFixed(2)} (confidence: ${(data.confidence * 100).toFixed(1)}%)`);
+                }
+            }
+        }
+
+        // Trust functions
+        async function loadTrustScores() {
+            const data = await apiCall('trust/scores');
+            if (data) {
+                const tbody = document.getElementById('trust-scores-tbody');
+                tbody.innerHTML = data.trustScores.map(score => `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${score.partnerId}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <span class="trust-score-${score.score >= 70 ? 'high' : score.score >= 40 ? 'medium' : 'low'}">
+                                ${score.score}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${(score.factors.disputeRate * 100).toFixed(1)}%</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${score.factors.revenueConsistency.toFixed(1)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${new Date(score.updatedAt).toLocaleDateString()}</td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // Dispute functions
+        async function loadDisputes() {
+            const data = await apiCall('disputes?status=open');
+            if (data) {
+                document.getElementById('open-disputes').textContent = data.disputes.filter(d => d.status === 'open').length;
+                document.getElementById('reviewing-disputes').textContent = data.disputes.filter(d => d.status === 'reviewing').length;
+                document.getElementById('resolved-disputes').textContent = data.disputes.filter(d => d.status === 'resolved').length;
+            }
+        }
+
+        async function loadDisputeSummary() {
+            const data = await apiCall('disputes/patterns');
+            if (data) {
+                const container = document.getElementById('dispute-patterns');
+                container.innerHTML = data.patterns.map(pattern => `
+                    <div class="border-l-4 border-gray-200 rounded-lg p-4">
+                        <h4 class="font-semibold text-gray-900">${pattern.description}</h4>
+                        <div class="grid grid-cols-2 gap-4 mt-2">
+                            <div>
+                                <span class="text-sm text-gray-600">Affected Partners:</span>
+                                <span class="font-semibold">${pattern.affectedPartners}</span>
+                            </div>
+                            <div>
+                                <span class="text-sm text-gray-600">Severity:</span>
+                                <span class="status-badge status-${pattern.severity}">${pattern.severity.toUpperCase()}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        async function loadPayoutQueue() {
+            alert('Payout queue management would be implemented in a full UI');
+        }
+
+        // Analytics functions
+        async function generateHeatmap() {
+            const dimension = document.getElementById('heatmap-dimension').value;
+            const partnerId = document.getElementById('heatmap-partner').value || null;
+            
+            const data = await apiCall(`analytics/heatmap?dimension=${dimension}&partnerId=${partnerId}`);
+            if (data) {
+                renderHeatmap(data.heatmap);
+            }
+        }
+
+        function renderHeatmap(heatmap) {
+            const container = document.getElementById('heatmap-container');
+            const maxRevenue = Math.max(...heatmap.data.map(d => d.revenueUsd));
+            
+            // Create simple heatmap visualization
+            const heatmapHtml = `
+                <div class="grid grid-cols-${heatmap.data.length} gap-2">
+                    ${heatmap.data.map(cell => {
+                        const intensity = cell.revenueUsd / maxRevenue;
+                        const bgColor = `rgba(59, 130, 246, ${intensity})`;
+                        return `
+                            <div class="text-center p-4 rounded border border-gray-200" style="background-color: ${bgColor}">
+                                <div class="text-xs font-semibold">${cell.label}</div>
+                                <div class="text-lg font-bold">$${cell.revenueUsd.toFixed(0)}</div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                <div class="mt-4 space-y-2">
+                    <h4 class="font-semibold">Insights:</h4>
+                    ${heatmap.insights.map(insight => `<div class="text-sm text-gray-600">• ${insight}</div>`).join('')}
+                </div>
+            `;
+            
+            container.innerHTML = heatmapHtml;
+        }
+
+        async function loadFeatureCorrelation() {
+            const partnerId = prompt('Enter Partner ID (or leave empty for all):');
+            
+            const data = await apiCall(`analytics/correlation?partnerId=${partnerId}`);
+            if (data) {
+                const container = document.getElementById('feature-correlation');
+                container.innerHTML = `
+                    <div class="space-y-3">
+                        ${data.correlations.map(feature => `
+                            <div class="border-l-4 border-gray-200 rounded-lg p-4">
+                                <h5 class="font-semibold">${feature.feature}</h5>
+                                <div class="grid grid-cols-2 gap-4 text-sm">
+                                    <div>Usage Count: ${feature.usageCount}</div>
+                                    <div>Total Revenue: $${feature.totalRevenue.toFixed(2)}</div>
+                                    <div>Avg per Use: $${feature.revenuePerUsage.toFixed(2)}</div>
+                                    <div>Partner Count: ${feature.partnerCount}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="mt-4">
+                        <h4 class="font-semibold">Insights:</h4>
+                        ${data.insights.map(insight => `<div class="text-sm text-gray-600">• ${insight}</div>`).join('')}
+                    </div>
+                `;
+            }
+        }
+
+        // Investor functions
+        async function loadInvestorDashboard() {
+            const month = document.getElementById('investor-month').value;
+            
+            const data = await apiCall(`investor/dashboard?month=${month}`);
+            if (data) {
+                const container = document.getElementById('investor-dashboard');
+                container.innerHTML = `
+                    <div class="space-y-6">
+                        <div class="grid grid-cols-2 gap-6">
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-green-600">$${data.dashboard.grossRevenue.toFixed(2)}</div>
+                                <div class="text-sm text-gray-600">Gross Revenue</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-blue-600">$${data.dashboard.netRevenue.toFixed(2)}</div>
+                                <div class="text-sm text-gray-600">Net Revenue</div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-purple-600">${(data.dashboard.growthRate * 100).toFixed(1)}%</div>
+                                <div class="text-sm text-gray-600">Growth Rate</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-orange-600">${data.dashboard.activePartners}</div>
+                                <div class="text-sm text-gray-600">Active Partners</div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-indigo-600">$${data.dashboard.forecastNextMonth.toFixed(2)}</div>
+                                <div class="text-sm text-gray-600">Next Month Forecast</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold">${(data.dashboard.confidence * 100).toFixed(1)}%</div>
+                                <div class="text-sm text-gray-600">Confidence</div>
+                            </div>
+                        </div>
+                        <div class="mt-6">
+                            <h4 class="font-semibold">Stability Indicators:</h4>
+                            <div class="space-y-2">
+                                <div>Revenue Stability: ${data.dashboard.stabilityIndicators.revenueStability.score}/100</div>
+                                <div>Partner Retention: ${(data.dashboard.stabilityIndicators.partnerRetention.retentionRate * 100).toFixed(1)}%</div>
+                                <div>Payout Efficiency: ${data.dashboard.stabilityIndicators.payoutEfficiency.efficiencyScore}/100</div>
+                            </div>
+                        </div>
+                `;
+            }
+        }
+
+        async function loadInvestorQA() {
+            const month = prompt('Enter Month (YYYY-MM):');
+            
+            const data = await apiCall(`investor/qa-summary?month=${month}`);
+            if (data) {
+                const container = document.getElementById('investor-qa');
+                container.innerHTML = `
+                    <div class="space-y-6">
+                        <div class="text-lg font-semibold">Q&A Summary - ${data.summary.month}</div>
+                        <div class="text-sm text-gray-600">Total Questions: ${data.summary.totalQuestions}</div>
+                        ${data.summary.clusteredQA.map(cluster => `
+                            <div class="border-l-4 border-gray-200 rounded-lg p-4">
+                                <h5 class="font-semibold">${cluster.category}</h5>
+                                <div class="text-sm text-gray-600">Questions: ${cluster.questionCount}</div>
+                                <div class="mt-2">
+                                    <strong>Sample Questions:</strong>
+                                    <ul class="list-disc list-inside space-y-1">
+                                        ${cluster.sampleQuestions.map(q => `<li>${q}</li>`).join('')}
+                                    </ul>
+                                </div>
+                                <div class="mt-2">
+                                    <strong>Sample Answer:</strong>
+                                    <p class="text-sm text-gray-700">${cluster.sampleAnswer}</p>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshData();
+        });
+    </script>
+</body>
+</html>

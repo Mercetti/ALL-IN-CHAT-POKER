@@ -1,0 +1,27 @@
+{
+  "name": "acey-founder-system",
+  "version": "1.0.0",
+  "description": "Founder Support System to Reduce Cognitive Load",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node test/test.js"
+  },
+  "dependencies": {
+    "fs": "^0.0.1-security",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0"
+  },
+  "keywords": [
+    "acey",
+    "founder",
+    "cognitive-load",
+    "memory",
+    "advisory"
+  ],
+  "author": "Mercetti",
+  "license": "MIT"
+}

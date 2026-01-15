@@ -48,6 +48,9 @@ const { createSimpleAdminAiControlRouter } = require('./server/routes/admin-ai-c
 const createAdminAILearningRoutes = require('./server/routes/admin-ai-learning');
 const { createAdminRouter } = require('./server/routes/admin');
 const { createAuthRouter } = require('./server/routes/auth');
+
+// Initialize Acey Financial Integration
+const financialIntegration = require('./server/financial/integration');
 const createPublicRouter = require('./server/routes/public');
 const loggingRouter = require('./server/routes/logging');
 const datasetRouter = require('./server/routes/dataset.js');
@@ -60,6 +63,11 @@ const createAdminServicesRouter = require('./server/routes/admin-services');
 const { createSimpleAdminServicesRouter } = require('./server/routes/admin-services-simple');
 const { createUnlockRouter } = require('./server/routes/unlock.js');
 const { createIncidentRouter } = require('./server/routes/incident.js');
+const { createFinanceRouter } = require('./server/routes/finance');
+const { createTrustRouter } = require('./server/routes/trust');
+const { createDisputeRouter } = require('./server/routes/disputes');
+const { createAnalyticsRouter } = require('./server/routes/analytics');
+const { createInvestorRouter } = require('./server/routes/investor');
 const { getActorFromReq, recordLoginAttempt, getAdminActivitySummary, clearAdminLoginHistory } = require('./server/admin/ops');
 const { validateBody } = require('./server/utils/file-ops');
 const { validateLocalLogin } = require('./server/routes/auth-simple');
@@ -343,10 +351,37 @@ app.use('/unlock', unlockRoutes);
 
 const incidentRoutes = createIncidentRouter({ auth, db, logger });
 app.use('/incidents', incidentRoutes);
+
+// Financial Operations routes
+const financeRoutes = createFinanceRouter({ auth, db, logger });
+app.use('/api/finance', financeRoutes);
+
+// Trust Score routes
+const trustRoutes = createTrustRouter({ auth, db, logger });
+app.use('/api/trust', trustRoutes);
+
+// Dispute Management routes
+const disputeRoutes = createDisputeRouter({ auth, db, logger });
+app.use('/api/disputes', disputeRoutes);
+
+// Analytics routes
+const analyticsRoutes = createAnalyticsRouter({ auth, db, logger });
+app.use('/api/analytics', analyticsRoutes);
+
+// Investor Dashboard routes
+const investorRoutes = createInvestorRouter({ auth, db, logger });
+app.use('/api/investor', investorRoutes);
 app.use('/api', datasetRouter);
 app.use('/api', simulationRouter);
 app.use('/api', workflowRouter);
 app.use('/api', commandsRouter);
+
+// Register Acey Financial Operations API routes
+const financialApiRoutes = financialIntegration.getApiRoutes();
+Object.entries(financialApiRoutes).forEach(([route, handler]) => {
+  const [method, path] = route.split(' ');
+  app[method.toLowerCase()](path, handler);
+});
 
 // Register full AI Control Center routes (authenticated, feature-complete)
 if (!config.isTest()) {
@@ -746,6 +781,16 @@ io.on('connection', (socket) => {
   
   socket.on('gameEvent', (data) => {
     aceyEngine.addGameEvent(socket.id, data);
+    
+    // Capture game revenue for financial processing
+    if (data.type === 'gameEnd' && data.totalRake) {
+      financialIntegration.onGameEnd({
+        gameId: data.gameId || `GAME-${socket.id}-${Date.now()}`,
+        partnerId: data.partnerId || 'partner_042',
+        totalRake: data.totalRake,
+        playerCount: data.playerCount || 2
+      });
+    }
   });
 });
 
@@ -782,6 +827,14 @@ if (!config.isTest()) {
 try {
   db.init();
   console.log('🗄️ Database initialized successfully');
+  
+  // Initialize new modules
+  await finance.initialize();
+  await trustEngine.initialize();
+  await disputeModule.initialize();
+  await analytics.initialize();
+  await investor.initialize();
+  console.log('🔧 Financial & Governance modules initialized successfully');
 } catch (error) {
   console.error('❌ Database initialization failed:', error);
   if (!config.isTest()) {
