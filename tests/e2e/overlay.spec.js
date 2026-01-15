@@ -249,6 +249,9 @@ test.describe('Streaming Overlay', () => {
   test('should handle chat overlay integration', async ({ page }) => {
     await page.goto('/overlay?chat=true');
     
+    // Wait for page to be fully loaded
+    await page.waitForLoadState('networkidle');
+    
     // Check chat overlay
     await expect(page.locator('.chat-overlay')).toBeVisible();
     

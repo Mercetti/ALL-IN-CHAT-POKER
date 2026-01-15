@@ -91,13 +91,13 @@ module.exports = defineConfig({
   globalSetup: './tests/e2e/global-setup.js',
   globalTeardown: './tests/e2e/global-teardown.js',
 
-  // Web server configuration
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:8080',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000,
-  },
+  // Web server configuration - disabled since we run server manually
+  // webServer: {
+  //   command: 'echo "Using existing server"',
+  //   url: 'http://localhost:8080',
+  //   reuseExistingServer: true,
+  //   timeout: 10000,
+  // },
 
   // Test timeout
   timeout: 60000,
