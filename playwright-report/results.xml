@@ -1,6 +1,6 @@
-<testsuites id="" name="" tests="156" failures="148" skipped="0" errors="0" time="355.701648">
-<testsuite name="admin.spec.js" timestamp="2026-01-15T04:40:17.260Z" hostname="chromium" tests="24" failures="24" skipped="0" time="315.812" errors="0">
-<testcase name="Admin Authentication › should require admin login" classname="admin.spec.js" time="6.689">
+<testsuites id="" name="" tests="234" failures="222" skipped="0" errors="0" time="553.2380840000001">
+<testsuite name="admin.spec.js" timestamp="2026-01-15T04:50:17.637Z" hostname="chromium" tests="24" failures="24" skipped="0" time="315.165" errors="0">
+<testcase name="Admin Authentication › should require admin login" classname="admin.spec.js" time="7.202">
 <failure message="admin.spec.js:9:3 should require admin login" type="FAILURE">
 <![CDATA[  [chromium] › admin.spec.js:9:3 › Admin Authentication › should require admin login ───────────────
 
@@ -45,7 +45,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Authentication › should login with admin credentials" classname="admin.spec.js" time="13.92">
+<testcase name="Admin Authentication › should login with admin credentials" classname="admin.spec.js" time="14.189">
 <failure message="admin.spec.js:21:3 should login with admin credentials" type="FAILURE">
 <![CDATA[  [chromium] › admin.spec.js:21:3 › Admin Authentication › should login with admin credentials ─────
 
@@ -84,7 +84,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Authentication › should reject non-admin users" classname="admin.spec.js" time="13.543">
+<testcase name="Admin Authentication › should reject non-admin users" classname="admin.spec.js" time="13.977">
 <failure message="admin.spec.js:33:3 should reject non-admin users" type="FAILURE">
 <![CDATA[  [chromium] › admin.spec.js:33:3 › Admin Authentication › should reject non-admin users ───────────
 
@@ -123,7 +123,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should display dashboard correctly" classname="admin.spec.js" time="13.538">
+<testcase name="Admin Dashboard › should display dashboard correctly" classname="admin.spec.js" time="14.284">
 <failure message="admin.spec.js:56:3 should display dashboard correctly" type="FAILURE">
 <![CDATA[  [chromium] › admin.spec.js:56:3 › Admin Dashboard › should display dashboard correctly ───────────
 
@@ -162,7 +162,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should show system statistics" classname="admin.spec.js" time="13.753">
+<testcase name="Admin Dashboard › should show system statistics" classname="admin.spec.js" time="14.375">
 <failure message="admin.spec.js:66:3 should show system statistics" type="FAILURE">
 <![CDATA[  [chromium] › admin.spec.js:66:3 › Admin Dashboard › should show system statistics ────────────────
 
@@ -201,7 +201,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should navigate between admin sections" classname="admin.spec.js" time="14.009">
+<testcase name="Admin Dashboard › should navigate between admin sections" classname="admin.spec.js" time="14.266">
 <failure message="admin.spec.js:74:3 should navigate between admin sections" type="FAILURE">
 <![CDATA[  [chromium] › admin.spec.js:74:3 › Admin Dashboard › should navigate between admin sections ───────
 
@@ -240,7 +240,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should handle user management" classname="admin.spec.js" time="14.182">
+<testcase name="Admin Dashboard › should handle user management" classname="admin.spec.js" time="14.172">
 <failure message="admin.spec.js:86:3 should handle user management" type="FAILURE">
 <![CDATA[  [chromium] › admin.spec.js:86:3 › Admin Dashboard › should handle user management ────────────────
 
@@ -279,7 +279,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should handle game management" classname="admin.spec.js" time="13.964">
+<testcase name="Admin Dashboard › should handle game management" classname="admin.spec.js" time="14.142">
 <failure message="admin.spec.js:110:3 should handle game management" type="FAILURE">
 <![CDATA[  [chromium] › admin.spec.js:110:3 › Admin Dashboard › should handle game management ───────────────
 
@@ -318,7 +318,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should handle system settings" classname="admin.spec.js" time="11.298">
+<testcase name="Admin Dashboard › should handle system settings" classname="admin.spec.js" time="11.344">
 <failure message="admin.spec.js:131:3 should handle system settings" type="FAILURE">
 <![CDATA[  [chromium] › admin.spec.js:131:3 › Admin Dashboard › should handle system settings ───────────────
 
@@ -357,7 +357,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should display real-time updates" classname="admin.spec.js" time="13.347">
+<testcase name="Admin Dashboard › should display real-time updates" classname="admin.spec.js" time="12.591">
 <failure message="admin.spec.js:146:3 should display real-time updates" type="FAILURE">
 <![CDATA[  [chromium] › admin.spec.js:146:3 › Admin Dashboard › should display real-time updates ────────────
 
@@ -396,7 +396,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should handle admin logging" classname="admin.spec.js" time="14.2">
+<testcase name="Admin Dashboard › should handle admin logging" classname="admin.spec.js" time="14.035">
 <failure message="admin.spec.js:162:3 should handle admin logging" type="FAILURE">
 <![CDATA[  [chromium] › admin.spec.js:162:3 › Admin Dashboard › should handle admin logging ─────────────────
 
@@ -435,7 +435,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should handle performance monitoring" classname="admin.spec.js" time="14.023">
+<testcase name="Admin Dashboard › should handle performance monitoring" classname="admin.spec.js" time="13.105">
 <failure message="admin.spec.js:186:3 should handle performance monitoring" type="FAILURE">
 <![CDATA[  [chromium] › admin.spec.js:186:3 › Admin Dashboard › should handle performance monitoring ────────
 
@@ -474,7 +474,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should handle backup and restore" classname="admin.spec.js" time="14.4">
+<testcase name="Admin Dashboard › should handle backup and restore" classname="admin.spec.js" time="13.449">
 <failure message="admin.spec.js:203:3 should handle backup and restore" type="FAILURE">
 <![CDATA[  [chromium] › admin.spec.js:203:3 › Admin Dashboard › should handle backup and restore ────────────
 
@@ -513,7 +513,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should handle API key management" classname="admin.spec.js" time="13.97">
+<testcase name="Admin Dashboard › should handle API key management" classname="admin.spec.js" time="13.286">
 <failure message="admin.spec.js:226:3 should handle API key management" type="FAILURE">
 <![CDATA[  [chromium] › admin.spec.js:226:3 › Admin Dashboard › should handle API key management ────────────
 
@@ -552,7 +552,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should handle theme customization" classname="admin.spec.js" time="14.078">
+<testcase name="Admin Dashboard › should handle theme customization" classname="admin.spec.js" time="13.334">
 <failure message="admin.spec.js:248:3 should handle theme customization" type="FAILURE">
 <![CDATA[  [chromium] › admin.spec.js:248:3 › Admin Dashboard › should handle theme customization ───────────
 
@@ -591,7 +591,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should handle notification settings" classname="admin.spec.js" time="13.929">
+<testcase name="Admin Dashboard › should handle notification settings" classname="admin.spec.js" time="13.432">
 <failure message="admin.spec.js:268:3 should handle notification settings" type="FAILURE">
 <![CDATA[  [chromium] › admin.spec.js:268:3 › Admin Dashboard › should handle notification settings ─────────
 
@@ -630,7 +630,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should handle security settings" classname="admin.spec.js" time="12.749">
+<testcase name="Admin Dashboard › should handle security settings" classname="admin.spec.js" time="12.799">
 <failure message="admin.spec.js:288:3 should handle security settings" type="FAILURE">
 <![CDATA[  [chromium] › admin.spec.js:288:3 › Admin Dashboard › should handle security settings ─────────────
 
@@ -669,7 +669,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should handle admin logout" classname="admin.spec.js" time="11.872">
+<testcase name="Admin Dashboard › should handle admin logout" classname="admin.spec.js" time="12.181">
 <failure message="admin.spec.js:309:3 should handle admin logout" type="FAILURE">
 <![CDATA[  [chromium] › admin.spec.js:309:3 › Admin Dashboard › should handle admin logout ──────────────────
 
@@ -708,7 +708,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Performance › should load dashboard quickly" classname="admin.spec.js" time="12.476">
+<testcase name="Admin Performance › should load dashboard quickly" classname="admin.spec.js" time="12.661">
 <failure message="admin.spec.js:332:3 should load dashboard quickly" type="FAILURE">
 <![CDATA[  [chromium] › admin.spec.js:332:3 › Admin Performance › should load dashboard quickly ─────────────
 
@@ -747,7 +747,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Performance › should handle large data sets efficiently" classname="admin.spec.js" time="13.027">
+<testcase name="Admin Performance › should handle large data sets efficiently" classname="admin.spec.js" time="12.948">
 <failure message="admin.spec.js:342:3 should handle large data sets efficiently" type="FAILURE">
 <![CDATA[  [chromium] › admin.spec.js:342:3 › Admin Performance › should handle large data sets efficiently ─
 
@@ -786,7 +786,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Performance › should maintain responsiveness during operations" classname="admin.spec.js" time="13.115">
+<testcase name="Admin Performance › should maintain responsiveness during operations" classname="admin.spec.js" time="13.25">
 <failure message="admin.spec.js:360:3 should maintain responsiveness during operations" type="FAILURE">
 <![CDATA[  [chromium] › admin.spec.js:360:3 › Admin Performance › should maintain responsiveness during operations 
 
@@ -825,7 +825,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Security › should enforce session timeout" classname="admin.spec.js" time="13.099">
+<testcase name="Admin Security › should enforce session timeout" classname="admin.spec.js" time="13.3">
 <failure message="admin.spec.js:387:3 should enforce session timeout" type="FAILURE">
 <![CDATA[  [chromium] › admin.spec.js:387:3 › Admin Security › should enforce session timeout ───────────────
 
@@ -864,7 +864,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Security › should prevent unauthorized access" classname="admin.spec.js" time="13.325">
+<testcase name="Admin Security › should prevent unauthorized access" classname="admin.spec.js" time="13.541">
 <failure message="admin.spec.js:402:3 should prevent unauthorized access" type="FAILURE">
 <![CDATA[  [chromium] › admin.spec.js:402:3 › Admin Security › should prevent unauthorized access ───────────
 
@@ -903,7 +903,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Security › should handle CSRF protection" classname="admin.spec.js" time="13.306">
+<testcase name="Admin Security › should handle CSRF protection" classname="admin.spec.js" time="13.302">
 <failure message="admin.spec.js:418:3 should handle CSRF protection" type="FAILURE">
 <![CDATA[  [chromium] › admin.spec.js:418:3 › Admin Security › should handle CSRF protection ────────────────
 
@@ -943,20 +943,20 @@
 </system-out>
 </testcase>
 </testsuite>
-<testsuite name="auth.spec.js" timestamp="2026-01-15T04:40:17.260Z" hostname="chromium" tests="12" failures="11" skipped="0" time="130.271" errors="0">
-<testcase name="Authentication Flow › should display login page correctly" classname="auth.spec.js" time="6.152">
+<testsuite name="auth.spec.js" timestamp="2026-01-15T04:50:17.637Z" hostname="chromium" tests="12" failures="11" skipped="0" time="127.296" errors="0">
+<testcase name="Authentication Flow › should display login page correctly" classname="auth.spec.js" time="6.134">
 <failure message="auth.spec.js:13:3 should display login page correctly" type="FAILURE">
 <![CDATA[  [chromium] › auth.spec.js:13:3 › Authentication Flow › should display login page correctly ───────
 
     Error: expect(page).toHaveTitle(expected) failed
 
     Expected pattern: /Login|Poker/
-    Received string:  "Error"
+    Received string:  ""
     Timeout: 5000ms
 
     Call log:
       - Expect "toHaveTitle" with timeout 5000ms
-        9 × unexpected value "Error"
+        9 × unexpected value ""
 
 
       13 |   test('should display login page correctly', async ({ page }) => {
@@ -989,7 +989,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Authentication Flow › should show validation errors for empty fields" classname="auth.spec.js" time="11.326">
+<testcase name="Authentication Flow › should show validation errors for empty fields" classname="auth.spec.js" time="11.524">
 <failure message="auth.spec.js:26:3 should show validation errors for empty fields" type="FAILURE">
 <![CDATA[  [chromium] › auth.spec.js:26:3 › Authentication Flow › should show validation errors for empty fields 
 
@@ -1028,7 +1028,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Authentication Flow › should show error for invalid credentials" classname="auth.spec.js" time="11.409">
+<testcase name="Authentication Flow › should show error for invalid credentials" classname="auth.spec.js" time="11.633">
 <failure message="auth.spec.js:35:3 should show error for invalid credentials" type="FAILURE">
 <![CDATA[  [chromium] › auth.spec.js:35:3 › Authentication Flow › should show error for invalid credentials ─
 
@@ -1067,7 +1067,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Authentication Flow › should login successfully with valid credentials" classname="auth.spec.js" time="11.813">
+<testcase name="Authentication Flow › should login successfully with valid credentials" classname="auth.spec.js" time="11.653">
 <failure message="auth.spec.js:45:3 should login successfully with valid credentials" type="FAILURE">
 <![CDATA[  [chromium] › auth.spec.js:45:3 › Authentication Flow › should login successfully with valid credentials 
 
@@ -1106,7 +1106,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Authentication Flow › should handle registration flow" classname="auth.spec.js" time="12.395">
+<testcase name="Authentication Flow › should handle registration flow" classname="auth.spec.js" time="12.138">
 <failure message="auth.spec.js:58:3 should handle registration flow" type="FAILURE">
 <![CDATA[  [chromium] › auth.spec.js:58:3 › Authentication Flow › should handle registration flow ───────────
 
@@ -1145,7 +1145,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Authentication Flow › should handle password reset flow" classname="auth.spec.js" time="13.192">
+<testcase name="Authentication Flow › should handle password reset flow" classname="auth.spec.js" time="12.812">
 <failure message="auth.spec.js:88:3 should handle password reset flow" type="FAILURE">
 <![CDATA[  [chromium] › auth.spec.js:88:3 › Authentication Flow › should handle password reset flow ─────────
 
@@ -1184,7 +1184,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Authentication Flow › should maintain session across page reloads" classname="auth.spec.js" time="13.301">
+<testcase name="Authentication Flow › should maintain session across page reloads" classname="auth.spec.js" time="12.668">
 <failure message="auth.spec.js:105:3 should maintain session across page reloads" type="FAILURE">
 <![CDATA[  [chromium] › auth.spec.js:105:3 › Authentication Flow › should maintain session across page reloads 
 
@@ -1223,7 +1223,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Authentication Flow › should logout successfully" classname="auth.spec.js" time="13.494">
+<testcase name="Authentication Flow › should logout successfully" classname="auth.spec.js" time="12.58">
 <failure message="auth.spec.js:121:3 should logout successfully" type="FAILURE">
 <![CDATA[  [chromium] › auth.spec.js:121:3 › Authentication Flow › should logout successfully ───────────────
 
@@ -1262,9 +1262,9 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Authentication Flow › should handle social login options" classname="auth.spec.js" time="0.813">
+<testcase name="Authentication Flow › should handle social login options" classname="auth.spec.js" time="0.717">
 </testcase>
-<testcase name="Security Features › should enforce password requirements" classname="auth.spec.js" time="12.909">
+<testcase name="Security Features › should enforce password requirements" classname="auth.spec.js" time="12.378">
 <failure message="auth.spec.js:162:3 should enforce password requirements" type="FAILURE">
 <![CDATA[  [chromium] › auth.spec.js:162:3 › Security Features › should enforce password requirements ───────
 
@@ -1303,7 +1303,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Security Features › should prevent brute force attacks" classname="auth.spec.js" time="11.928">
+<testcase name="Security Features › should prevent brute force attacks" classname="auth.spec.js" time="11.496">
 <failure message="auth.spec.js:176:3 should prevent brute force attacks" type="FAILURE">
 <![CDATA[  [chromium] › auth.spec.js:176:3 › Security Features › should prevent brute force attacks ─────────
 
@@ -1338,7 +1338,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Security Features › should handle session timeout" classname="auth.spec.js" time="11.539">
+<testcase name="Security Features › should handle session timeout" classname="auth.spec.js" time="11.563">
 <failure message="auth.spec.js:189:3 should handle session timeout" type="FAILURE">
 <![CDATA[  [chromium] › auth.spec.js:189:3 › Security Features › should handle session timeout ──────────────
 
@@ -1378,8 +1378,8 @@
 </system-out>
 </testcase>
 </testsuite>
-<testsuite name="game-play.spec.js" timestamp="2026-01-15T04:40:17.260Z" hostname="chromium" tests="20" failures="19" skipped="0" time="193.317" errors="0">
-<testcase name="Poker Game Flow › should load game interface correctly" classname="game-play.spec.js" time="11.591">
+<testsuite name="game-play.spec.js" timestamp="2026-01-15T04:50:17.637Z" hostname="chromium" tests="20" failures="19" skipped="0" time="197.753" errors="0">
+<testcase name="Poker Game Flow › should load game interface correctly" classname="game-play.spec.js" time="11.562">
 <failure message="game-play.spec.js:18:3 should load game interface correctly" type="FAILURE">
 <![CDATA[  [chromium] › game-play.spec.js:18:3 › Poker Game Flow › should load game interface correctly ─────
 
@@ -1418,7 +1418,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Poker Game Flow › should join a poker table" classname="game-play.spec.js" time="11.943">
+<testcase name="Poker Game Flow › should join a poker table" classname="game-play.spec.js" time="11.698">
 <failure message="game-play.spec.js:29:3 should join a poker table" type="FAILURE">
 <![CDATA[  [chromium] › game-play.spec.js:29:3 › Poker Game Flow › should join a poker table ────────────────
 
@@ -1457,7 +1457,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Poker Game Flow › should handle betting actions" classname="game-play.spec.js" time="12.227">
+<testcase name="Poker Game Flow › should handle betting actions" classname="game-play.spec.js" time="12.572">
 <failure message="game-play.spec.js:42:3 should handle betting actions" type="FAILURE">
 <![CDATA[  [chromium] › game-play.spec.js:42:3 › Poker Game Flow › should handle betting actions ────────────
 
@@ -1496,7 +1496,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Poker Game Flow › should handle raise action" classname="game-play.spec.js" time="12.373">
+<testcase name="Poker Game Flow › should handle raise action" classname="game-play.spec.js" time="12.792">
 <failure message="game-play.spec.js:61:3 should handle raise action" type="FAILURE">
 <![CDATA[  [chromium] › game-play.spec.js:61:3 › Poker Game Flow › should handle raise action ───────────────
 
@@ -1535,7 +1535,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Poker Game Flow › should display cards correctly" classname="game-play.spec.js" time="12.625">
+<testcase name="Poker Game Flow › should display cards correctly" classname="game-play.spec.js" time="12.72">
 <failure message="game-play.spec.js:83:3 should display cards correctly" type="FAILURE">
 <![CDATA[  [chromium] › game-play.spec.js:83:3 › Poker Game Flow › should display cards correctly ───────────
 
@@ -1574,7 +1574,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Poker Game Flow › should update pot correctly" classname="game-play.spec.js" time="12.718">
+<testcase name="Poker Game Flow › should update pot correctly" classname="game-play.spec.js" time="12.612">
 <failure message="game-play.spec.js:103:3 should update pot correctly" type="FAILURE">
 <![CDATA[  [chromium] › game-play.spec.js:103:3 › Poker Game Flow › should update pot correctly ─────────────
 
@@ -1613,7 +1613,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Poker Game Flow › should handle game phases correctly" classname="game-play.spec.js" time="12.356">
+<testcase name="Poker Game Flow › should handle game phases correctly" classname="game-play.spec.js" time="12.456">
 <failure message="game-play.spec.js:120:3 should handle game phases correctly" type="FAILURE">
 <![CDATA[  [chromium] › game-play.spec.js:120:3 › Poker Game Flow › should handle game phases correctly ─────
 
@@ -1652,7 +1652,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Poker Game Flow › should show hand rankings and results" classname="game-play.spec.js" time="11.265">
+<testcase name="Poker Game Flow › should show hand rankings and results" classname="game-play.spec.js" time="11.426">
 <failure message="game-play.spec.js:142:3 should show hand rankings and results" type="FAILURE">
 <![CDATA[  [chromium] › game-play.spec.js:142:3 › Poker Game Flow › should show hand rankings and results ───
 
@@ -1691,7 +1691,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Poker Game Flow › should handle multiple players" classname="game-play.spec.js" time="12.018">
+<testcase name="Poker Game Flow › should handle multiple players" classname="game-play.spec.js" time="11.691">
 <failure message="game-play.spec.js:160:3 should handle multiple players" type="FAILURE">
 <![CDATA[  [chromium] › game-play.spec.js:160:3 › Poker Game Flow › should handle multiple players ──────────
 
@@ -1730,7 +1730,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Poker Game Flow › should handle chat functionality" classname="game-play.spec.js" time="12.339">
+<testcase name="Poker Game Flow › should handle chat functionality" classname="game-play.spec.js" time="11.981">
 <failure message="game-play.spec.js:176:3 should handle chat functionality" type="FAILURE">
 <![CDATA[  [chromium] › game-play.spec.js:176:3 › Poker Game Flow › should handle chat functionality ────────
 
@@ -1769,7 +1769,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Poker Game Flow › should handle game settings" classname="game-play.spec.js" time="12.962">
+<testcase name="Poker Game Flow › should handle game settings" classname="game-play.spec.js" time="13.632">
 <failure message="game-play.spec.js:192:3 should handle game settings" type="FAILURE">
 <![CDATA[  [chromium] › game-play.spec.js:192:3 › Poker Game Flow › should handle game settings ─────────────
 
@@ -1808,7 +1808,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Game Performance › should load game within acceptable time" classname="game-play.spec.js" time="12.841">
+<testcase name="Game Performance › should load game within acceptable time" classname="game-play.spec.js" time="13.63">
 <failure message="game-play.spec.js:214:3 should load game within acceptable time" type="FAILURE">
 <![CDATA[  [chromium] › game-play.spec.js:214:3 › Game Performance › should load game within acceptable time 
 
@@ -1847,7 +1847,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Game Performance › should handle rapid actions without lag" classname="game-play.spec.js" time="12.806">
+<testcase name="Game Performance › should handle rapid actions without lag" classname="game-play.spec.js" time="13.447">
 <failure message="game-play.spec.js:224:3 should handle rapid actions without lag" type="FAILURE">
 <![CDATA[  [chromium] › game-play.spec.js:224:3 › Game Performance › should handle rapid actions without lag 
 
@@ -1886,9 +1886,9 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Game Performance › should maintain performance with multiple players" classname="game-play.spec.js" time="0.663">
+<testcase name="Game Performance › should maintain performance with multiple players" classname="game-play.spec.js" time="0.73">
 </testcase>
-<testcase name="Mobile Responsiveness › should work on mobile devices" classname="game-play.spec.js" time="6.149">
+<testcase name="Mobile Responsiveness › should work on mobile devices" classname="game-play.spec.js" time="6.217">
 <failure message="game-play.spec.js:255:3 should work on mobile devices" type="FAILURE">
 <![CDATA[  [chromium] › game-play.spec.js:255:3 › Mobile Responsiveness › should work on mobile devices ─────
 
@@ -1934,7 +1934,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Mobile Responsiveness › should adapt to tablet screens" classname="game-play.spec.js" time="5.877">
+<testcase name="Mobile Responsiveness › should adapt to tablet screens" classname="game-play.spec.js" time="6.121">
 <failure message="game-play.spec.js:270:3 should adapt to tablet screens" type="FAILURE">
 <![CDATA[  [chromium] › game-play.spec.js:270:3 › Mobile Responsiveness › should adapt to tablet screens ────
 
@@ -1980,7 +1980,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Mobile Responsiveness › should handle orientation changes" classname="game-play.spec.js" time="7.074">
+<testcase name="Mobile Responsiveness › should handle orientation changes" classname="game-play.spec.js" time="7.254">
 <failure message="game-play.spec.js:281:3 should handle orientation changes" type="FAILURE">
 <![CDATA[  [chromium] › game-play.spec.js:281:3 › Mobile Responsiveness › should handle orientation changes ─
 
@@ -2026,7 +2026,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Error Handling › should handle connection issues gracefully" classname="game-play.spec.js" time="0.588">
+<testcase name="Error Handling › should handle connection issues gracefully" classname="game-play.spec.js" time="0.896">
 <failure message="game-play.spec.js:295:3 should handle connection issues gracefully" type="FAILURE">
 <![CDATA[  [chromium] › game-play.spec.js:295:3 › Error Handling › should handle connection issues gracefully 
 
@@ -2061,7 +2061,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Error Handling › should handle server errors" classname="game-play.spec.js" time="6.548">
+<testcase name="Error Handling › should handle server errors" classname="game-play.spec.js" time="7.253">
 <failure message="game-play.spec.js:311:3 should handle server errors" type="FAILURE">
 <![CDATA[  [chromium] › game-play.spec.js:311:3 › Error Handling › should handle server errors ──────────────
 
@@ -2107,7 +2107,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Error Handling › should handle invalid game states" classname="game-play.spec.js" time="6.354">
+<testcase name="Error Handling › should handle invalid game states" classname="game-play.spec.js" time="7.063">
 <failure message="game-play.spec.js:327:3 should handle invalid game states" type="FAILURE">
 <![CDATA[  [chromium] › game-play.spec.js:327:3 › Error Handling › should handle invalid game states ────────
 
@@ -2154,8 +2154,8 @@
 </system-out>
 </testcase>
 </testsuite>
-<testsuite name="overlay.spec.js" timestamp="2026-01-15T04:40:17.260Z" hostname="chromium" tests="22" failures="20" skipped="0" time="146.856" errors="0">
-<testcase name="Streaming Overlay › should load overlay page correctly" classname="overlay.spec.js" time="6.299">
+<testsuite name="overlay.spec.js" timestamp="2026-01-15T04:50:17.637Z" hostname="chromium" tests="22" failures="20" skipped="0" time="149.561" errors="0">
+<testcase name="Streaming Overlay › should load overlay page correctly" classname="overlay.spec.js" time="7.179">
 <failure message="overlay.spec.js:9:3 should load overlay page correctly" type="FAILURE">
 <![CDATA[  [chromium] › overlay.spec.js:9:3 › Streaming Overlay › should load overlay page correctly ────────
 
@@ -2201,7 +2201,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should connect to WebSocket for real-time updates" classname="overlay.spec.js" time="3.065">
+<testcase name="Streaming Overlay › should connect to WebSocket for real-time updates" classname="overlay.spec.js" time="3.634">
 <failure message="overlay.spec.js:19:3 should connect to WebSocket for real-time updates" type="FAILURE">
 <![CDATA[  [chromium] › overlay.spec.js:19:3 › Streaming Overlay › should connect to WebSocket for real-time updates 
 
@@ -2240,7 +2240,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should display player information correctly" classname="overlay.spec.js" time="6.315">
+<testcase name="Streaming Overlay › should display player information correctly" classname="overlay.spec.js" time="6.594">
 <failure message="overlay.spec.js:34:3 should display player information correctly" type="FAILURE">
 <![CDATA[  [chromium] › overlay.spec.js:34:3 › Streaming Overlay › should display player information correctly 
 
@@ -2286,7 +2286,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should update player information dynamically" classname="overlay.spec.js" time="6.417">
+<testcase name="Streaming Overlay › should update player information dynamically" classname="overlay.spec.js" time="6.805">
 <failure message="overlay.spec.js:49:3 should update player information dynamically" type="FAILURE">
 <![CDATA[  [chromium] › overlay.spec.js:49:3 › Streaming Overlay › should update player information dynamically 
 
@@ -2332,9 +2332,9 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should display cards correctly" classname="overlay.spec.js" time="0.9">
+<testcase name="Streaming Overlay › should display cards correctly" classname="overlay.spec.js" time="1.138">
 </testcase>
-<testcase name="Streaming Overlay › should handle card reveal animations" classname="overlay.spec.js" time="6.601">
+<testcase name="Streaming Overlay › should handle card reveal animations" classname="overlay.spec.js" time="6.858">
 <failure message="overlay.spec.js:88:3 should handle card reveal animations" type="FAILURE">
 <![CDATA[  [chromium] › overlay.spec.js:88:3 › Streaming Overlay › should handle card reveal animations ─────
 
@@ -2348,7 +2348,7 @@
     Call log:
       - Expect "toHaveCount" with timeout 5000ms
       - waiting for locator('.card.revealing')
-        9 × locator resolved to 0 elements
+        8 × locator resolved to 0 elements
           - unexpected value "0"
 
 
@@ -2382,7 +2382,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should display pot information correctly" classname="overlay.spec.js" time="6.314">
+<testcase name="Streaming Overlay › should display pot information correctly" classname="overlay.spec.js" time="6.567">
 <failure message="overlay.spec.js:113:3 should display pot information correctly" type="FAILURE">
 <![CDATA[  [chromium] › overlay.spec.js:113:3 › Streaming Overlay › should display pot information correctly 
 
@@ -2428,7 +2428,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should handle betting animations" classname="overlay.spec.js" time="6.802">
+<testcase name="Streaming Overlay › should handle betting animations" classname="overlay.spec.js" time="6.782">
 <failure message="overlay.spec.js:130:3 should handle betting animations" type="FAILURE">
 <![CDATA[  [chromium] › overlay.spec.js:130:3 › Streaming Overlay › should handle betting animations ────────
 
@@ -2474,7 +2474,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should display community cards correctly" classname="overlay.spec.js" time="6.762">
+<testcase name="Streaming Overlay › should display community cards correctly" classname="overlay.spec.js" time="6.64">
 <failure message="overlay.spec.js:154:3 should display community cards correctly" type="FAILURE">
 <![CDATA[  [chromium] › overlay.spec.js:154:3 › Streaming Overlay › should display community cards correctly 
 
@@ -2520,7 +2520,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should handle winner announcements" classname="overlay.spec.js" time="6.229">
+<testcase name="Streaming Overlay › should handle winner announcements" classname="overlay.spec.js" time="6.612">
 <failure message="overlay.spec.js:172:3 should handle winner announcements" type="FAILURE">
 <![CDATA[  [chromium] › overlay.spec.js:172:3 › Streaming Overlay › should handle winner announcements ──────
 
@@ -2566,7 +2566,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should be responsive to different screen sizes" classname="overlay.spec.js" time="6.351">
+<testcase name="Streaming Overlay › should be responsive to different screen sizes" classname="overlay.spec.js" time="6.699">
 <failure message="overlay.spec.js:192:3 should be responsive to different screen sizes" type="FAILURE">
 <![CDATA[  [chromium] › overlay.spec.js:192:3 › Streaming Overlay › should be responsive to different screen sizes 
 
@@ -2612,7 +2612,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should handle overlay customization" classname="overlay.spec.js" time="6.275">
+<testcase name="Streaming Overlay › should handle overlay customization" classname="overlay.spec.js" time="6.744">
 <failure message="overlay.spec.js:206:3 should handle overlay customization" type="FAILURE">
 <![CDATA[  [chromium] › overlay.spec.js:206:3 › Streaming Overlay › should handle overlay customization ─────
 
@@ -2658,7 +2658,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should handle connection errors gracefully" classname="overlay.spec.js" time="6.478">
+<testcase name="Streaming Overlay › should handle connection errors gracefully" classname="overlay.spec.js" time="6.776">
 <failure message="overlay.spec.js:217:3 should handle connection errors gracefully" type="FAILURE">
 <![CDATA[  [chromium] › overlay.spec.js:217:3 › Streaming Overlay › should handle connection errors gracefully 
 
@@ -2704,7 +2704,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should support multiple overlay modes" classname="overlay.spec.js" time="6.168">
+<testcase name="Streaming Overlay › should support multiple overlay modes" classname="overlay.spec.js" time="6.741">
 <failure message="overlay.spec.js:233:3 should support multiple overlay modes" type="FAILURE">
 <![CDATA[  [chromium] › overlay.spec.js:233:3 › Streaming Overlay › should support multiple overlay modes ───
 
@@ -2750,7 +2750,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should handle chat overlay integration" classname="overlay.spec.js" time="6.486">
+<testcase name="Streaming Overlay › should handle chat overlay integration" classname="overlay.spec.js" time="6.809">
 <failure message="overlay.spec.js:249:3 should handle chat overlay integration" type="FAILURE">
 <![CDATA[  [chromium] › overlay.spec.js:249:3 › Streaming Overlay › should handle chat overlay integration ──
 
@@ -2796,7 +2796,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should support overlay branding" classname="overlay.spec.js" time="6.585">
+<testcase name="Streaming Overlay › should support overlay branding" classname="overlay.spec.js" time="7.109">
 <failure message="overlay.spec.js:269:3 should support overlay branding" type="FAILURE">
 <![CDATA[  [chromium] › overlay.spec.js:269:3 › Streaming Overlay › should support overlay branding ─────────
 
@@ -2842,7 +2842,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should handle overlay statistics" classname="overlay.spec.js" time="6.818">
+<testcase name="Streaming Overlay › should handle overlay statistics" classname="overlay.spec.js" time="6.617">
 <failure message="overlay.spec.js:277:3 should handle overlay statistics" type="FAILURE">
 <![CDATA[  [chromium] › overlay.spec.js:277:3 › Streaming Overlay › should handle overlay statistics ────────
 
@@ -2888,7 +2888,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should support overlay animations" classname="overlay.spec.js" time="6.779">
+<testcase name="Streaming Overlay › should support overlay animations" classname="overlay.spec.js" time="6.637">
 <failure message="overlay.spec.js:289:3 should support overlay animations" type="FAILURE">
 <![CDATA[  [chromium] › overlay.spec.js:289:3 › Streaming Overlay › should support overlay animations ───────
 
@@ -2934,9 +2934,9 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should handle overlay performance" classname="overlay.spec.js" time="2.079">
+<testcase name="Streaming Overlay › should handle overlay performance" classname="overlay.spec.js" time="2.528">
 </testcase>
-<testcase name="Overlay Configuration › should load configuration from URL parameters" classname="overlay.spec.js" time="7.105">
+<testcase name="Overlay Configuration › should load configuration from URL parameters" classname="overlay.spec.js" time="7.397">
 <failure message="overlay.spec.js:339:3 should load configuration from URL parameters" type="FAILURE">
 <![CDATA[  [chromium] › overlay.spec.js:339:3 › Overlay Configuration › should load configuration from URL parameters 
 
@@ -2982,7 +2982,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Overlay Configuration › should save overlay preferences" classname="overlay.spec.js" time="14.94">
+<testcase name="Overlay Configuration › should save overlay preferences" classname="overlay.spec.js" time="13.515">
 <failure message="overlay.spec.js:355:3 should save overlay preferences" type="FAILURE">
 <![CDATA[  [chromium] › overlay.spec.js:355:3 › Overlay Configuration › should save overlay preferences ─────
 
@@ -3021,7 +3021,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Overlay Configuration › should reset to default settings" classname="overlay.spec.js" time="15.088">
+<testcase name="Overlay Configuration › should reset to default settings" classname="overlay.spec.js" time="13.18">
 <failure message="overlay.spec.js:374:3 should reset to default settings" type="FAILURE">
 <![CDATA[  [chromium] › overlay.spec.js:374:3 › Overlay Configuration › should reset to default settings ────
 
@@ -3061,8 +3061,8 @@
 </system-out>
 </testcase>
 </testsuite>
-<testsuite name="admin.spec.js" timestamp="2026-01-15T04:40:17.260Z" hostname="firefox" tests="24" failures="24" skipped="0" time="363.125" errors="0">
-<testcase name="Admin Authentication › should require admin login" classname="admin.spec.js" time="9.419">
+<testsuite name="admin.spec.js" timestamp="2026-01-15T04:50:17.637Z" hostname="firefox" tests="24" failures="24" skipped="0" time="526.699" errors="0">
+<testcase name="Admin Authentication › should require admin login" classname="admin.spec.js" time="11.402">
 <failure message="admin.spec.js:9:3 should require admin login" type="FAILURE">
 <![CDATA[  [firefox] › admin.spec.js:9:3 › Admin Authentication › should require admin login ────────────────
 
@@ -3107,7 +3107,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Authentication › should login with admin credentials" classname="admin.spec.js" time="13.547">
+<testcase name="Admin Authentication › should login with admin credentials" classname="admin.spec.js" time="15.437">
 <failure message="admin.spec.js:21:3 should login with admin credentials" type="FAILURE">
 <![CDATA[  [firefox] › admin.spec.js:21:3 › Admin Authentication › should login with admin credentials ──────
 
@@ -3146,7 +3146,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Authentication › should reject non-admin users" classname="admin.spec.js" time="15.158">
+<testcase name="Admin Authentication › should reject non-admin users" classname="admin.spec.js" time="20.89">
 <failure message="admin.spec.js:33:3 should reject non-admin users" type="FAILURE">
 <![CDATA[  [firefox] › admin.spec.js:33:3 › Admin Authentication › should reject non-admin users ────────────
 
@@ -3185,7 +3185,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should display dashboard correctly" classname="admin.spec.js" time="15.544">
+<testcase name="Admin Dashboard › should display dashboard correctly" classname="admin.spec.js" time="18.044">
 <failure message="admin.spec.js:56:3 should display dashboard correctly" type="FAILURE">
 <![CDATA[  [firefox] › admin.spec.js:56:3 › Admin Dashboard › should display dashboard correctly ────────────
 
@@ -3224,7 +3224,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should show system statistics" classname="admin.spec.js" time="15.63">
+<testcase name="Admin Dashboard › should show system statistics" classname="admin.spec.js" time="18.652">
 <failure message="admin.spec.js:66:3 should show system statistics" type="FAILURE">
 <![CDATA[  [firefox] › admin.spec.js:66:3 › Admin Dashboard › should show system statistics ─────────────────
 
@@ -3263,7 +3263,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should navigate between admin sections" classname="admin.spec.js" time="14.456">
+<testcase name="Admin Dashboard › should navigate between admin sections" classname="admin.spec.js" time="29.205">
 <failure message="admin.spec.js:74:3 should navigate between admin sections" type="FAILURE">
 <![CDATA[  [firefox] › admin.spec.js:74:3 › Admin Dashboard › should navigate between admin sections ────────
 
@@ -3281,11 +3281,7 @@
       53 |     await page.waitForURL(/admin\/dashboard/);
         at C:\Users\merce\Documents\poker-game\tests\e2e\admin.spec.js:50:16
 
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ..\..\test-results\admin-Admin-Dashboard-should-navigate-between-admin-sections-firefox\test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
     ..\..\test-results\admin-Admin-Dashboard-should-navigate-between-admin-sections-firefox\video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -3294,15 +3290,13 @@
 </failure>
 <system-out>
 <![CDATA[
-[[ATTACHMENT|..\test-results\admin-Admin-Dashboard-should-navigate-between-admin-sections-firefox\test-failed-1.png]]
-
 [[ATTACHMENT|..\test-results\admin-Admin-Dashboard-should-navigate-between-admin-sections-firefox\video.webm]]
 
 [[ATTACHMENT|..\test-results\admin-Admin-Dashboard-should-navigate-between-admin-sections-firefox\error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should handle user management" classname="admin.spec.js" time="15.549">
+<testcase name="Admin Dashboard › should handle user management" classname="admin.spec.js" time="20.59">
 <failure message="admin.spec.js:86:3 should handle user management" type="FAILURE">
 <![CDATA[  [firefox] › admin.spec.js:86:3 › Admin Dashboard › should handle user management ─────────────────
 
@@ -3341,7 +3335,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should handle game management" classname="admin.spec.js" time="15.12">
+<testcase name="Admin Dashboard › should handle game management" classname="admin.spec.js" time="22.818">
 <failure message="admin.spec.js:110:3 should handle game management" type="FAILURE">
 <![CDATA[  [firefox] › admin.spec.js:110:3 › Admin Dashboard › should handle game management ────────────────
 
@@ -3380,7 +3374,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should handle system settings" classname="admin.spec.js" time="16.383">
+<testcase name="Admin Dashboard › should handle system settings" classname="admin.spec.js" time="18.156">
 <failure message="admin.spec.js:131:3 should handle system settings" type="FAILURE">
 <![CDATA[  [firefox] › admin.spec.js:131:3 › Admin Dashboard › should handle system settings ────────────────
 
@@ -3419,7 +3413,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should display real-time updates" classname="admin.spec.js" time="17.345">
+<testcase name="Admin Dashboard › should display real-time updates" classname="admin.spec.js" time="25.951">
 <failure message="admin.spec.js:146:3 should display real-time updates" type="FAILURE">
 <![CDATA[  [firefox] › admin.spec.js:146:3 › Admin Dashboard › should display real-time updates ─────────────
 
@@ -3458,7 +3452,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should handle admin logging" classname="admin.spec.js" time="15.004">
+<testcase name="Admin Dashboard › should handle admin logging" classname="admin.spec.js" time="17.151">
 <failure message="admin.spec.js:162:3 should handle admin logging" type="FAILURE">
 <![CDATA[  [firefox] › admin.spec.js:162:3 › Admin Dashboard › should handle admin logging ──────────────────
 
@@ -3497,7 +3491,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should handle performance monitoring" classname="admin.spec.js" time="15.624">
+<testcase name="Admin Dashboard › should handle performance monitoring" classname="admin.spec.js" time="22.377">
 <failure message="admin.spec.js:186:3 should handle performance monitoring" type="FAILURE">
 <![CDATA[  [firefox] › admin.spec.js:186:3 › Admin Dashboard › should handle performance monitoring ─────────
 
@@ -3536,7 +3530,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should handle backup and restore" classname="admin.spec.js" time="16.848">
+<testcase name="Admin Dashboard › should handle backup and restore" classname="admin.spec.js" time="25.197">
 <failure message="admin.spec.js:203:3 should handle backup and restore" type="FAILURE">
 <![CDATA[  [firefox] › admin.spec.js:203:3 › Admin Dashboard › should handle backup and restore ─────────────
 
@@ -3575,7 +3569,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should handle API key management" classname="admin.spec.js" time="14.6">
+<testcase name="Admin Dashboard › should handle API key management" classname="admin.spec.js" time="32.663">
 <failure message="admin.spec.js:226:3 should handle API key management" type="FAILURE">
 <![CDATA[  [firefox] › admin.spec.js:226:3 › Admin Dashboard › should handle API key management ─────────────
 
@@ -3614,7 +3608,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should handle theme customization" classname="admin.spec.js" time="15.39">
+<testcase name="Admin Dashboard › should handle theme customization" classname="admin.spec.js" time="30.332">
 <failure message="admin.spec.js:248:3 should handle theme customization" type="FAILURE">
 <![CDATA[  [firefox] › admin.spec.js:248:3 › Admin Dashboard › should handle theme customization ────────────
 
@@ -3653,7 +3647,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should handle notification settings" classname="admin.spec.js" time="15.305">
+<testcase name="Admin Dashboard › should handle notification settings" classname="admin.spec.js" time="30.019">
 <failure message="admin.spec.js:268:3 should handle notification settings" type="FAILURE">
 <![CDATA[  [firefox] › admin.spec.js:268:3 › Admin Dashboard › should handle notification settings ──────────
 
@@ -3692,7 +3686,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should handle security settings" classname="admin.spec.js" time="16">
+<testcase name="Admin Dashboard › should handle security settings" classname="admin.spec.js" time="27.34">
 <failure message="admin.spec.js:288:3 should handle security settings" type="FAILURE">
 <![CDATA[  [firefox] › admin.spec.js:288:3 › Admin Dashboard › should handle security settings ──────────────
 
@@ -3731,7 +3725,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Dashboard › should handle admin logout" classname="admin.spec.js" time="15.204">
+<testcase name="Admin Dashboard › should handle admin logout" classname="admin.spec.js" time="17.703">
 <failure message="admin.spec.js:309:3 should handle admin logout" type="FAILURE">
 <![CDATA[  [firefox] › admin.spec.js:309:3 › Admin Dashboard › should handle admin logout ───────────────────
 
@@ -3770,7 +3764,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Performance › should load dashboard quickly" classname="admin.spec.js" time="15.319">
+<testcase name="Admin Performance › should load dashboard quickly" classname="admin.spec.js" time="26.402">
 <failure message="admin.spec.js:332:3 should load dashboard quickly" type="FAILURE">
 <![CDATA[  [firefox] › admin.spec.js:332:3 › Admin Performance › should load dashboard quickly ──────────────
 
@@ -3809,7 +3803,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Performance › should handle large data sets efficiently" classname="admin.spec.js" time="15.256">
+<testcase name="Admin Performance › should handle large data sets efficiently" classname="admin.spec.js" time="25.62">
 <failure message="admin.spec.js:342:3 should handle large data sets efficiently" type="FAILURE">
 <![CDATA[  [firefox] › admin.spec.js:342:3 › Admin Performance › should handle large data sets efficiently ──
 
@@ -3848,7 +3842,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Performance › should maintain responsiveness during operations" classname="admin.spec.js" time="15.016">
+<testcase name="Admin Performance › should maintain responsiveness during operations" classname="admin.spec.js" time="18.7">
 <failure message="admin.spec.js:360:3 should maintain responsiveness during operations" type="FAILURE">
 <![CDATA[  [firefox] › admin.spec.js:360:3 › Admin Performance › should maintain responsiveness during operations 
 
@@ -3887,7 +3881,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Security › should enforce session timeout" classname="admin.spec.js" time="14.193">
+<testcase name="Admin Security › should enforce session timeout" classname="admin.spec.js" time="16.729">
 <failure message="admin.spec.js:387:3 should enforce session timeout" type="FAILURE">
 <![CDATA[  [firefox] › admin.spec.js:387:3 › Admin Security › should enforce session timeout ────────────────
 
@@ -3926,7 +3920,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Security › should prevent unauthorized access" classname="admin.spec.js" time="15.375">
+<testcase name="Admin Security › should prevent unauthorized access" classname="admin.spec.js" time="17.214">
 <failure message="admin.spec.js:402:3 should prevent unauthorized access" type="FAILURE">
 <![CDATA[  [firefox] › admin.spec.js:402:3 › Admin Security › should prevent unauthorized access ────────────
 
@@ -3965,7 +3959,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin Security › should handle CSRF protection" classname="admin.spec.js" time="15.84">
+<testcase name="Admin Security › should handle CSRF protection" classname="admin.spec.js" time="18.107">
 <failure message="admin.spec.js:418:3 should handle CSRF protection" type="FAILURE">
 <![CDATA[  [firefox] › admin.spec.js:418:3 › Admin Security › should handle CSRF protection ─────────────────
 
@@ -4005,8 +3999,8 @@
 </system-out>
 </testcase>
 </testsuite>
-<testsuite name="auth.spec.js" timestamp="2026-01-15T04:40:17.260Z" hostname="firefox" tests="12" failures="11" skipped="0" time="169.171" errors="0">
-<testcase name="Authentication Flow › should display login page correctly" classname="auth.spec.js" time="11.247">
+<testsuite name="auth.spec.js" timestamp="2026-01-15T04:50:17.637Z" hostname="firefox" tests="12" failures="11" skipped="0" time="190.475" errors="0">
+<testcase name="Authentication Flow › should display login page correctly" classname="auth.spec.js" time="12.889">
 <failure message="auth.spec.js:13:3 should display login page correctly" type="FAILURE">
 <![CDATA[  [firefox] › auth.spec.js:13:3 › Authentication Flow › should display login page correctly ────────
 
@@ -4051,7 +4045,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Authentication Flow › should show validation errors for empty fields" classname="auth.spec.js" time="15.06">
+<testcase name="Authentication Flow › should show validation errors for empty fields" classname="auth.spec.js" time="18.034">
 <failure message="auth.spec.js:26:3 should show validation errors for empty fields" type="FAILURE">
 <![CDATA[  [firefox] › auth.spec.js:26:3 › Authentication Flow › should show validation errors for empty fields 
 
@@ -4090,7 +4084,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Authentication Flow › should show error for invalid credentials" classname="auth.spec.js" time="15.148">
+<testcase name="Authentication Flow › should show error for invalid credentials" classname="auth.spec.js" time="16.104">
 <failure message="auth.spec.js:35:3 should show error for invalid credentials" type="FAILURE">
 <![CDATA[  [firefox] › auth.spec.js:35:3 › Authentication Flow › should show error for invalid credentials ──
 
@@ -4129,7 +4123,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Authentication Flow › should login successfully with valid credentials" classname="auth.spec.js" time="15.699">
+<testcase name="Authentication Flow › should login successfully with valid credentials" classname="auth.spec.js" time="17.279">
 <failure message="auth.spec.js:45:3 should login successfully with valid credentials" type="FAILURE">
 <![CDATA[  [firefox] › auth.spec.js:45:3 › Authentication Flow › should login successfully with valid credentials 
 
@@ -4168,7 +4162,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Authentication Flow › should handle registration flow" classname="auth.spec.js" time="15.366">
+<testcase name="Authentication Flow › should handle registration flow" classname="auth.spec.js" time="17.809">
 <failure message="auth.spec.js:58:3 should handle registration flow" type="FAILURE">
 <![CDATA[  [firefox] › auth.spec.js:58:3 › Authentication Flow › should handle registration flow ────────────
 
@@ -4207,7 +4201,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Authentication Flow › should handle password reset flow" classname="auth.spec.js" time="14.845">
+<testcase name="Authentication Flow › should handle password reset flow" classname="auth.spec.js" time="18">
 <failure message="auth.spec.js:88:3 should handle password reset flow" type="FAILURE">
 <![CDATA[  [firefox] › auth.spec.js:88:3 › Authentication Flow › should handle password reset flow ──────────
 
@@ -4246,7 +4240,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Authentication Flow › should maintain session across page reloads" classname="auth.spec.js" time="15.063">
+<testcase name="Authentication Flow › should maintain session across page reloads" classname="auth.spec.js" time="17.558">
 <failure message="auth.spec.js:105:3 should maintain session across page reloads" type="FAILURE">
 <![CDATA[  [firefox] › auth.spec.js:105:3 › Authentication Flow › should maintain session across page reloads 
 
@@ -4285,7 +4279,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Authentication Flow › should logout successfully" classname="auth.spec.js" time="15.59">
+<testcase name="Authentication Flow › should logout successfully" classname="auth.spec.js" time="19.249">
 <failure message="auth.spec.js:121:3 should logout successfully" type="FAILURE">
 <![CDATA[  [firefox] › auth.spec.js:121:3 › Authentication Flow › should logout successfully ────────────────
 
@@ -4324,9 +4318,9 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Authentication Flow › should handle social login options" classname="auth.spec.js" time="6.353">
+<testcase name="Authentication Flow › should handle social login options" classname="auth.spec.js" time="6.918">
 </testcase>
-<testcase name="Security Features › should enforce password requirements" classname="auth.spec.js" time="14.378">
+<testcase name="Security Features › should enforce password requirements" classname="auth.spec.js" time="19.922">
 <failure message="auth.spec.js:162:3 should enforce password requirements" type="FAILURE">
 <![CDATA[  [firefox] › auth.spec.js:162:3 › Security Features › should enforce password requirements ────────
 
@@ -4365,7 +4359,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Security Features › should prevent brute force attacks" classname="auth.spec.js" time="14.354">
+<testcase name="Security Features › should prevent brute force attacks" classname="auth.spec.js" time="14.484">
 <failure message="auth.spec.js:176:3 should prevent brute force attacks" type="FAILURE">
 <![CDATA[  [firefox] › auth.spec.js:176:3 › Security Features › should prevent brute force attacks ──────────
 
@@ -4400,7 +4394,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Security Features › should handle session timeout" classname="auth.spec.js" time="16.068">
+<testcase name="Security Features › should handle session timeout" classname="auth.spec.js" time="12.229">
 <failure message="auth.spec.js:189:3 should handle session timeout" type="FAILURE">
 <![CDATA[  [firefox] › auth.spec.js:189:3 › Security Features › should handle session timeout ───────────────
 
@@ -4440,8 +4434,8 @@
 </system-out>
 </testcase>
 </testsuite>
-<testsuite name="game-play.spec.js" timestamp="2026-01-15T04:40:17.260Z" hostname="firefox" tests="20" failures="19" skipped="0" time="257.872" errors="0">
-<testcase name="Poker Game Flow › should load game interface correctly" classname="game-play.spec.js" time="11.57">
+<testsuite name="game-play.spec.js" timestamp="2026-01-15T04:50:17.637Z" hostname="firefox" tests="20" failures="19" skipped="0" time="283.209" errors="0">
+<testcase name="Poker Game Flow › should load game interface correctly" classname="game-play.spec.js" time="15.143">
 <failure message="game-play.spec.js:18:3 should load game interface correctly" type="FAILURE">
 <![CDATA[  [firefox] › game-play.spec.js:18:3 › Poker Game Flow › should load game interface correctly ──────
 
@@ -4480,7 +4474,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Poker Game Flow › should join a poker table" classname="game-play.spec.js" time="16.344">
+<testcase name="Poker Game Flow › should join a poker table" classname="game-play.spec.js" time="15.35">
 <failure message="game-play.spec.js:29:3 should join a poker table" type="FAILURE">
 <![CDATA[  [firefox] › game-play.spec.js:29:3 › Poker Game Flow › should join a poker table ─────────────────
 
@@ -4519,7 +4513,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Poker Game Flow › should handle betting actions" classname="game-play.spec.js" time="14.863">
+<testcase name="Poker Game Flow › should handle betting actions" classname="game-play.spec.js" time="15.761">
 <failure message="game-play.spec.js:42:3 should handle betting actions" type="FAILURE">
 <![CDATA[  [firefox] › game-play.spec.js:42:3 › Poker Game Flow › should handle betting actions ─────────────
 
@@ -4558,7 +4552,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Poker Game Flow › should handle raise action" classname="game-play.spec.js" time="15.335">
+<testcase name="Poker Game Flow › should handle raise action" classname="game-play.spec.js" time="15.778">
 <failure message="game-play.spec.js:61:3 should handle raise action" type="FAILURE">
 <![CDATA[  [firefox] › game-play.spec.js:61:3 › Poker Game Flow › should handle raise action ────────────────
 
@@ -4597,7 +4591,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Poker Game Flow › should display cards correctly" classname="game-play.spec.js" time="14.82">
+<testcase name="Poker Game Flow › should display cards correctly" classname="game-play.spec.js" time="16.16">
 <failure message="game-play.spec.js:83:3 should display cards correctly" type="FAILURE">
 <![CDATA[  [firefox] › game-play.spec.js:83:3 › Poker Game Flow › should display cards correctly ────────────
 
@@ -4636,7 +4630,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Poker Game Flow › should update pot correctly" classname="game-play.spec.js" time="15.385">
+<testcase name="Poker Game Flow › should update pot correctly" classname="game-play.spec.js" time="16.189">
 <failure message="game-play.spec.js:103:3 should update pot correctly" type="FAILURE">
 <![CDATA[  [firefox] › game-play.spec.js:103:3 › Poker Game Flow › should update pot correctly ──────────────
 
@@ -4675,7 +4669,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Poker Game Flow › should handle game phases correctly" classname="game-play.spec.js" time="16.429">
+<testcase name="Poker Game Flow › should handle game phases correctly" classname="game-play.spec.js" time="15.703">
 <failure message="game-play.spec.js:120:3 should handle game phases correctly" type="FAILURE">
 <![CDATA[  [firefox] › game-play.spec.js:120:3 › Poker Game Flow › should handle game phases correctly ──────
 
@@ -4714,7 +4708,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Poker Game Flow › should show hand rankings and results" classname="game-play.spec.js" time="16.278">
+<testcase name="Poker Game Flow › should show hand rankings and results" classname="game-play.spec.js" time="15.532">
 <failure message="game-play.spec.js:142:3 should show hand rankings and results" type="FAILURE">
 <![CDATA[  [firefox] › game-play.spec.js:142:3 › Poker Game Flow › should show hand rankings and results ────
 
@@ -4753,7 +4747,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Poker Game Flow › should handle multiple players" classname="game-play.spec.js" time="16.073">
+<testcase name="Poker Game Flow › should handle multiple players" classname="game-play.spec.js" time="15.588">
 <failure message="game-play.spec.js:160:3 should handle multiple players" type="FAILURE">
 <![CDATA[  [firefox] › game-play.spec.js:160:3 › Poker Game Flow › should handle multiple players ───────────
 
@@ -4792,7 +4786,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Poker Game Flow › should handle chat functionality" classname="game-play.spec.js" time="14.996">
+<testcase name="Poker Game Flow › should handle chat functionality" classname="game-play.spec.js" time="16.439">
 <failure message="game-play.spec.js:176:3 should handle chat functionality" type="FAILURE">
 <![CDATA[  [firefox] › game-play.spec.js:176:3 › Poker Game Flow › should handle chat functionality ─────────
 
@@ -4831,7 +4825,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Poker Game Flow › should handle game settings" classname="game-play.spec.js" time="15.201">
+<testcase name="Poker Game Flow › should handle game settings" classname="game-play.spec.js" time="15.925">
 <failure message="game-play.spec.js:192:3 should handle game settings" type="FAILURE">
 <![CDATA[  [firefox] › game-play.spec.js:192:3 › Poker Game Flow › should handle game settings ──────────────
 
@@ -4870,7 +4864,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Game Performance › should load game within acceptable time" classname="game-play.spec.js" time="15.631">
+<testcase name="Game Performance › should load game within acceptable time" classname="game-play.spec.js" time="15.919">
 <failure message="game-play.spec.js:214:3 should load game within acceptable time" type="FAILURE">
 <![CDATA[  [firefox] › game-play.spec.js:214:3 › Game Performance › should load game within acceptable time ─
 
@@ -4909,7 +4903,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Game Performance › should handle rapid actions without lag" classname="game-play.spec.js" time="15.293">
+<testcase name="Game Performance › should handle rapid actions without lag" classname="game-play.spec.js" time="17.338">
 <failure message="game-play.spec.js:224:3 should handle rapid actions without lag" type="FAILURE">
 <![CDATA[  [firefox] › game-play.spec.js:224:3 › Game Performance › should handle rapid actions without lag ─
 
@@ -4948,9 +4942,9 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Game Performance › should maintain performance with multiple players" classname="game-play.spec.js" time="5.412">
+<testcase name="Game Performance › should maintain performance with multiple players" classname="game-play.spec.js" time="10.312">
 </testcase>
-<testcase name="Mobile Responsiveness › should work on mobile devices" classname="game-play.spec.js" time="10.497">
+<testcase name="Mobile Responsiveness › should work on mobile devices" classname="game-play.spec.js" time="13.763">
 <failure message="game-play.spec.js:255:3 should work on mobile devices" type="FAILURE">
 <![CDATA[  [firefox] › game-play.spec.js:255:3 › Mobile Responsiveness › should work on mobile devices ──────
 
@@ -4996,7 +4990,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Mobile Responsiveness › should adapt to tablet screens" classname="game-play.spec.js" time="10.726">
+<testcase name="Mobile Responsiveness › should adapt to tablet screens" classname="game-play.spec.js" time="12.277">
 <failure message="game-play.spec.js:270:3 should adapt to tablet screens" type="FAILURE">
 <![CDATA[  [firefox] › game-play.spec.js:270:3 › Mobile Responsiveness › should adapt to tablet screens ─────
 
@@ -5042,7 +5036,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Mobile Responsiveness › should handle orientation changes" classname="game-play.spec.js" time="10.246">
+<testcase name="Mobile Responsiveness › should handle orientation changes" classname="game-play.spec.js" time="10.995">
 <failure message="game-play.spec.js:281:3 should handle orientation changes" type="FAILURE">
 <![CDATA[  [firefox] › game-play.spec.js:281:3 › Mobile Responsiveness › should handle orientation changes ──
 
@@ -5088,7 +5082,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Error Handling › should handle connection issues gracefully" classname="game-play.spec.js" time="6.255">
+<testcase name="Error Handling › should handle connection issues gracefully" classname="game-play.spec.js" time="8.308">
 <failure message="game-play.spec.js:295:3 should handle connection issues gracefully" type="FAILURE">
 <![CDATA[  [firefox] › game-play.spec.js:295:3 › Error Handling › should handle connection issues gracefully 
 
@@ -5127,7 +5121,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Error Handling › should handle server errors" classname="game-play.spec.js" time="6.503">
+<testcase name="Error Handling › should handle server errors" classname="game-play.spec.js" time="6.634">
 <failure message="game-play.spec.js:311:3 should handle server errors" type="FAILURE">
 <![CDATA[  [firefox] › game-play.spec.js:311:3 › Error Handling › should handle server errors ───────────────
 
@@ -5173,7 +5167,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Error Handling › should handle invalid game states" classname="game-play.spec.js" time="10.015">
+<testcase name="Error Handling › should handle invalid game states" classname="game-play.spec.js" time="14.095">
 <failure message="game-play.spec.js:327:3 should handle invalid game states" type="FAILURE">
 <![CDATA[  [firefox] › game-play.spec.js:327:3 › Error Handling › should handle invalid game states ─────────
 
@@ -5220,8 +5214,8 @@
 </system-out>
 </testcase>
 </testsuite>
-<testsuite name="overlay.spec.js" timestamp="2026-01-15T04:40:17.260Z" hostname="firefox" tests="22" failures="20" skipped="0" time="228.932" errors="0">
-<testcase name="Streaming Overlay › should load overlay page correctly" classname="overlay.spec.js" time="10.054">
+<testsuite name="overlay.spec.js" timestamp="2026-01-15T04:50:17.637Z" hostname="firefox" tests="22" failures="20" skipped="0" time="298.119" errors="0">
+<testcase name="Streaming Overlay › should load overlay page correctly" classname="overlay.spec.js" time="12.302">
 <failure message="overlay.spec.js:9:3 should load overlay page correctly" type="FAILURE">
 <![CDATA[  [firefox] › overlay.spec.js:9:3 › Streaming Overlay › should load overlay page correctly ─────────
 
@@ -5267,7 +5261,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should connect to WebSocket for real-time updates" classname="overlay.spec.js" time="6.794">
+<testcase name="Streaming Overlay › should connect to WebSocket for real-time updates" classname="overlay.spec.js" time="10.463">
 <failure message="overlay.spec.js:19:3 should connect to WebSocket for real-time updates" type="FAILURE">
 <![CDATA[  [firefox] › overlay.spec.js:19:3 › Streaming Overlay › should connect to WebSocket for real-time updates 
 
@@ -5306,7 +5300,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should display player information correctly" classname="overlay.spec.js" time="10.238">
+<testcase name="Streaming Overlay › should display player information correctly" classname="overlay.spec.js" time="14.042">
 <failure message="overlay.spec.js:34:3 should display player information correctly" type="FAILURE">
 <![CDATA[  [firefox] › overlay.spec.js:34:3 › Streaming Overlay › should display player information correctly 
 
@@ -5352,7 +5346,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should update player information dynamically" classname="overlay.spec.js" time="11.355">
+<testcase name="Streaming Overlay › should update player information dynamically" classname="overlay.spec.js" time="14.576">
 <failure message="overlay.spec.js:49:3 should update player information dynamically" type="FAILURE">
 <![CDATA[  [firefox] › overlay.spec.js:49:3 › Streaming Overlay › should update player information dynamically 
 
@@ -5398,9 +5392,9 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should display cards correctly" classname="overlay.spec.js" time="6.431">
+<testcase name="Streaming Overlay › should display cards correctly" classname="overlay.spec.js" time="9.611">
 </testcase>
-<testcase name="Streaming Overlay › should handle card reveal animations" classname="overlay.spec.js" time="12.315">
+<testcase name="Streaming Overlay › should handle card reveal animations" classname="overlay.spec.js" time="12.428">
 <failure message="overlay.spec.js:88:3 should handle card reveal animations" type="FAILURE">
 <![CDATA[  [firefox] › overlay.spec.js:88:3 › Streaming Overlay › should handle card reveal animations ──────
 
@@ -5448,7 +5442,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should display pot information correctly" classname="overlay.spec.js" time="10.391">
+<testcase name="Streaming Overlay › should display pot information correctly" classname="overlay.spec.js" time="13.907">
 <failure message="overlay.spec.js:113:3 should display pot information correctly" type="FAILURE">
 <![CDATA[  [firefox] › overlay.spec.js:113:3 › Streaming Overlay › should display pot information correctly ─
 
@@ -5494,7 +5488,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should handle betting animations" classname="overlay.spec.js" time="10.306">
+<testcase name="Streaming Overlay › should handle betting animations" classname="overlay.spec.js" time="13.92">
 <failure message="overlay.spec.js:130:3 should handle betting animations" type="FAILURE">
 <![CDATA[  [firefox] › overlay.spec.js:130:3 › Streaming Overlay › should handle betting animations ─────────
 
@@ -5540,7 +5534,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should display community cards correctly" classname="overlay.spec.js" time="10.526">
+<testcase name="Streaming Overlay › should display community cards correctly" classname="overlay.spec.js" time="10.858">
 <failure message="overlay.spec.js:154:3 should display community cards correctly" type="FAILURE">
 <![CDATA[  [firefox] › overlay.spec.js:154:3 › Streaming Overlay › should display community cards correctly ─
 
@@ -5586,7 +5580,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should handle winner announcements" classname="overlay.spec.js" time="10.297">
+<testcase name="Streaming Overlay › should handle winner announcements" classname="overlay.spec.js" time="14.198">
 <failure message="overlay.spec.js:172:3 should handle winner announcements" type="FAILURE">
 <![CDATA[  [firefox] › overlay.spec.js:172:3 › Streaming Overlay › should handle winner announcements ───────
 
@@ -5632,7 +5626,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should be responsive to different screen sizes" classname="overlay.spec.js" time="7.083">
+<testcase name="Streaming Overlay › should be responsive to different screen sizes" classname="overlay.spec.js" time="7.451">
 <failure message="overlay.spec.js:192:3 should be responsive to different screen sizes" type="FAILURE">
 <![CDATA[  [firefox] › overlay.spec.js:192:3 › Streaming Overlay › should be responsive to different screen sizes 
 
@@ -5678,7 +5672,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should handle overlay customization" classname="overlay.spec.js" time="10.689">
+<testcase name="Streaming Overlay › should handle overlay customization" classname="overlay.spec.js" time="12.419">
 <failure message="overlay.spec.js:206:3 should handle overlay customization" type="FAILURE">
 <![CDATA[  [firefox] › overlay.spec.js:206:3 › Streaming Overlay › should handle overlay customization ──────
 
@@ -5724,7 +5718,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should handle connection errors gracefully" classname="overlay.spec.js" time="10.921">
+<testcase name="Streaming Overlay › should handle connection errors gracefully" classname="overlay.spec.js" time="13.459">
 <failure message="overlay.spec.js:217:3 should handle connection errors gracefully" type="FAILURE">
 <![CDATA[  [firefox] › overlay.spec.js:217:3 › Streaming Overlay › should handle connection errors gracefully 
 
@@ -5770,7 +5764,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should support multiple overlay modes" classname="overlay.spec.js" time="9.746">
+<testcase name="Streaming Overlay › should support multiple overlay modes" classname="overlay.spec.js" time="14.273">
 <failure message="overlay.spec.js:233:3 should support multiple overlay modes" type="FAILURE">
 <![CDATA[  [firefox] › overlay.spec.js:233:3 › Streaming Overlay › should support multiple overlay modes ────
 
@@ -5816,7 +5810,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should handle chat overlay integration" classname="overlay.spec.js" time="10.588">
+<testcase name="Streaming Overlay › should handle chat overlay integration" classname="overlay.spec.js" time="12.815">
 <failure message="overlay.spec.js:249:3 should handle chat overlay integration" type="FAILURE">
 <![CDATA[  [firefox] › overlay.spec.js:249:3 › Streaming Overlay › should handle chat overlay integration ───
 
@@ -5862,7 +5856,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should support overlay branding" classname="overlay.spec.js" time="11.735">
+<testcase name="Streaming Overlay › should support overlay branding" classname="overlay.spec.js" time="13.103">
 <failure message="overlay.spec.js:269:3 should support overlay branding" type="FAILURE">
 <![CDATA[  [firefox] › overlay.spec.js:269:3 › Streaming Overlay › should support overlay branding ──────────
 
@@ -5908,7 +5902,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should handle overlay statistics" classname="overlay.spec.js" time="11.882">
+<testcase name="Streaming Overlay › should handle overlay statistics" classname="overlay.spec.js" time="13.328">
 <failure message="overlay.spec.js:277:3 should handle overlay statistics" type="FAILURE">
 <![CDATA[  [firefox] › overlay.spec.js:277:3 › Streaming Overlay › should handle overlay statistics ─────────
 
@@ -5954,7 +5948,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should support overlay animations" classname="overlay.spec.js" time="11.67">
+<testcase name="Streaming Overlay › should support overlay animations" classname="overlay.spec.js" time="15.712">
 <failure message="overlay.spec.js:289:3 should support overlay animations" type="FAILURE">
 <![CDATA[  [firefox] › overlay.spec.js:289:3 › Streaming Overlay › should support overlay animations ────────
 
@@ -6000,9 +5994,9 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Streaming Overlay › should handle overlay performance" classname="overlay.spec.js" time="8.319">
+<testcase name="Streaming Overlay › should handle overlay performance" classname="overlay.spec.js" time="14.195">
 </testcase>
-<testcase name="Overlay Configuration › should load configuration from URL parameters" classname="overlay.spec.js" time="9.53">
+<testcase name="Overlay Configuration › should load configuration from URL parameters" classname="overlay.spec.js" time="13.99">
 <failure message="overlay.spec.js:339:3 should load configuration from URL parameters" type="FAILURE">
 <![CDATA[  [firefox] › overlay.spec.js:339:3 › Overlay Configuration › should load configuration from URL parameters 
 
@@ -6048,7 +6042,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Overlay Configuration › should save overlay preferences" classname="overlay.spec.js" time="14.351">
+<testcase name="Overlay Configuration › should save overlay preferences" classname="overlay.spec.js" time="20.356">
 <failure message="overlay.spec.js:355:3 should save overlay preferences" type="FAILURE">
 <![CDATA[  [firefox] › overlay.spec.js:355:3 › Overlay Configuration › should save overlay preferences ──────
 
@@ -6087,7 +6081,7 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="Overlay Configuration › should reset to default settings" classname="overlay.spec.js" time="13.711">
+<testcase name="Overlay Configuration › should reset to default settings" classname="overlay.spec.js" time="20.713">
 <failure message="overlay.spec.js:374:3 should reset to default settings" type="FAILURE">
 <![CDATA[  [firefox] › overlay.spec.js:374:3 › Overlay Configuration › should reset to default settings ─────
 
@@ -6123,6 +6117,2230 @@
 [[ATTACHMENT|..\test-results\overlay-Overlay-Configurat-9ede9-d-reset-to-default-settings-firefox\video.webm]]
 
 [[ATTACHMENT|..\test-results\overlay-Overlay-Configurat-9ede9-d-reset-to-default-settings-firefox\error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="admin.spec.js" timestamp="2026-01-15T04:50:17.637Z" hostname="webkit" tests="24" failures="24" skipped="0" time="299.777" errors="0">
+<testcase name="Admin Authentication › should require admin login" classname="admin.spec.js" time="9.74">
+<failure message="admin.spec.js:9:3 should require admin login" type="FAILURE">
+<![CDATA[  [webkit] › admin.spec.js:9:3 › Admin Authentication › should require admin login ─────────────────
+
+    Error: expect(page).toHaveURL(expected) failed
+
+    Expected pattern: /admin\/login/
+    Received string:  "http://localhost:8080/admin"
+    Timeout: 5000ms
+
+    Call log:
+      - Expect "toHaveURL" with timeout 5000ms
+        8 × unexpected value "http://localhost:8080/admin"
+
+
+      11 |     
+      12 |     // Should redirect to admin login
+    > 13 |     await expect(page).toHaveURL(/admin\/login/);
+         |                        ^
+      14 |     
+      15 |     // Check login form
+      16 |     await expect(page.locator('input[name="username"]')).toBeVisible();
+        at C:\Users\merce\Documents\poker-game\tests\e2e\admin.spec.js:13:24
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Authentication › should login with admin credentials" classname="admin.spec.js" time="13.445">
+<failure message="admin.spec.js:21:3 should login with admin credentials" type="FAILURE">
+<![CDATA[  [webkit] › admin.spec.js:21:3 › Admin Authentication › should login with admin credentials ───────
+
+    TimeoutError: page.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[name="username"]')
+
+
+      23 |     
+      24 |     // Fill admin credentials
+    > 25 |     await page.fill('input[name="username"]', 'admin');
+         |                ^
+      26 |     await page.fill('input[name="password"]', 'adminpass');
+      27 |     await page.click('button[type="submit"]');
+      28 |     
+        at C:\Users\merce\Documents\poker-game\tests\e2e\admin.spec.js:25:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\admin-Admin-Authentication-98bd5-ogin-with-admin-credentials-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\admin-Admin-Authentication-98bd5-ogin-with-admin-credentials-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\admin-Admin-Authentication-98bd5-ogin-with-admin-credentials-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\admin-Admin-Authentication-98bd5-ogin-with-admin-credentials-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\admin-Admin-Authentication-98bd5-ogin-with-admin-credentials-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\admin-Admin-Authentication-98bd5-ogin-with-admin-credentials-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Admin Authentication › should reject non-admin users" classname="admin.spec.js" time="2.62">
+<failure message="admin.spec.js:33:3 should reject non-admin users" type="FAILURE">
+<![CDATA[  [webkit] › admin.spec.js:33:3 › Admin Authentication › should reject non-admin users ─────────────
+
+    Error: page.goto: Target page, context or browser has been closed
+    Call log:
+      - navigating to "http://localhost:8080/admin/login", waiting until "load"
+
+
+      32 |
+      33 |   test('should reject non-admin users', async ({ page }) => {
+    > 34 |     await page.goto('/admin/login');
+         |                ^
+      35 |     
+      36 |     // Try regular user credentials
+      37 |     await page.fill('input[name="username"]', 'user');
+        at C:\Users\merce\Documents\poker-game\tests\e2e\admin.spec.js:34:16
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Dashboard › should display dashboard correctly" classname="admin.spec.js" time="5.629">
+<failure message="admin.spec.js:56:3 should display dashboard correctly" type="FAILURE">
+<![CDATA[  [webkit] › admin.spec.js:56:3 › Admin Dashboard › should display dashboard correctly ─────────────
+
+    Error: page.fill: Target page, context or browser has been closed
+    Call log:
+      - waiting for locator('input[name="username"]')
+
+
+      48 |     // Login as admin
+      49 |     await page.goto('/admin/login');
+    > 50 |     await page.fill('input[name="username"]', 'admin');
+         |                ^
+      51 |     await page.fill('input[name="password"]', 'adminpass');
+      52 |     await page.click('button[type="submit"]');
+      53 |     await page.waitForURL(/admin\/dashboard/);
+        at C:\Users\merce\Documents\poker-game\tests\e2e\admin.spec.js:50:16
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Dashboard › should show system statistics" classname="admin.spec.js" time="7.769">
+<failure message="admin.spec.js:66:3 should show system statistics" type="FAILURE">
+<![CDATA[  [webkit] › admin.spec.js:66:3 › Admin Dashboard › should show system statistics ──────────────────
+
+    Error: page.fill: Target page, context or browser has been closed
+    Call log:
+      - waiting for locator('input[name="username"]')
+
+
+      48 |     // Login as admin
+      49 |     await page.goto('/admin/login');
+    > 50 |     await page.fill('input[name="username"]', 'admin');
+         |                ^
+      51 |     await page.fill('input[name="password"]', 'adminpass');
+      52 |     await page.click('button[type="submit"]');
+      53 |     await page.waitForURL(/admin\/dashboard/);
+        at C:\Users\merce\Documents\poker-game\tests\e2e\admin.spec.js:50:16
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Dashboard › should navigate between admin sections" classname="admin.spec.js" time="3.624">
+<failure message="admin.spec.js:74:3 should navigate between admin sections" type="FAILURE">
+<![CDATA[  [webkit] › admin.spec.js:74:3 › Admin Dashboard › should navigate between admin sections ─────────
+
+    Error: page.goto: Provisiolal navigation canceled.
+    Call log:
+      - navigating to "http://localhost:8080/admin/login", waiting until "load"
+
+
+      47 |   test.beforeEach(async ({ page }) => {
+      48 |     // Login as admin
+    > 49 |     await page.goto('/admin/login');
+         |                ^
+      50 |     await page.fill('input[name="username"]', 'admin');
+      51 |     await page.fill('input[name="password"]', 'adminpass');
+      52 |     await page.click('button[type="submit"]');
+        at C:\Users\merce\Documents\poker-game\tests\e2e\admin.spec.js:49:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\admin-Admin-Dashboard-should-navigate-between-admin-sections-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\admin-Admin-Dashboard-should-navigate-between-admin-sections-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\admin-Admin-Dashboard-should-navigate-between-admin-sections-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\admin-Admin-Dashboard-should-navigate-between-admin-sections-webkit\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Admin Dashboard › should handle user management" classname="admin.spec.js" time="13.221">
+<failure message="admin.spec.js:86:3 should handle user management" type="FAILURE">
+<![CDATA[  [webkit] › admin.spec.js:86:3 › Admin Dashboard › should handle user management ──────────────────
+
+    TimeoutError: page.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[name="username"]')
+
+
+      48 |     // Login as admin
+      49 |     await page.goto('/admin/login');
+    > 50 |     await page.fill('input[name="username"]', 'admin');
+         |                ^
+      51 |     await page.fill('input[name="password"]', 'adminpass');
+      52 |     await page.click('button[type="submit"]');
+      53 |     await page.waitForURL(/admin\/dashboard/);
+        at C:\Users\merce\Documents\poker-game\tests\e2e\admin.spec.js:50:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\admin-Admin-Dashboard-should-handle-user-management-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\admin-Admin-Dashboard-should-handle-user-management-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\admin-Admin-Dashboard-should-handle-user-management-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\admin-Admin-Dashboard-should-handle-user-management-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\admin-Admin-Dashboard-should-handle-user-management-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\admin-Admin-Dashboard-should-handle-user-management-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Admin Dashboard › should handle game management" classname="admin.spec.js" time="13.304">
+<failure message="admin.spec.js:110:3 should handle game management" type="FAILURE">
+<![CDATA[  [webkit] › admin.spec.js:110:3 › Admin Dashboard › should handle game management ─────────────────
+
+    TimeoutError: page.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[name="username"]')
+
+
+      48 |     // Login as admin
+      49 |     await page.goto('/admin/login');
+    > 50 |     await page.fill('input[name="username"]', 'admin');
+         |                ^
+      51 |     await page.fill('input[name="password"]', 'adminpass');
+      52 |     await page.click('button[type="submit"]');
+      53 |     await page.waitForURL(/admin\/dashboard/);
+        at C:\Users\merce\Documents\poker-game\tests\e2e\admin.spec.js:50:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\admin-Admin-Dashboard-should-handle-game-management-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\admin-Admin-Dashboard-should-handle-game-management-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\admin-Admin-Dashboard-should-handle-game-management-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\admin-Admin-Dashboard-should-handle-game-management-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\admin-Admin-Dashboard-should-handle-game-management-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\admin-Admin-Dashboard-should-handle-game-management-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Admin Dashboard › should handle system settings" classname="admin.spec.js" time="5.218">
+<failure message="admin.spec.js:131:3 should handle system settings" type="FAILURE">
+<![CDATA[  [webkit] › admin.spec.js:131:3 › Admin Dashboard › should handle system settings ─────────────────
+
+    Error: page.goto: Target page, context or browser has been closed
+    Call log:
+      - navigating to "http://localhost:8080/admin/login", waiting until "load"
+
+
+      47 |   test.beforeEach(async ({ page }) => {
+      48 |     // Login as admin
+    > 49 |     await page.goto('/admin/login');
+         |                ^
+      50 |     await page.fill('input[name="username"]', 'admin');
+      51 |     await page.fill('input[name="password"]', 'adminpass');
+      52 |     await page.click('button[type="submit"]');
+        at C:\Users\merce\Documents\poker-game\tests\e2e\admin.spec.js:49:16
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Dashboard › should display real-time updates" classname="admin.spec.js" time="5.484">
+<failure message="admin.spec.js:146:3 should display real-time updates" type="FAILURE">
+<![CDATA[  [webkit] › admin.spec.js:146:3 › Admin Dashboard › should display real-time updates ──────────────
+
+    Error: page.goto: Target page, context or browser has been closed
+    Call log:
+      - navigating to "http://localhost:8080/admin/login", waiting until "load"
+
+
+      47 |   test.beforeEach(async ({ page }) => {
+      48 |     // Login as admin
+    > 49 |     await page.goto('/admin/login');
+         |                ^
+      50 |     await page.fill('input[name="username"]', 'admin');
+      51 |     await page.fill('input[name="password"]', 'adminpass');
+      52 |     await page.click('button[type="submit"]');
+        at C:\Users\merce\Documents\poker-game\tests\e2e\admin.spec.js:49:16
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Dashboard › should handle admin logging" classname="admin.spec.js" time="2.306">
+<failure message="admin.spec.js:162:3 should handle admin logging" type="FAILURE">
+<![CDATA[  [webkit] › admin.spec.js:162:3 › Admin Dashboard › should handle admin logging ───────────────────
+
+    Error: browserContext.newPage: Protocol error (Screencast.startVideo): Failed to initialize encoder: Memory allocation error
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Dashboard › should handle performance monitoring" classname="admin.spec.js" time="66.051">
+<failure message="admin.spec.js:186:3 should handle performance monitoring" type="FAILURE">
+<![CDATA[  [webkit] › admin.spec.js:186:3 › Admin Dashboard › should handle performance monitoring ──────────
+
+    Test timeout of 60000ms exceeded while running "beforeEach" hook.
+
+      45 |
+      46 | test.describe('Admin Dashboard', () => {
+    > 47 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      48 |     // Login as admin
+      49 |     await page.goto('/admin/login');
+      50 |     await page.fill('input[name="username"]', 'admin');
+        at C:\Users\merce\Documents\poker-game\tests\e2e\admin.spec.js:47:8
+
+    Error: browserContext.newPage: Test timeout of 60000ms exceeded.
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Dashboard › should handle backup and restore" classname="admin.spec.js" time="2.692">
+<failure message="admin.spec.js:203:3 should handle backup and restore" type="FAILURE">
+<![CDATA[  [webkit] › admin.spec.js:203:3 › Admin Dashboard › should handle backup and restore ──────────────
+
+    Error: page.goto: Target page, context or browser has been closed
+    Call log:
+      - navigating to "http://localhost:8080/admin/login", waiting until "load"
+
+
+      47 |   test.beforeEach(async ({ page }) => {
+      48 |     // Login as admin
+    > 49 |     await page.goto('/admin/login');
+         |                ^
+      50 |     await page.fill('input[name="username"]', 'admin');
+      51 |     await page.fill('input[name="password"]', 'adminpass');
+      52 |     await page.click('button[type="submit"]');
+        at C:\Users\merce\Documents\poker-game\tests\e2e\admin.spec.js:49:16
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Dashboard › should handle API key management" classname="admin.spec.js" time="13.931">
+<failure message="admin.spec.js:226:3 should handle API key management" type="FAILURE">
+<![CDATA[  [webkit] › admin.spec.js:226:3 › Admin Dashboard › should handle API key management ──────────────
+
+    Error: page.fill: Target page, context or browser has been closed
+    Call log:
+      - waiting for locator('input[name="username"]')
+
+
+      48 |     // Login as admin
+      49 |     await page.goto('/admin/login');
+    > 50 |     await page.fill('input[name="username"]', 'admin');
+         |                ^
+      51 |     await page.fill('input[name="password"]', 'adminpass');
+      52 |     await page.click('button[type="submit"]');
+      53 |     await page.waitForURL(/admin\/dashboard/);
+        at C:\Users\merce\Documents\poker-game\tests\e2e\admin.spec.js:50:16
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Dashboard › should handle theme customization" classname="admin.spec.js" time="6.062">
+<failure message="admin.spec.js:248:3 should handle theme customization" type="FAILURE">
+<![CDATA[  [webkit] › admin.spec.js:248:3 › Admin Dashboard › should handle theme customization ─────────────
+
+    Error: page.goto: Target page, context or browser has been closed
+    Call log:
+      - navigating to "http://localhost:8080/admin/login", waiting until "load"
+
+
+      47 |   test.beforeEach(async ({ page }) => {
+      48 |     // Login as admin
+    > 49 |     await page.goto('/admin/login');
+         |                ^
+      50 |     await page.fill('input[name="username"]', 'admin');
+      51 |     await page.fill('input[name="password"]', 'adminpass');
+      52 |     await page.click('button[type="submit"]');
+        at C:\Users\merce\Documents\poker-game\tests\e2e\admin.spec.js:49:16
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Dashboard › should handle notification settings" classname="admin.spec.js" time="5.774">
+<failure message="admin.spec.js:268:3 should handle notification settings" type="FAILURE">
+<![CDATA[  [webkit] › admin.spec.js:268:3 › Admin Dashboard › should handle notification settings ───────────
+
+    Error: page.goto: Target page, context or browser has been closed
+    Call log:
+      - navigating to "http://localhost:8080/admin/login", waiting until "load"
+
+
+      47 |   test.beforeEach(async ({ page }) => {
+      48 |     // Login as admin
+    > 49 |     await page.goto('/admin/login');
+         |                ^
+      50 |     await page.fill('input[name="username"]', 'admin');
+      51 |     await page.fill('input[name="password"]', 'adminpass');
+      52 |     await page.click('button[type="submit"]');
+        at C:\Users\merce\Documents\poker-game\tests\e2e\admin.spec.js:49:16
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Dashboard › should handle security settings" classname="admin.spec.js" time="18.968">
+<failure message="admin.spec.js:288:3 should handle security settings" type="FAILURE">
+<![CDATA[  [webkit] › admin.spec.js:288:3 › Admin Dashboard › should handle security settings ───────────────
+
+    TimeoutError: page.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[name="username"]')
+
+
+      48 |     // Login as admin
+      49 |     await page.goto('/admin/login');
+    > 50 |     await page.fill('input[name="username"]', 'admin');
+         |                ^
+      51 |     await page.fill('input[name="password"]', 'adminpass');
+      52 |     await page.click('button[type="submit"]');
+      53 |     await page.waitForURL(/admin\/dashboard/);
+        at C:\Users\merce\Documents\poker-game\tests\e2e\admin.spec.js:50:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\admin-Admin-Dashboard-should-handle-security-settings-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\admin-Admin-Dashboard-should-handle-security-settings-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\admin-Admin-Dashboard-should-handle-security-settings-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\admin-Admin-Dashboard-should-handle-security-settings-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\admin-Admin-Dashboard-should-handle-security-settings-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\admin-Admin-Dashboard-should-handle-security-settings-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Admin Dashboard › should handle admin logout" classname="admin.spec.js" time="4.446">
+<failure message="admin.spec.js:309:3 should handle admin logout" type="FAILURE">
+<![CDATA[  [webkit] › admin.spec.js:309:3 › Admin Dashboard › should handle admin logout ────────────────────
+
+    Error: page.fill: Target page, context or browser has been closed
+    Call log:
+      - waiting for locator('input[name="username"]')
+
+
+      48 |     // Login as admin
+      49 |     await page.goto('/admin/login');
+    > 50 |     await page.fill('input[name="username"]', 'admin');
+         |                ^
+      51 |     await page.fill('input[name="password"]', 'adminpass');
+      52 |     await page.click('button[type="submit"]');
+      53 |     await page.waitForURL(/admin\/dashboard/);
+        at C:\Users\merce\Documents\poker-game\tests\e2e\admin.spec.js:50:16
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Performance › should load dashboard quickly" classname="admin.spec.js" time="0">
+<failure message="admin.spec.js:332:3 should load dashboard quickly" type="FAILURE">
+<![CDATA[  [webkit] › admin.spec.js:332:3 › Admin Performance › should load dashboard quickly ───────────────
+
+    Error: EINVAL
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Performance › should handle large data sets efficiently" classname="admin.spec.js" time="0">
+<failure message="admin.spec.js:342:3 should handle large data sets efficiently" type="FAILURE">
+<![CDATA[  [webkit] › admin.spec.js:342:3 › Admin Performance › should handle large data sets efficiently ───
+
+    Error: EINVAL
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Performance › should maintain responsiveness during operations" classname="admin.spec.js" time="11.756">
+<failure message="admin.spec.js:360:3 should maintain responsiveness during operations" type="FAILURE">
+<![CDATA[  [webkit] › admin.spec.js:360:3 › Admin Performance › should maintain responsiveness during operations 
+
+    Error: page.fill: Target page, context or browser has been closed
+    Call log:
+      - waiting for locator('input[name="username"]')
+
+
+      324 |     // Login as admin
+      325 |     await page.goto('/admin/login');
+    > 326 |     await page.fill('input[name="username"]', 'admin');
+          |                ^
+      327 |     await page.fill('input[name="password"]', 'adminpass');
+      328 |     await page.click('button[type="submit"]');
+      329 |     await page.waitForURL(/admin\/dashboard/);
+        at C:\Users\merce\Documents\poker-game\tests\e2e\admin.spec.js:326:16
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Security › should enforce session timeout" classname="admin.spec.js" time="11.22">
+<failure message="admin.spec.js:387:3 should enforce session timeout" type="FAILURE">
+<![CDATA[  [webkit] › admin.spec.js:387:3 › Admin Security › should enforce session timeout ─────────────────
+
+    Error: page.goto: Target page, context or browser has been closed
+    Call log:
+      - navigating to "http://localhost:8080/admin/login", waiting until "load"
+
+
+      378 |   test.beforeEach(async ({ page }) => {
+      379 |     // Login as admin
+    > 380 |     await page.goto('/admin/login');
+          |                ^
+      381 |     await page.fill('input[name="username"]', 'admin');
+      382 |     await page.fill('input[name="password"]', 'adminpass');
+      383 |     await page.click('button[type="submit"]');
+        at C:\Users\merce\Documents\poker-game\tests\e2e\admin.spec.js:380:16
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Security › should prevent unauthorized access" classname="admin.spec.js" time="65.128">
+<failure message="admin.spec.js:402:3 should prevent unauthorized access" type="FAILURE">
+<![CDATA[  [webkit] › admin.spec.js:402:3 › Admin Security › should prevent unauthorized access ─────────────
+
+    Test timeout of 60000ms exceeded while running "beforeEach" hook.
+
+      376 |
+      377 | test.describe('Admin Security', () => {
+    > 378 |   test.beforeEach(async ({ page }) => {
+          |        ^
+      379 |     // Login as admin
+      380 |     await page.goto('/admin/login');
+      381 |     await page.fill('input[name="username"]', 'admin');
+        at C:\Users\merce\Documents\poker-game\tests\e2e\admin.spec.js:378:8
+
+    Error: browserContext.newPage: Test timeout of 60000ms exceeded.
+]]>
+</failure>
+</testcase>
+<testcase name="Admin Security › should handle CSRF protection" classname="admin.spec.js" time="11.389">
+<failure message="admin.spec.js:418:3 should handle CSRF protection" type="FAILURE">
+<![CDATA[  [webkit] › admin.spec.js:418:3 › Admin Security › should handle CSRF protection ──────────────────
+
+    Error: page.fill: Target page, context or browser has been closed
+    Call log:
+      - waiting for locator('input[name="username"]')
+
+
+      379 |     // Login as admin
+      380 |     await page.goto('/admin/login');
+    > 381 |     await page.fill('input[name="username"]', 'admin');
+          |                ^
+      382 |     await page.fill('input[name="password"]', 'adminpass');
+      383 |     await page.click('button[type="submit"]');
+      384 |     await page.waitForURL(/admin\/dashboard/);
+        at C:\Users\merce\Documents\poker-game\tests\e2e\admin.spec.js:381:16
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="auth.spec.js" timestamp="2026-01-15T04:50:17.637Z" hostname="webkit" tests="12" failures="11" skipped="0" time="120.271" errors="0">
+<testcase name="Authentication Flow › should display login page correctly" classname="auth.spec.js" time="0">
+<failure message="auth.spec.js:13:3 should display login page correctly" type="FAILURE">
+<![CDATA[  [webkit] › auth.spec.js:13:3 › Authentication Flow › should display login page correctly ─────────
+
+    Error: worker process exited unexpectedly (code=3221226505, signal=null)
+]]>
+</failure>
+</testcase>
+<testcase name="Authentication Flow › should show validation errors for empty fields" classname="auth.spec.js" time="9.084">
+<failure message="auth.spec.js:26:3 should show validation errors for empty fields" type="FAILURE">
+<![CDATA[  [webkit] › auth.spec.js:26:3 › Authentication Flow › should show validation errors for empty fields 
+
+    Error: page.click: Target page, context or browser has been closed
+    Call log:
+      - waiting for locator('button[type="submit"]')
+
+
+      26 |   test('should show validation errors for empty fields', async ({ page }) => {
+      27 |     // Try to submit empty form
+    > 28 |     await page.click('button[type="submit"]');
+         |                ^
+      29 |     
+      30 |     // Check for validation messages
+      31 |     await expect(page.locator('text=Username is required')).toBeVisible();
+        at C:\Users\merce\Documents\poker-game\tests\e2e\auth.spec.js:28:16
+]]>
+</failure>
+</testcase>
+<testcase name="Authentication Flow › should show error for invalid credentials" classname="auth.spec.js" time="0">
+<failure message="auth.spec.js:35:3 should show error for invalid credentials" type="FAILURE">
+<![CDATA[  [webkit] › auth.spec.js:35:3 › Authentication Flow › should show error for invalid credentials ───
+
+    Error: EINVAL
+]]>
+</failure>
+</testcase>
+<testcase name="Authentication Flow › should login successfully with valid credentials" classname="auth.spec.js" time="6.987">
+<failure message="auth.spec.js:45:3 should login successfully with valid credentials" type="FAILURE">
+<![CDATA[  [webkit] › auth.spec.js:45:3 › Authentication Flow › should login successfully with valid credentials 
+
+    Error: page.goto: Target page, context or browser has been closed
+    Call log:
+      - navigating to "http://localhost:8080/login", waiting until "load"
+
+
+       8 | test.describe('Authentication Flow', () => {
+       9 |   test.beforeEach(async ({ page }) => {
+    > 10 |     await page.goto('/login');
+         |                ^
+      11 |   });
+      12 |
+      13 |   test('should display login page correctly', async ({ page }) => {
+        at C:\Users\merce\Documents\poker-game\tests\e2e\auth.spec.js:10:16
+]]>
+</failure>
+</testcase>
+<testcase name="Authentication Flow › should handle registration flow" classname="auth.spec.js" time="14.81">
+<failure message="auth.spec.js:58:3 should handle registration flow" type="FAILURE">
+<![CDATA[  [webkit] › auth.spec.js:58:3 › Authentication Flow › should handle registration flow ─────────────
+
+    Error: page.goto: Target page, context or browser has been closed
+    Call log:
+      - navigating to "http://localhost:8080/login", waiting until "load"
+
+
+       8 | test.describe('Authentication Flow', () => {
+       9 |   test.beforeEach(async ({ page }) => {
+    > 10 |     await page.goto('/login');
+         |                ^
+      11 |   });
+      12 |
+      13 |   test('should display login page correctly', async ({ page }) => {
+        at C:\Users\merce\Documents\poker-game\tests\e2e\auth.spec.js:10:16
+]]>
+</failure>
+</testcase>
+<testcase name="Authentication Flow › should handle password reset flow" classname="auth.spec.js" time="65.055">
+<failure message="auth.spec.js:88:3 should handle password reset flow" type="FAILURE">
+<![CDATA[  [webkit] › auth.spec.js:88:3 › Authentication Flow › should handle password reset flow ───────────
+
+    Test timeout of 60000ms exceeded while running "beforeEach" hook.
+
+       7 |
+       8 | test.describe('Authentication Flow', () => {
+    >  9 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      10 |     await page.goto('/login');
+      11 |   });
+      12 |
+        at C:\Users\merce\Documents\poker-game\tests\e2e\auth.spec.js:9:8
+
+    Error: browserContext.newPage: Test timeout of 60000ms exceeded.
+]]>
+</failure>
+</testcase>
+<testcase name="Authentication Flow › should maintain session across page reloads" classname="auth.spec.js" time="0">
+<failure message="auth.spec.js:105:3 should maintain session across page reloads" type="FAILURE">
+<![CDATA[  [webkit] › auth.spec.js:105:3 › Authentication Flow › should maintain session across page reloads 
+
+    Error: worker process exited unexpectedly (code=3221226505, signal=null)
+]]>
+</failure>
+</testcase>
+<testcase name="Authentication Flow › should logout successfully" classname="auth.spec.js" time="5.47">
+<failure message="auth.spec.js:121:3 should logout successfully" type="FAILURE">
+<![CDATA[  [webkit] › auth.spec.js:121:3 › Authentication Flow › should logout successfully ─────────────────
+
+    Error: page.fill: Target page, context or browser has been closed
+    Call log:
+      - waiting for locator('input[name="username"]')
+
+
+      121 |   test('should logout successfully', async ({ page }) => {
+      122 |     // Login first
+    > 123 |     await page.fill('input[name="username"]', 'testuser');
+          |                ^
+      124 |     await page.fill('input[name="password"]', 'testpass');
+      125 |     await page.click('button[type="submit"]');
+      126 |     
+        at C:\Users\merce\Documents\poker-game\tests\e2e\auth.spec.js:123:16
+]]>
+</failure>
+</testcase>
+<testcase name="Authentication Flow › should handle social login options" classname="auth.spec.js" time="9.677">
+</testcase>
+<testcase name="Security Features › should enforce password requirements" classname="auth.spec.js" time="4.982">
+<failure message="auth.spec.js:162:3 should enforce password requirements" type="FAILURE">
+<![CDATA[  [webkit] › auth.spec.js:162:3 › Security Features › should enforce password requirements ─────────
+
+    Error: page.fill: Target page, context or browser has been closed
+    Call log:
+      - waiting for locator('input[name="username"]')
+
+
+      164 |     
+      165 |     // Test weak password
+    > 166 |     await page.fill('input[name="username"]', 'testuser');
+          |                ^
+      167 |     await page.fill('input[name="email"]', 'test@example.com');
+      168 |     await page.fill('input[name="password"]', '123');
+      169 |     await page.fill('input[name="confirmPassword"]', '123');
+        at C:\Users\merce\Documents\poker-game\tests\e2e\auth.spec.js:166:16
+]]>
+</failure>
+</testcase>
+<testcase name="Security Features › should prevent brute force attacks" classname="auth.spec.js" time="0">
+<failure message="auth.spec.js:176:3 should prevent brute force attacks" type="FAILURE">
+<![CDATA[  [webkit] › auth.spec.js:176:3 › Security Features › should prevent brute force attacks ───────────
+
+    Error: worker process exited unexpectedly (code=3221226505, signal=null)
+]]>
+</failure>
+</testcase>
+<testcase name="Security Features › should handle session timeout" classname="auth.spec.js" time="4.206">
+<failure message="auth.spec.js:189:3 should handle session timeout" type="FAILURE">
+<![CDATA[  [webkit] › auth.spec.js:189:3 › Security Features › should handle session timeout ────────────────
+
+    Error: page.fill: Target page, context or browser has been closed
+    Call log:
+      - waiting for locator('input[name="username"]')
+
+
+      190 |     // Login
+      191 |     await page.goto('/login');
+    > 192 |     await page.fill('input[name="username"]', 'testuser');
+          |                ^
+      193 |     await page.fill('input[name="password"]', 'testpass');
+      194 |     await page.click('button[type="submit"]');
+      195 |     
+        at C:\Users\merce\Documents\poker-game\tests\e2e\auth.spec.js:192:16
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="game-play.spec.js" timestamp="2026-01-15T04:50:17.637Z" hostname="webkit" tests="20" failures="19" skipped="0" time="213.162" errors="0">
+<testcase name="Poker Game Flow › should load game interface correctly" classname="game-play.spec.js" time="14.316">
+<failure message="game-play.spec.js:18:3 should load game interface correctly" type="FAILURE">
+<![CDATA[  [webkit] › game-play.spec.js:18:3 › Poker Game Flow › should load game interface correctly ───────
+
+    TimeoutError: page.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[name="username"]')
+
+
+      10 |     // Login before each test
+      11 |     await page.goto('/login');
+    > 12 |     await page.fill('input[name="username"]', 'testuser');
+         |                ^
+      13 |     await page.fill('input[name="password"]', 'testpass');
+      14 |     await page.click('button[type="submit"]');
+      15 |     await page.waitForURL(/dashboard|main|game/);
+        at C:\Users\merce\Documents\poker-game\tests\e2e\game-play.spec.js:12:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\game-play-Poker-Game-Flow--0159e-ad-game-interface-correctly-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\game-play-Poker-Game-Flow--0159e-ad-game-interface-correctly-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\game-play-Poker-Game-Flow--0159e-ad-game-interface-correctly-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\game-play-Poker-Game-Flow--0159e-ad-game-interface-correctly-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\game-play-Poker-Game-Flow--0159e-ad-game-interface-correctly-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\game-play-Poker-Game-Flow--0159e-ad-game-interface-correctly-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Poker Game Flow › should join a poker table" classname="game-play.spec.js" time="65.047">
+<failure message="game-play.spec.js:29:3 should join a poker table" type="FAILURE">
+<![CDATA[  [webkit] › game-play.spec.js:29:3 › Poker Game Flow › should join a poker table ──────────────────
+
+    Test timeout of 60000ms exceeded while running "beforeEach" hook.
+
+       7 |
+       8 | test.describe('Poker Game Flow', () => {
+    >  9 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      10 |     // Login before each test
+      11 |     await page.goto('/login');
+      12 |     await page.fill('input[name="username"]', 'testuser');
+        at C:\Users\merce\Documents\poker-game\tests\e2e\game-play.spec.js:9:8
+
+    Error: browserContext.newPage: Test timeout of 60000ms exceeded.
+]]>
+</failure>
+</testcase>
+<testcase name="Poker Game Flow › should handle betting actions" classname="game-play.spec.js" time="14.017">
+<failure message="game-play.spec.js:42:3 should handle betting actions" type="FAILURE">
+<![CDATA[  [webkit] › game-play.spec.js:42:3 › Poker Game Flow › should handle betting actions ──────────────
+
+    TimeoutError: page.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[name="username"]')
+
+
+      10 |     // Login before each test
+      11 |     await page.goto('/login');
+    > 12 |     await page.fill('input[name="username"]', 'testuser');
+         |                ^
+      13 |     await page.fill('input[name="password"]', 'testpass');
+      14 |     await page.click('button[type="submit"]');
+      15 |     await page.waitForURL(/dashboard|main|game/);
+        at C:\Users\merce\Documents\poker-game\tests\e2e\game-play.spec.js:12:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\game-play-Poker-Game-Flow-should-handle-betting-actions-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\game-play-Poker-Game-Flow-should-handle-betting-actions-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\game-play-Poker-Game-Flow-should-handle-betting-actions-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\game-play-Poker-Game-Flow-should-handle-betting-actions-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\game-play-Poker-Game-Flow-should-handle-betting-actions-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\game-play-Poker-Game-Flow-should-handle-betting-actions-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Poker Game Flow › should handle raise action" classname="game-play.spec.js" time="21.907">
+<failure message="game-play.spec.js:61:3 should handle raise action" type="FAILURE">
+<![CDATA[  [webkit] › game-play.spec.js:61:3 › Poker Game Flow › should handle raise action ─────────────────
+
+    TimeoutError: page.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[name="username"]')
+
+
+      10 |     // Login before each test
+      11 |     await page.goto('/login');
+    > 12 |     await page.fill('input[name="username"]', 'testuser');
+         |                ^
+      13 |     await page.fill('input[name="password"]', 'testpass');
+      14 |     await page.click('button[type="submit"]');
+      15 |     await page.waitForURL(/dashboard|main|game/);
+        at C:\Users\merce\Documents\poker-game\tests\e2e\game-play.spec.js:12:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\game-play-Poker-Game-Flow-should-handle-raise-action-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\game-play-Poker-Game-Flow-should-handle-raise-action-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\game-play-Poker-Game-Flow-should-handle-raise-action-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\game-play-Poker-Game-Flow-should-handle-raise-action-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\game-play-Poker-Game-Flow-should-handle-raise-action-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\game-play-Poker-Game-Flow-should-handle-raise-action-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Poker Game Flow › should display cards correctly" classname="game-play.spec.js" time="20.79">
+<failure message="game-play.spec.js:83:3 should display cards correctly" type="FAILURE">
+<![CDATA[  [webkit] › game-play.spec.js:83:3 › Poker Game Flow › should display cards correctly ─────────────
+
+    TimeoutError: page.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[name="username"]')
+
+
+      10 |     // Login before each test
+      11 |     await page.goto('/login');
+    > 12 |     await page.fill('input[name="username"]', 'testuser');
+         |                ^
+      13 |     await page.fill('input[name="password"]', 'testpass');
+      14 |     await page.click('button[type="submit"]');
+      15 |     await page.waitForURL(/dashboard|main|game/);
+        at C:\Users\merce\Documents\poker-game\tests\e2e\game-play.spec.js:12:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\game-play-Poker-Game-Flow-should-display-cards-correctly-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\game-play-Poker-Game-Flow-should-display-cards-correctly-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\game-play-Poker-Game-Flow-should-display-cards-correctly-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\game-play-Poker-Game-Flow-should-display-cards-correctly-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\game-play-Poker-Game-Flow-should-display-cards-correctly-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\game-play-Poker-Game-Flow-should-display-cards-correctly-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Poker Game Flow › should update pot correctly" classname="game-play.spec.js" time="0">
+<failure message="game-play.spec.js:103:3 should update pot correctly" type="FAILURE">
+<![CDATA[  [webkit] › game-play.spec.js:103:3 › Poker Game Flow › should update pot correctly ───────────────
+
+    Error: worker process exited unexpectedly (code=3221226505, signal=null)
+]]>
+</failure>
+</testcase>
+<testcase name="Poker Game Flow › should handle game phases correctly" classname="game-play.spec.js" time="0">
+<failure message="game-play.spec.js:120:3 should handle game phases correctly" type="FAILURE">
+<![CDATA[  [webkit] › game-play.spec.js:120:3 › Poker Game Flow › should handle game phases correctly ───────
+
+    Error: worker process exited unexpectedly (code=3221226505, signal=null)
+]]>
+</failure>
+</testcase>
+<testcase name="Poker Game Flow › should show hand rankings and results" classname="game-play.spec.js" time="0">
+<failure message="game-play.spec.js:142:3 should show hand rankings and results" type="FAILURE">
+<![CDATA[  [webkit] › game-play.spec.js:142:3 › Poker Game Flow › should show hand rankings and results ─────
+
+    Error: worker process exited unexpectedly (code=3221226505, signal=null)
+]]>
+</failure>
+</testcase>
+<testcase name="Poker Game Flow › should handle multiple players" classname="game-play.spec.js" time="0">
+<failure message="game-play.spec.js:160:3 should handle multiple players" type="FAILURE">
+<![CDATA[  [webkit] › game-play.spec.js:160:3 › Poker Game Flow › should handle multiple players ────────────
+
+    Error: worker process exited unexpectedly (code=3221226505, signal=null)
+]]>
+</failure>
+</testcase>
+<testcase name="Poker Game Flow › should handle chat functionality" classname="game-play.spec.js" time="11.205">
+<failure message="game-play.spec.js:176:3 should handle chat functionality" type="FAILURE">
+<![CDATA[  [webkit] › game-play.spec.js:176:3 › Poker Game Flow › should handle chat functionality ──────────
+
+    TimeoutError: page.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[name="username"]')
+
+
+      10 |     // Login before each test
+      11 |     await page.goto('/login');
+    > 12 |     await page.fill('input[name="username"]', 'testuser');
+         |                ^
+      13 |     await page.fill('input[name="password"]', 'testpass');
+      14 |     await page.click('button[type="submit"]');
+      15 |     await page.waitForURL(/dashboard|main|game/);
+        at C:\Users\merce\Documents\poker-game\tests\e2e\game-play.spec.js:12:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\game-play-Poker-Game-Flow-should-handle-chat-functionality-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\game-play-Poker-Game-Flow-should-handle-chat-functionality-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\game-play-Poker-Game-Flow-should-handle-chat-functionality-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\game-play-Poker-Game-Flow-should-handle-chat-functionality-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\game-play-Poker-Game-Flow-should-handle-chat-functionality-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\game-play-Poker-Game-Flow-should-handle-chat-functionality-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Poker Game Flow › should handle game settings" classname="game-play.spec.js" time="4.389">
+<failure message="game-play.spec.js:192:3 should handle game settings" type="FAILURE">
+<![CDATA[  [webkit] › game-play.spec.js:192:3 › Poker Game Flow › should handle game settings ───────────────
+
+    Error: browserContext.newPage: Protocol error (Screencast.startVideo): Failed to initialize encoder: Memory allocation error
+]]>
+</failure>
+</testcase>
+<testcase name="Game Performance › should load game within acceptable time" classname="game-play.spec.js" time="16.884">
+<failure message="game-play.spec.js:214:3 should load game within acceptable time" type="FAILURE">
+<![CDATA[  [webkit] › game-play.spec.js:214:3 › Game Performance › should load game within acceptable time ──
+
+    TimeoutError: page.waitForSelector: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('.poker-table') to be visible
+
+
+      216 |     
+      217 |     await page.goto('/game');
+    > 218 |     await page.waitForSelector('.poker-table');
+          |                ^
+      219 |     
+      220 |     const loadTime = Date.now() - startTime;
+      221 |     expect(loadTime).toBeLessThan(5000); // Should load within 5 seconds
+        at C:\Users\merce\Documents\poker-game\tests\e2e\game-play.spec.js:218:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\game-play-Game-Performance-7a8aa-game-within-acceptable-time-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\game-play-Game-Performance-7a8aa-game-within-acceptable-time-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\game-play-Game-Performance-7a8aa-game-within-acceptable-time-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\game-play-Game-Performance-7a8aa-game-within-acceptable-time-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\game-play-Game-Performance-7a8aa-game-within-acceptable-time-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\game-play-Game-Performance-7a8aa-game-within-acceptable-time-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Game Performance › should handle rapid actions without lag" classname="game-play.spec.js" time="12.609">
+<failure message="game-play.spec.js:224:3 should handle rapid actions without lag" type="FAILURE">
+<![CDATA[  [webkit] › game-play.spec.js:224:3 › Game Performance › should handle rapid actions without lag ──
+
+    TimeoutError: page.waitForSelector: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('.action-buttons:not(.disabled)') to be visible
+
+
+      224 |   test('should handle rapid actions without lag', async ({ page }) => {
+      225 |     await page.goto('/game');
+    > 226 |     await page.waitForSelector('.action-buttons:not(.disabled)');
+          |                ^
+      227 |     
+      228 |     const startTime = Date.now();
+      229 |     
+        at C:\Users\merce\Documents\poker-game\tests\e2e\game-play.spec.js:226:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\game-play-Game-Performance-4dc62-e-rapid-actions-without-lag-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\game-play-Game-Performance-4dc62-e-rapid-actions-without-lag-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\game-play-Game-Performance-4dc62-e-rapid-actions-without-lag-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\game-play-Game-Performance-4dc62-e-rapid-actions-without-lag-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\game-play-Game-Performance-4dc62-e-rapid-actions-without-lag-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\game-play-Game-Performance-4dc62-e-rapid-actions-without-lag-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Game Performance › should maintain performance with multiple players" classname="game-play.spec.js" time="1.384">
+</testcase>
+<testcase name="Mobile Responsiveness › should work on mobile devices" classname="game-play.spec.js" time="6.185">
+<failure message="game-play.spec.js:255:3 should work on mobile devices" type="FAILURE">
+<![CDATA[  [webkit] › game-play.spec.js:255:3 › Mobile Responsiveness › should work on mobile devices ───────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.mobile-controls')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('.mobile-controls')
+
+
+      260 |     
+      261 |     // Check mobile-specific elements
+    > 262 |     await expect(page.locator('.mobile-controls')).toBeVisible();
+          |                                                    ^
+      263 |     await expect(page.locator('.touch-actions')).toBeVisible();
+      264 |     
+      265 |     // Test touch interactions
+        at C:\Users\merce\Documents\poker-game\tests\e2e\game-play.spec.js:262:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\game-play-Mobile-Responsiv-62e33-ould-work-on-mobile-devices-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\game-play-Mobile-Responsiv-62e33-ould-work-on-mobile-devices-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\game-play-Mobile-Responsiv-62e33-ould-work-on-mobile-devices-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\game-play-Mobile-Responsiv-62e33-ould-work-on-mobile-devices-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\game-play-Mobile-Responsiv-62e33-ould-work-on-mobile-devices-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\game-play-Mobile-Responsiv-62e33-ould-work-on-mobile-devices-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Mobile Responsiveness › should adapt to tablet screens" classname="game-play.spec.js" time="6.254">
+<failure message="game-play.spec.js:270:3 should adapt to tablet screens" type="FAILURE">
+<![CDATA[  [webkit] › game-play.spec.js:270:3 › Mobile Responsiveness › should adapt to tablet screens ──────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.poker-table')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('.poker-table')
+
+
+      275 |     
+      276 |     // Check tablet layout
+    > 277 |     await expect(page.locator('.poker-table')).toBeVisible();
+          |                                                ^
+      278 |     await expect(page.locator('.side-panel')).toBeVisible();
+      279 |   });
+      280 |
+        at C:\Users\merce\Documents\poker-game\tests\e2e\game-play.spec.js:277:48
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\game-play-Mobile-Responsiv-2ef90-uld-adapt-to-tablet-screens-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\game-play-Mobile-Responsiv-2ef90-uld-adapt-to-tablet-screens-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\game-play-Mobile-Responsiv-2ef90-uld-adapt-to-tablet-screens-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\game-play-Mobile-Responsiv-2ef90-uld-adapt-to-tablet-screens-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\game-play-Mobile-Responsiv-2ef90-uld-adapt-to-tablet-screens-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\game-play-Mobile-Responsiv-2ef90-uld-adapt-to-tablet-screens-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Mobile Responsiveness › should handle orientation changes" classname="game-play.spec.js" time="5.887">
+<failure message="game-play.spec.js:281:3 should handle orientation changes" type="FAILURE">
+<![CDATA[  [webkit] › game-play.spec.js:281:3 › Mobile Responsiveness › should handle orientation changes ───
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.poker-table')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('.poker-table')
+
+
+      284 |     // Test landscape
+      285 |     await page.setViewportSize({ width: 1024, height: 768 });
+    > 286 |     await expect(page.locator('.poker-table')).toBeVisible();
+          |                                                ^
+      287 |     
+      288 |     // Test portrait
+      289 |     await page.setViewportSize({ width: 768, height: 1024 });
+        at C:\Users\merce\Documents\poker-game\tests\e2e\game-play.spec.js:286:48
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\game-play-Mobile-Responsiv-907d2--handle-orientation-changes-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\game-play-Mobile-Responsiv-907d2--handle-orientation-changes-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\game-play-Mobile-Responsiv-907d2--handle-orientation-changes-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\game-play-Mobile-Responsiv-907d2--handle-orientation-changes-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\game-play-Mobile-Responsiv-907d2--handle-orientation-changes-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\game-play-Mobile-Responsiv-907d2--handle-orientation-changes-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Error Handling › should handle connection issues gracefully" classname="game-play.spec.js" time="0.473">
+<failure message="game-play.spec.js:295:3 should handle connection issues gracefully" type="FAILURE">
+<![CDATA[  [webkit] › game-play.spec.js:295:3 › Error Handling › should handle connection issues gracefully ─
+
+    Error: page.goto: WebKit encountered an internal error
+    Call log:
+      - navigating to "http://localhost:8080/game", waiting until "load"
+
+
+      297 |     await page.context().setOffline(true);
+      298 |     
+    > 299 |     await page.goto('/game');
+          |                ^
+      300 |     
+      301 |     // Should show connection error
+      302 |     await expect(page.locator('.connection-error')).toBeVisible();
+        at C:\Users\merce\Documents\poker-game\tests\e2e\game-play.spec.js:299:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\game-play-Error-Handling-s-13294-onnection-issues-gracefully-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\game-play-Error-Handling-s-13294-onnection-issues-gracefully-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\game-play-Error-Handling-s-13294-onnection-issues-gracefully-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\game-play-Error-Handling-s-13294-onnection-issues-gracefully-webkit\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Error Handling › should handle server errors" classname="game-play.spec.js" time="5.876">
+<failure message="game-play.spec.js:311:3 should handle server errors" type="FAILURE">
+<![CDATA[  [webkit] › game-play.spec.js:311:3 › Error Handling › should handle server errors ────────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.server-error')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('.server-error')
+
+
+      322 |     
+      323 |     // Should show error message
+    > 324 |     await expect(page.locator('.server-error')).toBeVisible();
+          |                                                 ^
+      325 |   });
+      326 |
+      327 |   test('should handle invalid game states', async ({ page }) => {
+        at C:\Users\merce\Documents\poker-game\tests\e2e\game-play.spec.js:324:49
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\game-play-Error-Handling-should-handle-server-errors-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\game-play-Error-Handling-should-handle-server-errors-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\game-play-Error-Handling-should-handle-server-errors-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\game-play-Error-Handling-should-handle-server-errors-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\game-play-Error-Handling-should-handle-server-errors-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\game-play-Error-Handling-should-handle-server-errors-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Error Handling › should handle invalid game states" classname="game-play.spec.js" time="5.939">
+<failure message="game-play.spec.js:327:3 should handle invalid game states" type="FAILURE">
+<![CDATA[  [webkit] › game-play.spec.js:327:3 › Error Handling › should handle invalid game states ──────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.error-message')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('.error-message')
+
+
+      330 |     
+      331 |     // Should handle gracefully
+    > 332 |     await expect(page.locator('.error-message')).toBeVisible();
+          |                                                  ^
+      333 |     await expect(page.locator('.back-to-lobby')).toBeVisible();
+      334 |   });
+      335 | });
+        at C:\Users\merce\Documents\poker-game\tests\e2e\game-play.spec.js:332:50
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\game-play-Error-Handling-should-handle-invalid-game-states-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\game-play-Error-Handling-should-handle-invalid-game-states-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\game-play-Error-Handling-should-handle-invalid-game-states-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\game-play-Error-Handling-should-handle-invalid-game-states-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\game-play-Error-Handling-should-handle-invalid-game-states-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\game-play-Error-Handling-should-handle-invalid-game-states-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="overlay.spec.js" timestamp="2026-01-15T04:50:17.637Z" hostname="webkit" tests="22" failures="20" skipped="0" time="128.249" errors="0">
+<testcase name="Streaming Overlay › should load overlay page correctly" classname="overlay.spec.js" time="6.058">
+<failure message="overlay.spec.js:9:3 should load overlay page correctly" type="FAILURE">
+<![CDATA[  [webkit] › overlay.spec.js:9:3 › Streaming Overlay › should load overlay page correctly ──────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.overlay-container')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('.overlay-container')
+
+
+      11 |     
+      12 |     // Check overlay elements
+    > 13 |     await expect(page.locator('.overlay-container')).toBeVisible();
+         |                                                      ^
+      14 |     await expect(page.locator('.player-info')).toBeVisible();
+      15 |     await expect(page.locator('.pot-display')).toBeVisible();
+      16 |     await expect(page.locator('.community-cards')).toBeVisible();
+        at C:\Users\merce\Documents\poker-game\tests\e2e\overlay.spec.js:13:54
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay-should-load-overlay-page-correctly-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay-should-load-overlay-page-correctly-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\overlay-Streaming-Overlay-should-load-overlay-page-correctly-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay-should-load-overlay-page-correctly-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay-should-load-overlay-page-correctly-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay-should-load-overlay-page-correctly-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Streaming Overlay › should connect to WebSocket for real-time updates" classname="overlay.spec.js" time="3.034">
+<failure message="overlay.spec.js:19:3 should connect to WebSocket for real-time updates" type="FAILURE">
+<![CDATA[  [webkit] › overlay.spec.js:19:3 › Streaming Overlay › should connect to WebSocket for real-time updates 
+
+    Error: expect(received).toBeGreaterThan(expected)
+
+    Expected: > 0
+    Received:   0
+
+      29 |     await page.waitForTimeout(2000);
+      30 |     
+    > 31 |     expect(wsConnections.length).toBeGreaterThan(0);
+         |                                  ^
+      32 |   });
+      33 |
+      34 |   test('should display player information correctly', async ({ page }) => {
+        at C:\Users\merce\Documents\poker-game\tests\e2e\overlay.spec.js:31:34
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay--9d8d0-ocket-for-real-time-updates-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay--9d8d0-ocket-for-real-time-updates-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\overlay-Streaming-Overlay--9d8d0-ocket-for-real-time-updates-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--9d8d0-ocket-for-real-time-updates-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--9d8d0-ocket-for-real-time-updates-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--9d8d0-ocket-for-real-time-updates-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Streaming Overlay › should display player information correctly" classname="overlay.spec.js" time="6.038">
+<failure message="overlay.spec.js:34:3 should display player information correctly" type="FAILURE">
+<![CDATA[  [webkit] › overlay.spec.js:34:3 › Streaming Overlay › should display player information correctly 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.player-name')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('.player-name')
+
+
+      36 |     
+      37 |     // Check player display elements
+    > 38 |     await expect(page.locator('.player-name')).toBeVisible();
+         |                                                ^
+      39 |     await expect(page.locator('.player-chips')).toBeVisible();
+      40 |     await expect(page.locator('.player-status')).toBeVisible();
+      41 |     
+        at C:\Users\merce\Documents\poker-game\tests\e2e\overlay.spec.js:38:48
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay--57b85-layer-information-correctly-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay--57b85-layer-information-correctly-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\overlay-Streaming-Overlay--57b85-layer-information-correctly-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--57b85-layer-information-correctly-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--57b85-layer-information-correctly-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--57b85-layer-information-correctly-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Streaming Overlay › should update player information dynamically" classname="overlay.spec.js" time="6.049">
+<failure message="overlay.spec.js:49:3 should update player information dynamically" type="FAILURE">
+<![CDATA[  [webkit] › overlay.spec.js:49:3 › Streaming Overlay › should update player information dynamically 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('.player-name')
+    Expected substring: "TestPlayer"
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toContainText" with timeout 5000ms
+      - waiting for locator('.player-name')
+
+
+      63 |     
+      64 |     // Check that display updates
+    > 65 |     await expect(page.locator('.player-name')).toContainText('TestPlayer');
+         |                                                ^
+      66 |     await expect(page.locator('.player-chips')).toContainText('1500');
+      67 |   });
+      68 |
+        at C:\Users\merce\Documents\poker-game\tests\e2e\overlay.spec.js:65:48
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay--01d67-yer-information-dynamically-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay--01d67-yer-information-dynamically-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\overlay-Streaming-Overlay--01d67-yer-information-dynamically-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--01d67-yer-information-dynamically-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--01d67-yer-information-dynamically-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--01d67-yer-information-dynamically-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Streaming Overlay › should display cards correctly" classname="overlay.spec.js" time="0.99">
+</testcase>
+<testcase name="Streaming Overlay › should handle card reveal animations" classname="overlay.spec.js" time="5.876">
+<failure message="overlay.spec.js:88:3 should handle card reveal animations" type="FAILURE">
+<![CDATA[  [webkit] › overlay.spec.js:88:3 › Streaming Overlay › should handle card reveal animations ───────
+
+    Error: expect(locator).toHaveCount(expected) failed
+
+    Locator:  locator('.card.revealing')
+    Expected: 2
+    Received: 0
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveCount" with timeout 5000ms
+      - waiting for locator('.card.revealing')
+        8 × locator resolved to 0 elements
+          - unexpected value "0"
+
+
+      101 |     // Check for animation classes
+      102 |     const cards = page.locator('.card.revealing');
+    > 103 |     await expect(cards).toHaveCount(2);
+          |                         ^
+      104 |     
+      105 |     // Wait for animation to complete
+      106 |     await page.waitForTimeout(1000);
+        at C:\Users\merce\Documents\poker-game\tests\e2e\overlay.spec.js:103:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay--654f6-ndle-card-reveal-animations-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay--654f6-ndle-card-reveal-animations-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\overlay-Streaming-Overlay--654f6-ndle-card-reveal-animations-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--654f6-ndle-card-reveal-animations-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--654f6-ndle-card-reveal-animations-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--654f6-ndle-card-reveal-animations-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Streaming Overlay › should display pot information correctly" classname="overlay.spec.js" time="5.795">
+<failure message="overlay.spec.js:113:3 should display pot information correctly" type="FAILURE">
+<![CDATA[  [webkit] › overlay.spec.js:113:3 › Streaming Overlay › should display pot information correctly ──
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.pot-amount')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('.pot-amount')
+
+
+      115 |     
+      116 |     // Check pot display
+    > 117 |     await expect(page.locator('.pot-amount')).toBeVisible();
+          |                                               ^
+      118 |     
+      119 |     // Simulate pot update
+      120 |     await page.evaluate(() => {
+        at C:\Users\merce\Documents\poker-game\tests\e2e\overlay.spec.js:117:47
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay--97fe0-y-pot-information-correctly-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay--97fe0-y-pot-information-correctly-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\overlay-Streaming-Overlay--97fe0-y-pot-information-correctly-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--97fe0-y-pot-information-correctly-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--97fe0-y-pot-information-correctly-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--97fe0-y-pot-information-correctly-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Streaming Overlay › should handle betting animations" classname="overlay.spec.js" time="5.917">
+<failure message="overlay.spec.js:130:3 should handle betting animations" type="FAILURE">
+<![CDATA[  [webkit] › overlay.spec.js:130:3 › Streaming Overlay › should handle betting animations ──────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.bet-animation')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('.bet-animation')
+
+
+      143 |     
+      144 |     // Check for betting animation
+    > 145 |     await expect(page.locator('.bet-animation')).toBeVisible();
+          |                                                  ^
+      146 |     
+      147 |     // Wait for animation
+      148 |     await page.waitForTimeout(2000);
+        at C:\Users\merce\Documents\poker-game\tests\e2e\overlay.spec.js:145:50
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay-should-handle-betting-animations-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay-should-handle-betting-animations-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\overlay-Streaming-Overlay-should-handle-betting-animations-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay-should-handle-betting-animations-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay-should-handle-betting-animations-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay-should-handle-betting-animations-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Streaming Overlay › should display community cards correctly" classname="overlay.spec.js" time="5.871">
+<failure message="overlay.spec.js:154:3 should display community cards correctly" type="FAILURE">
+<![CDATA[  [webkit] › overlay.spec.js:154:3 › Streaming Overlay › should display community cards correctly ──
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.community-cards')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('.community-cards')
+
+
+      156 |     
+      157 |     // Check community cards area
+    > 158 |     await expect(page.locator('.community-cards')).toBeVisible();
+          |                                                    ^
+      159 |     
+      160 |     // Simulate community cards deal
+      161 |     await page.evaluate(() => {
+        at C:\Users\merce\Documents\poker-game\tests\e2e\overlay.spec.js:158:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay--c17dc-y-community-cards-correctly-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay--c17dc-y-community-cards-correctly-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\overlay-Streaming-Overlay--c17dc-y-community-cards-correctly-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--c17dc-y-community-cards-correctly-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--c17dc-y-community-cards-correctly-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--c17dc-y-community-cards-correctly-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Streaming Overlay › should handle winner announcements" classname="overlay.spec.js" time="6.024">
+<failure message="overlay.spec.js:172:3 should handle winner announcements" type="FAILURE">
+<![CDATA[  [webkit] › overlay.spec.js:172:3 › Streaming Overlay › should handle winner announcements ────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.winner-announcement')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('.winner-announcement')
+
+
+      185 |     
+      186 |     // Check winner display
+    > 187 |     await expect(page.locator('.winner-announcement')).toBeVisible();
+          |                                                        ^
+      188 |     await expect(page.locator('.winner-name')).toContainText('TestPlayer');
+      189 |     await expect(page.locator('.winning-hand')).toContainText('Two Pair');
+      190 |   });
+        at C:\Users\merce\Documents\poker-game\tests\e2e\overlay.spec.js:187:56
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay-should-handle-winner-announcements-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay-should-handle-winner-announcements-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\overlay-Streaming-Overlay-should-handle-winner-announcements-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay-should-handle-winner-announcements-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay-should-handle-winner-announcements-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay-should-handle-winner-announcements-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Streaming Overlay › should be responsive to different screen sizes" classname="overlay.spec.js" time="5.85">
+<failure message="overlay.spec.js:192:3 should be responsive to different screen sizes" type="FAILURE">
+<![CDATA[  [webkit] › overlay.spec.js:192:3 › Streaming Overlay › should be responsive to different screen sizes 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.overlay-container')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('.overlay-container')
+
+
+      195 |     await page.goto('/overlay');
+      196 |     
+    > 197 |     await expect(page.locator('.overlay-container')).toBeVisible();
+          |                                                      ^
+      198 |     
+      199 |     // Test desktop size
+      200 |     await page.setViewportSize({ width: 1920, height: 1080 });
+        at C:\Users\merce\Documents\poker-game\tests\e2e\overlay.spec.js:197:54
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay--35379-e-to-different-screen-sizes-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay--35379-e-to-different-screen-sizes-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\overlay-Streaming-Overlay--35379-e-to-different-screen-sizes-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--35379-e-to-different-screen-sizes-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--35379-e-to-different-screen-sizes-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--35379-e-to-different-screen-sizes-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Streaming Overlay › should handle overlay customization" classname="overlay.spec.js" time="5.969">
+<failure message="overlay.spec.js:206:3 should handle overlay customization" type="FAILURE">
+<![CDATA[  [webkit] › overlay.spec.js:206:3 › Streaming Overlay › should handle overlay customization ───────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.overlay-container')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('.overlay-container')
+
+
+      209 |     // Check customization parameters are applied
+      210 |     const overlay = page.locator('.overlay-container');
+    > 211 |     await expect(overlay).toBeVisible();
+          |                           ^
+      212 |     
+      213 |     // Check for custom theme class
+      214 |     await expect(overlay).toHaveClass(/theme-dark/);
+        at C:\Users\merce\Documents\poker-game\tests\e2e\overlay.spec.js:211:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay--f6b0c-andle-overlay-customization-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay--f6b0c-andle-overlay-customization-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\overlay-Streaming-Overlay--f6b0c-andle-overlay-customization-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--f6b0c-andle-overlay-customization-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--f6b0c-andle-overlay-customization-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--f6b0c-andle-overlay-customization-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Streaming Overlay › should handle connection errors gracefully" classname="overlay.spec.js" time="5.959">
+<failure message="overlay.spec.js:217:3 should handle connection errors gracefully" type="FAILURE">
+<![CDATA[  [webkit] › overlay.spec.js:217:3 › Streaming Overlay › should handle connection errors gracefully 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.connection-error')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('.connection-error')
+
+
+      224 |     
+      225 |     // Should show connection error
+    > 226 |     await expect(page.locator('.connection-error')).toBeVisible();
+          |                                                     ^
+      227 |     
+      228 |     // Should attempt reconnection
+      229 |     await page.waitForTimeout(5000);
+        at C:\Users\merce\Documents\poker-game\tests\e2e\overlay.spec.js:226:53
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay--c996f-onnection-errors-gracefully-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay--c996f-onnection-errors-gracefully-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\overlay-Streaming-Overlay--c996f-onnection-errors-gracefully-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--c996f-onnection-errors-gracefully-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--c996f-onnection-errors-gracefully-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--c996f-onnection-errors-gracefully-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Streaming Overlay › should support multiple overlay modes" classname="overlay.spec.js" time="5.92">
+<failure message="overlay.spec.js:233:3 should support multiple overlay modes" type="FAILURE">
+<![CDATA[  [webkit] › overlay.spec.js:233:3 › Streaming Overlay › should support multiple overlay modes ─────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.overlay-container')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('.overlay-container')
+
+
+      239 |       
+      240 |       // Check mode-specific elements
+    > 241 |       await expect(page.locator('.overlay-container')).toBeVisible();
+          |                                                        ^
+      242 |       
+      243 |       // Check mode class is applied
+      244 |       const overlay = page.locator('.overlay-container');
+        at C:\Users\merce\Documents\poker-game\tests\e2e\overlay.spec.js:241:56
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay--55c6e-port-multiple-overlay-modes-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay--55c6e-port-multiple-overlay-modes-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\overlay-Streaming-Overlay--55c6e-port-multiple-overlay-modes-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--55c6e-port-multiple-overlay-modes-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--55c6e-port-multiple-overlay-modes-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--55c6e-port-multiple-overlay-modes-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Streaming Overlay › should handle chat overlay integration" classname="overlay.spec.js" time="5.917">
+<failure message="overlay.spec.js:249:3 should handle chat overlay integration" type="FAILURE">
+<![CDATA[  [webkit] › overlay.spec.js:249:3 › Streaming Overlay › should handle chat overlay integration ────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.chat-overlay')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('.chat-overlay')
+
+
+      251 |     
+      252 |     // Check chat overlay
+    > 253 |     await expect(page.locator('.chat-overlay')).toBeVisible();
+          |                                                 ^
+      254 |     
+      255 |     // Simulate chat message
+      256 |     await page.evaluate(() => {
+        at C:\Users\merce\Documents\poker-game\tests\e2e\overlay.spec.js:253:49
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay--bc05b-le-chat-overlay-integration-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay--bc05b-le-chat-overlay-integration-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\overlay-Streaming-Overlay--bc05b-le-chat-overlay-integration-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--bc05b-le-chat-overlay-integration-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--bc05b-le-chat-overlay-integration-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay--bc05b-le-chat-overlay-integration-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Streaming Overlay › should support overlay branding" classname="overlay.spec.js" time="5.828">
+<failure message="overlay.spec.js:269:3 should support overlay branding" type="FAILURE">
+<![CDATA[  [webkit] › overlay.spec.js:269:3 › Streaming Overlay › should support overlay branding ───────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.brand-logo')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('.brand-logo')
+
+
+      271 |     
+      272 |     // Check branding elements
+    > 273 |     await expect(page.locator('.brand-logo')).toBeVisible();
+          |                                               ^
+      274 |     await expect(page.locator('.brand-name')).toBeVisible();
+      275 |   });
+      276 |
+        at C:\Users\merce\Documents\poker-game\tests\e2e\overlay.spec.js:273:47
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay-should-support-overlay-branding-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay-should-support-overlay-branding-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\overlay-Streaming-Overlay-should-support-overlay-branding-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay-should-support-overlay-branding-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay-should-support-overlay-branding-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay-should-support-overlay-branding-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Streaming Overlay › should handle overlay statistics" classname="overlay.spec.js" time="5.85">
+<failure message="overlay.spec.js:277:3 should handle overlay statistics" type="FAILURE">
+<![CDATA[  [webkit] › overlay.spec.js:277:3 › Streaming Overlay › should handle overlay statistics ──────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.stats-overlay')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('.stats-overlay')
+
+
+      279 |     
+      280 |     // Check statistics display
+    > 281 |     await expect(page.locator('.stats-overlay')).toBeVisible();
+          |                                                  ^
+      282 |     
+      283 |     // Check stat elements
+      284 |     await expect(page.locator('.hands-played')).toBeVisible();
+        at C:\Users\merce\Documents\poker-game\tests\e2e\overlay.spec.js:281:50
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay-should-handle-overlay-statistics-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay-should-handle-overlay-statistics-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\overlay-Streaming-Overlay-should-handle-overlay-statistics-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay-should-handle-overlay-statistics-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay-should-handle-overlay-statistics-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay-should-handle-overlay-statistics-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Streaming Overlay › should support overlay animations" classname="overlay.spec.js" time="5.83">
+<failure message="overlay.spec.js:289:3 should support overlay animations" type="FAILURE">
+<![CDATA[  [webkit] › overlay.spec.js:289:3 › Streaming Overlay › should support overlay animations ─────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.card-deal-animation')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('.card-deal-animation')
+
+
+      309 |     
+      310 |     // Check animation elements
+    > 311 |     await expect(page.locator('.card-deal-animation')).toBeVisible();
+          |                                                        ^
+      312 |     await expect(page.locator('.chip-animation')).toBeVisible();
+      313 |     await expect(page.locator('.win-animation')).toBeVisible();
+      314 |   });
+        at C:\Users\merce\Documents\poker-game\tests\e2e\overlay.spec.js:311:56
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay-should-support-overlay-animations-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Streaming-Overlay-should-support-overlay-animations-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\overlay-Streaming-Overlay-should-support-overlay-animations-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay-should-support-overlay-animations-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay-should-support-overlay-animations-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\overlay-Streaming-Overlay-should-support-overlay-animations-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Streaming Overlay › should handle overlay performance" classname="overlay.spec.js" time="2.012">
+</testcase>
+<testcase name="Overlay Configuration › should load configuration from URL parameters" classname="overlay.spec.js" time="5.861">
+<failure message="overlay.spec.js:339:3 should load configuration from URL parameters" type="FAILURE">
+<![CDATA[  [webkit] › overlay.spec.js:339:3 › Overlay Configuration › should load configuration from URL parameters 
+
+    Error: expect(locator).toHaveClass(expected) failed
+
+    Locator: locator('.overlay-container')
+    Expected pattern: /theme-dark/
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toHaveClass" with timeout 5000ms
+      - waiting for locator('.overlay-container')
+
+
+      349 |     // Check configuration is applied
+      350 |     const overlay = page.locator('.overlay-container');
+    > 351 |     await expect(overlay).toHaveClass(/theme-dark/);
+          |                           ^
+      352 |     await expect(overlay).toHaveCSS('opacity', '0.9');
+      353 |   });
+      354 |
+        at C:\Users\merce\Documents\poker-game\tests\e2e\overlay.spec.js:351:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Overlay-Configurat-ee4fd-uration-from-URL-parameters-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Overlay-Configurat-ee4fd-uration-from-URL-parameters-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\overlay-Overlay-Configurat-ee4fd-uration-from-URL-parameters-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\overlay-Overlay-Configurat-ee4fd-uration-from-URL-parameters-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\overlay-Overlay-Configurat-ee4fd-uration-from-URL-parameters-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\overlay-Overlay-Configurat-ee4fd-uration-from-URL-parameters-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Overlay Configuration › should save overlay preferences" classname="overlay.spec.js" time="10.892">
+<failure message="overlay.spec.js:355:3 should save overlay preferences" type="FAILURE">
+<![CDATA[  [webkit] › overlay.spec.js:355:3 › Overlay Configuration › should save overlay preferences ───────
+
+    TimeoutError: page.click: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('.settings-button')
+
+
+      357 |     
+      358 |     // Open settings panel
+    > 359 |     await page.click('.settings-button');
+          |                ^
+      360 |     await expect(page.locator('.overlay-settings')).toBeVisible();
+      361 |     
+      362 |     // Change settings
+        at C:\Users\merce\Documents\poker-game\tests\e2e\overlay.spec.js:359:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Overlay-Configurat-af42b-ld-save-overlay-preferences-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Overlay-Configurat-af42b-ld-save-overlay-preferences-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\overlay-Overlay-Configurat-af42b-ld-save-overlay-preferences-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\overlay-Overlay-Configurat-af42b-ld-save-overlay-preferences-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\overlay-Overlay-Configurat-af42b-ld-save-overlay-preferences-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\overlay-Overlay-Configurat-af42b-ld-save-overlay-preferences-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Overlay Configuration › should reset to default settings" classname="overlay.spec.js" time="10.709">
+<failure message="overlay.spec.js:374:3 should reset to default settings" type="FAILURE">
+<![CDATA[  [webkit] › overlay.spec.js:374:3 › Overlay Configuration › should reset to default settings ──────
+
+    TimeoutError: page.click: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('.settings-button')
+
+
+      384 |     
+      385 |     // Reset settings
+    > 386 |     await page.click('.settings-button');
+          |                ^
+      387 |     await page.click('.reset-settings');
+      388 |     
+      389 |     // Check defaults are restored
+        at C:\Users\merce\Documents\poker-game\tests\e2e\overlay.spec.js:386:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Overlay-Configurat-9ede9-d-reset-to-default-settings-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\overlay-Overlay-Configurat-9ede9-d-reset-to-default-settings-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\overlay-Overlay-Configurat-9ede9-d-reset-to-default-settings-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\overlay-Overlay-Configurat-9ede9-d-reset-to-default-settings-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\overlay-Overlay-Configurat-9ede9-d-reset-to-default-settings-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\overlay-Overlay-Configurat-9ede9-d-reset-to-default-settings-webkit\error-context.md]]
 ]]>
 </system-out>
 </testcase>

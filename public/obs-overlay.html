@@ -100,7 +100,7 @@
             <span class="table-stat-icon">💰</span>
             <span class="table-stat-label">Total Pot</span>
           </div>
-          <span class="table-stat-value" id="table-pot-value">$0</span>
+          <span class="table-stat-value pot-amount" id="table-pot-value">$0</span>
         </div>
         <div class="table-stat">
           <div class="table-stat-heading">
@@ -161,6 +161,11 @@
         <div class="dealing-cards">🎴</div>
       </div>
     </div>
+    <div class="bet-animation hidden" id="bet-animation">
+      <div class="bet-animation-content">
+        <div class="betting-chips">🪙</div>
+      </div>
+    </div>
     <div class="chip-animation hidden" id="chip-animation">
       <div class="chip-animation-content">
         <div class="moving-chips">🪙</div>
@@ -170,6 +175,30 @@
       <div class="win-animation-content">
         <div class="win-text">WINNER!</div>
         <div class="win-effects">🎉</div>
+      </div>
+    </div>
+
+    <!-- Community Cards Area -->
+    <div class="community-cards hidden" id="community-cards">
+      <div class="community-cards-container">
+        <div class="community-card" id="flop1"></div>
+        <div class="community-card" id="flop2"></div>
+        <div class="community-card" id="flop3"></div>
+        <div class="community-card" id="turn"></div>
+        <div class="community-card" id="river"></div>
+      </div>
+    </div>
+
+    <!-- Winner Announcement -->
+    <div class="winner-announcement hidden" id="winner-announcement">
+      <div class="winner-content">
+        <div class="winner-header">
+          <span class="winner-label">WINNER!</span>
+        </div>
+        <div class="winner-details">
+          <span class="winner-name" id="winner-name">Player Name</span>
+          <span class="winning-hand" id="winning-hand">Hand Type</span>
+        </div>
       </div>
     </div>
   </div>
