@@ -3,8 +3,7 @@
  * Tests the streaming overlay functionality
  */
 
-/* eslint-env browser, node */
-/* eslint-disable no-undef */
+/* global window, document, CustomEvent, URLSearchParams, require, console */
 
 const { test, expect } = require('@playwright/test');
 

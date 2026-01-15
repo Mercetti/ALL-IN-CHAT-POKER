@@ -12,7 +12,7 @@ import OverlayTestingScreen from '../screens/OverlayTestingScreen';
 
 export type RootStackParamList = {
   Landing: undefined;
-  SkillStore: undefined;
+  SkillStore: { userToken: string; userRole: string };
   DemoFlow: undefined;
   MetricsDashboard: undefined;
   Settings: undefined;

@@ -57,7 +57,7 @@ export default function LandingPage() {
       <View style={styles.actions}>
         <Button
           title="Browse Skills"
-          onPress={() => navigation.navigate('SkillStore')}
+          onPress={() => navigation.navigate('SkillStore', { userToken: 'demo-token', userRole: 'user' })}
           color="#007AFF"
         />
         

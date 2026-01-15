@@ -1,7 +1,9 @@
 /**
  * Admin Panel E2E Tests
- * Tests the admin dashboard and management features
+ * Tests the administrative interface functionality
  */
+
+/* global document, sessionStorage, localStorage, require */
 
 const { test, expect } = require('@playwright/test');
 
