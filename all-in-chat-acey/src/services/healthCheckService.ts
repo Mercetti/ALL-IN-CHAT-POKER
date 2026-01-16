@@ -408,4 +408,4 @@ export class HealthCheckService {
   }
 }
 
-export default HealthCheckService.getInstance();
+export default HealthCheckService;

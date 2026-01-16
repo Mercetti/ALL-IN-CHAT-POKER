@@ -1,0 +1,9 @@
+{
+  "syncPath": "./models/device_sync",
+  "encryptionEnabled": true,
+  "autoSync": true,
+  "syncInterval": 5,
+  "maxDevices": 5,
+  "trustRequired": true,
+  "backupEnabled": true
+}

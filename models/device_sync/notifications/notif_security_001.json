@@ -1,0 +1,15 @@
+{
+  "id": "notif_security_001",
+  "type": "security_alert",
+  "priority": "high",
+  "title": "Security Alert",
+  "message": "Unauthorized access attempt detected on device Acey-Mobile-001",
+  "deviceId": "device_test_001",
+  "userId": "owner",
+  "timestamp": "2026-01-16T04:46:58.574Z",
+  "read": false,
+  "metadata": {
+    "sourceIp": "10.0.0.1",
+    "attemptedAction": "admin_access"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "id": "push_error_001",
+  "type": "error",
+  "priority": "critical",
+  "title": "System Error: Skill Execution Failed",
+  "message": "CodeHelper skill failed to execute - Timeout after 30 seconds",
+  "timestamp": "2026-01-16T04:56:48.374Z",
+  "data": {
+    "errorType": "Skill Execution Failed",
+    "errorMessage": "CodeHelper skill failed to execute",
+    "context": {
+      "skill": "CodeHelper",
+      "error": "Timeout after 30 seconds",
+      "input": "Generate complex algorithm"
+    }
+  },
+  "actions": [
+    {
+      "label": "View Details",
+      "action": "view_error"
+    },
+    {
+      "label": "Restart System",
+      "action": "restart_system",
+      "style": "destructive"
+    }
+  ],
+  "expiresAt": "2026-01-16T06:57:48.374Z",
+  "read": false,
+  "delivered": true
+}

@@ -1,0 +1,36 @@
+{
+  "schedulerStatus": "active",
+  "currentInterval": 300,
+  "nextRun": "2026-01-16T05:01:54.464Z",
+  "lastRun": "2026-01-16T04:54:54.464Z",
+  "cycleProgress": 65,
+  "activeTasks": [
+    {
+      "name": "Skill Simulations",
+      "status": "running",
+      "progress": 80
+    },
+    {
+      "name": "Device Sync",
+      "status": "completed",
+      "progress": 100
+    },
+    {
+      "name": "Dashboard Updates",
+      "status": "pending",
+      "progress": 0
+    },
+    {
+      "name": "Learning Collection",
+      "status": "pending",
+      "progress": 0
+    }
+  ],
+  "statistics": {
+    "totalCycles": 156,
+    "successfulCycles": 148,
+    "averageCycleTime": 285,
+    "uptime": 0.98
+  },
+  "lastUpdate": "2026-01-16T04:56:54.464Z"
+}

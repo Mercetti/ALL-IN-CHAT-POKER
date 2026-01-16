@@ -1,0 +1,18 @@
+[
+  {
+    "timestamp": "2026-01-16T04:56:19.727Z",
+    "success": true,
+    "executionTime": 1200,
+    "confidence": 0.95,
+    "input": "Generate React component",
+    "output": "function App() { return <div>Hello</div>; }"
+  },
+  {
+    "timestamp": "2026-01-16T04:55:19.728Z",
+    "success": true,
+    "executionTime": 800,
+    "confidence": 0.88,
+    "input": "Fix TypeScript error",
+    "output": "Fixed type annotation"
+  }
+]

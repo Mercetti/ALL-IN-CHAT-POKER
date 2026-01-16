@@ -1,0 +1,26 @@
+{
+  "id": "push_system_001",
+  "type": "system_alert",
+  "priority": "high",
+  "title": "System Alert: High CPU Usage",
+  "message": "System CPU usage exceeded 90%",
+  "timestamp": "2026-01-16T04:42:48.375Z",
+  "data": {
+    "alertType": "High CPU Usage",
+    "message": "System CPU usage exceeded 90%"
+  },
+  "actions": [
+    {
+      "label": "Take Action",
+      "action": "take_action"
+    },
+    {
+      "label": "Dismiss",
+      "action": "dismiss",
+      "style": "cancel"
+    }
+  ],
+  "expiresAt": "2026-01-16T07:57:48.375Z",
+  "read": true,
+  "delivered": true
+}

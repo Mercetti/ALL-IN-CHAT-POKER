@@ -1,0 +1,15 @@
+{
+  "id": "notif_trust_001",
+  "type": "trust_event",
+  "priority": "high",
+  "title": "Biometric Verified",
+  "message": "Biometric verification successful for device Acey-Mobile-001",
+  "deviceId": "device_test_001",
+  "userId": "owner",
+  "timestamp": "2026-01-16T04:44:58.574Z",
+  "read": false,
+  "metadata": {
+    "biometricType": "fingerprint",
+    "confidence": 0.95
+  }
+}

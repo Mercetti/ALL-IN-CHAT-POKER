@@ -1,0 +1,48 @@
+{
+  "deviceId": "device_yckbtj6my",
+  "deviceName": "Acey-Dev-Station",
+  "lastSync": "2026-01-16T04:45:01.451Z",
+  "skills": [
+    {
+      "name": "CodeHelper",
+      "version": "1.0.0",
+      "isActive": true,
+      "trustLevel": 2
+    },
+    {
+      "name": "GraphicsWizard",
+      "version": "1.0.0",
+      "isActive": true,
+      "trustLevel": 2
+    },
+    {
+      "name": "AudioMaestro",
+      "version": "1.0.0",
+      "isActive": false,
+      "trustLevel": 2
+    }
+  ],
+  "datasets": [
+    {
+      "name": "code",
+      "size": 1024000,
+      "lastUpdated": "2026-01-16T04:45:01.452Z",
+      "quality": 0.95
+    },
+    {
+      "name": "graphics",
+      "size": 2048000,
+      "lastUpdated": "2026-01-16T04:45:01.452Z",
+      "quality": 0.87
+    }
+  ],
+  "configuration": {
+    "modelPath": "./models",
+    "learningEnabled": true,
+    "qualityThreshold": 0.8,
+    "maxConcurrency": 4
+  },
+  "trustLevel": 3,
+  "isAuthorized": true,
+  "publicKey": "sample_public_key_7udhcok23ir"
+}

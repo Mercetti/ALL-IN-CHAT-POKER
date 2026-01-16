@@ -1,0 +1,12 @@
+{
+  "deviceId": "device_yckbtj6my",
+  "userId": "owner",
+  "biometricType": "fingerprint",
+  "templateHash": "bio_hash_h9j4q5inbaj",
+  "createdAt": "2026-01-16T04:45:01.456Z",
+  "lastUsed": "2026-01-16T04:45:01.456Z",
+  "trustLevel": 3,
+  "isActive": true,
+  "attempts": 0,
+  "maxAttempts": 5
+}

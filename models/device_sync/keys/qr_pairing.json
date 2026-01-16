@@ -1,0 +1,11 @@
+{
+  "type": "acey_device_pairing",
+  "version": "1.0",
+  "deviceId": "device_yckbtj6my",
+  "deviceName": "Acey-Dev-Station",
+  "publicKey": "sample_public_key_7udhcok23ir",
+  "trustToken": "trust_x65gcubgqka",
+  "timestamp": "2026-01-16T04:45:01.455Z",
+  "expiresAt": "2026-01-17T04:45:01.454Z",
+  "checksum": "qr_checksum_5p4ky0k6wuq"
+}

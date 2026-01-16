@@ -1,0 +1,34 @@
+{
+  "partnerRevenue": {
+    "Enterprise Client A": 10000,
+    "Pro Client B": 2500,
+    "Creator Client C": 500,
+    "Startup Client D": 1500
+  },
+  "payouts": [
+    {
+      "partner": "Developer A",
+      "amount": 500,
+      "timestamp": "2026-01-15T04:56:19.733Z",
+      "status": "completed"
+    },
+    {
+      "partner": "Designer B",
+      "amount": 300,
+      "timestamp": "2026-01-14T04:56:19.733Z",
+      "status": "pending"
+    },
+    {
+      "partner": "Consultant C",
+      "amount": 750,
+      "timestamp": "2026-01-13T04:56:19.733Z",
+      "status": "failed"
+    }
+  ],
+  "subscriptionRevenue": {
+    "Enterprise": 8000,
+    "Pro": 2000,
+    "Creator": 400
+  },
+  "oneTimeRevenue": 1500
+}

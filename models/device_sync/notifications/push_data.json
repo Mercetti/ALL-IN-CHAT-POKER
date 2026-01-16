@@ -1,0 +1,247 @@
+{
+  "notifications": {
+    "push_proposal_001": {
+      "id": "push_proposal_001",
+      "type": "proposal",
+      "priority": "high",
+      "title": "New Skill Installation Proposal",
+      "message": "Developer A has submitted a proposal to install NewAnalyticsSkill v1.0.0",
+      "timestamp": "2026-01-16T04:57:48.374Z",
+      "data": {
+        "proposalId": "prop_001",
+        "proposalType": "Skill Installation",
+        "proposer": "Developer A",
+        "details": {
+          "skillName": "NewAnalyticsSkill",
+          "version": "1.0.0",
+          "description": "Advanced data analysis capabilities"
+        }
+      },
+      "actions": [
+        {
+          "label": "Review",
+          "action": "review_proposal"
+        },
+        {
+          "label": "Reject",
+          "action": "reject_proposal",
+          "style": "cancel"
+        },
+        {
+          "label": "Approve",
+          "action": "approve_proposal"
+        }
+      ],
+      "expiresAt": "2026-01-17T04:57:48.374Z",
+      "read": false,
+      "delivered": false
+    },
+    "push_error_001": {
+      "id": "push_error_001",
+      "type": "error",
+      "priority": "critical",
+      "title": "System Error: Skill Execution Failed",
+      "message": "CodeHelper skill failed to execute - Timeout after 30 seconds",
+      "timestamp": "2026-01-16T04:56:48.374Z",
+      "data": {
+        "errorType": "Skill Execution Failed",
+        "errorMessage": "CodeHelper skill failed to execute",
+        "context": {
+          "skill": "CodeHelper",
+          "error": "Timeout after 30 seconds",
+          "input": "Generate complex algorithm"
+        }
+      },
+      "actions": [
+        {
+          "label": "View Details",
+          "action": "view_error"
+        },
+        {
+          "label": "Restart System",
+          "action": "restart_system",
+          "style": "destructive"
+        }
+      ],
+      "expiresAt": "2026-01-16T06:57:48.374Z",
+      "read": false,
+      "delivered": true
+    },
+    "push_desync_001": {
+      "id": "push_desync_001",
+      "type": "desync",
+      "priority": "high",
+      "title": "Device Desync Detected",
+      "message": "Acey-Mobile (device_mobile_001) is experiencing synchronization issues: Sync Timeout",
+      "deviceId": "device_mobile_001",
+      "timestamp": "2026-01-16T04:54:48.375Z",
+      "data": {
+        "deviceId": "device_mobile_001",
+        "deviceName": "Acey-Mobile",
+        "syncStatus": "Sync Timeout",
+        "details": {
+          "lastSync": "2026-01-16T03:57:48.375Z",
+          "retryCount": 3
+        }
+      },
+      "actions": [
+        {
+          "label": "Force Sync",
+          "action": "force_sync"
+        },
+        {
+          "label": "View Device",
+          "action": "view_device"
+        },
+        {
+          "label": "Ignore",
+          "action": "ignore_desync",
+          "style": "cancel"
+        }
+      ],
+      "expiresAt": "2026-01-16T10:57:48.375Z",
+      "read": false,
+      "delivered": false
+    },
+    "push_financial_001": {
+      "id": "push_financial_001",
+      "type": "financial_anomaly",
+      "priority": "critical",
+      "title": "Financial Anomaly Detected",
+      "message": "Unusual Transaction: Large payout detected - Amount: $5,000",
+      "timestamp": "2026-01-16T04:52:48.375Z",
+      "data": {
+        "anomalyType": "Unusual Transaction",
+        "amount": 5000,
+        "description": "Large payout detected",
+        "details": {
+          "partner": "Unknown Partner",
+          "transactionId": "txn_001",
+          "timestamp": "2026-01-16T04:57:48.375Z"
+        }
+      },
+      "actions": [
+        {
+          "label": "Review Transaction",
+          "action": "review_transaction"
+        },
+        {
+          "label": "Freeze Account",
+          "action": "freeze_account",
+          "style": "destructive"
+        },
+        {
+          "label": "Ignore",
+          "action": "ignore_anomaly",
+          "style": "cancel"
+        }
+      ],
+      "expiresAt": "2026-01-16T08:57:48.375Z",
+      "read": false,
+      "delivered": false
+    },
+    "push_system_001": {
+      "id": "push_system_001",
+      "type": "system_alert",
+      "priority": "high",
+      "title": "System Alert: High CPU Usage",
+      "message": "System CPU usage exceeded 90%",
+      "timestamp": "2026-01-16T04:42:48.375Z",
+      "data": {
+        "alertType": "High CPU Usage",
+        "message": "System CPU usage exceeded 90%"
+      },
+      "actions": [
+        {
+          "label": "Take Action",
+          "action": "take_action"
+        },
+        {
+          "label": "Dismiss",
+          "action": "dismiss",
+          "style": "cancel"
+        }
+      ],
+      "expiresAt": "2026-01-16T07:57:48.375Z",
+      "read": true,
+      "delivered": true
+    },
+    "push_skill_001": {
+      "id": "push_skill_001",
+      "type": "skill_update",
+      "priority": "medium",
+      "title": "Skill Update: CodeHelper",
+      "message": "CodeHelper has new version available",
+      "timestamp": "2026-01-16T04:37:48.375Z",
+      "data": {
+        "skillName": "CodeHelper",
+        "updateType": "New Version Available",
+        "details": {
+          "currentVersion": "1.0.0",
+          "newVersion": "1.1.0",
+          "features": [
+            "Improved error handling",
+            "Faster execution"
+          ]
+        }
+      },
+      "actions": [
+        {
+          "label": "View Skill",
+          "action": "view_skill"
+        },
+        {
+          "label": "Update Now",
+          "action": "update_skill"
+        },
+        {
+          "label": "Later",
+          "action": "update_later",
+          "style": "cancel"
+        }
+      ],
+      "expiresAt": "2026-01-16T12:57:48.375Z",
+      "read": true,
+      "delivered": true
+    }
+  },
+  "subscriptions": {
+    "sub_001": {
+      "subscriptionId": "sub_001",
+      "endpoint": "https://fcm.googleapis.com/fcm/send/device_001",
+      "keys": {
+        "p256dh": "p256dh_key_try70fmrc8",
+        "auth": "auth_key_ed6qm1v8j6k"
+      },
+      "userId": "owner",
+      "deviceId": "device_main_001",
+      "createdAt": "2026-01-16T04:57:48.369Z",
+      "lastActive": "2026-01-16T04:57:48.370Z"
+    },
+    "sub_002": {
+      "subscriptionId": "sub_002",
+      "endpoint": "https://fcm.googleapis.com/fcm/send/device_002",
+      "keys": {
+        "p256dh": "p256dh_key_of4gnqj5n7",
+        "auth": "auth_key_vsq2b38g5uh"
+      },
+      "userId": "owner",
+      "deviceId": "device_mobile_001",
+      "createdAt": "2026-01-15T04:57:48.370Z",
+      "lastActive": "2026-01-16T03:57:48.370Z"
+    },
+    "sub_003": {
+      "subscriptionId": "sub_003",
+      "endpoint": "https://fcm.googleapis.com/fcm/send/device_003",
+      "keys": {
+        "p256dh": "p256dh_key_wh1pd157if",
+        "auth": "auth_key_cradttwpra"
+      },
+      "userId": "admin",
+      "deviceId": "device_tablet_001",
+      "createdAt": "2026-01-14T04:57:48.370Z",
+      "lastActive": "2026-01-16T04:27:48.370Z"
+    }
+  },
+  "lastUpdated": "2026-01-16T04:57:48.400Z"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "notif_sync_001",
+  "type": "sync_update",
+  "priority": "low",
+  "title": "Sync Completed",
+  "message": "Device synchronization completed successfully",
+  "deviceId": "device_test_001",
+  "userId": "owner",
+  "timestamp": "2026-01-16T04:45:58.574Z",
+  "read": true,
+  "metadata": {
+    "syncedItems": 25,
+    "duration": 120
+  }
+}

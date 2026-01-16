@@ -1,0 +1,11 @@
+{
+  "type": "acey_device_pairing",
+  "version": "1.0",
+  "deviceId": "device_test_g645z4of",
+  "deviceName": "Acey-Mobile-Device",
+  "publicKey": "public_key_mhu1yn3gsfg",
+  "trustToken": "trust_xjwjukl3ozm",
+  "timestamp": "2026-01-16T04:46:42.523Z",
+  "expiresAt": "2026-01-16T05:46:42.521Z",
+  "checksum": "qr_checksum_gxotet14jeb"
+}

@@ -1,0 +1,12 @@
+{
+  "subscriptionId": "sub_001",
+  "endpoint": "https://fcm.googleapis.com/fcm/send/device_001",
+  "keys": {
+    "p256dh": "p256dh_key_try70fmrc8",
+    "auth": "auth_key_ed6qm1v8j6k"
+  },
+  "userId": "owner",
+  "deviceId": "device_main_001",
+  "createdAt": "2026-01-16T04:57:48.369Z",
+  "lastActive": "2026-01-16T04:57:48.370Z"
+}

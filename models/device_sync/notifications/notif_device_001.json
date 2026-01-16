@@ -1,0 +1,15 @@
+{
+  "id": "notif_device_001",
+  "type": "device_event",
+  "priority": "medium",
+  "title": "Device Connected",
+  "message": "Device Acey-Mobile-001 has connected to the network",
+  "deviceId": "device_test_001",
+  "userId": "owner",
+  "timestamp": "2026-01-16T04:47:58.573Z",
+  "read": false,
+  "metadata": {
+    "connectionType": "wifi",
+    "ipAddress": "192.168.1.100"
+  }
+}

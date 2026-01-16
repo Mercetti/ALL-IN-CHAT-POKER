@@ -1,0 +1,12 @@
+{
+  "deviceId": "device_test_g645z4of",
+  "userId": "owner",
+  "biometricType": "fingerprint",
+  "templateHash": "bio_hash_owrf389o3iq",
+  "createdAt": "2026-01-16T04:46:42.524Z",
+  "lastUsed": "2026-01-16T04:46:42.524Z",
+  "trustLevel": 3,
+  "isActive": true,
+  "attempts": 0,
+  "maxAttempts": 3
+}

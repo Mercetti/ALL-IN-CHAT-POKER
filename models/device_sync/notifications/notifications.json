@@ -1,0 +1,79 @@
+{
+  "notifications": {
+    "notif_device_001": {
+      "id": "notif_device_001",
+      "type": "device_event",
+      "priority": "medium",
+      "title": "Device Connected",
+      "message": "Device Acey-Mobile-001 has connected to the network",
+      "deviceId": "device_test_001",
+      "userId": "owner",
+      "timestamp": "2026-01-16T04:47:58.573Z",
+      "read": false,
+      "metadata": {
+        "connectionType": "wifi",
+        "ipAddress": "192.168.1.100"
+      }
+    },
+    "notif_security_001": {
+      "id": "notif_security_001",
+      "type": "security_alert",
+      "priority": "high",
+      "title": "Security Alert",
+      "message": "Unauthorized access attempt detected on device Acey-Mobile-001",
+      "deviceId": "device_test_001",
+      "userId": "owner",
+      "timestamp": "2026-01-16T04:46:58.574Z",
+      "read": false,
+      "metadata": {
+        "sourceIp": "10.0.0.1",
+        "attemptedAction": "admin_access"
+      }
+    },
+    "notif_sync_001": {
+      "id": "notif_sync_001",
+      "type": "sync_update",
+      "priority": "low",
+      "title": "Sync Completed",
+      "message": "Device synchronization completed successfully",
+      "deviceId": "device_test_001",
+      "userId": "owner",
+      "timestamp": "2026-01-16T04:45:58.574Z",
+      "read": true,
+      "metadata": {
+        "syncedItems": 25,
+        "duration": 120
+      }
+    },
+    "notif_trust_001": {
+      "id": "notif_trust_001",
+      "type": "trust_event",
+      "priority": "high",
+      "title": "Biometric Verified",
+      "message": "Biometric verification successful for device Acey-Mobile-001",
+      "deviceId": "device_test_001",
+      "userId": "owner",
+      "timestamp": "2026-01-16T04:44:58.574Z",
+      "read": false,
+      "metadata": {
+        "biometricType": "fingerprint",
+        "confidence": 0.95
+      }
+    },
+    "notif_system_001": {
+      "id": "notif_system_001",
+      "type": "system_status",
+      "priority": "medium",
+      "title": "System Operational",
+      "message": "Acey system is running normally",
+      "userId": "owner",
+      "timestamp": "2026-01-16T04:42:58.574Z",
+      "read": true,
+      "metadata": {
+        "uptime": "99.9%",
+        "activeDevices": 3
+      }
+    }
+  },
+  "lastUpdated": "2026-01-16T04:47:58.589Z"
+}

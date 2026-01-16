@@ -1,0 +1,39 @@
+{
+  "experiments": [
+    {
+      "id": "exp_001",
+      "name": "React Component Generation",
+      "status": "running",
+      "progress": 75,
+      "startTime": "2026-01-16T03:56:54.463Z",
+      "skill": "CodeHelper",
+      "confidence": 0.92
+    },
+    {
+      "id": "exp_002",
+      "name": "Logo Design Variations",
+      "status": "completed",
+      "progress": 100,
+      "startTime": "2026-01-16T02:56:54.464Z",
+      "skill": "GraphicsWizard",
+      "confidence": 0.88
+    },
+    {
+      "id": "exp_003",
+      "name": "Audio Background Generation",
+      "status": "failed",
+      "progress": 45,
+      "startTime": "2026-01-16T01:56:54.464Z",
+      "skill": "AudioMaestro",
+      "confidence": 0.31,
+      "error": "Audio generation timeout"
+    }
+  ],
+  "activeSkills": [
+    "CodeHelper",
+    "GraphicsWizard",
+    "AudioMaestro"
+  ],
+  "systemStatus": "operational",
+  "lastUpdate": "2026-01-16T04:56:54.464Z"
+}

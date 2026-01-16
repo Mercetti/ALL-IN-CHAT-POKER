@@ -1,0 +1,20 @@
+{
+  "uptime": 0.95,
+  "errorRate": 0.05,
+  "performance": "good",
+  "alerts": [
+    {
+      "type": "warning",
+      "message": "AudioMaestro skill showing elevated error rate",
+      "timestamp": "2026-01-16T03:56:19.760Z",
+      "resolved": false
+    },
+    {
+      "type": "info",
+      "message": "System maintenance scheduled for tonight",
+      "timestamp": "2026-01-16T02:56:19.760Z",
+      "resolved": true
+    }
+  ],
+  "lastCheck": "2026-01-16T04:56:19.760Z"
+}

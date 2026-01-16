@@ -1,0 +1,13 @@
+{
+  "tokenId": "trust_x65gcubgqka",
+  "deviceId": "device_yckbtj6my",
+  "issuedAt": "2026-01-16T04:45:01.454Z",
+  "expiresAt": "2026-01-17T04:45:01.454Z",
+  "trustLevel": 3,
+  "permissions": [
+    "read",
+    "write",
+    "sync"
+  ],
+  "signature": "sample_signature_9xt0xphlnek"
+}

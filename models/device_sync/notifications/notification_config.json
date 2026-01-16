@@ -1,0 +1,9 @@
+{
+  "ownerUserId": "owner",
+  "enableEmailNotifications": true,
+  "enablePushNotifications": true,
+  "enableSMSNotifications": false,
+  "retentionDays": 30,
+  "maxNotifications": 1000,
+  "notificationPath": "./models/device_sync/notifications"
+}

@@ -1,0 +1,36 @@
+{
+  "id": "push_proposal_001",
+  "type": "proposal",
+  "priority": "high",
+  "title": "New Skill Installation Proposal",
+  "message": "Developer A has submitted a proposal to install NewAnalyticsSkill v1.0.0",
+  "timestamp": "2026-01-16T04:57:48.374Z",
+  "data": {
+    "proposalId": "prop_001",
+    "proposalType": "Skill Installation",
+    "proposer": "Developer A",
+    "details": {
+      "skillName": "NewAnalyticsSkill",
+      "version": "1.0.0",
+      "description": "Advanced data analysis capabilities"
+    }
+  },
+  "actions": [
+    {
+      "label": "Review",
+      "action": "review_proposal"
+    },
+    {
+      "label": "Reject",
+      "action": "reject_proposal",
+      "style": "cancel"
+    },
+    {
+      "label": "Approve",
+      "action": "approve_proposal"
+    }
+  ],
+  "expiresAt": "2026-01-17T04:57:48.374Z",
+  "read": false,
+  "delivered": false
+}

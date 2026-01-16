@@ -1,0 +1,10 @@
+{
+  "enabled": true,
+  "serviceWorkerPath": "/service-worker.js",
+  "publicKey": "push_public_key_u4ori2er4bn",
+  "privateKey": "push_private_key_l39ssxgrxao",
+  "maxNotifications": 1000,
+  "retentionHours": 24,
+  "retryAttempts": 3,
+  "batchInterval": 5000
+}

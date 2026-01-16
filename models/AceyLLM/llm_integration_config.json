@@ -1,0 +1,13 @@
+{
+  "modelPath": "./models/AceyLLM",
+  "datasetPath": "./models/AceyLearning",
+  "integrationMode": "continuous",
+  "updateInterval": 300000,
+  "qualityThreshold": 0.7,
+  "maxLogAge": 86400000,
+  "autoRetraining": true,
+  "performanceMonitoring": true,
+  "fallbackToExternal": true,
+  "externalLLMEndpoint": "https://api.openai.com/v1/chat/completions",
+  "externalLLMKey": "demo-key"
+}

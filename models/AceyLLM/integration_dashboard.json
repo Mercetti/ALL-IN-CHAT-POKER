@@ -1,0 +1,39 @@
+{
+  "timestamp": "2026-01-16T05:03:15.740Z",
+  "status": "operational",
+  "llmStatus": {
+    "modelLoaded": true,
+    "modelVersion": "acey-self-hosted-v1",
+    "lastUpdate": "2026-01-16T05:03:15.740Z",
+    "accuracy": 0.86,
+    "performance": "excellent"
+  },
+  "datasetStatus": {
+    "totalLogs": 5,
+    "newLogsToday": 5,
+    "averageQuality": "0.870",
+    "lastUpdate": "2026-01-16T05:03:15.740Z",
+    "status": "active"
+  },
+  "integrationMetrics": {
+    "logsProcessed": 5,
+    "highQualityLogs": 5,
+    "processingTime": 45000,
+    "modelImprovement": 0.04,
+    "lastIntegration": "2026-01-16T05:03:15.740Z"
+  },
+  "alerts": [
+    {
+      "type": "info",
+      "message": "LLM integration completed successfully",
+      "timestamp": "2026-01-16T05:03:15.740Z",
+      "resolved": true
+    }
+  ],
+  "recommendations": [
+    "Continue monitoring model performance",
+    "Adjust quality threshold based on results",
+    "Schedule regular model retraining",
+    "Monitor constitutional compliance rates"
+  ]
+}

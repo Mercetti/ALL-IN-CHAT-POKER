@@ -1,6 +1,6 @@
 import request from 'supertest';
-import { app } from '../src/app';
-import { testUtils } from './setup';
+import app from '../../src/main';
+// import { testUtils } from './setup';
 
 describe('Health Check Endpoints', () => {
   describe('GET /health', () => {

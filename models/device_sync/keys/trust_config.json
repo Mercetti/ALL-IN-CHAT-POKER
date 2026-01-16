@@ -1,0 +1,7 @@
+{
+  "tokenExpirationMinutes": 60,
+  "maxBiometricAttempts": 3,
+  "qrCodeSize": 256,
+  "encryptionEnabled": true,
+  "biometricThreshold": 0.85
+}

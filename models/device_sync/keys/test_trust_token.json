@@ -1,0 +1,15 @@
+{
+  "tokenId": "trust_xjwjukl3ozm",
+  "deviceId": "device_test_g645z4of",
+  "userId": "owner",
+  "issuedAt": "2026-01-16T04:46:42.520Z",
+  "expiresAt": "2026-01-16T05:46:42.521Z",
+  "trustLevel": 3,
+  "permissions": [
+    "read",
+    "write",
+    "sync",
+    "admin"
+  ],
+  "signature": "trust_signature_wv7jmfkrwhe"
+}

@@ -117,7 +117,7 @@ export class DatabaseMiddleware {
                   resolve(undefined);
                 }
               };
-              originalNext(req, res, next);
+              originalNext();
             });
             
             nextPromise.then(() => {

@@ -1,0 +1,37 @@
+{
+  "metrics": {
+    "totalRevenue": 14500,
+    "monthlyRevenue": 1208.33,
+    "activePartners": 4,
+    "skillExecutions": 1250,
+    "systemUptime": 0.95,
+    "errorRate": 0.05
+  },
+  "revenueBreakdown": {
+    "enterprise": 8000,
+    "pro": 2000,
+    "creator": 400,
+    "oneTime": 1500
+  },
+  "partnerPerformance": [
+    {
+      "name": "Enterprise Client A",
+      "revenue": 10000,
+      "growth": 15.3,
+      "status": "active"
+    },
+    {
+      "name": "Pro Client B",
+      "revenue": 2500,
+      "growth": 8.7,
+      "status": "active"
+    },
+    {
+      "name": "Creator Client C",
+      "revenue": 500,
+      "growth": 22.1,
+      "status": "trial"
+    }
+  ],
+  "lastUpdate": "2026-01-16T04:56:54.464Z"
+}

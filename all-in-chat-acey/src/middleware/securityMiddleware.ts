@@ -148,17 +148,17 @@ export class SecurityMiddleware {
         preload: true,
       },
       noSniff: true,
-      xFrameOptions: 'DENY',
+      xFrameOptions: 'DENY' as any,
       ieNoOpen: true,
     });
   }
 
   private rateLimitMiddleware() {
     const limiter = rateLimit({
-      windowMs: this.config.rateLimit.windowMs,
-      max: this.config.rateLimit.max,
-      message: this.config.rateLimit.message,
-      standardHeaders: this.config.rateLimit.standardHeaders,
+      windowMs: this.config.rateLimit?.windowMs || 900000,
+      max: this.config.rateLimit?.max || 100,
+      message: this.config.rateLimit?.message || 'Too many requests',
+      standardHeaders: this.config.rateLimit?.standardHeaders || true,
       keyGenerator: (req: Request) => {
         const ip = req.ip || req.connection.remoteAddress || 'unknown';
         return `${ip}_${Date.now()}`;
@@ -168,20 +168,6 @@ export class SecurityMiddleware {
         const skipPaths = ['/health', '/metrics', '/favicon.ico', '/robots.txt'];
         return skipPaths.some(path => req.path?.startsWith(path));
       },
-      onLimitReached: (req: Request, res: Response) => {
-        const ip = req.ip || req.connection.remoteAddress || 'unknown';
-        this.logger.warn(`Rate limit exceeded for IP: ${ip}`, { 
-          ip, 
-          path: req.path,
-          userAgent: req.get('User-Agent'),
-        });
-        
-        res.status(429).json({
-          error: 'Too many requests',
-          message: this.config.rateLimit.message,
-          retryAfter: this.config.rateLimit.windowMs / 1000, // Convert to seconds
-        });
-      },
       handler: (req: Request, res: Response, next: NextFunction) => {
         // Custom rate limit handling
         const ip = req.ip || req.connection.remoteAddress || 'unknown';
@@ -189,13 +175,18 @@ export class SecurityMiddleware {
         
         if (key) {
           key.count++;
-          if (key.count > this.config.rateLimit!.max) {
-            return key.handler(req, res, next);
+          if (key.count > (this.config.rateLimit?.max || 100)) {
+            res.status(429).json({
+              error: 'Too many requests',
+              message: this.config.rateLimit?.message || 'Too many requests',
+              retryAfter: (this.config.rateLimit?.windowMs || 900000) / 1000,
+            });
+            return;
           }
         } else {
           this.rateLimitStore.set(ip, {
             count: 1,
-            resetTime: Date.now() + this.config.rateLimit!.windowMs,
+            resetTime: Date.now() + (this.config.rateLimit?.windowMs || 900000),
           });
         }
         
@@ -208,16 +199,16 @@ export class SecurityMiddleware {
 
   private ipFilterMiddleware() {
     return (req: Request, res: Response, next: NextFunction) => {
-      const ip = req.ip || req.connection.remoteAddress;
+      const ip = req.ip || req.connection.remoteAddress || 'unknown';
       
       // Check IP whitelist
-      if (this.config.ipWhitelist.length > 0 && !this.config.ipWhitelist.includes(ip)) {
+      if ((this.config.ipWhitelist?.length || 0) > 0 && !(this.config.ipWhitelist || []).includes(ip)) {
         this.logger.warn(`IP not whitelisted: ${ip}`, { ip });
         return res.status(403).json({ error: 'IP not authorized' });
       }
 
       // Check blocked IPs
-      if (this.config.blockedIPs.includes(ip)) {
+      if ((this.config.blockedIPs || []).includes(ip)) {
         this.logger.warn(`Blocked IP attempted access: ${ip}`, { ip });
         return res.status(403).json({ error: 'IP blocked' });
       }
@@ -289,7 +280,7 @@ export class SecurityMiddleware {
         .sort((a, b) => b.requests - a.requests)
         .slice(0, 10),
       rateLimitViolations: Array.from(this.rateLimitStore.values())
-        .filter(data => data.count > this.config.rateLimit.max)
+        .filter(data => data.count > (this.config.rateLimit?.max || 100))
         .length,
     };
 

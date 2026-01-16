@@ -1,0 +1,51 @@
+{
+  "enabled": true,
+  "interval": 5000,
+  "maxRetries": 3,
+  "timeout": 10000,
+  "batchSize": 50,
+  "compressionEnabled": true,
+  "cachingEnabled": true,
+  "websocketEnabled": true,
+  "fallbackToPolling": true,
+  "screens": {
+    "AceyLab": {
+      "interval": 5000,
+      "priority": "high"
+    },
+    "InvestorDashboard": {
+      "interval": 7000,
+      "priority": "high"
+    },
+    "SkillStore": {
+      "interval": 10000,
+      "priority": "medium"
+    },
+    "SchedulerControl": {
+      "interval": 5000,
+      "priority": "high"
+    }
+  },
+  "dataTypes": {
+    "skills": {
+      "refreshRate": 5000,
+      "cache": true
+    },
+    "devices": {
+      "refreshRate": 7000,
+      "cache": true
+    },
+    "financials": {
+      "refreshRate": 10000,
+      "cache": false
+    },
+    "learning": {
+      "refreshRate": 15000,
+      "cache": true
+    },
+    "systemHealth": {
+      "refreshRate": 3000,
+      "cache": false
+    }
+  }
+}

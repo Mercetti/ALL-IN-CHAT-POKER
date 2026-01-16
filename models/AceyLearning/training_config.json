@@ -1,0 +1,39 @@
+{
+  "modelConfig": {
+    "modelName": "acey-self-hosted-v1",
+    "modelType": "transformer",
+    "contextLength": 4096,
+    "maxTokens": 2048,
+    "temperature": 0.7,
+    "topP": 0.9,
+    "frequencyPenalty": 0.1,
+    "presencePenalty": 0.1
+  },
+  "trainingConfig": {
+    "epochs": 10,
+    "batchSize": 32,
+    "learningRate": 0.00002,
+    "weightDecay": 0.01,
+    "warmupSteps": 1000,
+    "saveSteps": 500,
+    "evalSteps": 1000,
+    "maxGradNorm": 1
+  },
+  "dataConfig": {
+    "trainFile": "train.jsonl",
+    "validationFile": "validation.jsonl",
+    "testFile": "test.jsonl",
+    "qualityThreshold": 0.7,
+    "constitutionalComplianceRequired": true,
+    "maxSequenceLength": 512,
+    "promptTemplate": "Skill: {skillName}\nInput: {input}\nExecute with constitutional compliance:"
+  },
+  "outputConfig": {
+    "outputDir": "./models/AceyLearning/models",
+    "checkpointDir": "./models/AceyLearning/checkpoints",
+    "logDir": "./models/AceyLearning/logs",
+    "reportDir": "./models/AceyLearning/reports",
+    "saveFormat": "jsonl",
+    "compressionEnabled": true
+  }
+}

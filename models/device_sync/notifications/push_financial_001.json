@@ -1,0 +1,37 @@
+{
+  "id": "push_financial_001",
+  "type": "financial_anomaly",
+  "priority": "critical",
+  "title": "Financial Anomaly Detected",
+  "message": "Unusual Transaction: Large payout detected - Amount: $5,000",
+  "timestamp": "2026-01-16T04:52:48.375Z",
+  "data": {
+    "anomalyType": "Unusual Transaction",
+    "amount": 5000,
+    "description": "Large payout detected",
+    "details": {
+      "partner": "Unknown Partner",
+      "transactionId": "txn_001",
+      "timestamp": "2026-01-16T04:57:48.375Z"
+    }
+  },
+  "actions": [
+    {
+      "label": "Review Transaction",
+      "action": "review_transaction"
+    },
+    {
+      "label": "Freeze Account",
+      "action": "freeze_account",
+      "style": "destructive"
+    },
+    {
+      "label": "Ignore",
+      "action": "ignore_anomaly",
+      "style": "cancel"
+    }
+  ],
+  "expiresAt": "2026-01-16T08:57:48.375Z",
+  "read": false,
+  "delivered": false
+}

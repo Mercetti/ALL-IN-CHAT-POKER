@@ -1,0 +1,36 @@
+{
+  "id": "push_desync_001",
+  "type": "desync",
+  "priority": "high",
+  "title": "Device Desync Detected",
+  "message": "Acey-Mobile (device_mobile_001) is experiencing synchronization issues: Sync Timeout",
+  "deviceId": "device_mobile_001",
+  "timestamp": "2026-01-16T04:54:48.375Z",
+  "data": {
+    "deviceId": "device_mobile_001",
+    "deviceName": "Acey-Mobile",
+    "syncStatus": "Sync Timeout",
+    "details": {
+      "lastSync": "2026-01-16T03:57:48.375Z",
+      "retryCount": 3
+    }
+  },
+  "actions": [
+    {
+      "label": "Force Sync",
+      "action": "force_sync"
+    },
+    {
+      "label": "View Device",
+      "action": "view_device"
+    },
+    {
+      "label": "Ignore",
+      "action": "ignore_desync",
+      "style": "cancel"
+    }
+  ],
+  "expiresAt": "2026-01-16T10:57:48.375Z",
+  "read": false,
+  "delivered": false
+}

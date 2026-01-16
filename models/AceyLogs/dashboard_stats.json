@@ -1,0 +1,126 @@
+{
+  "timestamp": "2026-01-16T04:56:19.761Z",
+  "skills": [
+    {
+      "skillName": "CodeHelper",
+      "executionCount": 2,
+      "successRate": 1,
+      "avgExecutionTime": 1000,
+      "lastUsed": "2026-01-16T04:55:19.728Z",
+      "confidence": 0.915,
+      "errorRate": 0
+    },
+    {
+      "skillName": "GraphicsWizard",
+      "executionCount": 1,
+      "successRate": 1,
+      "avgExecutionTime": 2500,
+      "lastUsed": "2026-01-16T04:54:19.728Z",
+      "confidence": 0.92,
+      "errorRate": 0
+    },
+    {
+      "skillName": "AudioMaestro",
+      "executionCount": 1,
+      "successRate": 0,
+      "avgExecutionTime": 3000,
+      "lastUsed": "2026-01-16T04:53:19.728Z",
+      "confidence": 0.45,
+      "errorRate": 1
+    }
+  ],
+  "devices": [
+    {
+      "deviceId": "device_main_001",
+      "deviceName": "Acey-Primary-Server",
+      "lastSync": "2026-01-16T04:56:19.762Z",
+      "isOnline": true,
+      "trustLevel": 3,
+      "skillsCount": 8,
+      "datasetsCount": 5,
+      "syncHealth": "excellent",
+      "errors": []
+    },
+    {
+      "deviceId": "device_mobile_001",
+      "deviceName": "Acey-Mobile-Device",
+      "lastSync": "2026-01-16T04:26:19.762Z",
+      "isOnline": true,
+      "trustLevel": 2,
+      "skillsCount": 6,
+      "datasetsCount": 3,
+      "syncHealth": "good",
+      "errors": []
+    }
+  ],
+  "financials": {
+    "totalRevenue": 14500,
+    "monthlyRevenue": 1208.3333333333333,
+    "partnerRevenue": {
+      "Enterprise Client A": 10000,
+      "Pro Client B": 2500,
+      "Creator Client C": 500,
+      "Startup Client D": 1500
+    },
+    "payouts": [
+      {
+        "partner": "Developer A",
+        "amount": 500,
+        "timestamp": "2026-01-15T04:56:19.733Z",
+        "status": "completed"
+      },
+      {
+        "partner": "Designer B",
+        "amount": 300,
+        "timestamp": "2026-01-14T04:56:19.733Z",
+        "status": "pending"
+      },
+      {
+        "partner": "Consultant C",
+        "amount": 750,
+        "timestamp": "2026-01-13T04:56:19.733Z",
+        "status": "failed"
+      }
+    ],
+    "subscriptionRevenue": {
+      "Enterprise": 8000,
+      "Pro": 2000,
+      "Creator": 400
+    },
+    "oneTimeRevenue": 1500
+  },
+  "learning": {
+    "totalDatasets": 3,
+    "totalEntries": 3,
+    "avgQuality": 0.6833333333333332,
+    "highQualityEntries": 2,
+    "learningProgress": 66.66666666666666,
+    "lastFineTune": "2026-01-15T04:56:19.762Z",
+    "modelAccuracy": 68.33333333333333,
+    "datasetsBySkill": {
+      "CodeHelper": 1,
+      "GraphicsWizard": 1,
+      "AudioMaestro": 1
+    }
+  },
+  "systemHealth": {
+    "uptime": 0.95,
+    "errorRate": 0.05,
+    "performance": "good",
+    "alerts": [
+      {
+        "type": "warning",
+        "message": "AudioMaestro skill showing elevated error rate",
+        "timestamp": "2026-01-16T03:56:19.760Z",
+        "resolved": false
+      },
+      {
+        "type": "info",
+        "message": "System maintenance scheduled for tonight",
+        "timestamp": "2026-01-16T02:56:19.760Z",
+        "resolved": true
+      }
+    ],
+    "lastCheck": "2026-01-16T04:56:19.760Z"
+  }
+}

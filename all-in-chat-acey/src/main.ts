@@ -414,6 +414,8 @@ process.on('SIGTERM', () => {
   process.exit(0);
 });
 
+export default app;
+
 process.on('SIGINT', () => {
   logger.log('SIGINT received, shutting down gracefully');
   process.exit(0);

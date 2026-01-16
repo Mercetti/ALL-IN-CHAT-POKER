@@ -1,0 +1,14 @@
+{
+  "id": "notif_system_001",
+  "type": "system_status",
+  "priority": "medium",
+  "title": "System Operational",
+  "message": "Acey system is running normally",
+  "userId": "owner",
+  "timestamp": "2026-01-16T04:42:58.574Z",
+  "read": true,
+  "metadata": {
+    "uptime": "99.9%",
+    "activeDevices": 3
+  }
+}
