@@ -4,7 +4,7 @@
  */
 
 // Status Screen Component
-export const StatusScreen = ({ systemStatus, onRefresh }) => {
+const StatusScreen = ({ systemStatus, onRefresh }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'active': return '#4CAF50';
@@ -48,7 +48,7 @@ export const StatusScreen = ({ systemStatus, onRefresh }) => {
 };
 
 // Control Panel Component
-export const ControlPanel = ({ onStart, onStop, onModeChange, currentMode }) => {
+const ControlPanel = ({ onStart, onStop, onModeChange, currentMode, systemStatus }) => {
   const modes = [
     { id: 'OFFLINE', name: 'Offline', description: 'No active services' },
     { id: 'LITE', name: 'Lite', description: 'Basic monitoring only' },
@@ -85,7 +85,7 @@ export const ControlPanel = ({ onStart, onStop, onModeChange, currentMode }) => 
 };
 
 // Demo Control Component
-export const DemoControl = ({ onStartDemo, onStopDemo, demoStatus, availableDemos }) => {
+const DemoControl = ({ onStartDemo, onStopDemo, demoStatus, availableDemos }) => {
   return {
     type: 'DemoControl',
     render: () => ({
@@ -119,7 +119,7 @@ export const DemoControl = ({ onStartDemo, onStopDemo, demoStatus, availableDemo
 };
 
 // Logs Screen Component
-export const LogsScreen = ({ logs, onRefresh, onClear }) => {
+const LogsScreen = ({ logs, onRefresh, onClear }) => {
   return {
     type: 'LogsScreen',
     render: () => ({
@@ -150,7 +150,7 @@ export const LogsScreen = ({ logs, onRefresh, onClear }) => {
 };
 
 // Mobile API Controller
-export class MobileAPIController {
+class MobileAPIController {
   constructor() {
     this.endpoints = {
       start: '/api/acey/start',
@@ -217,7 +217,7 @@ export class MobileAPIController {
 }
 
 // Mobile Navigation Structure
-export const MobileNavigation = {
+const MobileNavigation = {
   tabs: [
     {
       id: 'status',
@@ -246,7 +246,7 @@ export const MobileNavigation = {
   ]
 };
 
-export default {
+module.exports = {
   StatusScreen,
   ControlPanel,
   DemoControl,
