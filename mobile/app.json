@@ -34,8 +34,16 @@
     "plugins": [],
     "extra": {
       "eas": {
-        "projectId": "6bd773ac-9035-417d-8bd3-d280a150e4c9"
+        "projectId": "3b8d3730-f772-41b6-b259-26d52e3889fc"
       }
-    }
+    },
+    "build": {
+      "production": {
+        "android": {
+          "buildType": "apk"
+        }
+      }
+    },
+    "owner": "mercetti"
   }
 }
