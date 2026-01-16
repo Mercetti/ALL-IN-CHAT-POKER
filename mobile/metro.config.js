@@ -10,9 +10,6 @@ module.exports = (async () => {
   
   return {
     ...defaultConfig,
-    transformer: {
-      babelTransformerPath: require.resolve('react-native-svg-transformer'),
-    },
     resolver: {
       alias: {
         '@components': './src/components',
