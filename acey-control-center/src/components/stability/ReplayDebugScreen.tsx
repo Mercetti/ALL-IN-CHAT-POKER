@@ -193,7 +193,7 @@ export default function ReplayDebugScreen() {
       {decision.error && (
         <View style={styles.errorSection}>
           <Text style={styles.errorLabel}>Error:</Text>
-          <Text style={styles.errorText}>{decision.error}</Text>
+          <Text style={styles.decisionErrorText}>{decision.error}</Text>
         </View>
       )}
 
@@ -416,7 +416,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
-  errorText: {
+  loadingErrorText: {
     fontSize: 16,
     color: '#EF4444',
     textAlign: 'center',
@@ -685,7 +685,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 4,
   },
-  errorText: {
+  decisionErrorText: {
     fontSize: 12,
     color: '#991B1B',
   },
