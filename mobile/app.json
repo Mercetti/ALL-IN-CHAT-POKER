@@ -39,18 +39,6 @@
           "appVersionSource": "local"
         }
       }
-    },
-    "build": {
-      "production": {
-        "android": {
-          "buildType": "apk"
-        },
-        "env": {
-          "PLAIN_TEXT_ENV_VAR": "production_value",
-          "SENSITIVE_ENV_VAR": "secret_value"
-        }
-      }
-    },
-    "owner": "mercetti"
+    }
   }
 }
