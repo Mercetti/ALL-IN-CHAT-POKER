@@ -12,22 +12,25 @@ Notifications.setNotificationHandler({
   }),
 });
 
-export interface NotificationData {
+export interface BaseNotificationData {
   title: string;
   body: string;
   data?: any;
   priority?: 'default' | 'high' | 'medium' | 'low';
   sound?: 'default' | 'custom' | 'silent';
-  type?: 'info' | 'warning' | 'error' | 'security' | 'billing' | 'feature' | 'payout' | 'investor';
   actionUrl?: string;
 }
 
-export interface UserNotification extends NotificationData {
+export interface NotificationData extends BaseNotificationData {
+  type?: 'info' | 'warning' | 'error' | 'security' | 'billing' | 'feature' | 'payout' | 'investor';
+}
+
+export interface UserNotification extends BaseNotificationData {
   userId: string;
   type: 'skill_unlock' | 'trial_warning' | 'tier_upgrade' | 'access_denied';
 }
 
-export interface OwnerNotification extends NotificationData {
+export interface OwnerNotification extends BaseNotificationData {
   ownerToken: string;
   type: 'user_skill_unlock' | 'trial_expiration' | 'locked_access_attempt' | 'learning_update';
   username?: string;

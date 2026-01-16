@@ -1,0 +1,136 @@
+{
+  "index_patterns": ["acey-logs-*"],
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0,
+    "index.refresh_interval": "5s",
+    "index.max_result_window": 50000,
+    "analysis": {
+      "analyzer": {
+        "acey_analyzer": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": ["lowercase", "stop"]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "@timestamp": {
+        "type": "date",
+        "format": "strict_date_optional_time||epoch_millis"
+      },
+      "level": {
+        "type": "keyword"
+      },
+      "message": {
+        "type": "text",
+        "analyzer": "acey_analyzer",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "service": {
+        "type": "keyword"
+      },
+      "environment": {
+        "type": "keyword"
+      },
+      "version": {
+        "type": "keyword"
+      },
+      "user_id": {
+        "type": "keyword"
+      },
+      "session_id": {
+        "type": "keyword"
+      },
+      "request_id": {
+        "type": "keyword"
+      },
+      "method": {
+        "type": "keyword"
+      },
+      "url": {
+        "type": "keyword"
+      },
+      "status_code": {
+        "type": "integer"
+      },
+      "response_time": {
+        "type": "float"
+      },
+      "response_time_ms": {
+        "type": "float"
+      },
+      "client_ip": {
+        "type": "ip"
+      },
+      "user_agent": {
+        "type": "text",
+        "analyzer": "acey_analyzer",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 512
+          }
+        }
+      },
+      "error": {
+        "type": "text",
+        "analyzer": "acey_analyzer"
+      },
+      "stack_trace": {
+        "type": "text",
+        "index": false
+      },
+      "tags": {
+        "type": "keyword"
+      },
+      "geoip": {
+        "properties": {
+          "location": {
+            "type": "geo_point"
+          },
+          "country_name": {
+            "type": "keyword"
+          },
+          "city_name": {
+            "type": "keyword"
+          }
+        }
+      },
+      "skill_name": {
+        "type": "keyword"
+      },
+      "skill_execution_time": {
+        "type": "float"
+      },
+      "security_event": {
+        "type": "boolean"
+      },
+      "blocked": {
+        "type": "boolean"
+      },
+      "mesh_instance": {
+        "type": "keyword"
+      },
+      "mesh_message_id": {
+        "type": "keyword"
+      },
+      "partner_id": {
+        "type": "keyword"
+      },
+      "payout_amount": {
+        "type": "float"
+      }
+    }
+  },
+  "aliases": {
+    "acey-logs-current": {}
+  }
+}

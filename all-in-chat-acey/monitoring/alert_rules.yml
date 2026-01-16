@@ -1,0 +1,268 @@
+# Alert Rules for Acey Backend
+# Production monitoring and alerting
+
+groups:
+  - name: "acey_critical_alerts"
+    rules:
+      # Service availability
+      - alert: "AseyAPIDown"
+        expr: "up{job=\"acey-api\"} == 0"
+        for: 1m
+        labels:
+          severity: "critical"
+          service: "acey-api"
+        annotations:
+          summary: "Acey API is down"
+          description: "Acey API has been down for more than 1 minute"
+          runbook_url: "https://docs.acey.com/runbooks/api-down"
+
+      - alert: "DatabaseDown"
+        expr: "up{job=\"postgres-exporter\"} == 0"
+        for: 1m
+        labels:
+          severity: "critical"
+          service: "database"
+        annotations:
+          summary: "Database is down"
+          description: "PostgreSQL database has been down for more than 1 minute"
+
+      - alert: "RedisDown"
+        expr: "up{job=\"redis-exporter\"} == 0"
+        for: 1m
+        labels:
+          severity: "critical"
+          service: "redis"
+        annotations:
+          summary: "Redis is down"
+          description: "Redis cache has been down for more than 1 minute"
+
+  - name: "acey_performance_alerts"
+    rules:
+      # API performance
+      - alert: "HighAPIErrorRate"
+        expr: "acey:api_error_rate:5m > 0.05"
+        for: 5m
+        labels:
+          severity: "warning"
+          service: "acey-api"
+        annotations:
+          summary: "High API error rate"
+          description: "API error rate is {{ $value | humanizePercentage }} for the last 5 minutes"
+
+      - alert: "HighAPILatency"
+        expr: "acey:api_request_duration:5m > 2"
+        for: 5m
+        labels:
+          severity: "warning"
+          service: "acey-api"
+        annotations:
+          summary: "High API latency"
+          description: "95th percentile API latency is {{ $value }}s for the last 5 minutes"
+
+      - alert: "DatabaseConnectionsHigh"
+        expr: "acey:db_connections_active > 80"
+        for: 5m
+        labels:
+          severity: "warning"
+          service: "database"
+        annotations:
+          summary: "High database connections"
+          description: "Database has {{ $value }} active connections"
+
+      - alert: "DatabaseQuerySlow"
+        expr: "acey:db_query_duration:5m > 1"
+        for: 5m
+        labels:
+          severity: "warning"
+          service: "database"
+        annotations:
+          summary: "Slow database queries"
+          description: "95th percentile query duration is {{ $value }}s"
+
+  - name: "acey_business_alerts"
+    rules:
+      # Business metrics
+      - alert: "SkillExecutionFailure"
+        expr: "acey:skill_success_rate:5m < 0.9"
+        for: 5m
+        labels:
+          severity: "warning"
+          service: "skills"
+        annotations:
+          summary: "Low skill execution success rate"
+          description: "Skill execution success rate is {{ $value | humanizePercentage }}"
+
+      - alert: "RevenueDrop"
+        expr: "rate(revenue_total[1h]) < 0.5 * rate(revenue_total[1h] offset 1h)"
+        for: 30m
+        labels:
+          severity: "warning"
+          service: "business"
+        annotations:
+          summary: "Revenue drop detected"
+          description: "Revenue has dropped by more than 50% compared to previous hour"
+
+      - alert: "LowActiveUsers"
+        expr: "acey:active_users:1h < 10"
+        for: 15m
+        labels:
+          severity: "info"
+          service: "business"
+        annotations:
+          summary: "Low active users"
+          description: "Only {{ $value }} active users in the last hour"
+
+  - name: "acey_security_alerts"
+    rules:
+      # Security monitoring
+      - alert: "HighFailedLoginRate"
+        expr: "acey:failed_login_rate:5m > 0.1"
+        for: 2m
+        labels:
+          severity: "warning"
+          service: "security"
+        annotations:
+          summary: "High failed login rate"
+          description: "Failed login rate is {{ $value | humanizePercentage }}"
+
+      - alert: "SecurityAlertsHigh"
+        expr: "acey:security_alerts_rate:5m > 5"
+        for: 2m
+        labels:
+          severity: "critical"
+          service: "security"
+        annotations:
+          summary: "High security alert rate"
+          description: "Security alerts rate is {{ $value }} per second"
+
+      - alert: "BlockedRequestsHigh"
+        expr: "acey:blocked_requests_rate:5m > 0.05"
+        for: 5m
+        labels:
+          severity: "warning"
+          service: "security"
+        annotations:
+          summary: "High blocked request rate"
+          description: "Blocked request rate is {{ $value | humanizePercentage }}"
+
+  - name: "acey_mesh_alerts"
+    rules:
+      # Mesh network monitoring
+      - alert: "MeshInstanceDown"
+        expr: "mesh_instances_total{status=\"offline\"} > 0"
+        for: 2m
+        labels:
+          severity: "warning"
+          service: "mesh"
+        annotations:
+          summary: "Mesh instance offline"
+          description: "{{ $value }} mesh instances are offline"
+
+      - alert: "MeshMessageLatencyHigh"
+        expr: "acey:mesh_message_latency:5m > 5"
+        for: 5m
+        labels:
+          severity: "warning"
+          service: "mesh"
+        annotations:
+          summary: "High mesh message latency"
+          description: "95th percentile mesh message latency is {{ $value }}s"
+
+      - alert: "MeshSyncFailure"
+        expr: "rate(mesh_sync_operations_total{status=\"failed\"}[5m]) > 0.1"
+        for: 5m
+        labels:
+          severity: "warning"
+          service: "mesh"
+        annotations:
+          summary: "Mesh sync failures"
+          description: "Mesh sync failure rate is {{ $value | humanizePercentage }}"
+
+  - name: "acey_system_alerts"
+    rules:
+      # System resource monitoring
+      - alert: "HighCPUUsage"
+        expr: "acey:cpu_usage:5m > 80"
+        for: 5m
+        labels:
+          severity: "warning"
+          service: "system"
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value }}%"
+
+      - alert: "HighMemoryUsage"
+        expr: "acey:memory_usage:5m > 85"
+        for: 5m
+        labels:
+          severity: "warning"
+          service: "system"
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value }}%"
+
+      - alert: "DiskSpaceLow"
+        expr: "acey:disk_usage:5m > 90"
+        for: 5m
+        labels:
+          severity: "critical"
+          service: "system"
+        annotations:
+          summary: "Low disk space"
+          description: "Disk usage is {{ $value }}%"
+
+      - alert: "DiskSpaceVeryLow"
+        expr: "acey:disk_usage:5m > 95"
+        for: 2m
+        labels:
+          severity: "critical"
+          service: "system"
+        annotations:
+          summary: "Very low disk space"
+          description: "Disk usage is {{ $value }}% - immediate action required"
+
+  - name: "acey_notification_alerts"
+    rules:
+      # Notification system monitoring
+      - alert: "NotificationFailureRate"
+        expr: "rate(notifications_failed_total[5m]) / rate(notifications_sent_total[5m]) > 0.1"
+        for: 5m
+        labels:
+          severity: "warning"
+          service: "notifications"
+        annotations:
+          summary: "High notification failure rate"
+          description: "Notification failure rate is {{ $value | humanizePercentage }}"
+
+      - alert: "PushNotificationsDown"
+        expr: "rate(push_notifications_total[5m]) == 0"
+        for: 10m
+        labels:
+          severity: "warning"
+          service: "notifications"
+        annotations:
+          summary: "Push notifications not working"
+          description: "No push notifications sent in the last 10 minutes"
+
+  - name: "acey_investor_alerts"
+    rules:
+      # Investor metrics
+      - alert: "UserChurnHigh"
+        expr: "acey:churn_rate:5m > 0.05"
+        for: 30m
+        labels:
+          severity: "warning"
+          service: "business"
+        annotations:
+          summary: "High user churn rate"
+          description: "User churn rate is {{ $value | humanizePercentage }}"
+
+      - alert: "NegativeROI"
+        expr: "acey:investor_roi:5m < 0"
+        for: 60m
+        labels:
+          severity: "warning"
+          service: "investor"
+        annotations:
+          summary: "Negative investor ROI"
+          description: "Investor ROI is {{ $value | humanizePercentage }}"

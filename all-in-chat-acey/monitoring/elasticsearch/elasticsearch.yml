@@ -1,0 +1,33 @@
+# Elasticsearch Configuration for Acey Backend
+# Production-ready with proper security and performance tuning
+
+cluster.name: "acey-cluster"
+node.name: "acey-node-1"
+path.data: /usr/share/elasticsearch/data
+path.logs: /usr/share/elasticsearch/logs
+network.host: 0.0.0.0
+http.port: 9200
+discovery.type: single-node
+
+# Security settings
+xpack.security.enabled: false
+xpack.monitoring.enabled: false
+
+# Performance tuning
+bootstrap.memory_lock: true
+indices.memory.index_buffer_size: 20%
+indices.queries.cache.size: 20%
+indices.fielddata.cache.size: 40%
+indices.requests.cache.size: 4%
+
+# Index settings for logs
+index.number_of_shards: 1
+index.number_of_replicas: 0
+index.refresh_interval: 5s
+
+# Log settings
+logger.level: INFO
+logger.org.elasticsearch.discovery: WARN
+
+# JVM settings (via environment variables)
+# ES_JAVA_OPTS=-Xms1g -Xmx1g

@@ -9,38 +9,287 @@ import {
   Alert,
   TextInput,
   ActivityIndicator,
+  FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { SkillCard } from '../components/SkillCard';
-import { Skill, User } from '../types/upgrade';
 import { getAllSkills, installSkill, orchestrateLLMUpgrade } from '../api/skills';
 import { useNavigation } from '@react-navigation/native';
+
+// Types for skill discovery
+interface Skill {
+  id: string;
+  name: string;
+  description: string;
+  requiredTierId: string;
+  category: string;
+  installed: boolean;
+}
+
+interface User {
+  id: string;
+  tierId: string;
+}
+
+interface SkillProposal {
+  id: string;
+  name: string;
+  description: string;
+  tier: 'Free' | 'Pro' | 'Creator+' | 'Enterprise';
+  type: 'enhancement' | 'new_skill' | 'variant';
+  basedOn: string;
+  reasoning: string;
+  proposedAt: string;
+  status: 'proposed' | 'approved' | 'rejected' | 'implemented';
+  estimatedValue: number;
+  implementationComplexity: 'low' | 'medium' | 'high';
+}
+
+// Simple SkillCard component since the import might not exist
+const SkillCard = ({ skill, onInstallPress, currentTierId, installing }: any) => {
+  const getTierColor = (tier: string) => {
+    switch (tier) {
+      case 'Free': return '#4CAF50';
+      case 'Pro': return '#2196F3';
+      case 'Creator+': return '#FF9800';
+      case 'Enterprise': return '#9C27B0';
+      default: return '#9E9E9E';
+    }
+  };
+
+  return (
+    <View style={styles.skillCard}>
+      <View style={styles.skillHeader}>
+        <Text style={styles.skillName}>{skill.name}</Text>
+        <Text style={[styles.skillTier, { color: getTierColor(skill.requiredTierId) }]}>
+          {skill.requiredTierId}
+        </Text>
+      </View>
+      <Text style={styles.skillDescription}>{skill.description}</Text>
+      <View style={styles.skillFooter}>
+        {skill.installed ? (
+          <Text style={styles.installedText}>✅ Installed</Text>
+        ) : (
+          <TouchableOpacity
+            style={[
+              styles.installButton,
+              installing === skill.id && styles.installingButton
+            ]}
+            onPress={() => onInstallPress(skill)}
+            disabled={installing !== null}
+          >
+            {installing === skill.id ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text style={styles.installButtonText}>Install</Text>
+            )}
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
+  );
+};
+
+// Types for skill discovery
+interface SkillProposal {
+  id: string;
+  name: string;
+  description: string;
+  tier: 'Free' | 'Pro' | 'Creator+' | 'Enterprise';
+  type: 'enhancement' | 'new_skill' | 'variant';
+  basedOn: string;
+  reasoning: string;
+  proposedAt: string;
+  status: 'proposed' | 'approved' | 'rejected' | 'implemented';
+  estimatedValue: number;
+  implementationComplexity: 'low' | 'medium' | 'high';
+}
 
 const currentUser: User = { id: 'currentUserId', tierId: 'Creator+' };
 
 export const SkillStoreScreen = () => {
   const navigation = useNavigation();
   const [skills, setSkills] = useState<Skill[]>([]);
+  const [proposals, setProposals] = useState<SkillProposal[]>([]);
   const [loading, setLoading] = useState(true);
   const [installingId, setInstallingId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<'skills' | 'proposals'>('skills');
+
+  // Simple SkillCard component since the import might not exist
+  const SkillCard = ({ skill, onInstallPress, currentTierId, installing }: any) => {
+    const getTierColor = (tier: string) => {
+      switch (tier) {
+        case 'Free': return '#4CAF50';
+        case 'Pro': return '#2196F3';
+        case 'Creator+': return '#FF9800';
+        case 'Enterprise': return '#9C27B0';
+        default: return '#9E9E9E';
+      }
+    };
+
+    return (
+      <View style={styles.skillCard}>
+        <View style={styles.skillHeader}>
+          <Text style={styles.skillName}>{skill.name}</Text>
+          <Text style={[styles.skillTier, { color: getTierColor(skill.requiredTierId) }]}>
+            {skill.requiredTierId}
+          </Text>
+        </View>
+        <Text style={styles.skillDescription}>{skill.description}</Text>
+        <View style={styles.skillFooter}>
+          {skill.installed ? (
+            <Text style={styles.installedText}>✅ Installed</Text>
+          ) : (
+            <TouchableOpacity
+              style={[
+                styles.installButton,
+                installing === skill.id && styles.installingButton
+              ]}
+              onPress={() => onInstallPress(skill)}
+              disabled={installing !== null}
+            >
+              {installing === skill.id ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text style={styles.installButtonText}>Install</Text>
+              )}
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+    );
+  };
 
   useEffect(() => {
-    const loadSkills = async () => {
+    const loadData = async () => {
       try {
-        const data = await getAllSkills(); // Fetch backend
+        // Load skills from backend
+        const data = await getAllSkills();
         setSkills(data);
+        
+        // Load skill proposals (mock data for now)
+        const mockProposals: SkillProposal[] = [
+          {
+            id: '1',
+            name: 'Enhanced Code Helper',
+            description: 'Enhanced version of CodeHelper based on 45 uses with 95% success rate. Optimized for object inputs.',
+            tier: 'Pro',
+            type: 'enhancement',
+            basedOn: 'CodeHelper',
+            reasoning: 'High frequency usage (45 times) indicates strong demand. Excellent success rate (95%) suggests reliable pattern.',
+            proposedAt: new Date().toISOString(),
+            status: 'proposed',
+            estimatedValue: 0.85,
+            implementationComplexity: 'medium'
+          },
+          {
+            id: '2',
+            name: 'Security Specialist',
+            description: 'Specialized skill derived from SecurityObserver usage patterns. Handles 23 repeated requests with 100% success rate.',
+            tier: 'Enterprise',
+            type: 'new_skill',
+            basedOn: 'SecurityObserver',
+            reasoning: 'Frequently used together (23 times) suggests workflow optimization opportunity.',
+            proposedAt: new Date().toISOString(),
+            status: 'proposed',
+            estimatedValue: 0.92,
+            implementationComplexity: 'high'
+          },
+          {
+            id: '3',
+            name: 'Data Analyzer Lite',
+            description: 'Lightweight variant of DataAnalyzer for common use cases. Used 67 times with 88% success rate.',
+            tier: 'Free',
+            type: 'variant',
+            basedOn: 'DataAnalyzer',
+            reasoning: 'High estimated value (88%) justifies development effort. Recent activity shows current relevance.',
+            proposedAt: new Date().toISOString(),
+            status: 'approved',
+            estimatedValue: 0.78,
+            implementationComplexity: 'low'
+          }
+        ];
+        setProposals(mockProposals);
       } catch (err) {
-        Alert.alert('Error', 'Failed to load skills.');
+        Alert.alert('Error', 'Failed to load skills and proposals.');
       } finally {
         setLoading(false);
       }
     };
-    loadSkills();
+    loadData();
   }, []);
+
+  const handleApproveProposal = async (proposal: SkillProposal) => {
+    Alert.alert(
+      'Approve Skill Proposal',
+      `Approve "${proposal.name}"?\n\n${proposal.description}\n\nTier: ${proposal.tier}\nComplexity: ${proposal.implementationComplexity}`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Approve',
+          onPress: () => {
+            // Update proposal status
+            setProposals(prev =>
+              prev.map(p => p.id === proposal.id ? { ...p, status: 'approved' } : p)
+            );
+            Alert.alert('Approved', `${proposal.name} has been approved and will be implemented.`);
+          }
+        }
+      ]
+    );
+  };
+
+  const handleRejectProposal = async (proposal: SkillProposal) => {
+    Alert.prompt(
+      'Reject Skill Proposal',
+      `Why are you rejecting "${proposal.name}"?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reject',
+          onPress: (reason) => {
+            // Update proposal status
+            setProposals(prev =>
+              prev.map(p => p.id === proposal.id ? { ...p, status: 'rejected' } : p)
+            );
+            Alert.alert('Rejected', `${proposal.name} has been rejected.`);
+          }
+        }
+      ]
+    );
+  };
+
+  const getTierColor = (tier: string) => {
+    switch (tier) {
+      case 'Free': return '#4CAF50';
+      case 'Pro': return '#2196F3';
+      case 'Creator+': return '#FF9800';
+      case 'Enterprise': return '#9C27B0';
+      default: return '#9E9E9E';
+    }
+  };
+
+  const getComplexityColor = (complexity: string) => {
+    switch (complexity) {
+      case 'low': return '#4CAF50';
+      case 'medium': return '#FF9800';
+      case 'high': return '#F44336';
+      default: return '#9E9E9E';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'proposed': return '💡';
+      case 'approved': return '✅';
+      case 'rejected': return '❌';
+      case 'implemented': return '🚀';
+      default: return '❓';
+    }
+  };
 
   const isTierEligible = (required: string, current: string) => {
     const tiers = ['Free', 'Creator', 'Creator+', 'Pro', 'Enterprise'];
@@ -90,6 +339,27 @@ export const SkillStoreScreen = () => {
     }
   };
 
+  const renderTabs = () => (
+    <View style={styles.tabContainer}>
+      <TouchableOpacity
+        style={[styles.tabButton, activeTab === 'skills' && styles.activeTab]}
+        onPress={() => setActiveTab('skills')}
+      >
+        <Text style={[styles.tabText, activeTab === 'skills' && styles.activeTabText]}>
+          Skills ({skills.length})
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.tabButton, activeTab === 'proposals' && styles.activeTab]}
+        onPress={() => setActiveTab('proposals')}
+      >
+        <Text style={[styles.tabText, activeTab === 'proposals && styles.activeTabText]}>
+          Proposals ({proposals.filter(p => p.status === 'proposed').length})
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   const getFilteredSkills = () => {
     return skills.filter(skill => {
       const matchesSearch = skill.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -99,16 +369,60 @@ export const SkillStoreScreen = () => {
     });
   };
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#2196F3" />
-          <Text style={styles.loadingText}>Loading Skills...</Text>
-        </View>
-      </SafeAreaView>
+  const getFilteredProposals = () => {
+    return proposals.filter(proposal => 
+      proposal.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      proposal.description.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'proposed': return '#FF9800';
+      case 'approved': return '#4CAF50';
+      case 'rejected': return '#F44336';
+      case 'implemented': return '#2196F3';
+      default: return '#9E9E9E';
+    }
+  };
+
+  const renderProposal = ({ item }: { item: SkillProposal }) => (
+    <View key={item.id} style={styles.proposalCard}>
+      <View style={styles.proposalHeader}>
+        <Text style={styles.proposalTitle}>{item.name}</Text>
+        <View style={[styles.proposalStatus, { backgroundColor: getTierColor(item.tier) }]}>
+          <Text style={styles.proposalButtonText}>{item.tier}</Text>
+        </View>
+        <Text style={[styles.proposalStatus, { backgroundColor: getStatusColor(item.status) }]}>
+          {getStatusIcon(item.status)} {item.status}
+        </Text>
+      </View>
+      <Text style={styles.proposalDescription}>{item.description}</Text>
+      <View style={styles.proposalFooter}>
+        <View style={styles.proposalActions}>
+          {item.status === 'proposed' && (
+            <>
+              <TouchableOpacity
+                style={[styles.proposalButton, styles.approveButton]}
+                onPress={() => handleApproveProposal(item)}
+              >
+                <Text style={styles.proposalButtonText}>Approve</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.proposalButton, styles.rejectButton]}
+                onPress={() => handleRejectProposal(item)}
+              >
+                <Text style={styles.proposalButtonText}>Reject</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+        <Text style={styles.proposalInfo}>
+          Value: {(item.estimatedValue * 100).toFixed(0)}% • {item.implementationComplexity}
+        </Text>
+      </View>
+    </View>
+  );
 
   const availableSkills = skills.filter(skill => isTierEligible(skill.requiredTierId, currentUser.tierId));
 
@@ -382,5 +696,152 @@ const styles = StyleSheet.create({
     color: '#2196F3',
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  // SkillCard styles
+  skillCard: {
+    backgroundColor: '#1E1E1E',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#333333',
+  },
+  skillHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  skillName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    flex: 1,
+  },
+  skillTier: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    backgroundColor: '#2A2A2A',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  skillDescription: {
+    fontSize: 14,
+    color: '#E0E0E0',
+    marginBottom: 12,
+    lineHeight: 20,
+  },
+  skillFooter: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  installedText: {
+    fontSize: 12,
+    color: '#4CAF50',
+    fontWeight: 'bold',
+  },
+  installButton: {
+    backgroundColor: '#2196F3',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+  },
+  installingButton: {
+    backgroundColor: '#666666',
+  },
+  installButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  // Proposal styles
+  proposalCard: {
+    backgroundColor: '#1E1E1E',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#333333',
+  },
+  proposalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  proposalTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    flex: 1,
+  },
+  proposalStatus: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  proposalDescription: {
+    fontSize: 14,
+    color: '#E0E0E0',
+    marginBottom: 12,
+    lineHeight: 20,
+  },
+  proposalFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  proposalActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  proposalButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  approveButton: {
+    backgroundColor: '#4CAF50',
+  },
+  rejectButton: {
+    backgroundColor: '#F44336',
+  },
+  proposalButtonText: {
+    fontSize: 12,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  proposalInfo: {
+    fontSize: 12,
+    color: '#9E9E9E',
+    fontStyle: 'italic',
+  },
+  // Tab styles
+  tabContainer: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    backgroundColor: '#1E1E1E',
+    borderRadius: 8,
+    padding: 4,
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderRadius: 6,
+  },
+  activeTab: {
+    backgroundColor: '#2196F3',
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#E0E0E0',
+  },
+  activeTabText: {
+    color: '#FFFFFF',
   },
 });

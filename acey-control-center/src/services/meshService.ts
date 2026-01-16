@@ -154,7 +154,8 @@ class MeshWebSocket extends EventEmitter {
     console.log(`Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts})`);
 
     setTimeout(() => {
-      this.connect(this.ws?.url || '');
+      const wsUrl = this.ws?.url || 'ws://localhost:8080/mesh/ws';
+      this.connect(wsUrl);
     }, delay);
   }
 }
@@ -193,7 +194,7 @@ class MultiInstanceMeshService extends EventEmitter {
       this.isCoordinator = userRole === 'owner';
       
       if (this.isCoordinator) {
-        this.coordinatorId = userId;
+        this.coordinatorId = userId || undefined;
         await this.startCoordinatorServices();
       }
 

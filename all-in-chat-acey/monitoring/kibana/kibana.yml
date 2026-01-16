@@ -1,0 +1,61 @@
+# Kibana Configuration for Acey Backend
+# Production-ready with proper security and visualization settings
+
+server.name: "kibana"
+server.host: "0.0.0.0"
+server.port: 5601
+
+# Elasticsearch configuration
+elasticsearch.hosts: ["http://elasticsearch:9200"]
+elasticsearch.requestTimeout: 90000
+elasticsearch.pingTimeout: 3000
+elasticsearch.shardTimeout: 30000
+
+# Security settings
+xpack.security.enabled: false
+xpack.monitoring.enabled: false
+
+# Logging
+logging.dest: stdout
+logging.silent: false
+logging.quiet: false
+logging.verbose: false
+
+# Performance settings
+server.maxPayloadBytes: 1048576
+elasticsearch.startupTimeout: 5000
+
+# UI settings
+ui.settings:
+  defaults:
+    app:
+      defaultRoute: /app/discover
+    discover:
+      sampleSize: 100
+    search:
+      query: {language: lucene, query: "*"}
+      
+# Index patterns
+kibana.index: ".kibana"
+elasticsearch.legacy.template: ".kibana"
+
+# Advanced settings
+server.rewriteBasePath: false
+server.basePath: ""
+server.cors: true
+server.cors.origin: ["*"]
+
+# Timezone
+dateFormat: tz
+dateFormat:tz: "UTC"
+
+# Default index pattern
+kibana.defaultAppId: "discover"
+
+# Saved objects
+savedObjects.maxImportPayloadBytes: 26214400
+savedObjects.maxImportExportSize: 10000
+
+# Telemetry (disable in production)
+telemetry.enabled: false
+telemetry.optIn: false

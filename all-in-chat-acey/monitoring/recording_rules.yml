@@ -1,0 +1,143 @@
+# Recording Rules for Acey Backend
+# Performance and business metrics aggregation
+
+groups:
+  - name: "acey_performance"
+    interval: 5m
+    rules:
+      # API performance metrics
+      - record: "acey:api_request_rate:5m"
+        expr: "rate(http_requests_total[5m])"
+        
+      - record: "acey:api_request_duration:5m"
+        expr: "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))"
+        
+      - record: "acey:api_request_duration_avg:5m"
+        expr: "rate(http_request_duration_seconds_sum[5m]) / rate(http_request_duration_seconds_count[5m])"
+        
+      - record: "acey:api_error_rate:5m"
+        expr: "rate(http_requests_total{status=~\"5..\"}[5m]) / rate(http_requests_total[5m])"
+
+  - name: "acey_database"
+    interval: 5m
+    rules:
+      # Database performance
+      - record: "acey:db_connections_active"
+        expr: "pg_stat_database_numbackends"
+        
+      - record: "acey:db_query_duration:5m"
+        expr: "histogram_quantile(0.95, rate(pg_stat_statements_mean_time_seconds[5m]))"
+        
+      - record: "acey:db_query_rate:5m"
+        expr: "rate(pg_stat_statements_calls[5m])"
+        
+      - record: "acey:db_cache_hit_ratio"
+        expr: "pg_stat_database_blks_hit / (pg_stat_database_blks_hit + pg_stat_database_blks_read)"
+
+  - name: "acey_business"
+    interval: 5m
+    rules:
+      # Business metrics
+      - record: "acey:active_users:1h"
+        expr: "increase(user_sessions_total[1h])"
+        
+      - record: "acey:skill_executions:5m"
+        expr: "rate(skill_executions_total[5m])"
+        
+      - record: "acey:skill_success_rate:5m"
+        expr: "rate(skill_executions_total{success=\"true\"}[5m]) / rate(skill_executions_total[5m])"
+        
+      - record: "acey:revenue_per_minute"
+        expr: "increase(revenue_total[1m])"
+        
+      - record: "acey:revenue_per_hour"
+        expr: "increase(revenue_total[1h])"
+        
+      - record: "acey:partner_earnings:5m"
+        expr: "increase(partner_earnings_total[5m])"
+
+  - name: "acey_mesh"
+    interval: 5m
+    rules:
+      # Mesh network metrics
+      - record: "acey:mesh_instances_online"
+        expr: "mesh_instances_total{status=\"online\"}"
+        
+      - record: "acey:mesh_instances_offline"
+        expr: "mesh_instances_total{status=\"offline\"}"
+        
+      - record: "acey:mesh_message_rate:5m"
+        expr: "rate(mesh_messages_total[5m])"
+        
+      - record: "acey:mesh_message_latency:5m"
+        expr: "histogram_quantile(0.95, rate(mesh_message_duration_seconds_bucket[5m]))"
+        
+      - record: "acey:mesh_sync_rate:5m"
+        expr: "rate(mesh_sync_operations_total[5m])"
+
+  - name: "acey_security"
+    interval: 5m
+    rules:
+      # Security metrics
+      - record: "acey:security_events_rate:5m"
+        expr: "rate(security_events_total[5m])"
+        
+      - record: "acey:failed_login_rate:5m"
+        expr: "rate(security_events_total{action=\"login\",success=\"false\"}[5m])"
+        
+      - record: "acey:security_alerts_rate:5m"
+        expr: "rate(security_events_total{severity=~\"high|critical\"}[5m])"
+        
+      - record: "acey:blocked_requests_rate:5m"
+        expr: "rate(security_events_total{blocked=\"true\"}[5m])"
+
+  - name: "acey_system"
+    interval: 5m
+    rules:
+      # System resource metrics
+      - record: "acey:cpu_usage:5m"
+        expr: "100 - (avg by (instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)"
+        
+      - record: "acey:memory_usage:5m"
+        expr: "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100"
+        
+      - record: "acey:disk_usage:5m"
+        expr: "(1 - (node_filesystem_avail_bytes{mountpoint=\"/\"} / node_filesystem_size_bytes{mountpoint=\"/\"})) * 100"
+        
+      - record: "acey:network_receive_rate:5m"
+        expr: "rate(node_network_receive_bytes_total[5m])"
+        
+      - record: "acey:network_transmit_rate:5m"
+        expr: "rate(node_network_transmit_bytes_total[5m])"
+
+  - name: "acey_notifications"
+    interval: 5m
+    rules:
+      # Notification metrics
+      - record: "acey:notifications_sent:5m"
+        expr: "rate(notifications_sent_total[5m])"
+        
+      - record: "acey:notifications_failed:5m"
+        expr: "rate(notifications_failed_total[5m])"
+        
+      - record: "acey:push_notifications_rate:5m"
+        expr: "rate(push_notifications_total[5m])"
+        
+      - record: "acey:email_notifications_rate:5m"
+        expr: "rate(email_notifications_total[5m])"
+
+  - name: "acey_investor"
+    interval: 5m
+    rules:
+      # Investor metrics
+      - record: "acey:investor_roi:5m"
+        expr: "increase(investor_returns_total[5m]) / increase(investor_investment_total[5m])"
+        
+      - record: "acey:monthly_revenue_growth"
+        expr: "increase(revenue_total[30d]) / increase(revenue_total[30d] offset 30d) - 1"
+        
+      - record: "acey:user_growth_rate:5m"
+        expr: "increase(user_registrations_total[5m])"
+        
+      - record: "acey:churn_rate:5m"
+        expr: "rate(user_deactivations_total[5m]) / rate(user_registrations_total[5m])"
