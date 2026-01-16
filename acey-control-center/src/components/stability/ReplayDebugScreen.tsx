@@ -224,6 +224,20 @@ export default function ReplayDebugScreen() {
     );
   }
 
+  if (!sessions) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle" size={48} color="#EF4444" />
+          <Text style={styles.errorText}>Failed to load replay sessions</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={fetchReplaySessions}>
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -262,7 +276,7 @@ export default function ReplayDebugScreen() {
                 Recording session: {recordingSession}
               </Text>
             </View>
-          </View>
+          )}
 
           {/* Sessions List */}
           <Text style={styles.sectionTitle}>Replay Sessions</Text>
@@ -271,65 +285,66 @@ export default function ReplayDebugScreen() {
           </Text>
 
           {sessions.map(renderSessionCard)}
-
-          {/* Session Detail Modal */}
-          <Modal
-            visible={!!selectedSession}
-            animationType="slide"
-            presentationStyle="pageSheet"
-          >
-            <SafeAreaView style={styles.modalContainer}>
-              <View style={styles.modalHeader}>
-                <TouchableOpacity
-                  style={styles.closeButton}
-                  onPress={() => setSelectedSession(null)}
-                >
-                  <Ionicons name="close" size={24} color="#1F2937" />
-                </TouchableOpacity>
-                <Text style={styles.modalTitle}>Session Details</Text>
-                <TouchableOpacity
-                  style={[styles.replayButton, isReplaying && styles.disabledButton]}
-                  onPress={() => selectedSession && replaySession(selectedSession)}
-                  disabled={isReplaying}
-                >
-                  <Ionicons name="play" size={16} color="#FFFFFF" />
-                  <Text style={styles.replayButtonText}>
-                    {isReplaying ? 'Replaying...' : 'Replay'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView style={styles.modalContent}>
-                <View style={styles.sessionSummary}>
-                  <Text style={styles.summaryTitle}>Session Summary</Text>
-                  <View style={styles.summaryStats}>
-                    <View style={styles.summaryItem}>
-                      <Text style={styles.summaryLabel}>Total Decisions</Text>
-                      <Text style={styles.summaryValue}>
-                        {selectedSession?.summary.totalDecisions}
-                      </Text>
-                    </View>
-                    <View style={styles.summaryItem}>
-                      <Text style={styles.summaryLabel}>Success Rate</Text>
-                      <Text style={styles.summaryValue}>
-                        {selectedSession?.summary.successRate.toFixed(1)}%
-                      </Text>
-                    </View>
-                    <View style={styles.summaryItem}>
-                      <Text style={styles.summaryLabel}>Avg Duration</Text>
-                      <Text style={styles.summaryValue}>
-                        {selectedSession?.summary.averageDuration.toFixed(0)}ms
-                      </Text>
-                    </View>
-                  </View>
-
-                <Text style={styles.decisionsTitle}>Decision Chain</Text>
-                {selectedSession?.decisions.map(renderDecisionItem)}
-              </ScrollView>
-            </SafeAreaView>
-          </Modal>
         </View>
       </ScrollView>
+
+      {/* Session Detail Modal */}
+      <Modal
+        visible={!!selectedSession}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <SafeAreaView style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setSelectedSession(null)}
+            >
+              <Ionicons name="close" size={24} color="#1F2937" />
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Session Details</Text>
+            <TouchableOpacity
+              style={[styles.replayButton, isReplaying && styles.disabledButton]}
+              onPress={() => selectedSession && replaySession(selectedSession)}
+              disabled={isReplaying}
+            >
+              <Ionicons name="play" size={16} color="#FFFFFF" />
+              <Text style={styles.replayButtonText}>
+                {isReplaying ? 'Replaying...' : 'Replay'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalContent}>
+            <View style={styles.sessionSummary}>
+              <Text style={styles.summaryTitle}>Session Summary</Text>
+              <View style={styles.summaryStats}>
+                <View style={styles.summaryItem}>
+                  <Text style={styles.summaryLabel}>Total Decisions</Text>
+                  <Text style={styles.summaryValue}>
+                    {selectedSession?.summary.totalDecisions}
+                  </Text>
+                </View>
+                <View style={styles.summaryItem}>
+                  <Text style={styles.summaryLabel}>Success Rate</Text>
+                  <Text style={styles.summaryValue}>
+                    {selectedSession?.summary.successRate.toFixed(1)}%
+                  </Text>
+                </View>
+                <View style={styles.summaryItem}>
+                  <Text style={styles.summaryLabel}>Avg Duration</Text>
+                  <Text style={styles.summaryValue}>
+                    {selectedSession?.summary.averageDuration.toFixed(0)}ms
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <Text style={styles.decisionsTitle}>Decision Chain</Text>
+            {selectedSession?.decisions.map(renderDecisionItem)}
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -394,6 +409,30 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 16,
     color: '#6B7280',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#EF4444',
+    textAlign: 'center',
+    marginTop: 16,
+  },
+  retryButton: {
+    backgroundColor: '#3B82F6',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 16,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   recordingStatus: {
     backgroundColor: '#FEE2E2',
