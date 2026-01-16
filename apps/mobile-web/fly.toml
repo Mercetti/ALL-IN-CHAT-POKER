@@ -1,0 +1,46 @@
+# fly.toml for Acey Mobile Web App
+
+app = "acey-mobile-web"
+primary_region = "iad"
+
+[env]
+  NODE_ENV = "production"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_started = 1
+
+  [[http_service.ports]]
+    port = 80
+    handlers = ["http"]
+  [[http_service.ports]]
+    port = 443
+    handlers = ["http", "tls"]
+
+  [[http_service.checks]]
+    interval = "10s"
+    timeout = "2s"
+    path = "/"
+
+[deploy]
+  strategy = "rolling"
+
+[metrics]
+  port = 9091
+  path = "/metrics"
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1
+
+# Keep at least 1 machine running and disable autoscaling
+[experimental]
+  auto_rollback = true
+
+[[scale]]
+  min = 1
+  max = 1

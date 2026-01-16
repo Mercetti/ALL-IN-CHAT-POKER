@@ -161,4 +161,13 @@ module.exports = {
 
   // Monitoring / alerts
   MONITOR_WEBHOOK_URL: process.env.MONITOR_WEBHOOK_URL || '',
+
+  // Server configuration
+  getServerConfig: () => ({
+    port: process.env.PORT || 8080,
+    host: process.env.HOST || '0.0.0.0',  // Listen on all interfaces for Fly.io
+  }),
+
+  // Test helpers
+  isTest: () => process.env.NODE_ENV === 'test',
 };
