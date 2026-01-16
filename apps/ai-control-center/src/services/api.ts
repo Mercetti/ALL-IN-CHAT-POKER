@@ -1,6 +1,6 @@
 import type { PanelStatus, ChatAttachment } from '../types/panels';
 
-const defaultBackend = 'https://all-in-chat-poker.fly.dev';
+const defaultBackend = 'http://localhost:8080';
 // Use Fly backend when running in Electron (production-like environment)
 const isElectron = typeof window !== 'undefined' && !!(window as any).process?.versions?.electron;
 const API_BASE = `${import.meta.env.VITE_BACKEND_BASE ?? defaultBackend}`.replace(/\/$/, '');
@@ -89,9 +89,9 @@ export async function requestCosmeticAsset(prompt: string): Promise<{ id?: strin
 }
 
 export async function controlCenterLogin(password: string): Promise<{ success: boolean }> {
-  const result = await apiFetch<{ success: boolean; token?: string }>('/auth/login', {
+  const result = await apiFetch<{ success: boolean; token?: string }>('/admin/login', {
     method: 'POST',
-    body: JSON.stringify({ password }),
+    body: JSON.stringify({ username: 'admin', password }),
   });
 
   // Store the token if provided

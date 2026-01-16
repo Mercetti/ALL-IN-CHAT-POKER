@@ -46,7 +46,7 @@ class AnalyticsModule {
     ];
 
     for (const table of tables) {
-      db.prepare(table).run();
+      db.db.prepare(table).run();
     }
   }
 
@@ -145,7 +145,7 @@ class AnalyticsModule {
           return { success: false, error: 'Invalid dimension' };
       }
 
-      const results = db.prepare(query).all(...groupBy);
+      const results = db.db.prepare(query).all(...groupBy);
       
       // Store heatmap data
       await this.storeHeatmapData(dimension, results, partnerId);
@@ -197,7 +197,7 @@ class AnalyticsModule {
       const periodStart = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
       const periodEnd = new Date();
       
-      const stmt = db.prepare(`
+      const stmt = db.db.prepare(`
         INSERT OR REPLACE INTO revenue_heatmaps 
         (dimension, label, revenue_cents, partner_id, period_start, period_end)
         VALUES (?, ?, ?, ?, ?, ?)
@@ -345,7 +345,7 @@ class AnalyticsModule {
   // Adjust forecast weights based on insights
   async adjustForecastWeight(reason, confidenceThreshold, weightAdjustment) {
     try {
-      const stmt = db.prepare(`
+      const stmt = db.db.prepare(`
         INSERT INTO forecast_adjustments 
         (adjustment_reason, confidence_threshold, weight_adjustment)
         VALUES (?, ?, ?)
@@ -366,7 +366,7 @@ class AnalyticsModule {
   async getAdjustedForecast(partnerId, month) {
     try {
       // Get base forecast
-      const baseForecast = db.prepare(`
+      const baseForecast = db.db.prepare(`
         SELECT predicted_revenue_cents, confidence_score
         FROM revenue_forecasts 
         WHERE partner_id = ? AND forecast_month = ?
@@ -377,7 +377,7 @@ class AnalyticsModule {
       }
 
       // Get applicable adjustments
-      const adjustments = db.prepare(`
+      const adjustments = db.db.prepare(`
         SELECT weight_adjustment
         FROM forecast_adjustments 
         WHERE confidence_threshold <= ?
@@ -430,7 +430,7 @@ class AnalyticsModule {
         ORDER BY total_revenue_cents DESC
       `;
 
-      const results = db.prepare(query).all(...(partnerId ? [partnerId] : []));
+      const results = db.db.prepare(query).all(...(partnerId ? [partnerId] : []));
 
       const correlations = results.map(row => ({
         feature: row.feature_used,

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, Picker, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { SkillType } from '../types/skills';
 
 interface ChatInputProps {
@@ -9,6 +9,7 @@ interface ChatInputProps {
 export const ChatInput: React.FC<ChatInputProps> = ({ onSubmit }) => {
   const [skill, setSkill] = useState<SkillType>('ExternalLinkReview');
   const [input, setInput] = useState('');
+  const [showSkillSelector, setShowSkillSelector] = useState(false);
 
   const handleSubmit = () => {
     if (input.trim()) {
@@ -19,27 +20,83 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSubmit }) => {
     }
   };
 
+  const getSkillIcon = (skillType: SkillType) => {
+    const icons: Record<SkillType, string> = {
+      'ExternalLinkReview': '🔗',
+      'CodeHelper': '💻',
+      'GraphicsWizard': '🎨',
+      'AudioMaestro': '🎵',
+      'StreamAnalyticsPro': '📊',
+      'AICoHostGames': '🎮',
+      'CustomMiniAceyPersona': '🤖',
+      'DonationIncentiveManager': '💰',
+      'DynamicAlertDesigner': '⚠️'
+    };
+    return icons[skillType] || '🤖';
+  };
+
+  const getSkillName = (skillType: SkillType) => {
+    const names: Record<SkillType, string> = {
+      'ExternalLinkReview': 'Link Review',
+      'CodeHelper': 'Code Helper',
+      'GraphicsWizard': 'Graphics',
+      'AudioMaestro': 'Audio',
+      'StreamAnalyticsPro': 'Analytics',
+      'AICoHostGames': 'AI Games',
+      'CustomMiniAceyPersona': 'Mini-Acey',
+      'DonationIncentiveManager': 'Donations',
+      'DynamicAlertDesigner': 'Alerts'
+    };
+    return names[skillType] || 'Unknown';
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.skillSelector}>
-        <Text style={styles.selectorLabel}>Skill:</Text>
-        <Picker
-          selectedValue={skill}
-          style={styles.picker}
-          onValueChange={(value) => setSkill(value as SkillType)}
+      {/* Compact Skill Selector */}
+      <View style={styles.compactSkillSelector}>
+        <TouchableOpacity
+          style={styles.skillToggle}
+          onPress={() => setShowSkillSelector(!showSkillSelector)}
         >
-          <Picker.Item label="🔗 Link Review" value="ExternalLinkReview" />
-          <Picker.Item label="💻 Code Helper" value="CodeHelper" />
-          <Picker.Item label="🎨 Graphics Wizard" value="GraphicsWizard" />
-          <Picker.Item label="🎵 Audio Maestro" value="AudioMaestro" />
-          <Picker.Item label="📊 Stream Analytics" value="StreamAnalyticsPro" />
-          <Picker.Item label="🎮 AI Co-Host Games" value="AICoHostGames" />
-          <Picker.Item label="🤖 Custom Mini-Acey" value="CustomMiniAceyPersona" />
-          <Picker.Item label="💰 Donation Incentives" value="DonationIncentiveManager" />
-          <Picker.Item label="⚠️ Dynamic Alerts" value="DynamicAlertDesigner" />
-        </Picker>
+          <Text style={styles.skillToggleText}>
+            {getSkillIcon(skill)} {getSkillName(skill)}
+          </Text>
+        </TouchableOpacity>
+        
+        {showSkillSelector && (
+          <View style={styles.skillDropdown}>
+            {Object.keys({
+              'ExternalLinkReview': '🔗 Link Review',
+              'CodeHelper': '💻 Code Helper',
+              'GraphicsWizard': '🎨 Graphics Wizard',
+              'AudioMaestro': '🎵 Audio Maestro',
+              'StreamAnalyticsPro': '📊 Stream Analytics',
+              'AICoHostGames': '🎮 AI Co-Host Games',
+              'CustomMiniAceyPersona': '🤖 Custom Mini-Acey',
+              'DonationIncentiveManager': '💰 Donation Incentives',
+              'DynamicAlertDesigner': '⚠️ Dynamic Alerts'
+            }).map((key) => (
+              <TouchableOpacity
+                key={key}
+                style={[
+                  styles.skillOption,
+                  skill === key && styles.skillOptionSelected
+                ]}
+                onPress={() => {
+                  setSkill(key as SkillType);
+                  setShowSkillSelector(false);
+                }}
+              >
+                <Text style={styles.skillOptionText}>
+                  {skill === key ? '✓ ' : ''}{key.split(' ')[1]}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
       </View>
       
+      {/* Input Area */}
       <TextInput
         style={styles.input}
         placeholder={
@@ -61,11 +118,13 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSubmit }) => {
         textAlignVertical="top"
       />
       
-      <Button 
-        title="Send" 
+      {/* Send Button */}
+      <TouchableOpacity 
         onPress={handleSubmit}
         style={styles.sendButton}
-      />
+      >
+        <Text style={styles.sendButtonText}>Send</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -75,6 +134,46 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     padding: 16,
     backgroundColor: '#1a1a1a',
+  },
+  compactSkillSelector: {
+    position: 'relative',
+    marginBottom: 12,
+  },
+  skillToggle: {
+    backgroundColor: '#2d2d2d',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#444',
+  },
+  skillToggleText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  skillDropdown: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    backgroundColor: '#2d2d2d',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#444',
+    marginTop: 4,
+    zIndex: 1000,
+  },
+  skillOption: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#444',
+  },
+  skillOptionSelected: {
+    backgroundColor: '#4CAF50',
+  },
+  skillOptionText: {
+    color: '#fff',
+    fontSize: 14,
   },
   skillSelector: {
     flexDirection: 'row',
@@ -102,12 +201,18 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     borderWidth: 1,
     borderColor: '#444',
+    marginBottom: 12,
   },
   sendButton: {
     backgroundColor: '#4CAF50',
-    marginTop: 12,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
+    alignItems: 'center',
+  },
+  sendButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

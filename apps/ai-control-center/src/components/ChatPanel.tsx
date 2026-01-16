@@ -107,6 +107,8 @@ export default function ChatPanel() {
   const [draft, setDraft] = useState('');
   const [localAttachments, setLocalAttachments] = useState<ChatAttachment[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [showQuickPrompts, setShowQuickPrompts] = useState(false);
+  const [showTools, setShowTools] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -286,29 +288,27 @@ export default function ChatPanel() {
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-            <div className="chat-composer-toolbar">
-              <div className="chat-quick-actions">
-                {quickPrompts.map((prompt) => (
-                  <button key={prompt.label} className="ghost-btn ghost-btn-sm" onClick={() => setDraft(prompt.value)}>
-                    {prompt.label}
-                  </button>
-                ))}
-              </div>
-              <div className="chat-attachment-actions">
-                <button className="ghost-btn ghost-btn-sm" type="button" onClick={() => fileInputRef.current?.click()}>
-                  Attach Files
-                </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  hidden
-                  multiple
-                  onChange={handleFileChange}
-                />
-                <p>Drag & drop images/audio or click “Attach” to add reference files.</p>
-              </div>
+            {/* Collapsible Quick Prompts */}
+            <div className="chat-composer-section">
+              <button 
+                type="button" 
+                className="ghost-btn ghost-btn-sm chat-toggle-btn"
+                onClick={() => setShowQuickPrompts(!showQuickPrompts)}
+              >
+                {showQuickPrompts ? '▼' : '▲'} Quick Prompts
+              </button>
+              {showQuickPrompts && (
+                <div className="chat-quick-actions">
+                  {quickPrompts.map((prompt) => (
+                    <button key={prompt.label} className="ghost-btn ghost-btn-sm" onClick={() => setDraft(prompt.value)}>
+                      {prompt.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
+            {/* Attachment Pills */}
             {localAttachments.length > 0 && (
               <div className="chat-attachment-pills">
                 {localAttachments.map((attachment) => (
@@ -322,6 +322,7 @@ export default function ChatPanel() {
               </div>
             )}
 
+            {/* Main Chat Input */}
             <div className="chat-composer">
               <textarea
                 value={draft}
@@ -329,22 +330,65 @@ export default function ChatPanel() {
                 onKeyDown={handleKey}
                 placeholder="Ask Acey to inspect logs, generate cosmetics, craft audio cues, or learn from your references…"
               />
-              <div className="chat-buttons">
-                <button
-                  className="ghost-btn"
-                  onClick={submit}
-                  disabled={(chat.isSending && localAttachments.length === 0) || (!draft.trim() && localAttachments.length === 0)}
-                >
-                  Send to Acey
-                </button>
-                <button
-                  className="ghost-btn"
-                  onClick={submitCosmetic}
-                  disabled={!draft.trim() || chat.isSending}
-                >
-                  Generate Cosmetic
-                </button>
+              
+              {/* Action Buttons */}
+              <div className="chat-composer-actions">
+                <div className="chat-action-left">
+                  <button 
+                    type="button" 
+                    className="ghost-btn ghost-btn-sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    title="Attach files (images, audio, documents)"
+                  >
+                    📎 Attach
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    hidden
+                    multiple
+                    onChange={handleFileChange}
+                  />
+                  <button 
+                    type="button" 
+                    className="ghost-btn ghost-btn-sm"
+                    onClick={() => setShowTools(!showTools)}
+                    title="More tools"
+                  >
+                    ⚙️ Tools
+                  </button>
+                </div>
+                
+                <div className="chat-action-right">
+                  <button
+                    className="primary-btn"
+                    onClick={submit}
+                    disabled={(chat.isSending && localAttachments.length === 0) || (!draft.trim() && localAttachments.length === 0)}
+                  >
+                    {chat.isSending ? 'Sending…' : 'Send'}
+                  </button>
+                </div>
               </div>
+
+              {/* Collapsible Tools */}
+              {showTools && (
+                <div className="chat-tools-panel">
+                  <button
+                    className="ghost-btn ghost-btn-sm"
+                    onClick={submitCosmetic}
+                    disabled={!draft.trim() || chat.isSending}
+                  >
+                    🎨 Generate Cosmetic
+                  </button>
+                  <button
+                    className="ghost-btn ghost-btn-sm"
+                    onClick={() => setDraft('')}
+                    disabled={!draft.trim()}
+                  >
+                    🗑️ Clear
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

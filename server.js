@@ -68,6 +68,13 @@ const { createTrustRouter } = require('./server/routes/trust');
 const { createDisputeRouter } = require('./server/routes/disputes');
 const { createAnalyticsRouter } = require('./server/routes/analytics');
 const { createInvestorRouter } = require('./server/routes/investor');
+
+// Import the new modules
+const finance = require('./server/finance');
+const trustEngine = require('./server/trust');
+const disputeModule = require('./server/disputes');
+const analytics = require('./server/analytics');
+const investor = require('./server/investor');
 const { getActorFromReq, recordLoginAttempt, getAdminActivitySummary, clearAdminLoginHistory } = require('./server/admin/ops');
 const { validateBody } = require('./server/utils/file-ops');
 const { validateLocalLogin } = require('./server/routes/auth-simple');
@@ -371,6 +378,10 @@ app.use('/api/analytics', analyticsRoutes);
 // Investor Dashboard routes
 const investorRoutes = createInvestorRouter({ auth, db, logger });
 app.use('/api/investor', investorRoutes);
+
+// File Tools API for Acey
+const fileToolsRoutes = require('./server/api/file-tools');
+app.use('/api/file-tools', fileToolsRoutes);
 app.use('/api', datasetRouter);
 app.use('/api', simulationRouter);
 app.use('/api', workflowRouter);
@@ -823,24 +834,29 @@ if (!config.isTest()) {
   console.log('🎤 Acey WebSocket server initialized');
 }
 
-// Initialize database
-try {
-  db.init();
-  console.log('🗄️ Database initialized successfully');
-  
-  // Initialize new modules
-  await finance.initialize();
-  await trustEngine.initialize();
-  await disputeModule.initialize();
-  await analytics.initialize();
-  await investor.initialize();
-  console.log('🔧 Financial & Governance modules initialized successfully');
-} catch (error) {
-  console.error('❌ Database initialization failed:', error);
-  if (!config.isTest()) {
-    process.exit(1);
+// Initialize database and modules
+async function initializeServer() {
+  try {
+    db.init();
+    console.log('🗄️ Database initialized successfully');
+    
+    // Initialize new modules
+    await finance.initialize();
+    await trustEngine.initialize();
+    await disputeModule.initialize();
+    await analytics.initialize();
+    await investor.initialize();
+    console.log('🔧 Financial & Governance modules initialized successfully');
+  } catch (error) {
+    console.error('❌ Database initialization failed:', error);
+    if (!config.isTest()) {
+      process.exit(1);
+    }
   }
 }
+
+// Initialize server
+initializeServer();
 
 // Start server
 const serverConfig = config.getServerConfig();

@@ -119,7 +119,7 @@ const useDashboardStore = create<DashboardStore>((set, get) => ({
   statuses: defaultStatuses,
   lastSync: null,
   isLoading: false,
-  authRequired: false,
+  authRequired: true,
   chat: {
     history: typeof window !== 'undefined' && !window.aiBridge?.chat ? loadLocalStorageChat() : [],
     isSending: false,

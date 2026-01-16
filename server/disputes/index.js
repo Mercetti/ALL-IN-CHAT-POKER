@@ -69,7 +69,7 @@ class DisputeModule {
     ];
 
     for (const table of tables) {
-      db.prepare(table).run();
+      db.db.prepare(table).run();
     }
   }
 
@@ -78,7 +78,7 @@ class DisputeModule {
     try {
       const disputeId = `dispute_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
-      const stmt = db.prepare(`
+      const stmt = db.db.prepare(`
         INSERT INTO disputes (id, partner_id, month, reason, status)
         VALUES (?, ?, ?, ?, 'open')
       `);
@@ -118,7 +118,7 @@ class DisputeModule {
   // Add evidence to dispute
   async addEvidence(disputeId, evidenceType, evidenceData, uploadedBy) {
     try {
-      const stmt = db.prepare(`
+      const stmt = db.db.prepare(`
         INSERT INTO dispute_evidence (dispute_id, evidence_type, evidence_data, uploaded_by)
         VALUES (?, ?, ?, ?)
       `);
@@ -137,7 +137,7 @@ class DisputeModule {
   // Gather relevant data for dispute
   async gatherDisputeData(disputeId) {
     try {
-      const dispute = db.prepare(`
+      const dispute = db.db.prepare(`
         SELECT * FROM disputes WHERE id = ?
       `).get(disputeId);
 
@@ -146,7 +146,7 @@ class DisputeModule {
       }
 
       // Get ledger entries for the period
-      const ledgerEntries = db.prepare(`
+      const ledgerEntries = db.db.prepare(`
         SELECT * FROM partner_revenue 
         WHERE partner_id = ? 
           AND strftime('%Y-%m', timestamp) = ?
@@ -154,21 +154,21 @@ class DisputeModule {
       `).all(dispute.partner_id, dispute.month);
 
       // Get events during the period
-      const events = db.prepare(`
+      const events = db.db.prepare(`
         SELECT * FROM dispute_events 
         WHERE dispute_id = ? 
         ORDER BY created_at ASC
       `).all(disputeId);
 
       // Get evidence
-      const evidence = db.prepare(`
+      const evidence = db.db.prepare(`
         SELECT * FROM dispute_evidence 
         WHERE dispute_id = ? 
         ORDER BY created_at ASC
       `).all(disputeId);
 
       // Get refunds for the period
-      const refunds = db.prepare(`
+      const refunds = db.db.prepare(`
         SELECT * FROM refunds 
         WHERE partner_id = ? 
           AND strftime('%Y-%m', created_at) = ?
@@ -334,7 +334,7 @@ class DisputeModule {
         return { success: false, error: 'Invalid status' };
       }
 
-      const stmt = db.prepare(`
+      const stmt = db.db.prepare(`
         UPDATE disputes 
         SET status = ?, resolution_note = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
@@ -348,7 +348,7 @@ class DisputeModule {
 
       // Add resolution timestamp if resolved
       if (status === 'resolved') {
-        db.prepare(`
+        db.db.prepare(`
           UPDATE disputes 
           SET resolved_at = CURRENT_TIMESTAMP 
           WHERE id = ?
@@ -377,7 +377,7 @@ class DisputeModule {
   // Add event to dispute timeline
   async addDisputeEvent(disputeId, eventType, actor, description) {
     try {
-      const stmt = db.prepare(`
+      const stmt = db.db.prepare(`
         INSERT INTO dispute_events (dispute_id, event_type, actor, description)
         VALUES (?, ?, ?, ?)
       `);
@@ -393,7 +393,7 @@ class DisputeModule {
   // Get disputes by status
   async getDisputesByStatus(status = 'open') {
     try {
-      const disputes = db.prepare(`
+      const disputes = db.db.prepare(`
         SELECT 
           d.*,
           COUNT(de.id) as evidence_count
@@ -427,7 +427,7 @@ class DisputeModule {
   // Get dispute details
   async getDisputeDetails(disputeId) {
     try {
-      const dispute = db.prepare(`
+      const dispute = db.db.prepare(`
         SELECT * FROM disputes WHERE id = ?
       `).get(disputeId);
 
@@ -435,13 +435,13 @@ class DisputeModule {
         return { success: false, error: 'Dispute not found' };
       }
 
-      const evidence = db.prepare(`
+      const evidence = db.db.prepare(`
         SELECT * FROM dispute_evidence 
         WHERE dispute_id = ? 
         ORDER BY created_at ASC
       `).all(disputeId);
 
-      const events = db.prepare(`
+      const events = db.db.prepare(`
         SELECT * FROM dispute_events 
         WHERE dispute_id = ? 
         ORDER BY created_at ASC

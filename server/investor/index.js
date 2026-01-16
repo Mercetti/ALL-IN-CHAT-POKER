@@ -57,7 +57,7 @@ class InvestorModule {
     ];
 
     for (const table of tables) {
-      db.prepare(table).run();
+      db.db.prepare(table).run();
     }
   }
 
@@ -68,7 +68,7 @@ class InvestorModule {
       const targetMonth = month || new Date().toISOString().slice(0, 7);
       
       // Check if dashboard exists for the month
-      let dashboard = db.prepare(`
+      let dashboard = db.db.prepare(`
         SELECT * FROM investor_metrics 
         WHERE month = ?
       `).get(targetMonth);
@@ -106,14 +106,14 @@ class InvestorModule {
   async generateDashboardData(month) {
     try {
       // Calculate gross revenue (all revenue before refunds)
-      const grossRevenue = db.prepare(`
+      const grossRevenue = db.db.prepare(`
         SELECT COALESCE(SUM(amount_cents), 0) as total
         FROM partner_revenue 
         WHERE strftime('%Y-%m', timestamp) = ?
       `).get(month);
 
       // Calculate net revenue (after refunds)
-      const refunds = db.prepare(`
+      const refunds = db.db.prepare(`
         SELECT COALESCE(SUM(amount_cents), 0) as total
         FROM refunds 
         WHERE strftime('%Y-%m', created_at) = ?
@@ -126,7 +126,7 @@ class InvestorModule {
       const previousMonth = new Date(new Date(month + '-01').getTime() - 30 * 24 * 60 * 60 * 1000)
         .toISOString().slice(0, 7);
       
-      const previousRevenue = db.prepare(`
+      const previousRevenue = db.db.prepare(`
         SELECT COALESCE(SUM(amount_cents), 0) as total
         FROM partner_revenue 
         WHERE strftime('%Y-%m', timestamp) = ?
@@ -137,7 +137,7 @@ class InvestorModule {
         ((grossRevenueCents - previousRevenueCents) / previousRevenueCents) * 100 : 0;
 
       // Count active partners (with revenue in last 30 days)
-      const activePartners = db.prepare(`
+      const activePartners = db.db.prepare(`
         SELECT COUNT(DISTINCT partner_id) as count
         FROM partner_revenue 
         WHERE timestamp >= datetime('now', '-30 days')
@@ -147,7 +147,7 @@ class InvestorModule {
       const forecast = await this.generateConservativeForecast(month);
 
       // Store dashboard data
-      const stmt = db.prepare(`
+      const stmt = db.db.prepare(`
         INSERT OR REPLACE INTO investor_metrics 
         (month, gross_revenue_cents, net_revenue_cents, growth_rate, 
          active_partners, forecast_next_month_cents, confidence_score)
@@ -186,7 +186,7 @@ class InvestorModule {
       const threeMonthsAgo = new Date(new Date(currentMonth + '-01').getTime() - 90 * 24 * 60 * 60 * 1000)
         .toISOString().slice(0, 7);
       
-      const revenueData = db.prepare(`
+      const revenueData = db.db.prepare(`
         SELECT 
           strftime('%Y-%m', timestamp) as month,
           SUM(amount_cents) as revenue_cents
@@ -240,7 +240,7 @@ class InvestorModule {
   async calculateStabilityIndicators(month) {
     try {
       // Revenue stability (last 6 months)
-      const revenueStability = db.prepare(`
+      const revenueStability = db.db.prepare(`
         SELECT 
           COUNT(*) as months_with_data,
           SUM(CASE WHEN amount_cents > 0 THEN 1 ELSE 0 END) as positive_months,
@@ -257,7 +257,7 @@ class InvestorModule {
       `).get();
 
       // Partner retention
-      const partnerRetention = db.prepare(`
+      const partnerRetention = db.db.prepare(`
         SELECT 
           COUNT(DISTINCT partner_id) as current_partners,
           (
@@ -270,7 +270,7 @@ class InvestorModule {
       `).get();
 
       // Payout processing time
-      const payoutEfficiency = db.prepare(`
+      const payoutEfficiency = db.db.prepare(`
         SELECT 
           COUNT(*) as total_payouts,
           AVG(CASE WHEN processed_at IS NOT NULL THEN 
@@ -331,7 +331,7 @@ class InvestorModule {
 
   async getForecastConfidence(month) {
     try {
-      const forecast = db.prepare(`
+      const forecast = db.db.prepare(`
         SELECT confidence_score 
         FROM revenue_forecasts 
         WHERE forecast_month = ?
@@ -348,7 +348,7 @@ class InvestorModule {
   }
 
   async getForecastDataPoints(month) {
-    return db.prepare(`
+    return db.db.prepare(`
       SELECT COUNT(*) as count
       FROM revenue_forecasts 
       WHERE strftime('%Y-%m', forecast_month) <= ?
@@ -370,7 +370,7 @@ class InvestorModule {
     try {
       const targetMonth = month || new Date().toISOString().slice(0, 7);
       
-      const qaLogs = db.prepare(`
+      const qaLogs = db.db.prepare(`
         SELECT 
           question,
           answer,
@@ -457,7 +457,7 @@ class InvestorModule {
       const month = new Date().toISOString().slice(0, 7);
       
       // Check if similar question exists
-      const existingQuestion = db.prepare(`
+      const existingQuestion = db.db.prepare(`
         SELECT COUNT(*) as count
         FROM investor_qa_logs 
         WHERE month = ? AND LOWER(question) LIKE LOWER(?)
@@ -465,7 +465,7 @@ class InvestorModule {
 
       const questionCount = (existingQuestion?.count || 0) + 1;
       
-      const stmt = db.prepare(`
+      const stmt = db.db.prepare(`
         INSERT INTO investor_qa_logs (month, question, answer, question_count)
         VALUES (?, ?, ?, ?)
       `);
@@ -492,7 +492,7 @@ class InvestorModule {
       
       const expiresAt = new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000);
       
-      const stmt = db.prepare(`
+      const stmt = db.db.prepare(`
         INSERT INTO investor_access_tokens 
         (id, token_hash, permissions, expires_at, created_by)
         VALUES (?, ?, ?, ?, ?)
@@ -519,7 +519,7 @@ class InvestorModule {
   // Validate investor token
   async validateInvestorToken(tokenHash) {
     try {
-      const token = db.prepare(`
+      const token = db.db.prepare(`
         SELECT * FROM investor_access_tokens 
         WHERE token_hash = ? AND expires_at > CURRENT_TIMESTAMP
       `).get(tokenHash);

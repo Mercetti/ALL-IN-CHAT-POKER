@@ -65,14 +65,14 @@ class FinanceModule {
     ];
 
     for (const table of tables) {
-      db.prepare(table).run();
+      db.db.prepare(table).run();
     }
   }
 
   // Revenue tracking
   async recordRevenue(partnerId, amountCents, source, metadata = {}) {
     try {
-      const stmt = db.prepare(`
+      const stmt = db.db.prepare(`
         INSERT INTO partner_revenue (
           partner_id, amount_cents, revenue_source, game_mode, 
           feature_used, hour_of_day, day_of_week
@@ -103,7 +103,7 @@ class FinanceModule {
   // Payout preparation
   async preparePayout(partnerId, amountCents, currency = 'USD') {
     try {
-      const stmt = db.prepare(`
+      const stmt = db.db.prepare(`
         INSERT INTO payouts (partner_id, amount_cents, currency, scheduled_for)
         VALUES (?, ?, ?, datetime('now', '+7 days'))
       `);
@@ -125,7 +125,7 @@ class FinanceModule {
   // Approve payout (owner action)
   async approvePayout(payoutId, approvedBy) {
     try {
-      const stmt = db.prepare(`
+      const stmt = db.db.prepare(`
         UPDATE payouts 
         SET status = 'approved', processed_at = CURRENT_TIMESTAMP, approved_by = ?
         WHERE id = ? AND status = 'pending'
@@ -149,7 +149,7 @@ class FinanceModule {
   async generateForecast(partnerId, month) {
     try {
       // Get historical data for the same month in previous years
-      const historicalData = db.prepare(`
+      const historicalData = db.db.prepare(`
         SELECT 
           SUM(amount_cents) as total_revenue,
           COUNT(*) as transaction_count,
@@ -161,7 +161,7 @@ class FinanceModule {
       `).all(partnerId, month, month);
 
       // Get recent trend (last 30 days)
-      const recentTrend = db.prepare(`
+      const recentTrend = db.db.prepare(`
         SELECT 
           DATE(timestamp) as date,
           SUM(amount_cents) as daily_revenue
@@ -187,7 +187,7 @@ class FinanceModule {
       }
 
       // Store forecast
-      const stmt = db.prepare(`
+      const stmt = db.db.prepare(`
         INSERT OR REPLACE INTO revenue_forecasts 
         (partner_id, forecast_month, predicted_revenue_cents, confidence_score)
         VALUES (?, ?, ?, ?)
@@ -223,7 +223,7 @@ class FinanceModule {
         dateFilter = "AND timestamp >= datetime('now', '-1 year')";
       }
 
-      const summary = db.prepare(`
+      const summary = db.db.prepare(`
         SELECT 
           SUM(amount_cents) as total_revenue_cents,
           COUNT(*) as transaction_count,

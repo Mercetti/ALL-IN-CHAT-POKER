@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, Button, Alert, Switch, StyleSheet, ScrollView } from 'react-native';
 import useBiometricAuth from '../hooks/useBiometricAuth';
+// @ts-ignore
+import UpdateChecker from '../utils/UpdateChecker';
 
 export default function Settings() {
   const { authenticate } = useBiometricAuth();
@@ -45,6 +47,28 @@ export default function Settings() {
       'Notifications',
       notificationsEnabled ? 'Push notifications disabled.' : 'Push notifications enabled.'
     );
+  };
+
+  const handleCheckForUpdates = async () => {
+    try {
+      const updateChecker = new UpdateChecker();
+      const updateInfo = await updateChecker.checkForUpdates(true); // Force check
+      
+      if (updateInfo.hasUpdate) {
+        Alert.alert(
+          'Update Available',
+          `Version ${updateInfo.latestVersion} is available!\n\nRelease notes:\n${updateInfo.releaseNotes || 'No release notes available.'}`,
+          [
+            { text: 'Later', style: 'cancel' },
+            { text: 'Download Update', onPress: () => updateChecker.downloadUpdate(updateInfo) }
+          ]
+        );
+      } else {
+        Alert.alert('Up to Date', 'You have the latest version of Acey Control Center!');
+      }
+    } catch (error) {
+      Alert.alert('Update Check Failed', 'Unable to check for updates. Please try again later.');
+    }
   };
 
   const handleAccountManagement = () => {
@@ -138,6 +162,14 @@ export default function Settings() {
         <Text style={styles.aboutText}>Acey Control Center v1.0.0</Text>
         <Text style={styles.aboutText}>© 2026 Acey Platform</Text>
         <Text style={styles.aboutText}>Built with React Native & Expo</Text>
+        
+        <View style={styles.settingItem}>
+          <View style={styles.settingInfo}>
+            <Text style={styles.settingLabel}>Check for Updates</Text>
+            <Text style={styles.settingDescription}>Manually check for app updates</Text>
+          </View>
+          <Button title="Check" onPress={handleCheckForUpdates} />
+        </View>
       </View>
     </ScrollView>
   );

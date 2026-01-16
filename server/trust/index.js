@@ -53,7 +53,7 @@ class TrustEngine {
     ];
 
     for (const table of tables) {
-      db.prepare(table).run();
+      db.db.prepare(table).run();
     }
   }
 
@@ -105,7 +105,7 @@ class TrustEngine {
   async calculateDisputeRate(partnerId) {
     try {
       // Get total disputes in last 90 days
-      const disputes = db.prepare(`
+      const disputes = db.db.prepare(`
         SELECT COUNT(*) as dispute_count
         FROM disputes 
         WHERE partner_id = ? 
@@ -113,7 +113,7 @@ class TrustEngine {
       `).get(partnerId);
 
       // Get total transactions in last 90 days
-      const transactions = db.prepare(`
+      const transactions = db.db.prepare(`
         SELECT COUNT(*) as transaction_count
         FROM partner_revenue 
         WHERE partner_id = ? 
@@ -137,7 +137,7 @@ class TrustEngine {
   async calculateRevenueConsistency(partnerId) {
     try {
       // Get daily revenue for last 30 days
-      const dailyRevenue = db.prepare(`
+      const dailyRevenue = db.db.prepare(`
         SELECT 
           DATE(timestamp) as date,
           SUM(amount_cents) as daily_revenue
@@ -173,14 +173,14 @@ class TrustEngine {
   async calculateRefundRatio(partnerId) {
     try {
       // Get total revenue and refunds in last 90 days
-      const revenue = db.prepare(`
+      const revenue = db.db.prepare(`
         SELECT SUM(amount_cents) as total_revenue
         FROM partner_revenue 
         WHERE partner_id = ? 
           AND timestamp >= datetime('now', '-90 days')
       `).get(partnerId);
 
-      const refunds = db.prepare(`
+      const refunds = db.db.prepare(`
         SELECT COALESCE(SUM(amount_cents), 0) as total_refunds
         FROM refunds 
         WHERE partner_id = ? 
@@ -208,7 +208,7 @@ class TrustEngine {
   async calculatePayoutHistory(partnerId) {
     try {
       // Get payout history for last 6 months
-      const payouts = db.prepare(`
+      const payouts = db.db.prepare(`
         SELECT 
           COUNT(*) as total_payouts,
           SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as approved_payouts,
@@ -262,7 +262,7 @@ class TrustEngine {
       });
 
       // Update current score
-      const updateStmt = db.prepare(`
+      const updateStmt = db.db.prepare(`
         INSERT OR REPLACE INTO partner_trust_scores 
         (partner_id, score, dispute_rate, revenue_consistency, refund_ratio, payout_history, factor_breakdown)
         VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -279,7 +279,7 @@ class TrustEngine {
       );
 
       // Add to history
-      const historyStmt = db.prepare(`
+      const historyStmt = db.db.prepare(`
         INSERT INTO trust_score_history 
         (partner_id, score, factors, change_reason)
         VALUES (?, ?, ?, ?)
@@ -303,7 +303,7 @@ class TrustEngine {
   // Get trust score for a partner
   async getTrustScore(partnerId) {
     try {
-      const score = db.prepare(`
+      const score = db.db.prepare(`
         SELECT 
           score,
           dispute_rate,
@@ -339,7 +339,7 @@ class TrustEngine {
   // Get all partners with trust scores
   async getAllTrustScores() {
     try {
-      const scores = db.prepare(`
+      const scores = db.db.prepare(`
         SELECT 
           partner_id,
           score,

@@ -85,4 +85,50 @@
   color: var(--color-text);
   font-family: inherit;
   padding: 10px;
+  resize: vertical;
+}
+
+.chat-composer-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.chat-action-left {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.chat-action-right {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.chat-composer-section {
+  margin-bottom: 8px;
+}
+
+.chat-toggle-btn {
+  width: 100%;
+  justify-content: flex-start;
+  font-size: 0.85rem;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.chat-tools-panel {
+  display: flex;
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 8px;
+}
+
+.chat-tools-panel button {
+  flex: 1;
 }

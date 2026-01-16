@@ -35,6 +35,7 @@ function createWindow() {
     height: 800,
     backgroundColor: '#050c16',
     title: 'All-In AI Control Center',
+    icon: path.join(__dirname, '..', 'assets', 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
@@ -64,11 +65,12 @@ function ensureUserShortcuts() {
   try {
     const desktopDir = app.getPath('desktop');
     const shortcutPath = path.join(desktopDir, 'AI Control Center.lnk');
+    const iconPath = path.join(__dirname, '..', 'assets', 'icon.png');
     if (!fs.existsSync(shortcutPath)) {
       shell.writeShortcutLink(shortcutPath, 'create', {
         target: process.execPath,
         description: 'AI Control Center – unified cockpit for every AI system',
-        icon: process.execPath,
+        icon: iconPath,
         appUserModelId: 'com.allin.chatpoker.ai-control-center'
       });
     }
@@ -79,7 +81,7 @@ function ensureUserShortcuts() {
       shell.writeShortcutLink(startMenuShortcut, 'create', {
         target: process.execPath,
         description: 'AI Control Center',
-        icon: process.execPath,
+        icon: iconPath,
         appUserModelId: 'com.allin.chatpoker.ai-control-center'
       });
     }

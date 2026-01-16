@@ -92,6 +92,30 @@ export default function LandingPage() {
         />
         
         <Button
+          title="🔐 Security"
+          onPress={() => navigation.navigate('Security')}
+          color="#007AFF"
+        />
+        
+        <Button
+          title="📚 Skill Library"
+          onPress={() => navigation.navigate('SkillLibrary', { userRole: 'user', userTier: 'Free', onSkillExecute: (skillName) => console.log('Execute skill:', skillName) })}
+          color="#3B82F6"
+        />
+        
+        <Button
+          title="👥 Partner Dashboard"
+          onPress={() => navigation.navigate('PartnerDashboard', { partnerId: 'demo-partner', onRequestPayout: (amount) => console.log('Request payout:', amount), onViewDispute: (id) => console.log('View dispute:', id) })}
+          color="#10B981"
+        />
+        
+        <Button
+          title="📊 Investor Dashboard"
+          onPress={() => navigation.navigate('InvestorDashboard', { investorId: 'demo-investor', onDownloadReport: (type) => console.log('Download report:', type), onRequestMeeting: () => console.log('Request meeting') })}
+          color="#F59E0B"
+        />
+        
+        <Button
           title="Settings"
           onPress={() => navigation.navigate('Settings')}
           color="#8E8E93"

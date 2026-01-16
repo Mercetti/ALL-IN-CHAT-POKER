@@ -15,6 +15,7 @@ export const CodeChatScreen: React.FC<CodeChatScreenProps> = ({
   const [inputValue, setInputValue] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState<string>('TypeScript');
   const [isLoading, setIsLoading] = useState(false);
+  const [showLanguageSelector, setShowLanguageSelector] = useState(false);
 
   // Mock functions for missing imports
   const addOutputToMemory = (output: any) => console.log('Add to memory:', output);
@@ -104,34 +105,50 @@ export const CodeChatScreen: React.FC<CodeChatScreenProps> = ({
       </div>
 
       <div style={styles.inputContainer}>
-        <select
-          value={selectedLanguage}
-          onChange={(e: any) => setSelectedLanguage(e.target.value)}
-          style={styles.languageSelect}
-        >
-          <option value="TypeScript">TypeScript</option>
-          <option value="JavaScript">JavaScript</option>
-          <option value="Python">Python</option>
-          <option value="Java">Java</option>
-        </select>
+        <div style={styles.inputWrapper}>
+          <button
+            onClick={() => setShowLanguageSelector(!showLanguageSelector)}
+            style={styles.languageToggle}
+            title="Current language: {selectedLanguage}"
+          >
+            💻 {selectedLanguage}
+          </button>
+          
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e: any) => setInputValue(e.target.value)}
+            onKeyPress={(e: any) => e.key === 'Enter' && handleSendMessage()}
+            placeholder="Ask me to generate code..."
+            style={styles.input}
+            disabled={isLoading}
+          />
+          
+          <button 
+            onClick={handleSendMessage}
+            disabled={isLoading || !inputValue.trim()}
+            style={styles.sendButton}
+          >
+            {isLoading ? '...' : 'Send'}
+          </button>
+        </div>
         
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e: any) => setInputValue(e.target.value)}
-          onKeyPress={(e: any) => e.key === 'Enter' && handleSendMessage()}
-          placeholder="Ask me to generate code..."
-          style={styles.input}
-          disabled={isLoading}
-        />
-        
-        <button 
-          onClick={handleSendMessage}
-          disabled={isLoading || !inputValue.trim()}
-          style={styles.sendButton}
-        >
-          {isLoading ? '...' : 'Send'}
-        </button>
+        {showLanguageSelector && (
+          <div style={styles.languageDropdown}>
+            {['TypeScript', 'JavaScript', 'Python', 'Java', 'C++', 'Go', 'Rust', 'PHP'].map((lang) => (
+              <button
+                key={lang}
+                onClick={() => {
+                  setSelectedLanguage(lang);
+                  setShowLanguageSelector(false);
+                }}
+                style={styles.languageOption}
+              >
+                {lang === selectedLanguage ? '✓ ' : ''}{lang}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div style={styles.analytics}>
@@ -196,9 +213,47 @@ const styles = {
     color: '#666'
   },
   inputContainer: {
-    display: 'flex',
-    gap: '10px',
+    position: 'relative',
     marginBottom: '20px'
+  },
+  inputWrapper: {
+    display: 'flex',
+    gap: '8px',
+    alignItems: 'center'
+  },
+  languageToggle: {
+    padding: '8px 12px',
+    backgroundColor: '#007AFF',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '12px',
+    whiteSpace: 'nowrap',
+    minWidth: '100px'
+  },
+  languageDropdown: {
+    position: 'absolute',
+    top: '100%',
+    left: '0',
+    backgroundColor: '#fff',
+    border: '1px solid #ddd',
+    borderRadius: '4px',
+    boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+    zIndex: 1000,
+    display: 'flex',
+    flexDirection: 'column',
+    maxHeight: '200px',
+    overflowY: 'auto'
+  },
+  languageOption: {
+    padding: '8px 12px',
+    border: 'none',
+    backgroundColor: 'transparent',
+    textAlign: 'left',
+    cursor: 'pointer',
+    fontSize: '14px',
+    borderBottom: '1px solid #eee'
   },
   languageSelect: {
     padding: '8px',

@@ -1,4 +1,113 @@
-// Security and Governance Types
+// 🔐 ACEY SECURITY EVENT API CONTRACTS
+// Type definitions for security events and actions
+
+export interface SecurityEvent {
+  id: string;
+  timestamp: string; // ISO8601
+  category: 'file' | 'model' | 'financial' | 'permission' | 'dataset' | 'partner';
+  severity: 'low' | 'medium' | 'high';
+  description: string;
+  detected_by: 'acey';
+  confidence: number; // 0-1
+  recommended_actions: ActionProposal[];
+  requires_approval: boolean;
+  resolved: boolean;
+  resolved_at?: string;
+  resolved_by?: string;
+}
+
+export interface ActionProposal {
+  action_id: string;
+  description: string;
+  reversible: boolean;
+  scope: string[];
+  estimated_risk: 'low' | 'medium' | 'high';
+  simulation_result?: SimulationResult;
+}
+
+export interface SimulationResult {
+  expected_outcome: string;
+  failure_modes: string[];
+  rollback_path: string;
+  security_implications: string;
+  confidence_score: number;
+}
+
+export interface SecurityMode {
+  current: 'green' | 'yellow' | 'red';
+  last_changed: string;
+  changed_by: string;
+  reason: string;
+}
+
+export interface ApprovalRequest {
+  id: string;
+  event_id: string;
+  action_proposal: ActionProposal;
+  requested_by: 'acey';
+  requested_at: string;
+  status: 'pending' | 'approved' | 'rejected' | 'expired';
+  approved_by?: string;
+  approved_at?: string;
+  rejection_reason?: string;
+}
+
+export interface SecurityStats {
+  total_events: number;
+  unresolved_events: number;
+  pending_approvals: number;
+  events_by_severity: {
+    low: number;
+    medium: number;
+    high: number;
+  };
+  events_by_category: {
+    file: number;
+    model: number;
+    financial: number;
+    permission: number;
+    dataset: number;
+    partner: number;
+  };
+  avg_resolution_time: number; // minutes
+}
+
+// API Route Contracts
+export interface SecurityAPI {
+  // Events
+  'GET /security/events': SecurityEvent[];
+  'GET /security/events/:id': SecurityEvent;
+  'POST /security/events': SecurityEvent;
+  'PUT /security/events/:id': SecurityEvent;
+  
+  // Simulations
+  'POST /security/simulate': SimulationResult;
+  
+  // Approvals
+  'GET /security/approvals': ApprovalRequest[];
+  'POST /security/approve': { approval_id: string; approved: boolean; reason?: string };
+  'POST /security/dismiss': { event_id: string; reason: string };
+  
+  // Emergency
+  'POST /security/emergency-lock': SecurityMode;
+  'POST /security/resume': SecurityMode;
+  
+  // Status
+  'GET /security/status': SecurityMode;
+  'GET /security/stats': SecurityStats;
+}
+
+// Permission checks for all routes
+export interface SecurityContext {
+  user_role: 'founder' | 'acey' | 'partner' | 'investor' | 'system';
+  trust_score: number;
+  device_id?: string;
+  session_age: number;
+  mode: 'live' | 'simulation';
+  permissions: string[];
+}
+
+// Legacy Security and Governance Types
 
 export interface UnlockRequest {
   id: string;
