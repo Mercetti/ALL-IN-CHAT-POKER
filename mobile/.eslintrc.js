@@ -11,8 +11,8 @@ const config = {
     browser: true
   },
   globals: {
-    console: 'readonly',
-    require: 'readonly',
+    console: 'writable',
+    require: 'writable',
     __dirname: 'readonly',
     setTimeout: 'readonly',
     alert: 'readonly',
@@ -24,7 +24,8 @@ const config = {
     test: 'readonly',
     expect: 'readonly',
     it: 'readonly',
-    module: 'readonly'
+    module: 'writable',
+    process: 'writable'
   },
   rules: {
     'react-native/no-unused-styles': 'error',
