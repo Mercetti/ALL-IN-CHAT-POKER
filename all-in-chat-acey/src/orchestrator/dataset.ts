@@ -37,9 +37,9 @@ export class DatasetManager {
    */
   add(entry: Omit<DatasetEntry, 'id'>): void {
     const fullEntry: DatasetEntry = {
+      ...entry,
       id: this.generateEntryId(),
-      timestamp: new Date().toISOString(),
-      ...entry
+      timestamp: new Date().toISOString()
     };
 
     this.pending.push(fullEntry);

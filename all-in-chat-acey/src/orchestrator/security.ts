@@ -33,7 +33,9 @@ export class SecurityModule {
       role: 'system',
       mode,
       blocked: false,
-      reason: `Changed from ${previousMode} to ${mode}`
+      reason: `Changed from ${previousMode} to ${mode}`,
+      id: this.generateEventId(),
+      timestamp: new Date().toISOString()
     });
 
     this.logger.log(`Security mode changed: ${mode}`);
@@ -57,7 +59,9 @@ export class SecurityModule {
       role,
       mode: this.mode,
       blocked: isBlocked,
-      reason: isBlocked ? this.getBlockReason(action, role) : undefined
+      reason: isBlocked ? this.getBlockReason(action, role) : undefined,
+      id: this.generateEventId(),
+      timestamp: new Date().toISOString()
     });
 
     if (isBlocked) {
@@ -115,9 +119,9 @@ export class SecurityModule {
    */
   private logEvent(event: SecurityEvent): void {
     const fullEvent: SecurityEvent = {
+      ...event,
       id: this.generateEventId(),
-      timestamp: new Date().toISOString(),
-      ...event
+      timestamp: new Date().toISOString()
     };
     
     this.events.push(fullEvent);
@@ -205,7 +209,9 @@ export class SecurityModule {
       role: 'system',
       mode: 'Red',
       blocked: false,
-      reason
+      reason,
+      id: this.generateEventId(),
+      timestamp: new Date().toISOString()
     });
   }
 

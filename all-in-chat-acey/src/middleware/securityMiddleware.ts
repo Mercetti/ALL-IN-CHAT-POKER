@@ -25,21 +25,16 @@ export interface RateLimitData {
   resetTime: number;
 }
 
-export interface SecurityMiddleware {
-  config: SecurityConfig;
-  logger: Logger;
-  wsService: WebSocketService;
-}
-
 export class SecurityMiddleware {
   private static instance: SecurityMiddleware;
   private logger: Logger;
-  private wsService: WebSocketService;
+  private wsService: any;
+  private config: SecurityConfig;
   private rateLimitStore: Map<string, RateLimitData> = new Map();
 
   private constructor(config?: SecurityConfig) {
     this.logger = new Logger();
-    this.wsService = WebSocketService.getInstance();
+    this.wsService = (WebSocketService as any).getInstance();
     this.config = config || {
       enableCORS: true,
       enableHelmet: true,

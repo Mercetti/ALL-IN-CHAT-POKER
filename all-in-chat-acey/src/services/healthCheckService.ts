@@ -56,12 +56,12 @@ export class HealthCheckService {
   private static instance: HealthCheckService;
   private logger: Logger;
   private startTime: Date;
-  private wsService: InstanceType<WebSocketService>;
+  private wsService: any;
 
   private constructor() {
     this.logger = new Logger();
     this.startTime = new Date();
-    this.wsService = WebSocketService.getInstance();
+    this.wsService = (WebSocketService as any).getInstance();
   }
 
   public static getInstance(): HealthCheckService {
@@ -90,7 +90,7 @@ export class HealthCheckService {
       res.status(500).json({
         status: 'unhealthy',
         timestamp: new Date(),
-        error: error.message,
+        error: (error as any).message,
       });
     }
   }
@@ -196,7 +196,7 @@ export class HealthCheckService {
         name: 'database',
         status: 'unhealthy',
         lastCheck: new Date(),
-        error: error.message,
+        error: (error as any).message,
       };
     }
   }
@@ -234,7 +234,7 @@ export class HealthCheckService {
         name: 'redis',
         status: 'unhealthy',
         lastCheck: new Date(),
-        error: error.message,
+        error: (error as any).message,
       };
     }
   }
@@ -260,7 +260,7 @@ export class HealthCheckService {
         name: 'websocket',
         status: 'unhealthy',
         lastCheck: new Date(),
-        error: error.message,
+        error: (error as any).message,
       };
     }
   }
@@ -288,7 +288,7 @@ export class HealthCheckService {
         name: 'fcm',
         status: 'unhealthy',
         lastCheck: new Date(),
-        error: error.message,
+        error: (error as any).message,
       };
     }
   }
@@ -316,7 +316,7 @@ export class HealthCheckService {
         name: 'apns',
         status: 'unhealthy',
         lastCheck: new Date(),
-        error: error.message,
+        error: (error as any).message,
       };
     }
   }

@@ -14,6 +14,7 @@ import { SkillLibraryScreen } from '../screens/SkillLibraryScreen';
 import { SecurityDashboardScreen } from '../screens/SecurityDashboardScreen';
 import { PartnerDashboardScreen } from '../screens/PartnerDashboardScreen';
 import { InvestorDashboardScreen } from '../screens/InvestorDashboardScreen';
+import { AceyServiceControlScreen } from '../screens/AceyServiceControlScreen';
 
 export type RootStackParamList = {
   Landing: undefined;
@@ -30,6 +31,7 @@ export type RootStackParamList = {
   SecurityDashboard: undefined;
   PartnerDashboard: undefined;
   InvestorDashboard: undefined;
+  AceyServiceControl: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -51,6 +53,7 @@ export default function RootNavigator() {
       <Stack.Screen name="SecurityDashboard" component={SecurityDashboardScreen} />
       <Stack.Screen name="PartnerDashboard" component={PartnerDashboardScreen} />
       <Stack.Screen name="InvestorDashboard" component={InvestorDashboardScreen} />
+      <Stack.Screen name="AceyServiceControl" component={AceyServiceControlScreen} />
     </Stack.Navigator>
   );
 }

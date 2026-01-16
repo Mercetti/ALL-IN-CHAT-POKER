@@ -230,7 +230,7 @@ RESPONSE REQUIREMENTS:
       this.currentModel = newModelVersion;
       
       // Detect new capabilities from training data
-      const newCapabilities = this.detectNewCapabilities(trainingData);
+      const newCapabilities = this.detectNewCapabilities([trainingData]);
       
       this.logger.log(`Fine-tuning completed: ${newModelVersion}`);
       

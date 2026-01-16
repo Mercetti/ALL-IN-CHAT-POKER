@@ -216,7 +216,7 @@ export class ErrorHandler {
     const logData = {
       name: errorDetails.name,
       message: errorDetails.message,
-      code: errorDetails.code,
+      code: errorDetails.code || 'UNKNOWN',
       statusCode: errorDetails.statusCode,
       isOperational: errorDetails.isOperational,
       context: errorDetails.context,
@@ -269,7 +269,7 @@ export class ErrorHandler {
     const response: ErrorResponse = {
       success: false,
       error: {
-        code: errorDetails.code,
+        code: errorDetails.code || 'UNKNOWN',
         message: errorDetails.message,
         timestamp: (errorDetails.context?.timestamp || new Date()).toISOString(),
         requestId: errorDetails.context?.requestId,

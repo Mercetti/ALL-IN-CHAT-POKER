@@ -51,6 +51,9 @@ const { createAuthRouter } = require('./server/routes/auth');
 
 // Initialize Acey Financial Integration
 const financialIntegration = require('./server/financial/integration');
+
+// Initialize Acey Service Controller
+const aceyServiceController = require('./server/acey-service-controller');
 const createPublicRouter = require('./server/routes/public');
 const loggingRouter = require('./server/routes/logging');
 const datasetRouter = require('./server/routes/dataset.js');
@@ -839,6 +842,9 @@ async function initializeServer() {
   try {
     db.init();
     console.log('🗄️ Database initialized successfully');
+    
+    // Initialize Acey Service Controller
+    aceyServiceController.initialize(app);
     
     // Initialize new modules
     await finance.initialize();

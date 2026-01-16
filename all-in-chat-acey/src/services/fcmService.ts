@@ -31,8 +31,8 @@ export interface FCMSendResult {
 
 export class FCMService {
   private static instance: FCMService;
-  private app: admin.app.App;
-  private messaging: admin.messaging.Messaging;
+  private app!: admin.app.App;
+  private messaging!: admin.messaging.Messaging;
 
   private constructor() {
     this.initializeFirebase();
@@ -77,13 +77,13 @@ export class FCMService {
           title: notification.title,
           body: notification.body,
           imageUrl: notification.imageUrl,
-          sound: notification.sound || 'default',
+
         },
         data: notification.data,
         android: {
           priority: 'high',
           notification: {
-            sound: notification.sound || 'default',
+
             clickAction: 'FLUTTER_NOTIFICATION_CLICK',
             icon: 'ic_notification',
             color: '#FF6B35',
@@ -92,7 +92,7 @@ export class FCMService {
         apns: {
           payload: {
             aps: {
-              sound: notification.sound || 'default',
+
               badge: notification.badge,
               category: notification.tag || 'GENERAL',
             },
@@ -130,13 +130,13 @@ export class FCMService {
           title: notification.title,
           body: notification.body,
           imageUrl: notification.imageUrl,
-          sound: notification.sound || 'default',
+
         },
         data: notification.data,
         android: {
           priority: 'high',
           notification: {
-            sound: notification.sound || 'default',
+
             clickAction: 'FLUTTER_NOTIFICATION_CLICK',
             icon: 'ic_notification',
             color: '#FF6B35',
@@ -145,7 +145,7 @@ export class FCMService {
         apns: {
           payload: {
             aps: {
-              sound: notification.sound || 'default',
+
               badge: notification.badge,
               category: notification.tag || 'GENERAL',
             },
@@ -187,13 +187,13 @@ export class FCMService {
           title: notification.title,
           body: notification.body,
           imageUrl: notification.imageUrl,
-          sound: notification.sound || 'default',
+
         },
         data: notification.data,
         android: {
           priority: 'high',
           notification: {
-            sound: notification.sound || 'default',
+
             clickAction: 'FLUTTER_NOTIFICATION_CLICK',
             icon: 'ic_notification',
             color: '#FF6B35',
@@ -202,7 +202,7 @@ export class FCMService {
         apns: {
           payload: {
             aps: {
-              sound: notification.sound || 'default',
+
               badge: notification.badge,
               category: notification.tag || 'GENERAL',
             },

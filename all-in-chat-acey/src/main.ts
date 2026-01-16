@@ -90,6 +90,7 @@ app.post('/api/skills/:skillName/execute', async (req, res) => {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
+    const { skillName } = req.params;
     logger.error(`Skill execution failed: ${skillName}`, error);
     res.status(500).json({
       success: false,
@@ -106,7 +107,7 @@ app.get('/api/security/status', (req, res) => {
       success: true,
       security: {
         mode: status.securityMode,
-        events: status.recentSecurityEvents?.slice(0, 10) || []
+        events: [] // Placeholder - would need actual security events
       },
       timestamp: new Date().toISOString()
     });
@@ -279,8 +280,117 @@ app.post('/api/dataset/train', async (req, res) => {
   }
 });
 
+// Mobile control endpoints
+app.post('/api/acey/start', async (req, res) => {
+  try {
+    const apiKey = req.headers['x-api-key'] as string;
+    const deviceId = req.headers['x-device-id'] as string;
+    
+    // Simple API key validation (in production, use proper auth)
+    if (!apiKey || apiKey !== process.env.MOBILE_API_KEY) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid API key'
+      });
+    }
+    
+    // Start orchestrator (simplified for mobile control)
+    orchestrator.resumeOperations();
+    
+    res.json({
+      success: true,
+      message: 'Acey service started',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error('Failed to start Acey service', error);
+    res.status(500).json({
+      success: false,
+      error: (error as Error).message
+    });
+  }
+});
+
+app.post('/api/acey/stop', async (req, res) => {
+  try {
+    const apiKey = req.headers['x-api-key'] as string;
+    const deviceId = req.headers['x-device-id'] as string;
+    
+    // Simple API key validation
+    if (!apiKey || apiKey !== process.env.MOBILE_API_KEY) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid API key'
+      });
+    }
+    
+    // Stop orchestrator gracefully
+    orchestrator.emergencyLockdown('Mobile stop request');
+    
+    res.json({
+      success: true,
+      message: 'Acey service stopped',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error('Failed to stop Acey service', error);
+    res.status(500).json({
+      success: false,
+      error: (error as Error).message
+    });
+  }
+});
+
+app.get('/api/acey/status', async (req, res) => {
+  try {
+    const apiKey = req.headers['x-api-key'] as string;
+    
+    // Simple API key validation
+    if (!apiKey || apiKey !== process.env.MOBILE_API_KEY) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid API key'
+      });
+    }
+    
+    const status = orchestrator.getSystemStatus();
+    
+    res.json({
+      success: true,
+      status: {
+        active: status.securityMode === 'Green',
+        uptime: status.uptime,
+        resources: {
+          cpu: 0, // Placeholder - would need actual monitoring
+          memory: 0, // Placeholder
+          memoryUsed: status.memoryUsage.heapUsed / 1024 / 1024, // Convert to MB
+          memoryTotal: status.memoryUsage.heapTotal / 1024 / 1024, // Convert to MB
+          nodeMemory: status.memoryUsage.rss / 1024 / 1024 // Convert to MB
+        },
+        skills: {
+          active: status.registeredSkills, // All registered skills are "active" when system is green
+          list: [] // Placeholder - would need actual skill list
+        },
+        llmConnections: {
+          active: 0, // Placeholder
+          list: [] // Placeholder
+        },
+        lastActivity: new Date().toISOString(),
+        autoPauseEnabled: true
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error('Failed to get Acey status', error);
+    res.status(500).json({
+      success: false,
+      error: (error as Error).message
+    });
+  }
+});
+
 // Error handling middleware
-app.use((err, req, res, next) => {
+app.use((err: any, req: any, res: any, next: any) => {
   logger.error('Unhandled error', err);
   res.status(500).json({
     success: false,

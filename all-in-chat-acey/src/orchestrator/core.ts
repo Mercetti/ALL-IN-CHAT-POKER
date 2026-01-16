@@ -41,8 +41,8 @@ export class Orchestrator {
   constructor() {
     this.logger = new Logger();
     this.security = new SecurityModule(this.logger);
-    this.dataset = new DatasetManager();
-    this.llm = new LLMController(this.dataset);
+    this.dataset = new DatasetManager(this.logger);
+    this.llm = new LLMController(this.dataset, this.logger);
     this.monetization = new MonetizationManager(this);
   }
 
