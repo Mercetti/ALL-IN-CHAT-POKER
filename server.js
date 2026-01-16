@@ -49,6 +49,16 @@ const createAdminAILearningRoutes = require('./server/routes/admin-ai-learning')
 const { createAdminRouter } = require('./server/routes/admin');
 const { createAuthRouter } = require('./server/routes/auth');
 
+// 🛡️ STABILITY MODULE INTEGRATION
+const { AceyStabilityModule } = require('./server/stability/acey-stability');
+const { ModeManager } = require('./server/stability/acey-modes');
+const { ProfileManager } = require('./server/stability/startup-profiles');
+const { StabilityWatchdog } = require('./server/stability/stability-watchdog');
+const { FounderAssistant } = require('./server/stability/founder-assistant');
+const { ReplayEngine } = require('./server/stability/replay-engine');
+const { CognitiveThrottling } = require('./server/stability/cognitive-throttling');
+const { MobileAPIController } = require('./server/stability/mobile-api-controller');
+
 // Initialize Acey Financial Integration
 const financialIntegration = require('./server/financial/integration');
 
@@ -845,6 +855,36 @@ async function initializeServer() {
     
     // Initialize Acey Service Controller
     aceyServiceController.initialize(app);
+    
+    // 🛡️ INITIALIZE STABILITY MODULE
+    console.log('🛡️ Initializing Acey Stability Module...');
+    
+    // Initialize core stability components
+    const modeManager = new ModeManager();
+    const profileManager = new ProfileManager();
+    const stabilityWatchdog = new StabilityWatchdog();
+    const founderAssistant = new FounderAssistant();
+    const replayEngine = new ReplayEngine();
+    const cognitiveThrottling = new CognitiveThrottling();
+    
+    // Initialize main stability module
+    const stabilityModule = new AceyStabilityModule({
+      modeManager,
+      profileManager,
+      stabilityWatchdog,
+      founderAssistant,
+      replayEngine,
+      cognitiveThrottling
+    });
+    
+    // Start stability module
+    await stabilityModule.start();
+    console.log('✅ Acey Stability Module initialized successfully');
+    
+    // Initialize mobile API controller
+    const mobileAPIController = new MobileAPIController(stabilityModule);
+    mobileAPIController.registerRoutes(app);
+    console.log('📱 Mobile API Controller registered');
     
     // Initialize new modules
     await finance.initialize();
