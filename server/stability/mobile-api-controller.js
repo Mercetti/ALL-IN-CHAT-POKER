@@ -51,6 +51,10 @@ class MobileAPIController {
     console.log('[MOBILE-API] Routes registered');
   }
 
+  registerRoutes() {
+    this.setupRoutes();
+  }
+
   getStatus() {
     return {
       isInitialized: this.isInitialized,

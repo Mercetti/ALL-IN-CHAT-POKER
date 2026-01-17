@@ -63,9 +63,28 @@ function hasUserSession(req) {
   return getUserSession(req) !== null;
 }
 
+/**
+ * Middleware to require admin session
+ * @param {Object} req - Express request
+ * @param {Object} res - Express response
+ * @param {Function} next - Next middleware
+ */
+function requireAdmin(req, res, next) {
+  const adminSession = getAdminSession(req);
+  if (!adminSession) {
+    return res.status(401).json({ 
+      success: false, 
+      error: 'Admin authentication required' 
+    });
+  }
+  req.adminSession = adminSession;
+  next();
+}
+
 module.exports = {
   getAdminSession,
   getUserSession,
   hasAdminSession,
   hasUserSession,
+  requireAdmin,
 };
