@@ -95,7 +95,6 @@ const SystemContext = createContext<{
 export function SystemProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(systemReducer, initialState);
   const { actions: errorActions } = useError();
-  const api = useAceyAPI();
 
   // Actions
   const actions = {
@@ -104,7 +103,7 @@ export function SystemProvider({ children }: { children: React.ReactNode }) {
       dispatch({ type: 'SET_ERROR', payload: null });
 
       try {
-        const status = await api.getSystemStatus();
+        const status = await AceyAPIService.getSystemStatus();
         dispatch({ type: 'SET_STATUS', payload: status.status === 'ok' ? 'online' : 'error' });
 
         if (status.status !== 'ok') {
@@ -119,7 +118,7 @@ export function SystemProvider({ children }: { children: React.ReactNode }) {
 
     refreshMetrics: async () => {
       try {
-        const metrics = await api.getSystemMetrics();
+        const metrics = await AceyAPIService.getSystemMetrics();
         dispatch({ type: 'SET_METRICS', payload: metrics });
       } catch (error) {
         errorActions.addError('api', 'Failed to refresh metrics');
@@ -128,7 +127,7 @@ export function SystemProvider({ children }: { children: React.ReactNode }) {
 
     refreshLogs: async () => {
       try {
-        const logs = await api.getSystemLogs();
+        const logs = await AceyAPIService.getSystemLogs();
         dispatch({ type: 'ADD_LOGS', payload: logs });
       } catch (error) {
         errorActions.addError('api', 'Failed to refresh logs');
@@ -139,7 +138,7 @@ export function SystemProvider({ children }: { children: React.ReactNode }) {
       dispatch({ type: 'SET_LOADING', payload: true });
 
       try {
-        const result = await api.setOperatingMode(mode);
+        const result = await AceyAPIService.setOperatingMode(mode);
         if (result.success) {
           dispatch({ type: 'SET_MODE', payload: mode });
         } else {
@@ -156,7 +155,7 @@ export function SystemProvider({ children }: { children: React.ReactNode }) {
       dispatch({ type: 'SET_LOADING', payload: true });
 
       try {
-        const result = await api.startSystem();
+        const result = await AceyAPIService.startSystem();
         if (result.success) {
           dispatch({ type: 'SET_STATUS', payload: 'online' });
         } else {
@@ -173,7 +172,7 @@ export function SystemProvider({ children }: { children: React.ReactNode }) {
       dispatch({ type: 'SET_LOADING', payload: true });
 
       try {
-        const result = await api.stopSystem();
+        const result = await AceyAPIService.stopSystem();
         if (result.success) {
           dispatch({ type: 'SET_STATUS', payload: 'offline' });
         } else {
@@ -190,7 +189,7 @@ export function SystemProvider({ children }: { children: React.ReactNode }) {
       dispatch({ type: 'SET_LOADING', payload: true });
 
       try {
-        const result = await api.restartSystem();
+        const result = await AceyAPIService.restartSystem();
         if (result.success) {
           dispatch({ type: 'SET_STATUS', payload: 'online' });
         } else {
@@ -207,7 +206,7 @@ export function SystemProvider({ children }: { children: React.ReactNode }) {
       dispatch({ type: 'SET_LOADING', payload: true });
 
       try {
-        const result = await api.emergencyStop();
+        const result = await AceyAPIService.emergencyStop();
         if (result.success) {
           dispatch({ type: 'SET_STATUS', payload: 'offline' });
           dispatch({ type: 'SET_MODE', payload: 'safe' });
