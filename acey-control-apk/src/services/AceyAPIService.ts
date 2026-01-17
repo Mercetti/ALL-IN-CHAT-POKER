@@ -5,7 +5,7 @@
 
 import { useError } from '../context/ErrorContext';
 
-const API_BASE_URL = 'https://all-in-chat-poker.fly.dev';
+const API_BASE_URL = 'http://localhost:8080';
 
 class AceyAPIService {
   static async getSystemStatus() {
