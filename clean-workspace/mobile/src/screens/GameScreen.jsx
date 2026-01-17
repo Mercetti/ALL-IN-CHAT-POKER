@@ -31,10 +31,57 @@ const GameScreen = () => {
     setGameState('checking');
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      padding: spacing.md,
+    },
+    header: {
+      alignItems: 'center',
+      marginBottom: spacing.lg,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: colors.primary,
+      marginBottom: spacing.sm,
+    },
+    subtitle: {
+      fontSize: 16,
+      color: colors.textSecondary,
+    },
+    statusCard: {
+      marginBottom: spacing.md,
+    },
+    statusText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: spacing.sm,
+    },
+    chipsText: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: colors.success,
+    },
+    bettingCard: {
+      marginBottom: spacing.md,
+    },
+    buttonRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: spacing.md,
+    },
+    actionsCard: {
+      marginBottom: spacing.md,
+    },
+  });
+
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.background }}>
-      <View style={{ padding: spacing.lg }}>
-        <Text style={{ color: colors.text, fontSize: 24, marginBottom: spacing.lg }}>
+    <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>
           All-In Chat Poker
         </Text>
       </View>
