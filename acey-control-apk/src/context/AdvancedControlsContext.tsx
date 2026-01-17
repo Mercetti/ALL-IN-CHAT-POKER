@@ -19,10 +19,12 @@ interface AdvancedControlsState {
     currentMode: 'live' | 'build' | 'safe' | 'offline';
     transitionInProgress: boolean;
     scheduledTransitions: Array<{
+      id: string;
       from: string;
       to: string;
       timestamp: string;
       reason: string;
+      delay: number;
     }>;
   };
   resourceLimits: {
@@ -53,7 +55,7 @@ type AdvancedControlsAction =
   | { type: 'SET_RESOURCE_LIMITS'; payload: Partial<AdvancedControlsState['resourceLimits']> }
   | { type: 'SET_AUTO_OPTIMIZATION'; payload: Partial<AdvancedControlsState['autoOptimization']> }
   | { type: 'SET_SCHEDULED_TRANSITION'; payload: AdvancedControlsState['modeSwitching']['scheduledTransitions'][0] }
-  | { type: 'EXECUTE_SCHEDULED_TRANSITION' };
+  | { type: 'EXECUTE_SCHEDULED_TRANSITION'; payload: string };
 
 // Initial state
 const initialState: AdvancedControlsState = {
@@ -125,7 +127,7 @@ function advancedControlsReducer(state: AdvancedControlsState, action: AdvancedC
           ...state,
           modeSwitching: {
             ...state.modeSwitching,
-            currentMode: transition.to,
+            currentMode: transition.to as 'live' | 'build' | 'safe' | 'offline',
             transitionInProgress: true,
             scheduledTransitions: state.modeSwitching.scheduledTransitions.filter(t => t.id !== action.payload)
           }
@@ -152,11 +154,11 @@ const AdvancedControlsContext = createContext<{
     enableModeSwitching: () => void;
     disableModeSwitching: () => void;
     setMode: (mode: AdvancedControlsState['modeSwitching']['currentMode']) => void;
-    scheduleModeTransition: (from: string, to: string, reason: string, timestamp?: string) => void;
+    scheduleModeTransition: (from: string, to: string, reason: string, delay?: number) => void;
     executeScheduledTransition: (transitionId: string) => void;
     
     // Resource Limits
-    enableResourceLimits: () => void;
+    enableResourceLimits: (limits: Partial<AdvancedControlsState['resourceLimits']>) => void;
     disableResourceLimits: () => void;
     setResourceLimits: (limits: Partial<AdvancedControlsState['resourceLimits']>) => void;
     
@@ -183,12 +185,12 @@ const AdvancedControlsContext = createContext<{
 // Provider
 export function AdvancedControlsProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(advancedControlsReducer, initialState);
-  const { actions: systemActions } = useSystem();
+  const { state: systemState, actions: systemActions } = useSystem();
 
   // Actions
   const actions = {
     // Throttling
-    enableThrottling: (level: AdvancedControlsState['throttling']['level'], maxRequests) => {
+    enableThrottling: (level: AdvancedControlsState['throttling']['level'], maxRequests?: number) => {
       dispatch({
         type: 'SET_THROTTLING',
         payload: {
@@ -206,7 +208,7 @@ export function AdvancedControlsProvider({ children }: { children: React.ReactNo
       });
     },
 
-    setThrottlingLevel: (level) => {
+    setThrottlingLevel: (level: AdvancedControlsState['throttling']['level']) => {
       dispatch({
         type: 'SET_THROTTLING',
         payload: { level }
@@ -228,7 +230,7 @@ export function AdvancedControlsProvider({ children }: { children: React.ReactNo
       });
     },
 
-    scheduleModeTransition: (from, to, reason, delay = 0) => {
+    scheduleModeTransition: (from: string, to: string, reason: string, delay: number = 0) => {
       const transition = {
         id: Date.now().toString(),
         from,
@@ -244,8 +246,8 @@ export function AdvancedControlsProvider({ children }: { children: React.ReactNo
       });
     },
 
-    executeScheduledTransition: async () => {
-      const transition = state.modeSwitching.scheduledTransitions.find(t => t.id === action.payload);
+    executeScheduledTransition: async (transitionId: string) => {
+      const transition = state.modeSwitching.scheduledTransitions.find(t => t.id === transitionId);
       if (!transition) {
         return false;
       }
@@ -261,13 +263,13 @@ export function AdvancedControlsProvider({ children }: { children: React.ReactNo
       }
       
       try {
-        const success = await systemActions.setMode(transition.to);
+        const success = await systemActions.setMode(transition.to as 'live' | 'build' | 'safe' | 'offline');
         
         dispatch({
           type: 'SET_MODE_SWITCHING',
           payload: {
             ...state.modeSwitching,
-            currentMode: transition.to,
+            currentMode: transition.to as 'live' | 'build' | 'safe' | 'offline',
             transitionInProgress: false,
             scheduledTransitions: state.modeSwitching.scheduledTransitions.filter(t => t.id !== transition.id)
           }
@@ -281,7 +283,7 @@ export function AdvancedControlsProvider({ children }: { children: React.ReactNo
     },
     
     // Resource Limits
-    enableResourceLimits: (limits) => {
+    enableResourceLimits: (limits: Partial<AdvancedControlsState['resourceLimits']>) => {
       dispatch({
         type: 'SET_RESOURCE_LIMITS',
         payload: {
@@ -298,14 +300,17 @@ export function AdvancedControlsProvider({ children }: { children: React.ReactNo
       });
     },
 
-    updateResourceLimit: (resource, limit, threshold) => {
+    updateResourceLimit: (resource: 'cpu' | 'memory' | 'tokens', limit: number, threshold?: number) => {
+      const resourceConfig = state.resourceLimits[resource];
+      if (typeof resourceConfig === 'boolean') return;
+      
       dispatch({
         type: 'SET_RESOURCE_LIMITS',
         payload: {
           enabled: state.resourceLimits.enabled,
           [resource]: { 
-            ...state.resourceLimits[resource], 
-            limit, 
+            ...resourceConfig, 
+            max: limit, 
             ...(threshold && { warningThreshold: threshold })
           }
         }
@@ -313,12 +318,12 @@ export function AdvancedControlsProvider({ children }: { children: React.ReactNo
     },
     
     // Auto Optimization
-    enableAutoOptimization: (aggressive = false) => {
+    enableAutoOptimization: (aggressive: boolean = false) => {
       dispatch({
         type: 'SET_AUTO_OPTIMIZATION',
         payload: {
           enabled: true,
-          aggressiveMode
+          aggressiveMode: aggressive
         }
       });
     },
@@ -330,24 +335,69 @@ export function AdvancedControlsProvider({ children }: { children: React.ReactNo
       });
     },
 
-    setCleanupInterval: (interval) => {
+    setCleanupInterval: (interval: number) => {
       dispatch({
         type: 'SET_AUTO_OPTIMIZATION',
         payload: { cleanupInterval: interval }
       });
     },
     
+    // Mode Switching
+    setMode: (mode: AdvancedControlsState['modeSwitching']['currentMode']) => {
+      dispatch({
+        type: 'SET_MODE_SWITCHING',
+        payload: { currentMode: mode }
+      });
+    },
+    
+    // Resource Limits
+    setResourceLimits: (limits: Partial<AdvancedControlsState['resourceLimits']>) => {
+      dispatch({
+        type: 'SET_RESOURCE_LIMITS',
+        payload: limits
+      });
+    },
+    
+    // Auto-Optimization
+    setAutoOptimization: (enabled: boolean, aggressiveMode?: boolean, cleanupInterval?: number) => {
+      dispatch({
+        type: 'SET_AUTO_OPTIMIZATION',
+        payload: {
+          enabled,
+          ...(aggressiveMode !== undefined && { aggressiveMode }),
+          ...(cleanupInterval !== undefined && { cleanupInterval })
+        }
+      });
+    },
+    
+    // System Control
+    startSystem: () => systemActions.startSystem(),
+    stopSystem: () => systemActions.stopSystem(),
+    restartSystem: () => systemActions.restartSystem(),
+    emergencyStop: () => systemActions.emergencyStop(),
+    
     // Helpers
     getCurrentThrottlingLevel: () => state.throttling.level,
     getCurrentMode: () => state.modeSwitching.currentMode,
     isThrottlingActive: () => state.throttling.enabled,
-    isResourceLimitExceeded: (resource) => {
+    isResourceLimitExceeded: (resource: 'cpu' | 'memory' | 'tokens') => {
       if (!state.resourceLimits.enabled) return false;
-      const limit = state.resourceLimits[resource];
-      const current = systemActions.state.metrics[resource] || 0;
-      return current > limit;
+      const resourceConfig = state.resourceLimits[resource];
+      if (typeof resourceConfig === 'boolean') return false;
+      
+      // Handle different resource types
+      if ('max' in resourceConfig) {
+        const limit = resourceConfig.max;
+        const current = systemState.metrics[resource] || 0;
+        return current > limit;
+      } else if ('maxPerMinute' in resourceConfig) {
+        const limit = resourceConfig.maxPerMinute;
+        const current = systemState.metrics.tokens || 0;
+        return current > limit;
+      }
+      return false;
     },
-    getOptimizationStatus: () => state.autoOptimization.enabled,
+    getOptimizationStatus: () => state.autoOptimization,
   };
 
   // Auto-cleanup and optimization
@@ -357,8 +407,8 @@ export function AdvancedControlsProvider({ children }: { children: React.ReactNo
     const cleanup = async () => {
       // Memory cleanup
       if (state.resourceLimits.enabled && state.autoOptimization.cleanupInterval > 0) {
-        const memoryUsage = systemActions.state.metrics.memory;
-        const memoryLimit = state.resourceLimits.memory.limit;
+        const memoryUsage = systemState.metrics.memory || 0;
+        const memoryLimit = state.resourceLimits.memory.max;
         const memoryThreshold = state.resourceLimits.memory.warningThreshold;
         
         if (memoryUsage > memoryThreshold) {
@@ -388,7 +438,7 @@ export function AdvancedControlsProvider({ children }: { children: React.ReactNo
     actions,
   };
 
-  return <AdvancedControlsProvider value={value}>{children}</AdvancedControlsProvider>;
+  return <AdvancedControlsContext.Provider value={value}>{children}</AdvancedControlsContext.Provider>;
 }
 
 // Hook
