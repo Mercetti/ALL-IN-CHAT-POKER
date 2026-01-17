@@ -371,10 +371,10 @@ export function AdvancedControlsProvider({ children }: { children: React.ReactNo
     },
     
     // System Control
-    startSystem: () => systemActions.startSystem(),
-    stopSystem: () => systemActions.stopSystem(),
-    restartSystem: () => systemActions.restartSystem(),
-    emergencyStop: () => systemActions.emergencyStop(),
+    startSystem: async () => systemActions.startSystem(),
+    stopSystem: async () => systemActions.stopSystem(),
+    restartSystem: async () => systemActions.restartSystem(),
+    emergencyStop: async () => systemActions.emergencyStop(),
     
     // Helpers
     getCurrentThrottlingLevel: () => state.throttling.level,

@@ -30,13 +30,8 @@ const ControlScreen: React.FC<ControlScreenProps> = ({ navigation }) => {
       'Are you sure you want to start the system?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Start', style: 'default' }
-      ],
-      (buttonIndex) => {
-        if (buttonIndex === 1) {
-          advancedActions.startSystem();
-        }
-      }
+        { text: 'Start', style: 'default', onPress: () => advancedActions.startSystem() }
+      ]
     );
   };
 
@@ -46,13 +41,8 @@ const ControlScreen: React.FC<ControlScreenProps> = ({ navigation }) => {
       'Are you sure you want to stop the system?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Stop', style: 'destructive' }
-      ],
-      (buttonIndex) => {
-        if (buttonIndex === 1) {
-          advancedActions.stopSystem();
-        }
-      }
+        { text: 'Stop', style: 'destructive', onPress: () => advancedActions.stopSystem() }
+      ]
     );
   };
 
@@ -62,13 +52,8 @@ const ControlScreen: React.FC<ControlScreenProps> = ({ navigation }) => {
       'Are you sure you want to restart the system?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Restart', style: 'default' }
-      ],
-      (buttonIndex) => {
-        if (buttonIndex === 1) {
-          advancedActions.restartSystem();
-        }
-      }
+        { text: 'Restart', style: 'default', onPress: () => advancedActions.restartSystem() }
+      ]
     );
   };
 
@@ -78,13 +63,8 @@ const ControlScreen: React.FC<ControlScreenProps> = ({ navigation }) => {
       'This will immediately stop all system processes. Continue?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Emergency Stop', style: 'destructive' }
-      ],
-      (buttonIndex) => {
-        if (buttonIndex === 1) {
-          advancedActions.emergencyStop();
-        }
-      }
+        { text: 'Emergency Stop', style: 'destructive', onPress: () => advancedActions.emergencyStop() }
+      ]
     );
   };
 
