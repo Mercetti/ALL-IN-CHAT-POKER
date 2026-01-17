@@ -151,18 +151,25 @@ const AdvancedControlsContext = createContext<{
     // Mode Switching
     enableModeSwitching: () => void;
     disableModeSwitching: () => void;
-    scheduleModeTransition: (from: string, to: string, reason: string, delay?: number) => void;
-    executeScheduledTransition: () => Promise<boolean>;
+    setMode: (mode: AdvancedControlsState['modeSwitching']['currentMode']) => void;
+    scheduleModeTransition: (from: string, to: string, reason: string, timestamp?: string) => void;
+    executeScheduledTransition: (transitionId: string) => void;
     
     // Resource Limits
-    enableResourceLimits: (limits: Partial<AdvancedControlsState['resourceLimits']>) => void;
+    enableResourceLimits: () => void;
     disableResourceLimits: () => void;
-    updateResourceLimit: (resource: 'cpu' | 'memory' | 'tokens', limit: number, threshold?: number) => void;
+    setResourceLimits: (limits: Partial<AdvancedControlsState['resourceLimits']>) => void;
     
-    // Auto Optimization
-    enableAutoOptimization: (aggressive?: boolean) => void;
+    // Auto-Optimization
+    enableAutoOptimization: (aggressiveMode?: boolean, cleanupInterval?: number) => void;
     disableAutoOptimization: () => void;
-    setCleanupInterval: (interval: number) => void;
+    setAutoOptimization: (enabled: boolean, aggressiveMode?: boolean, cleanupInterval?: number) => void;
+    
+    // System Control
+    startSystem: () => Promise<void>;
+    stopSystem: () => Promise<void>;
+    restartSystem: () => Promise<void>;
+    emergencyStop: () => Promise<void>;
     
     // Helpers
     getCurrentThrottlingLevel: () => AdvancedControlsState['throttling']['level'];

@@ -24,6 +24,12 @@ interface SystemState {
   }>;
   loading: boolean;
   error: string | null;
+  // Add missing properties for ControlScreen
+  throttlingLevel?: string;
+  cpuLimit?: number;
+  memoryLimit?: number;
+  tokenLimit?: number;
+  connectionLimit?: number;
 }
 
 type SystemAction =

@@ -12,12 +12,12 @@ import { useAuth } from './context/AuthContext';
 import { PreloadManager, PerformanceMonitor } from './utils/BundleOptimizer';
 
 // Direct imports for working screens
-import LoginScreen from '../screens/LoginScreen';
-import StatusScreen from '../screens/StatusScreen';
-import ControlScreen from '../screens/ControlScreen';
-import LogsScreen from '../screens/LogsScreen';
-import AnalyticsScreen from '../screens/AnalyticsScreen';
-import SettingsScreen from '../screens/SettingsScreen';
+import LoginScreen from '../screens/LoginScreen.tsx';
+import StatusScreen from '../screens/StatusScreen.tsx';
+import ControlScreen from '../screens/ControlScreen.tsx';
+import LogsScreen from '../screens/LogsScreen.tsx';
+import AnalyticsScreen from '../screens/AnalyticsScreen.tsx';
+import SettingsScreen from '../screens/SettingsScreen.tsx';
 
 // Loading component
 const LoadingFallback = ({ message = 'Loading...' }) => (
