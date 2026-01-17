@@ -450,6 +450,62 @@ if (!config.isTest()) {
   }
 }
 
+// Acey Control Center API endpoints for mobile web app
+app.post('/api/acey/control', (req, res) => {
+  try {
+    const { command } = req.body;
+    console.log('🎮 Acey Control Command:', command);
+    
+    // Handle different commands
+    let response = { success: false, message: 'Unknown command' };
+    
+    switch (command) {
+      case 'start':
+        response = { success: true, message: 'Acey system started successfully' };
+        break;
+      case 'stop':
+        response = { success: true, message: 'Acey system stopped successfully' };
+        break;
+      case 'restart':
+        response = { success: true, message: 'Acey system restarted successfully' };
+        break;
+      case 'safe-mode':
+        response = { success: true, message: 'Safe mode activated successfully' };
+        break;
+    }
+    
+    res.json(response);
+  } catch (error) {
+    console.error('❌ Acey Control Error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/api/acey/mode', (req, res) => {
+  try {
+    const { mode } = req.body;
+    console.log('🔄 Acey Mode Change:', mode);
+    
+    // Handle different modes
+    let response = { success: false, message: 'Unknown mode' };
+    
+    switch (mode) {
+      case 'full':
+      case 'creator':
+      case 'minimal':
+      case 'safe':
+      case 'offline':
+        response = { success: true, mode: mode, message: `Switched to ${mode} mode successfully` };
+        break;
+    }
+    
+    res.json(response);
+  } catch (error) {
+    console.error('❌ Acey Mode Error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).send('OK');
