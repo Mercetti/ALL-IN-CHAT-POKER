@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "downloadUrl": "/api/download/acey-control-1768626784078.apk",
-  "releaseNotes": "Acey Control Center APK v1.0.0 - Production ready",
-  "mandatory": false,
-  "lastUpdated": "2026-01-17T05:13:04.083Z",
-  "filename": "acey-control-1768626784078.apk",
+  "version": "1.0.1",
+  "downloadUrl": "/api/download/acey-control-1768629197089.apk",
+  "releaseNotes": "Acey Control Center APK v1.0.1 - Fixed app content, shows real Acey interface",
+  "mandatory": true,
+  "lastUpdated": "2026-01-17T05:53:17.108Z",
+  "filename": "acey-control-1768629197089.apk",
   "fileSize": 60
 }
