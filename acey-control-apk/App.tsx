@@ -50,11 +50,11 @@ export default function App() {
       <StatusBar barStyle="light-content" backgroundColor="#030712" />
       <ErrorProvider>
         <AuthProvider>
-          <AdvancedControlsProvider>
-            <SystemProvider>
+          <SystemProvider>
+            <AdvancedControlsProvider>
               <Navigation />
-            </SystemProvider>
-          </AdvancedControlsProvider>
+            </AdvancedControlsProvider>
+          </SystemProvider>
         </AuthProvider>
       </ErrorProvider>
     </SafeAreaProvider>
