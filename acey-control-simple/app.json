@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "Acey Control Center",
+    "slug": "acey-control-center",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.merce.aceycontrol"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "package": "com.merce.aceycontrol",
+      "versionCode": 1,
+      "compileSdkVersion": 33,
+      "targetSdkVersion": 33
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [],
+    "extra": {
+      "eas": {
+        "projectId": "3b8d3730-f772-41b6-b259-26d52e3889fc",
+        "cli": {
+          "appVersionSource": "local"
+        }
+      }
+    }
+  }
+}

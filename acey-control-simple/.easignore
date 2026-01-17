@@ -1,0 +1,11 @@
+# Exclude unnecessary files from build
+node_modules/
+.git/
+.github/
+*.log
+*.tmp
+.DS_Store
+__tests__/
+coverage/
+.vscode/
+.idea/
