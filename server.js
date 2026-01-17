@@ -882,8 +882,8 @@ async function initializeServer() {
     console.log('✅ Acey Stability Module initialized successfully');
     
     // Initialize mobile API controller
-    const mobileAPIController = new MobileAPIController(stabilityModule);
-    mobileAPIController.registerRoutes(app);
+    const mobileAPIController = new MobileAPIController(app);
+    mobileAPIController.registerRoutes();
     console.log('📱 Mobile API Controller registered');
     
     // Initialize new modules
