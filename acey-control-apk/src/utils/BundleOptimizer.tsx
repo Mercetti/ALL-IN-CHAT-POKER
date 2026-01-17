@@ -7,11 +7,11 @@ import React, { Suspense, lazy } from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
 
 // Lazy loaded components
-const LazyStatusScreen = lazy(() => import('../screens/StatusScreen'));
-const LazyControlScreen = lazy(() => import('../screens/ControlScreen'));
-const LazyLogsScreen = lazy(() => import('../screens/LogsScreen'));
-const LazyAnalyticsScreen = lazy(() => import('../screens/AnalyticsScreen'));
-const LazySettingsScreen = lazy(() => import('../screens/SettingsScreen'));
+const LazyStatusScreen = lazy(() => import('../../screens/StatusScreen'));
+const LazyControlScreen = lazy(() => import('../../screens/ControlScreen'));
+const LazyLogsScreen = lazy(() => import('../../screens/LogsScreen'));
+const LazyAnalyticsScreen = lazy(() => import('../../screens/AnalyticsScreen'));
+const LazySettingsScreen = lazy(() => import('../../screens/SettingsScreen'));
 
 // Bundle analyzer utilities
 export class BundleOptimizer {
@@ -188,13 +188,11 @@ export class PreloadManager {
     try {
       switch (componentName) {
         case 'AnalyticsScreen':
-          await import('../screens/AnalyticsScreen');
-          break;
-        case 'SettingsScreen':
-          await import('../screens/SettingsScreen');
-          break;
-        case 'LogsScreen':
-          await import('../screens/LogsScreen');
+          await import('../../screens/StatusScreen');
+          await import('../../screens/ControlScreen');
+          await import('../../screens/AnalyticsScreen');
+          await import('../../screens/SettingsScreen');
+          await import('../../screens/LogsScreen');
           break;
         default:
           console.warn(`Unknown component: ${componentName}`);
@@ -407,11 +405,11 @@ export const LazyWrapper: React.FC<{
 const styles = {
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#030712',
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    backgroundColor: '#f3f4f6',
     minHeight: 200,
-  },
+  } as const,
   loadingText: {
     color: '#ffffff',
     marginTop: 10,
