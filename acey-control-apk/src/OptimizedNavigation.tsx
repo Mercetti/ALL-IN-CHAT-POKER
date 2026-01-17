@@ -8,16 +8,16 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Text, View, ActivityIndicator } from 'react-native';
-import { useAuth } from '../context/AuthContext';
-import { PreloadManager, PerformanceMonitor } from '../utils/BundleOptimizer';
+import { useAuth } from './context/AuthContext';
+import { PreloadManager, PerformanceMonitor } from './utils/BundleOptimizer';
 
-// Lazy loaded screens
-const LazyLoginScreen = React.lazy(() => import('../screens/LoginScreen'));
-const LazyStatusScreen = React.lazy(() => import('../screens/StatusScreen'));
-const LazyControlScreen = React.lazy(() => import('../screens/ControlScreen'));
-const LazyLogsScreen = React.lazy(() => import('../screens/LogsScreen'));
-const LazyAnalyticsScreen = React.lazy(() => import('../screens/AnalyticsScreen'));
-const LazySettingsScreen = React.lazy(() => import('../screens/SettingsScreen'));
+// Direct imports for working screens
+import LoginScreen from '../screens/LoginScreen';
+import StatusScreen from '../screens/StatusScreen';
+import ControlScreen from '../screens/ControlScreen';
+import LogsScreen from '../screens/LogsScreen';
+import AnalyticsScreen from '../screens/AnalyticsScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 
 // Loading component
 const LoadingFallback = ({ message = 'Loading...' }) => (
@@ -76,11 +76,7 @@ function MainTabs() {
     >
       <Tab.Screen 
         name="Status" 
-        component={() => (
-          <Suspense fallback={<LoadingFallback message="Loading Status..." />}>
-            <LazyStatusScreen />
-          </Suspense>
-        )}
+        component={StatusScreen}
         options={{
           tabBarLabel: 'Status',
           tabBarIcon: ({ color }) => (
@@ -97,11 +93,7 @@ function MainTabs() {
       
       <Tab.Screen 
         name="Control" 
-        component={() => (
-          <Suspense fallback={<LoadingFallback message="Loading Control..." />}>
-            <LazyControlScreen />
-          </Suspense>
-        )}
+        component={ControlScreen}
         options={{
           tabBarLabel: 'Control',
           tabBarIcon: ({ color }) => (
@@ -117,11 +109,7 @@ function MainTabs() {
       
       <Tab.Screen 
         name="Logs" 
-        component={() => (
-          <Suspense fallback={<LoadingFallback message="Loading Logs..." />}>
-            <LazyLogsScreen />
-          </Suspense>
-        )}
+        component={LogsScreen}
         options={{
           tabBarLabel: 'Logs',
           tabBarIcon: ({ color }) => (
@@ -137,11 +125,7 @@ function MainTabs() {
       
       <Tab.Screen 
         name="Analytics" 
-        component={() => (
-          <Suspense fallback={<LoadingFallback message="Loading Analytics..." />}>
-            <LazyAnalyticsScreen />
-          </Suspense>
-        )}
+        component={AnalyticsScreen}
         options={{
           tabBarLabel: 'Analytics',
           tabBarIcon: ({ color }) => (
@@ -157,11 +141,7 @@ function MainTabs() {
       
       <Tab.Screen 
         name="Settings" 
-        component={() => (
-          <Suspense fallback={<LoadingFallback message="Loading Settings..." />}>
-            <LazySettingsScreen />
-          </Suspense>
-        )}
+        component={SettingsScreen}
         options={{
           tabBarLabel: 'Settings',
           tabBarIcon: ({ color }) => (
@@ -190,11 +170,7 @@ function AppNavigator() {
     >
       <Stack.Screen 
         name="Login" 
-        component={() => (
-          <Suspense fallback={<LoadingFallback message="Loading Login..." />}>
-            <LazyLoginScreen />
-          </Suspense>
-        )}
+        component={LoginScreen}
         options={{ 
           headerShown: false,
           gestureEnabled: false

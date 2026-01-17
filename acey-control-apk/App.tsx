@@ -8,7 +8,7 @@ import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // Import new components
-import OptimizedNavigation from './src/OptimizedNavigation';
+import Navigation from './src/Navigation';
 import { SystemProvider } from './src/context/SystemContext';
 
 // Import services
@@ -46,7 +46,7 @@ export default function App() {
     <SafeAreaProvider style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#030712" />
       <SystemProvider>
-        <OptimizedNavigation />
+        <Navigation />
       </SystemProvider>
     </SafeAreaProvider>
   );
