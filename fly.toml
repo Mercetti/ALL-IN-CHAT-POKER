@@ -20,7 +20,7 @@ primary_region = "iad"
   APP_BASE_URL = "https://all-in-chat-poker.fly.dev"
 
 [processes]
-  app = "sh fly-entrypoint.sh"
+  app = "node server-simple.js"
 
 [[mounts]]
   source = "dbdata"
