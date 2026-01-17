@@ -89,7 +89,7 @@ class SecurityManager {
     // Stricter rate limiting for auth endpoints
     const authLimiter = rateLimit({
       windowMs: 15 * 60 * 1000, // 15 minutes
-      max: 5, // limit each IP to 5 auth requests per windowMs
+      max: 50, // limit each IP to 50 auth requests per windowMs (was 5)
       message: {
         error: 'Too many authentication attempts, please try again later.',
         retryAfter: '15 minutes'
