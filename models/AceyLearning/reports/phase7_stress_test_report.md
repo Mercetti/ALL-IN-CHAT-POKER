@@ -1,7 +1,7 @@
 # Acey Stress Testing & Forward-Compatibility Report
 
 ## Test Summary
-- Generated: 2026-01-16T05:32:26.402Z
+- Generated: 2026-01-17T02:30:57.835Z
 - Test Duration: 5 minutes
 - Total Stress Tests: 4
 - Total LLM Tests: 2
@@ -10,19 +10,19 @@
 ## Stress Testing Results
 
 ### Force Skill Execution Errors
-- **Duration**: 1ms
+- **Duration**: 0ms
 - **Items Processed**: 5
 - **Status**: ✅ SUCCESS
 
 
 ### Disconnect Devices
-- **Duration**: 1ms
+- **Duration**: 2ms
 - **Items Processed**: 3
 - **Status**: ✅ SUCCESS
 
 
 ### Fake Skill Proposals
-- **Duration**: 0ms
+- **Duration**: 1ms
 - **Items Processed**: 3
 - **Status**: ✅ SUCCESS
 
@@ -36,13 +36,13 @@
 ## LLM Compatibility Results
 
 ### Self-Hosted LLM
-- **Average Latency**: 217ms
+- **Average Latency**: 244ms
 - **Success Rate**: 100.0%
 - **Responses Tested**: 5
 
 
 ### External LLM
-- **Average Latency**: 556ms
+- **Average Latency**: 442ms
 - **Success Rate**: 100.0%
 - **Responses Tested**: 5
 
@@ -59,7 +59,7 @@
 ### Large Data Volume
 - **Updates/Records**: 10000
 - **Success Rate**: ✅
-- **Processing Time**: 1573.641151846732ms
+- **Processing Time**: 1757.808956184472ms
 - **Errors**: 0
 
 
