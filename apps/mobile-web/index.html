@@ -279,8 +279,8 @@
       console.log('Sending command:', command);
       alert(`Command "${command}" sent to Acey system`);
       
-      // Here you would make actual API calls to your backend
-      fetch('/api/acey/control', {
+      // Make actual API calls to your backend
+      fetch('http://localhost:3000/api/acey/control', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -302,8 +302,8 @@
       console.log('Setting mode:', mode);
       alert(`Switching to ${mode} mode`);
       
-      // Here you would make actual API calls to your backend
-      fetch('/api/acey/mode', {
+      // Make actual API calls to your backend
+      fetch('http://localhost:3000/api/acey/mode', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
