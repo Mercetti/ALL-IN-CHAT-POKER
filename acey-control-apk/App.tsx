@@ -12,6 +12,7 @@ import Navigation from './src/Navigation';
 import { SystemProvider } from './src/context/SystemContext';
 import { ErrorProvider } from './src/context/ErrorContext';
 import { AuthProvider } from './src/context/AuthContext';
+import { AdvancedControlsProvider } from './src/context/AdvancedControlsContext';
 
 // Import services
 import PushNotificationService from './services/PushNotificationService';
@@ -49,9 +50,11 @@ export default function App() {
       <StatusBar barStyle="light-content" backgroundColor="#030712" />
       <ErrorProvider>
         <AuthProvider>
-          <SystemProvider>
-            <Navigation />
-          </SystemProvider>
+          <AdvancedControlsProvider>
+            <SystemProvider>
+              <Navigation />
+            </SystemProvider>
+          </AdvancedControlsProvider>
         </AuthProvider>
       </ErrorProvider>
     </SafeAreaProvider>
