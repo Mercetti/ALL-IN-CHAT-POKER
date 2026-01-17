@@ -86,12 +86,12 @@ const GameScreen = () => {
         </Text>
       </View>
       <Card style={{ marginBottom: spacing.lg }}>
-        <Text style={{ color: colors.text, marginBottom: spacing.md }}>
+        <Text style={{ color: styles.colors.text, marginBottom: spacing.md }}>
           Game Status: {gameState}
         </Text>
       </Card>
       <Card style={{ marginBottom: spacing.lg }}>
-        <Text style={{ color: colors.text, marginBottom: spacing.md }}>
+        <Text style={{ color: styles.colors.text, marginBottom: spacing.md }}>
           Your Chips: {playerChips}
         </Text>
         <Input
