@@ -474,6 +474,8 @@ app.post('/api/acey/control', (req, res) => {
         break;
     }
     
+    // Set proper content type and send JSON response
+    res.setHeader('Content-Type', 'application/json');
     res.json(response);
   } catch (error) {
     console.error('❌ Acey Control Error:', error);
@@ -499,6 +501,8 @@ app.post('/api/acey/mode', (req, res) => {
         break;
     }
     
+    // Set proper content type and send JSON response
+    res.setHeader('Content-Type', 'application/json');
     res.json(response);
   } catch (error) {
     console.error('❌ Acey Mode Error:', error);
