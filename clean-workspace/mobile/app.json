@@ -24,9 +24,7 @@
         "backgroundColor": "#FFFFFF"
       },
       "package": "com.merce.aceycontrol",
-      "versionCode": 1,
-      "compileSdkVersion": 33,
-      "targetSdkVersion": 33
+      "versionCode": 1
     },
     "web": {
       "favicon": "./assets/favicon.png"
