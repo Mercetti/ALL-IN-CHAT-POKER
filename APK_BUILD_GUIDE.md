@@ -13,7 +13,7 @@ npm install
 
 ### Step 2: Upload to Expo.dev
 
-1. Visit https://expo.dev
+1. Visit [https://expo.dev](https://expo.dev)
 2. Connect your GitHub account or create Expo account
 3. Upload the mobile project folder
 4. Expo.dev will automatically build APK
@@ -80,14 +80,14 @@ npx expo build:android --type apk
 
 ### OPTION 2: MOBILE WEB APP
 
-- ✅ **Already Working**: http://localhost:5173
+- ✅ **Already Working**: [http://localhost:5173](http://localhost:5173)
 - ✅ **Production Ready**: Responsive mobile design
 - ✅ **PWA Capable**: Installable on mobile devices
 - ✅ **Full Features**: All Acey controls included
 
 ### OPTION 3: UPDATE SERVER DISTRIBUTION
 
-- ✅ **OTA Ready**: http://localhost:3001/admin
+- ✅ **OTA Ready**: [http://localhost:3001/admin](http://localhost:3001/admin)
 - ✅ **Direct Upload**: Drag-and-drop APK management
 - ✅ **Version Control**: Semantic versioning
 - ✅ **No Play Store**: Direct distribution
@@ -98,13 +98,14 @@ npx expo build:android --type apk
 
 **USE EXPO.DEV FOR APK GENERATION:**
 
-1. **Visit**: https://expo.dev
+1. **Visit**: [https://expo.dev](https://expo.dev)
 2. **Upload**: `mobile/` folder
 3. **Build**: Automatic APK generation
 4. **Download**: Instant APK download
 5. **Distribute**: Use update server for OTA
 
 **BENEFITS:**
+
 - 🚀 **Fastest** path to working APK
 - 🔧 **No Local Build** complexity
 - 📱 **Professional** build environment
@@ -126,8 +127,8 @@ npx expo build:android --type apk
 
 ### 📱 Mobile Access Options
 
-- **Web App**: http://localhost:5173 ✅ READY
-- **Update Server**: http://localhost:3001/admin ✅ READY
+- **Web App**: [http://localhost:5173](http://localhost:5173) ✅ READY
+- **Update Server**: [http://localhost:3001/admin](http://localhost:3001/admin) ✅ READY
 - **APK Build**: Use Expo.dev for instant APK ✅ RECOMMENDED
 
 ---
