@@ -1,20 +1,51 @@
+/**
+ * Main React Native App Component
+ * Entry point for the All-In Chat Poker mobile app
+ */
+
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
+import GameScreen from './src/screens/GameScreen';
+import BiometricAuth from './src/components/BiometricAuth';
+import PushNotificationService from './src/services/PushNotificationService';
+import AppShortcutsService from './src/services/AppShortcutsService';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+const Stack = createStackNavigator();
+
+const App = () => {
+  const { theme } = useTheme();
+
+  React.useEffect(() => {
+    // Initialize services
+    PushNotificationService.initialize();
+    AppShortcutsService.initialize();
+  }, []);
+
+  return React.createElement(
+    ThemeProvider,
+    null,
+    React.createElement(
+      SafeAreaProvider,
+      null,
+      React.createElement(
+        NavigationContainer,
+        null,
+        React.createElement(
+          Stack.Navigator,
+          { initialRouteName: 'Game', screenOptions: { headerShown: false } },
+          React.createElement(
+            Stack.Screen,
+            { name: 'Game', component: GameScreen }
+          )
+        ),
+      )
+    )
   );
-}
+};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default App;
