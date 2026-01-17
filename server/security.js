@@ -66,7 +66,7 @@ class SecurityManager {
     // General rate limiting
     const limiter = rateLimit({
       windowMs: 15 * 60 * 1000, // 15 minutes
-      max: 100, // limit each IP to 100 requests per windowMs
+      max: 1000, // limit each IP to 1000 requests per windowMs (was 100)
       message: {
         error: 'Too many requests from this IP, please try again later.',
         retryAfter: '15 minutes'
