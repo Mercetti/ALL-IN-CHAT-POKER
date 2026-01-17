@@ -91,37 +91,37 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: theme.colors.primary,
-    marginBottom: theme.spacing.sm,
+    color: colors.primary,
+    marginBottom: spacing.sm,
   },
   subtitle: {
     fontSize: 16,
-    color: theme.colors.textSecondary,
+    color: colors.textSecondary,
   },
   statusCard: {
-    marginBottom: theme.spacing.md,
+    marginBottom: spacing.md,
   },
   statusText: {
     fontSize: 16,
     fontWeight: '600',
-    color: theme.colors.text,
-    marginBottom: theme.spacing.sm,
+    color: colors.text,
+    marginBottom: spacing.sm,
   },
   chipsText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: theme.colors.success,
+    color: colors.success,
   },
   bettingCard: {
-    marginBottom: theme.spacing.md,
+    marginBottom: spacing.md,
   },
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: theme.spacing.md,
+    marginTop: spacing.md,
   },
   actionsCard: {
-    marginBottom: theme.spacing.md,
+    marginBottom: spacing.md,
   },
 });
 
