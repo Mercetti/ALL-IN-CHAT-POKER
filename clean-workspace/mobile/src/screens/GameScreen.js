@@ -28,7 +28,7 @@ const GameScreen = () => {
   };
 
   const handleCheck = () => {
-    setGameState('checked');
+    setGameState('checking');
   };
 
   return (
@@ -45,7 +45,7 @@ const GameScreen = () => {
       </Card>
       <Card style={{ marginBottom: spacing.lg }}>
         <Text style={{ color: colors.text, marginBottom: spacing.md }}>
-          Your Chips: ${playerChips}
+          Your Chips: {playerChips}
         </Text>
         <Input
           placeholder="Enter bet amount"
@@ -60,7 +60,7 @@ const GameScreen = () => {
         <Button title="Check" onPress={handleCheck} variant="secondary" />
         <Button title="Fold" onPress={handleFold} variant="outline" />
       </View>
-      <Card title="Game Actions" style={styles.actionsCard}>
+      <Card title="Game Actions" style={{ marginBottom: spacing.md }}>
         <Button
           title="View Profile"
           variant="outline"
@@ -81,12 +81,12 @@ const GameScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
-    padding: theme.spacing.md,
+    backgroundColor: colors.background,
+    padding: spacing.md,
   },
   header: {
     alignItems: 'center',
-    marginBottom: theme.spacing.lg,
+    marginBottom: spacing.lg,
   },
   title: {
     fontSize: 24,

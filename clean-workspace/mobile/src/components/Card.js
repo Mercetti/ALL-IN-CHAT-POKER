@@ -14,10 +14,7 @@ const Card = ({ children, variant = 'default', size = 'medium', suit, rank, face
     borderRadius: borderRadius.md,
     padding: spacing.md,
     backgroundColor: colors.surface,
-    shadowColor: colors.border,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
     elevation: 3,
   };
 
