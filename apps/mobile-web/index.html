@@ -277,47 +277,59 @@
     
     function sendCommand(command) {
       console.log('Sending command:', command);
-      alert(`Command "${command}" sent to Acey system`);
       
       // Make actual API calls to your backend
-      fetch('http://localhost:3000/api/acey/control', {
+      const apiUrl = 'http://localhost:8080/api/acey/control';
+      
+      fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ command: command })
       })
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        return response.json();
+      })
       .then(data => {
         console.log('Command response:', data);
         alert(`Command executed: ${data.message}`);
       })
       .catch(error => {
         console.error('Command error:', error);
-        alert('Error sending command');
+        alert('Error sending command: ' + error.message);
       });
     }
     
     function setMode(mode) {
       console.log('Setting mode:', mode);
-      alert(`Switching to ${mode} mode`);
       
       // Make actual API calls to your backend
-      fetch('http://localhost:3000/api/acey/mode', {
+      const apiUrl = 'http://localhost:8080/api/acey/mode';
+      
+      fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ mode: mode })
       })
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        return response.json();
+      })
       .then(data => {
         console.log('Mode response:', data);
         alert(`Mode changed to: ${data.mode}`);
       })
       .catch(error => {
         console.error('Mode error:', error);
-        alert('Error changing mode');
+        alert('Error changing mode: ' + error.message);
       });
     }
     
