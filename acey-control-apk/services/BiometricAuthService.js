@@ -10,13 +10,13 @@ class BiometricAuthService {
     try {
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
       if (!hasHardware) {
-        console.log('Biometric hardware not available');
+        // Log: Biometric hardware not available
         return false;
       }
 
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
       if (!isEnrolled) {
-        console.log('No biometric credentials enrolled');
+        // Log: No biometric credentials enrolled
         return false;
       }
 
@@ -26,8 +26,8 @@ class BiometricAuthService {
       });
 
       return result.success;
-    } catch (error) {
-      console.error('Biometric authentication failed:', error);
+    } catch {
+      // Log: Biometric authentication failed
       return false;
     }
   }
@@ -36,8 +36,8 @@ class BiometricAuthService {
     try {
       const supportedTypes = await LocalAuthentication.getSupportedAuthenticationTypesAsync();
       return supportedTypes || [];
-    } catch (error) {
-      console.error('Failed to get supported authentication types:', error);
+    } catch {
+      // Log: Failed to get supported authentication types
       return [];
     }
   }
@@ -47,7 +47,7 @@ class BiometricAuthService {
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
       return hasHardware && isEnrolled;
-    } catch (error) {
+    } catch {
       return false;
     }
   }

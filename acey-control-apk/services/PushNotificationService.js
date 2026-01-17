@@ -22,15 +22,15 @@ class PushNotificationService {
       if (Platform.OS !== 'web') {
         const { status } = await Notifications.requestPermissionsAsync();
         if (status !== 'granted') {
-          console.log('Push notification permissions denied');
+          // Log: Push notification permissions denied
           return false;
         }
       }
 
-      console.log('Push notification service initialized');
+      // Log: Push notification service initialized
       return true;
-    } catch (error) {
-      console.error('Failed to initialize push notifications:', error);
+    } catch {
+      // Log: Failed to initialize push notifications
       return false;
     }
   }
@@ -45,9 +45,9 @@ class PushNotificationService {
         },
         trigger: null, // Show immediately
       });
-      console.log('Notification sent:', title);
-    } catch (error) {
-      console.error('Failed to send notification:', error);
+      // Log: Notification sent
+    } catch {
+      // Log: Failed to send notification
     }
   }
 
