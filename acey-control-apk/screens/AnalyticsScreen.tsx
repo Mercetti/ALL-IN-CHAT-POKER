@@ -18,41 +18,49 @@ const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ navigation }) => {
     actions.collectUsageData();
   }, [actions]);
 
-  const renderOverview = () => (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>System Overview</Text>
-      
-      <View style={styles.metricGrid}>
-        <View style={styles.metricCard}>
-          <Text style={styles.metricLabel}>Current Status</Text>
-          <Text style={[styles.metricValue, { color: state.metrics.cpu.length > 0 ? '#10b981' : '#6b7280' }]}>
-            {state.metrics.cpu.length > 0 ? 'ONLINE' : 'OFFLINE'}
-          </Text>
-        </View>
+  const renderOverview = () => {
+    // Get latest values from arrays
+    const latestCpu = state.metrics.cpu[state.metrics.cpu.length - 1]?.value || 0;
+    const latestResponseTime = state.performance.responseTime[state.performance.responseTime.length - 1]?.value || 0;
+    const latestUptime = state.performance.uptime[state.performance.uptime.length - 1]?.value || 0;
+    const latestRequests = state.metrics.requests[state.metrics.requests.length - 1]?.count || 0;
+
+    return (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>System Overview</Text>
         
-        <View style={styles.metricCard}>
-          <Text style={styles.metricLabel}>Uptime</Text>
-          <Text style={styles.metricValue}>
-            {state.performance.uptime.length > 0 ? `${state.performance.uptime[state.performance.uptime.length - 1].value}%` : '0%'}
-          </Text>
-        </View>
-        
-        <View style={styles.metricCard}>
-          <Text style={styles.metricLabel}>Active Users</Text>
-          <Text style={styles.metricValue}>
-            {state.metrics.requests.length > 0 ? state.metrics.requests[state.metrics.requests.length - 1].count.toString() : '0'}
-          </Text>
-        </View>
-        
-        <View style={styles.metricCard}>
-          <Text style={styles.metricLabel}>Response Time</Text>
-          <Text style={[styles.metricValue, { color: state.performance.responseTime.length > 0 && state.performance.responseTime[state.performance.responseTime.length - 1].value < 100 ? '#10b981' : '#f59e0b' }]}>
-            {state.performance.responseTime.length > 0 ? `${state.performance.responseTime[state.performance.responseTime.length - 1].value}ms` : '0ms'}
-          </Text>
+        <View style={styles.metricGrid}>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricLabel}>Current Status</Text>
+            <Text style={[styles.metricValue, { color: latestCpu > 0 ? '#10b981' : '#6b7280' }]}>
+              {latestCpu > 0 ? 'ONLINE' : 'OFFLINE'}
+            </Text>
+          </View>
+          
+          <View style={styles.metricCard}>
+            <Text style={styles.metricLabel}>Uptime</Text>
+            <Text style={styles.metricValue}>
+              {latestUptime > 0 ? `${latestUptime}%` : '0%'}
+            </Text>
+          </View>
+          
+          <View style={styles.metricCard}>
+            <Text style={styles.metricLabel}>Active Users</Text>
+            <Text style={styles.metricValue}>
+              {latestRequests.toString()}
+            </Text>
+          </View>
+          
+          <View style={styles.metricCard}>
+            <Text style={styles.metricLabel}>Response Time</Text>
+            <Text style={[styles.metricValue, { color: latestResponseTime < 100 ? '#10b981' : '#f59e0b' }]}>
+              {latestResponseTime}ms
+            </Text>
+          </View>
         </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   const renderCharts = () => (
     <View style={styles.section}>
@@ -81,77 +89,91 @@ const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ navigation }) => {
     </View>
   );
 
-  const renderPerformance = () => (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Performance Metrics</Text>
-      
-      <View style={styles.performanceGrid}>
-        <View style={styles.performanceCard}>
-          <Text style={styles.performanceLabel}>Avg Response Time</Text>
-          <Text style={styles.performanceValue}>
-            {state.performance.responseTime.length > 0 ? `${state.performance.responseTime[state.performance.responseTime.length - 1].value}ms` : '0ms'}
-          </Text>
-        </View>
-        
-        <View style={styles.performanceCard}>
-          <Text style={styles.performanceLabel}>Error Rate</Text>
-          <Text style={[styles.performanceValue, { color: state.performance.errorRate.length > 0 && state.performance.errorRate[state.performance.errorRate.length - 1].value < 1 ? '#10b981' : '#ef4444' }]}>
-            {state.performance.errorRate.length > 0 ? `${state.performance.errorRate[state.performance.errorRate.length - 1].value}%` : '0%'}
-          </Text>
-        </View>
-        
-        <View style={styles.performanceCard}>
-          <Text style={styles.performanceLabel}>Throughput</Text>
-          <Text style={styles.performanceValue}>
-            0 req/s
-          </Text>
-        </View>
-        
-        <View style={styles.performanceCard}>
-          <Text style={styles.performanceLabel}>Uptime</Text>
-          <Text style={styles.performanceValue}>
-            {state.performance.uptime.length > 0 ? `${state.performance.uptime[state.performance.uptime.length - 1].value}%` : '99.9%'}
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
+  const renderPerformance = () => {
+    // Get latest values from arrays
+    const latestResponseTime = state.performance.responseTime[state.performance.responseTime.length - 1]?.value || 0;
+    const latestErrorRate = state.performance.errorRate[state.performance.errorRate.length - 1]?.value || 0;
+    const latestUptime = state.performance.uptime[state.performance.uptime.length - 1]?.value || 0;
 
-  const renderUsage = () => (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Usage Analytics</Text>
-      
-      <View style={styles.usageGrid}>
-        <View style={styles.usageCard}>
-          <Text style={styles.usageLabel}>Total Requests</Text>
-          <Text style={styles.usageValue}>
-            0
-          </Text>
-        </View>
+    return (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Performance Metrics</Text>
         
-        <View style={styles.usageCard}>
-          <Text style={styles.usageLabel}>Mode Changes</Text>
-          <Text style={styles.usageValue}>
-            {state.usage.modeChanges.length}
-          </Text>
-        </View>
+        <View style={styles.performanceGrid}>
+          <View style={styles.performanceCard}>
+            <Text style={styles.performanceLabel}>Avg Response Time</Text>
+            <Text style={styles.performanceValue}>
+              {latestResponseTime}ms
+            </Text>
+          </View>
         
-        <View style={styles.usageCard}>
-          <Text style={styles.usageLabel}>Control Actions</Text>
-          <Text style={styles.usageValue}>
-            {state.usage.controlActions.length}
-          </Text>
-        </View>
+          <View style={styles.performanceCard}>
+            <Text style={styles.performanceLabel}>Error Rate</Text>
+            <Text style={[styles.performanceValue, { color: latestErrorRate < 1 ? '#10b981' : '#ef4444' }]}>
+              {latestErrorRate}%
+            </Text>
+          </View>
         
-        <View style={styles.usageCard}>
-          <Text style={styles.usageLabel}>Errors</Text>
-          <Text style={[styles.usageValue, { color: state.usage.errors.length < 10 ? '#10b981' : '#ef4444' }]}>
-            {state.usage.errors.length}
-          </Text>
+          <View style={styles.performanceCard}>
+            <Text style={styles.performanceLabel}>Throughput</Text>
+            <Text style={styles.performanceValue}>
+              0 req/s
+            </Text>
+          </View>
+        
+          <View style={styles.performanceCard}>
+            <Text style={styles.performanceLabel}>Uptime</Text>
+            <Text style={styles.performanceValue}>
+              {latestUptime > 0 ? `${latestUptime}%` : '99.9%'}
+            </Text>
+          </View>
         </View>
-      </View>
     </View>
   );
+};
+
+  const renderUsage = () => {
+    // Get latest values from arrays
+    const latestModeChanges = state.usage.modeChanges[state.usage.modeChanges.length - 1];
+    const latestControlActions = state.usage.controlActions[state.usage.controlActions.length - 1];
+    const latestErrors = state.usage.errors[state.usage.errors.length - 1];
+
+    return (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Usage Analytics</Text>
+        
+        <View style={styles.usageGrid}>
+          <View style={styles.usageCard}>
+            <Text style={styles.usageLabel}>Total Requests</Text>
+            <Text style={styles.usageValue}>
+              0
+            </Text>
+          </View>
+        
+          <View style={styles.usageCard}>
+            <Text style={styles.usageLabel}>Mode Changes</Text>
+            <Text style={styles.usageValue}>
+              {latestModeChanges ? `${latestModeChanges.from} → ${latestModeChanges.to}` : 'None'}
+            </Text>
+          </View>
+        
+          <View style={styles.usageCard}>
+            <Text style={styles.usageLabel}>Control Actions</Text>
+            <Text style={styles.usageValue}>
+              {latestControlActions ? latestControlActions.action : 'None'}
+            </Text>
+          </View>
+        
+          <View style={styles.usageCard}>
+            <Text style={styles.usageLabel}>Errors</Text>
+            <Text style={[styles.usageValue, { color: (latestErrors?.type || 'info') === 'error' ? '#ef4444' : '#10b981' }]}>
+              {latestErrors?.message || 'None'}
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+};
 
   const handleExport = (format: 'json' | 'csv') => {
     const data = {
