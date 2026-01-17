@@ -453,6 +453,9 @@ if (!config.isTest()) {
 // Acey Control Center API endpoints for mobile web app
 app.post('/api/acey/control', (req, res) => {
   try {
+    console.log('🎮 Acey Control Request - Headers:', req.headers);
+    console.log('🎮 Acey Control Request - Body:', req.body);
+    
     const { command } = req.body;
     console.log('🎮 Acey Control Command:', command);
     
@@ -474,6 +477,8 @@ app.post('/api/acey/control', (req, res) => {
         break;
     }
     
+    console.log('🎮 Acey Control Response:', response);
+    
     // Set proper content type and send JSON response
     res.setHeader('Content-Type', 'application/json');
     res.json(response);
@@ -485,6 +490,9 @@ app.post('/api/acey/control', (req, res) => {
 
 app.post('/api/acey/mode', (req, res) => {
   try {
+    console.log('🔄 Acey Mode Request - Headers:', req.headers);
+    console.log('🔄 Acey Mode Request - Body:', req.body);
+    
     const { mode } = req.body;
     console.log('🔄 Acey Mode Change:', mode);
     
@@ -501,6 +509,8 @@ app.post('/api/acey/mode', (req, res) => {
         break;
     }
     
+    console.log('🔄 Acey Mode Response:', response);
+    
     // Set proper content type and send JSON response
     res.setHeader('Content-Type', 'application/json');
     res.json(response);
@@ -510,10 +520,12 @@ app.post('/api/acey/mode', (req, res) => {
   }
 });
 
-// Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).send('OK');
 });
+
+// Static files
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Basic routes
 app.get('/', (req, res) => {
