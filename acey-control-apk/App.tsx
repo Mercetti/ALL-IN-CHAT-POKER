@@ -11,6 +11,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Navigation from './src/Navigation';
 import { SystemProvider } from './src/context/SystemContext';
 import { ErrorProvider } from './src/context/ErrorContext';
+import { AuthProvider } from './src/context/AuthContext';
 
 // Import services
 import PushNotificationService from './services/PushNotificationService';
@@ -47,9 +48,11 @@ export default function App() {
     <SafeAreaProvider style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#030712" />
       <ErrorProvider>
-        <SystemProvider>
-          <Navigation />
-        </SystemProvider>
+        <AuthProvider>
+          <SystemProvider>
+            <Navigation />
+          </SystemProvider>
+        </AuthProvider>
       </ErrorProvider>
     </SafeAreaProvider>
   );
