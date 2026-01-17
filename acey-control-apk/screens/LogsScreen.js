@@ -1,55 +1,81 @@
-import React from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useEffect } from 'react';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import { useSystem } from '../src/context/SystemContext';
 
 const LogsScreen = () => {
-  const logs = [
-    { time: '2026-01-17 05:53:17', level: 'INFO', message: 'Acey Control Center started successfully' },
-    { time: '2026-01-17 05:53:18', level: 'INFO', message: 'Backend API connection established' },
-    { time: '2026-01-17 05:53:19', level: 'INFO', message: 'AI systems initialized' },
-    { time: '2026-01-17 05:53:20', level: 'INFO', message: 'Mobile controls activated' },
-    { time: '2026-01-17 05:53:21', level: 'INFO', message: 'Update server ready' },
-    { time: '2026-01-17 05:53:22', level: 'INFO', message: 'All systems operational' },
-  ];
+  const { state, actions } = useSystem();
+
+  useEffect(() => {
+    // Refresh logs when screen comes into focus
+    actions.refreshLogs();
+  }, [actions]);
+
+  const getLevelColor = (level) => {
+    switch (level) {
+      case 'INFO': return '#10b981';
+      case 'WARN': return '#f59e0b';
+      case 'ERROR': return '#ef4444';
+      default: return '#94a3b8';
+    }
+  };
+
+  const handleRefresh = () => {
+    actions.refreshLogs();
+  };
+
+  const handleClearLogs = () => {
+    // This would clear logs via API
+    // For now, just show a message
+    console.log('Clear logs functionality would be implemented here');
+  };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView 
+      style={styles.container}
+      refreshControl={
+        <RefreshControl
+          refreshing={state.loading}
+          onRefresh={handleRefresh}
+          tintColor="#3b82f6"
+          colors={["#3b82f6"]}
+        />
+      }
+    >
       <View style={styles.header}>
         <Text style={styles.title}>System Logs</Text>
         <Text style={styles.subtitle}>Real-time log monitoring</Text>
       </View>
       
       <View style={styles.controls}>
-        <TouchableOpacity style={styles.refreshButton}>
+        <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
           <Text style={styles.refreshText}>Refresh</Text>
         </TouchableOpacity>
         
-        <TouchableOpacity style={styles.clearButton}>
+        <TouchableOpacity style={styles.clearButton} onPress={handleClearLogs}>
           <Text style={styles.clearText}>Clear Logs</Text>
         </TouchableOpacity>
       </View>
       
       <View style={styles.logContainer}>
-        {logs.map((log, index) => (
-          <View key={index} style={styles.logItem}>
-            <Text style={styles.logTime}>{log.time}</Text>
-            <Text style={[styles.logLevel, { color: getLevelColor(log.level) }]}>
-              {log.level}
-            </Text>
-            <Text style={styles.logMessage}>{log.message}</Text>
+        {state.logs.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyText}>No logs available</Text>
+            <Text style={styles.emptySubtext}>Pull down to refresh</Text>
           </View>
-        ))}
+        ) : (
+          state.logs.map((log, index) => (
+            <View key={index} style={styles.logItem}>
+              <Text style={styles.logTime}>{log.time}</Text>
+              <Text style={[styles.logLevel, { color: getLevelColor(log.level) }]}>
+                {log.level}
+              </Text>
+              <Text style={styles.logMessage}>{log.message}</Text>
+            </View>
+          ))
+        )}
       </View>
     </ScrollView>
   );
-};
-
-const getLevelColor = (level) => {
-  switch (level) {
-    case 'INFO': return '#10b981';
-    case 'WARN': return '#f59e0b';
-    case 'ERROR': return '#ef4444';
-    default: return '#94a3b8';
-  }
 };
 
 const styles = StyleSheet.create({
@@ -122,6 +148,23 @@ const styles = StyleSheet.create({
   logMessage: {
     fontSize: 14,
     color: '#e2e8f0',
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  emptyText: {
+    fontSize: 18,
+    color: '#94a3b8',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#64748b',
+    textAlign: 'center',
   },
 });
 

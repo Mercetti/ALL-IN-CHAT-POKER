@@ -1,42 +1,110 @@
-import React from 'react';
-import { StyleSheet, Text, View, ScrollView } from 'react-native';
+import React, { useEffect } from 'react';
+import { StyleSheet, Text, View, ScrollView, RefreshControl } from 'react-native';
+import { useSystem } from '../src/context/SystemContext';
 
 const StatusScreen = () => {
+  const { state, actions } = useSystem();
+
+  useEffect(() => {
+    // Refresh data when screen comes into focus
+    actions.refreshStatus();
+    actions.refreshMetrics();
+  }, [actions]);
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'online': return '#10b981';
+      case 'offline': return '#ef4444';
+      case 'error': return '#f59e0b';
+      default: return '#94a3b8';
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'online': return '🟢';
+      case 'offline': return '🔴';
+      case 'error': return '🟡';
+      default: return '⚪';
+    }
+  };
+
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView 
+      style={styles.container}
+      refreshControl={
+        <RefreshControl
+          refreshing={state.loading}
+          onRefresh={() => {
+            actions.refreshStatus();
+            actions.refreshMetrics();
+          }}
+          tintColor="#3b82f6"
+          colors={["#3b82f6"]}
+        />
+      }
+    >
       <View style={styles.header}>
         <Text style={styles.title}>System Status</Text>
         <Text style={styles.subtitle}>Real-time monitoring</Text>
       </View>
       
-      <View style={styles.statusGrid}>
-        <View style={styles.statusCard}>
-          <Text style={styles.statusTitle}>Backend API</Text>
-          <Text style={styles.statusValue}>✅ Online</Text>
-        </View>
-        
-        <View style={styles.statusCard}>
-          <Text style={styles.statusTitle}>AI Systems</Text>
-          <Text style={styles.statusValue}>✅ Operational</Text>
-        </View>
-        
-        <View style={styles.statusCard}>
-          <Text style={styles.statusTitle}>Mobile Controls</Text>
-          <Text style={styles.statusValue}>✅ Active</Text>
-        </View>
-        
-        <View style={styles.statusCard}>
-          <Text style={styles.statusTitle}>Update Server</Text>
-          <Text style={styles.statusValue}>✅ Ready</Text>
+      {/* Connection Status */}
+      <View style={styles.statusCard}>
+        <Text style={styles.statusTitle}>Backend Connection</Text>
+        <View style={styles.statusRow}>
+          <Text style={[styles.statusIcon, { color: getStatusColor(state.status) }]}>
+            {getStatusIcon(state.status)}
+          </Text>
+          <Text style={[styles.statusValue, { color: getStatusColor(state.status) }]}>
+            {state.status.toUpperCase()}
+          </Text>
         </View>
       </View>
       
-      <View style={styles.metrics}>
+      {/* System Metrics */}
+      <View style={styles.metricsCard}>
         <Text style={styles.metricsTitle}>System Metrics</Text>
-        <Text style={styles.metric}>CPU Usage: 12%</Text>
-        <Text style={styles.metric}>Memory: 256MB</Text>
-        <Text style={styles.metric}>Tokens/sec: 45</Text>
+        
+        <View style={styles.metricRow}>
+          <Text style={styles.metricLabel}>CPU Usage</Text>
+          <Text style={styles.metricValue}>{state.metrics.cpu}%</Text>
+        </View>
+        
+        <View style={styles.metricRow}>
+          <Text style={styles.metricLabel}>Memory</Text>
+          <Text style={styles.metricValue}>{state.metrics.memory}MB</Text>
+        </View>
+        
+        <View style={styles.metricRow}>
+          <Text style={styles.metricLabel}>Tokens/sec</Text>
+          <Text style={styles.metricValue}>{state.metrics.tokens}</Text>
+        </View>
+        
+        <View style={styles.metricRow}>
+          <Text style={styles.metricLabel}>Uptime</Text>
+          <Text style={styles.metricValue}>{Math.floor(state.metrics.uptime / 3600)}h</Text>
+        </View>
       </View>
+      
+      {/* Operating Mode */}
+      <View style={styles.statusCard}>
+        <Text style={styles.statusTitle}>Operating Mode</Text>
+        <View style={styles.statusRow}>
+          <Text style={styles.modeIcon}>
+            {state.mode === 'live' ? '' : state.mode === 'build' ? '' : state.mode === 'safe' ? '' : ''}
+          </Text>
+          <Text style={styles.statusValue}>{state.mode.toUpperCase()}</Text>
+        </View>
+      </View>
+      
+      {/* Error Display */}
+      {state.error && (
+        <View style={styles.errorCard}>
+          <Text style={styles.errorTitle}>Error</Text>
+          <Text style={styles.errorMessage}>{state.error}</Text>
+        </View>
+      )}
     </ScrollView>
   );
 };
@@ -48,7 +116,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   header: {
-    marginBottom: 30,
+    marginBottom: 20,
   },
   title: {
     fontSize: 28,
@@ -60,44 +128,77 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#94a3b8',
   },
-  statusGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: 30,
-  },
   statusCard: {
-    width: '48%',
     backgroundColor: '#1e293b',
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 10,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   statusTitle: {
-    fontSize: 14,
-    color: '#94a3b8',
-    marginBottom: 5,
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    marginBottom: 12,
+  },
+  statusIcon: {
+    fontSize: 24,
+    marginRight: 8,
   },
   statusValue: {
     fontSize: 16,
-    color: '#10b981',
     fontWeight: 'bold',
   },
-  metrics: {
+  metricsCard: {
     backgroundColor: '#1e293b',
-    padding: 15,
-    borderRadius: 8,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
   },
   metricsTitle: {
     fontSize: 18,
-    color: '#ffffff',
-    marginBottom: 10,
     fontWeight: 'bold',
+    color: '#ffffff',
+    marginBottom: 16,
   },
-  metric: {
+  metricRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  metricLabel: {
     fontSize: 14,
     color: '#94a3b8',
-    marginBottom: 5,
+  },
+  metricValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  modeIcon: {
+    fontSize: 24,
+    marginRight: 8,
+  },
+  errorCard: {
+    backgroundColor: '#991b1b',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  errorTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#ef4444',
+    marginBottom: 8,
+  },
+  errorMessage: {
+    fontSize: 14,
+    color: '#fca5a5',
   },
 });
 

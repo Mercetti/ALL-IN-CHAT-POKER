@@ -73,8 +73,11 @@
   "author": "Mercetti",
   "license": "MIT",
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.2.0",
+    "@types/crypto-js": "^4.2.2",
     "better-sqlite3": "^12.6.0",
     "cookie-parser": "^1.4.7",
+    "crypto-js": "^4.2.0",
     "diff": "^5.2.0",
     "discord.js": "^14.25.1",
     "dotenv": "^16.4.7",
