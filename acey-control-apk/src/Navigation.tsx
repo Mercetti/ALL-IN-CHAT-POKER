@@ -16,7 +16,7 @@ import LogsScreen from '../screens/LogsScreen';
 import LoginScreen from '../screens/LoginScreen';
 import AnalyticsScreen from '../screens/AnalyticsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from './context/AuthContext';
 
 // Create tab navigator
 const Tab = createBottomTabNavigator();
