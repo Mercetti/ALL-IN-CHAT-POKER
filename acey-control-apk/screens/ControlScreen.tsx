@@ -30,7 +30,7 @@ const ControlScreen: React.FC<ControlScreenProps> = ({ navigation }) => {
       'Are you sure you want to start the system?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Start', style: 'default', onPress: () => advancedActions.startSystem() }
+        { text: 'Start', style: 'default', onPress: () => advancedActions.actions.startSystem() }
       ]
     );
   };
@@ -41,7 +41,7 @@ const ControlScreen: React.FC<ControlScreenProps> = ({ navigation }) => {
       'Are you sure you want to stop the system?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Stop', style: 'destructive', onPress: () => advancedActions.stopSystem() }
+        { text: 'Stop', style: 'destructive', onPress: () => advancedActions.actions.stopSystem() }
       ]
     );
   };
@@ -52,7 +52,7 @@ const ControlScreen: React.FC<ControlScreenProps> = ({ navigation }) => {
       'Are you sure you want to restart the system?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Restart', style: 'default', onPress: () => advancedActions.restartSystem() }
+        { text: 'Restart', style: 'default', onPress: () => advancedActions.actions.restartSystem() }
       ]
     );
   };
@@ -63,24 +63,24 @@ const ControlScreen: React.FC<ControlScreenProps> = ({ navigation }) => {
       'This will immediately stop all system processes. Continue?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Emergency Stop', style: 'destructive', onPress: () => advancedActions.emergencyStop() }
+        { text: 'Emergency Stop', style: 'destructive', onPress: () => advancedActions.actions.emergencyStop() }
       ]
     );
   };
 
   const handleSetThrottlingLevel = (level: 'low' | 'medium' | 'high' | 'off') => {
-    advancedActions.setThrottlingLevel(level);
+    advancedActions.actions.setThrottlingLevel(level);
   };
 
   const handleSetMode = (mode: 'live' | 'build' | 'safe' | 'offline') => {
-    advancedActions.setMode(mode);
+    advancedActions.actions.setMode(mode);
   };
 
   const handleToggleAutoOptimization = () => {
     if (advancedActions.state.autoOptimization.enabled) {
-      advancedActions.disableAutoOptimization();
+      advancedActions.actions.disableAutoOptimization();
     } else {
-      advancedActions.enableAutoOptimization();
+      advancedActions.actions.enableAutoOptimization();
     }
   };
 

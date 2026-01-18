@@ -91,7 +91,7 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ navigation }) => {
   const addMessage = (message: Omit<Message, 'id' | 'timestamp'>) => {
     const newMessage: Message = {
       ...message,
-      id: Date.now().toString(),
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       timestamp: new Date()
     };
     setMessages(prev => [...prev, newMessage]);
@@ -129,7 +129,7 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ navigation }) => {
     if (lowerCommand === 'start' || lowerCommand === 'start system') {
       setIsLoading(true);
       try {
-        await advancedActions.startSystem();
+        await advancedActions.actions.startSystem();
         addMessage({
           text: '✅ System started successfully',
           sender: 'acey',
@@ -153,7 +153,7 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ navigation }) => {
     if (lowerCommand === 'stop' || lowerCommand === 'stop system') {
       setIsLoading(true);
       try {
-        await advancedActions.stopSystem();
+        await advancedActions.actions.stopSystem();
         addMessage({
           text: '✅ System stopped successfully',
           sender: 'acey',
@@ -177,7 +177,7 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ navigation }) => {
     if (lowerCommand === 'restart' || lowerCommand === 'restart system') {
       setIsLoading(true);
       try {
-        await advancedActions.restartSystem();
+        await advancedActions.actions.restartSystem();
         addMessage({
           text: '✅ System restarted successfully',
           sender: 'acey',
@@ -201,7 +201,7 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ navigation }) => {
     if (lowerCommand === 'emergency stop' || lowerCommand === 'emergency') {
       setIsLoading(true);
       try {
-        await advancedActions.emergencyStop();
+        await advancedActions.actions.emergencyStop();
         addMessage({
           text: '🚨 Emergency stop activated!',
           sender: 'acey',
@@ -265,7 +265,7 @@ LLM Connections: ${statusData.llmConnections.active}`;
         const metricsText = `Performance Metrics:
 CPU: ${metricsData.performance.cpuUsage}%
 Memory: ${metricsData.performance.memoryUsage}%
-Node Memory: ${JSON.stringify(metricsData.performance.nodeMemory.heapUsed / 1024 / 1024).toFixed(2)}MB
+Node Memory: ${(metricsData.performance.nodeMemory.heapUsed / 1024 / 1024).toFixed(2)}MB
 System Load: ${metricsData.performance.systemLoad.join(', ')}
 Health: ${metricsData.health.status}`;
         
@@ -326,7 +326,7 @@ Health: ${metricsData.health.status}`;
         const mode = modeMatch[1].toLowerCase();
         setIsLoading(true);
         try {
-          await advancedActions.setMode(mode as any);
+          await advancedActions.actions.setMode(mode.toLowerCase().replace('set mode to ', '') as any);
           addMessage({
             text: `✅ Mode set to ${mode}`,
             sender: 'acey',
@@ -354,7 +354,7 @@ Health: ${metricsData.health.status}`;
         const level = levelMatch[1].toLowerCase();
         setIsLoading(true);
         try {
-          await advancedActions.setThrottlingLevel(level as any);
+          await advancedActions.actions.setThrottlingLevel(level.toLowerCase().replace('set throttling level to ', '') as any);
           addMessage({
             text: `✅ Throttling set to ${level}`,
             sender: 'acey',
