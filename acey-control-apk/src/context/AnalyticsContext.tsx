@@ -8,17 +8,27 @@ import { useSystem } from './SystemContext';
 import { useAdvancedControls } from './AdvancedControlsContext';
 
 // Types
+interface MetricData {
+  timestamp: string;
+  value: number;
+}
+
+interface RequestData {
+  timestamp: string;
+  count: number;
+}
+
 interface AnalyticsState {
   metrics: {
-    cpu: Array<{ timestamp: string; value: number }>;
-    memory: Array<{ timestamp: string; value: number }>;
-    tokens: Array<{ timestamp: string; value: number }>;
-    requests: Array<{ timestamp: string; count: number }>;
+    cpu: Array<MetricData>;
+    memory: Array<MetricData>;
+    tokens: Array<MetricData>;
+    requests: Array<RequestData>;
   };
   performance: {
-    responseTime: Array<{ timestamp: string; value: number }>;
-    errorRate: Array<{ timestamp: string; value: number }>;
-    uptime: Array<{ timestamp: string; value: number }>;
+    responseTime: Array<MetricData>;
+    errorRate: Array<MetricData>;
+    uptime: Array<MetricData>;
   };
   usage: {
     modeChanges: Array<{ timestamp: string; from: string; to: string; reason: string }>;
@@ -182,7 +192,7 @@ function analyticsReducer(state: AnalyticsState, action: AnalyticsAction): Analy
           ...state.usage,
           errors: [
             ...state.usage.errors.slice(-99),
-            action.payload.data
+            action.payload
           ]
         }
       };
@@ -291,14 +301,14 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
     },
 
     // Chart Management
-    setTimeRange: (range) => {
+    setTimeRange: (range: '1h' | '6h' | '24h' | '7d' | '30d') => {
       dispatch({
         type: 'SET_CHART_SETTINGS',
         payload: { timeRange: range }
       });
     },
 
-    setSelectedMetric: (metric) => {
+    setSelectedMetric: (metric: 'cpu' | 'memory' | 'tokens' | 'requests' | 'errors' | 'uptime' | 'responseTime') => {
       dispatch({
         type: 'SET_CHART_SETTINGS',
         payload: { selectedMetric: metric }
@@ -312,7 +322,7 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
       });
     },
 
-    setRefreshInterval: (interval) => {
+    setRefreshInterval: (interval: number) => {
       dispatch({
         type: 'SET_CHART_SETTINGS',
         payload: { refreshInterval: interval }
@@ -320,20 +330,24 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
     },
 
     // Data Analysis
-    getChartData: (metric, timeRange = state.charts.timeRange) => {
-      const data = state.metrics[metric] || [];
+    getChartData: (metric: AnalyticsState['charts']['selectedMetric'], timeRange?: AnalyticsState['charts']['timeRange']) => {
+      const metricData = state.metrics[metric as keyof typeof state.metrics] || state.performance[metric as keyof typeof state.performance] || [];
+      const data = metricData.map(item => ({
+        timestamp: item.timestamp,
+        value: 'value' in item ? item.value : ('count' in item ? item.count : 0)
+      }));
       const now = new Date();
       
       // Filter data based on time range
-      const filteredData = data.filter(item => {
+      const filteredData = data.filter((item: any) => {
         const itemTime = new Date(item.timestamp);
-        const rangeMs = {
+        const rangeMs: number = {
           '1h': 60 * 60 * 1000,
           '6h': 6 * 60 * 60 * 1000,
           '24h': 24 * 60 * 60 * 1000,
           '7d': 7 * 24 * 60 * 60 * 1000,
           '30d': 30 * 24 * 60 * 60 * 1000,
-        }[timeRange];
+        }[timeRange || '24h'];
         
         return itemTime >= new Date(now.getTime() - rangeMs);
       });
@@ -344,15 +358,15 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
       }));
     },
 
-    getMetricSummary: (metric) => {
-      const data = state.metrics[metric] || [];
-      if (data.length === 0) {
-        return { current: 0, average: 0, min: 0, max: 0, trend: 'stable' };
+    getMetricSummary: (metric: keyof AnalyticsState['metrics']) => {
+      const data = state.metrics[metric];
+      if (!data || data.length === 0) {
+        return { current: 0, average: 0, min: 0, max: 0, trend: 'stable' as const };
       }
       
       const values = data.map(item => item.value);
       const current = values[values.length - 1] || 0;
-      const average = values.reduce((sum, val) => sum + val, 0) / values.length;
+      const average = values.reduce((sum: number, val: number) => sum + val, 0) / values.length;
       const min = Math.min(...values);
       const max = Math.max(...values);
       
@@ -361,8 +375,8 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
       if (values.length > 1) {
         const recent = values.slice(-10);
         const older = values.slice(-20, -10);
-        const recentAvg = recent.reduce((sum, val) => sum + val, 0) / recent.length;
-        const olderAvg = older.reduce((sum, val) => sum + val, 0) / older.length;
+        const recentAvg = recent.reduce((sum: number, val: number) => sum + val, 0) / recent.length;
+        const olderAvg = older.reduce((sum: number, val: number) => sum + val, 0) / older.length;
         
         if (recentAvg > olderAvg * 1.05) {
           trend = 'up';
@@ -375,25 +389,28 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
     },
 
     getPerformanceSummary: () => {
-      const responseTime = state.performance.responseTime.slice(-10);
-      const errorRate = state.performance.errorRate.slice(-10);
-      const uptime = state.performance.uptime.slice(-10);
+      const responseTime = state.performance.responseTime;
+      const errorRate = state.performance.errorRate;
+      const uptime = state.performance.uptime;
       
-      return {
-        avgResponseTime: responseTime.length > 0 
-          ? responseTime.reduce((sum, val) => sum + val, 0) / responseTime.length 
-          : 0,
-        errorRate: errorRate.length > 0 
-          ? errorRate.reduce((sum, val) => sum + val, 0) / errorRate.length 
-          : 0,
-        uptime: uptime.length > 0 
-          ? uptime[uptime.length - 1] || 0 
-          : 0
-      };
+      const avgResponseTime = responseTime.length > 0 
+        ? responseTime.reduce((sum: number, item: MetricData) => sum + item.value, 0) / responseTime.length 
+        : 0;
+      
+      const avgErrorRate = errorRate.length > 0
+        ? errorRate.reduce((sum: number, item: MetricData) => sum + item.value, 0) / errorRate.length
+        : 0;
+      
+      const avgUptime = uptime.length > 0
+        ? uptime.reduce((sum: number, item: MetricData) => sum + item.value, 0) / uptime.length
+        : 0;
+      
+      return { avgResponseTime, errorRate: avgErrorRate, uptime: avgUptime };
     },
 
-    // Data Management
-    exportData: (format) => {
+    // ...
+
+    exportData: (format: 'json' | 'csv') => {
       const data = {
         metrics: state.metrics,
         performance: state.performance,
