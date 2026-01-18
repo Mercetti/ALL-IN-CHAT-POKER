@@ -18,6 +18,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showBiometric, setShowBiometric] = useState(false);
 
+  // Debug navigation prop
+  console.log('🔐 LoginScreen navigation prop:', navigation);
+  console.log('🔐 Navigation type:', typeof navigation);
+  console.log('🔐 Navigation methods:', navigation ? Object.keys(navigation) : 'undefined');
+
   useEffect(() => {
     // Check if already authenticated
     if (state.isAuthenticated) {

@@ -226,8 +226,20 @@ const AnalyticsContext = createContext<{
 // Provider
 export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(analyticsReducer, initialState);
-  const { state: systemState } = useSystem();
-  const { actions: advancedActions } = useAdvancedControls();
+  
+  // Safely get system and advanced controls with error handling
+  let systemState, advancedActions;
+  try {
+    const systemContext = useSystem();
+    const advancedContext = useAdvancedControls();
+    systemState = systemContext.state;
+    advancedActions = advancedContext.actions;
+  } catch (error) {
+    console.warn('AnalyticsProvider: Context dependencies not available:', error);
+    // Provide fallback values
+    systemState = { metrics: { cpu: 0, memory: 0, tokens: 0 } };
+    advancedActions = { collectMetrics: () => {}, collectPerformanceData: () => {}, collectUsageData: () => {} };
+  }
 
   // Actions
   const actions = {
