@@ -55,7 +55,14 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       dispatch({ type: 'SET_AUTHENTICATED', payload: true });
       
       Alert.alert('Success', 'Login successful!');
-      navigation.replace('MainTabs');
+      
+      // Safe navigation with error handling
+      if (navigation && typeof navigation.replace === 'function') {
+        navigation.replace('MainTabs');
+      } else {
+        console.error('Navigation is not available');
+        Alert.alert('Error', 'Navigation error occurred');
+      }
       
     } catch (error) {
       console.error('Login error:', error);
@@ -67,15 +74,22 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
   const handleBiometricLogin = async () => {
     try {
-      const isAvailable = await actions.checkBiometricAvailability();
-      if (!isAvailable) {
-        Alert.alert('Error', 'Biometric authentication not available');
-        return;
+      // Use the proper biometric login function
+      const success = await actions.loginWithBiometric();
+      
+      if (success) {
+        Alert.alert('Success', 'Biometric login successful!');
+        
+        // Safe navigation with error handling
+        if (navigation && typeof navigation.replace === 'function') {
+          navigation.replace('MainTabs');
+        } else {
+          console.error('Navigation is not available');
+          Alert.alert('Error', 'Navigation error occurred');
+        }
+      } else {
+        Alert.alert('Error', 'Biometric authentication failed');
       }
-
-      // Simple biometric login simulation
-      Alert.alert('Success', 'Biometric login successful!');
-      navigation.replace('MainTabs');
       
     } catch (error) {
       console.error('Biometric login error:', error);

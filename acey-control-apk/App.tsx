@@ -13,6 +13,7 @@ import { SystemProvider } from './src/context/SystemContext';
 import { ErrorProvider } from './src/context/ErrorContext';
 import { AuthProvider } from './src/context/AuthContext';
 import { AdvancedControlsProvider } from './src/context/AdvancedControlsContext';
+import { AnalyticsProvider } from './src/context/AnalyticsContext';
 
 // Import services
 import PushNotificationService from './services/PushNotificationService';
@@ -52,7 +53,9 @@ export default function App() {
         <AuthProvider>
           <SystemProvider>
             <AdvancedControlsProvider>
-              <Navigation />
+              <AnalyticsProvider>
+                <Navigation />
+              </AnalyticsProvider>
             </AdvancedControlsProvider>
           </SystemProvider>
         </AuthProvider>

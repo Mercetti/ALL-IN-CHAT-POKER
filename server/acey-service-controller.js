@@ -503,9 +503,17 @@ Try typing "help" to see what I can do, or try commands like:
   // Handle login authentication
   async handleLogin(req, res) {
     try {
+      console.log('🔐 Login request received:', {
+        method: req.method,
+        url: req.url,
+        headers: req.headers,
+        body: req.body
+      });
+      
       const { email, password } = req.body;
       
       if (!email || !password) {
+        console.log('❌ Missing credentials:', { email: !!email, password: !!password });
         return res.status(400).json({ error: 'Email and password are required' });
       }
 
