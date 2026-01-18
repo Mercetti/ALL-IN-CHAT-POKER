@@ -34,6 +34,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     setIsLoading(true);
     
     try {
+      console.log('🔐 Attempting login with:', { email, password });
+      
       // Use local backend for development
       const response = await fetch('http://localhost:8080/api/auth/login', {
         method: 'POST',
@@ -43,11 +45,17 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         body: JSON.stringify({ email, password }),
       });
 
+      console.log('🔐 Login response status:', response.status);
+      console.log('🔐 Login response headers:', response.headers);
+
       if (!response.ok) {
-        throw new Error('Login failed');
+        const errorText = await response.text();
+        console.error('🔐 Login failed with status:', response.status, 'Error:', errorText);
+        throw new Error(`Login failed: ${response.status} - ${errorText}`);
       }
 
       const { accessToken, refreshToken, user } = await response.json();
+      console.log('🔐 Login successful:', { accessToken: !!accessToken, refreshToken: !!refreshToken, user: !!user });
       
       // Update auth state
       dispatch({ type: 'SET_USER', payload: user });
