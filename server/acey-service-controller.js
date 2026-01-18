@@ -36,6 +36,8 @@ class AceyServiceController {
     app.post('/api/acey/start', this.startAcey.bind(this));
     app.post('/api/acey/stop', this.stopAcey.bind(this));
     app.get('/api/acey/status', this.getStatus.bind(this));
+    app.get('/api/acey/metrics', this.getMetrics.bind(this));
+    app.get('/api/acey/logs', this.getLogs.bind(this));
     app.post('/api/acey/add-device', this.addTrustedDevice.bind(this));
     
     // Start resource monitoring
@@ -174,6 +176,90 @@ class AceyServiceController {
     } catch (error) {
       console.error('❌ Failed to get status:', error);
       res.status(500).json({ error: 'Failed to get status' });
+    }
+  }
+
+  // Get detailed metrics
+  async getMetrics(req, res) {
+    try {
+      const metrics = {
+        timestamp: new Date().toISOString(),
+        uptime: this.getUptime(),
+        resources: this.getResourceUsage(),
+        performance: {
+          cpuUsage: this.getResourceUsage().cpu,
+          memoryUsage: this.getResourceUsage().memory,
+          nodeMemory: process.memoryUsage(),
+          systemLoad: os.loadavg()
+        },
+        services: {
+          skills: {
+            active: this.skills.size,
+            list: Array.from(this.skills.keys())
+          },
+          llmConnections: {
+            active: this.llmConnections.size,
+            list: Array.from(this.llmConnections.keys())
+          }
+        },
+        health: {
+          status: this.aceyActive ? 'healthy' : 'inactive',
+          lastCheck: new Date().toISOString(),
+          issues: []
+        }
+      };
+      
+      res.json(metrics);
+    } catch (error) {
+      console.error('❌ Failed to get metrics:', error);
+      res.status(500).json({ error: 'Failed to get metrics' });
+    }
+  }
+
+  // Get system logs
+  async getLogs(req, res) {
+    try {
+      const limit = parseInt(req.query.limit) || 50;
+      const level = req.query.level || 'all';
+      
+      // Mock logs for now - in production, these would come from a log store
+      const mockLogs = [
+        {
+          id: '1',
+          timestamp: new Date(Date.now() - 60000).toISOString(),
+          level: 'INFO',
+          message: 'Acey service initialized',
+          source: 'service'
+        },
+        {
+          id: '2', 
+          timestamp: new Date(Date.now() - 30000).toISOString(),
+          level: 'INFO',
+          message: 'Resource monitoring started',
+          source: 'monitor'
+        },
+        {
+          id: '3',
+          timestamp: new Date(Date.now() - 10000).toISOString(),
+          level: 'WARN',
+          message: 'High memory usage detected',
+          source: 'monitor'
+        }
+      ];
+      
+      const filteredLogs = level === 'all' 
+        ? mockLogs 
+        : mockLogs.filter(log => log.level === level.toUpperCase());
+      
+      res.json({
+        logs: filteredLogs.slice(0, limit),
+        total: mockLogs.length,
+        filtered: filteredLogs.length,
+        limit
+      });
+    } catch (error) {
+      console.error('❌ Failed to get logs:', error);
+      res.status(500).json({ error: 'Failed to get logs' });
     }
   }
 

@@ -230,14 +230,14 @@ export function SystemProvider({ children }: { children: React.ReactNode }) {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [state.status, actions.refreshMetrics]);
+  }, [state.status]); // Remove actions.refreshMetrics dependency
 
   // Initial data load
   useEffect(() => {
     actions.refreshStatus();
     actions.refreshMetrics();
     actions.refreshLogs();
-  }, [actions]);
+  }, []); // Remove actions dependency and run only once
 
   const value = {
     state,
