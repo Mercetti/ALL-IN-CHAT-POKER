@@ -68,8 +68,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       if (navigation && typeof navigation.replace === 'function') {
         navigation.replace('MainTabs');
       } else {
-        console.error('Navigation is not available');
-        Alert.alert('Error', 'Navigation error occurred');
+        console.warn('Navigation not available, retrying...');
+        // Retry after a short delay
+        setTimeout(() => {
+          if (navigation && typeof navigation.replace === 'function') {
+            navigation.replace('MainTabs');
+          }
+        }, 100);
       }
       
     } catch (error) {

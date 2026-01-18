@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect } from 'react';
-import { StatusBar } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // Import new components
@@ -20,8 +20,14 @@ import PushNotificationService from './services/PushNotificationService';
 import BiometricAuthService from './services/BiometricAuthService';
 import AppShortcutsService from './services/AppShortcutsService';
 
+// Import NetInfo configuration
+import configureNetInfo from './src/config/netinfo-config';
+
 export default function App() {
   useEffect(() => {
+    // Configure NetInfo to prevent reachability errors
+    configureNetInfo();
+    
     // Initialize all services
     const initializeServices = async () => {
       try {
