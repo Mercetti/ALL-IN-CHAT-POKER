@@ -42,6 +42,11 @@ class AceyServiceController {
     app.post('/api/auth/login', this.handleLogin.bind(this));
     app.post('/api/acey/add-device', this.addTrustedDevice.bind(this));
     
+    // LLM Control endpoints
+    app.post('/api/acey/connect-llm', this.connectLLM.bind(this));
+    app.post('/api/acey/disconnect-llm', this.disconnectLLM.bind(this));
+    app.get('/api/acey/llm-status', this.getLLMStatus.bind(this));
+    
     // Start resource monitoring
     this.startResourceMonitoring();
     
@@ -790,6 +795,85 @@ Try typing "help" to see what I can do, or try commands like:
     }
     
     console.log('✅ Cleanup completed');
+  }
+
+  // LLM Control Methods
+  async connectLLM(req, res) {
+    try {
+      console.log('🤖 Connecting to LLM services...');
+      
+      // Connect to LLM services
+      await this.connectLLMs();
+      
+      res.json({
+        success: true,
+        message: 'LLM services connected successfully',
+        connected: this.llmConnections.size,
+        services: Array.from(this.llmConnections.keys())
+      });
+      
+      console.log(`✅ LLM services connected: ${this.llmConnections.size} services`);
+    } catch (error) {
+      console.error('❌ Failed to connect LLM services:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to connect LLM services',
+        message: error.message
+      });
+    }
+  }
+
+  async disconnectLLM(req, res) {
+    try {
+      console.log('🤖 Disconnecting from LLM services...');
+      
+      // Disconnect from LLM services
+      await this.disconnectLLMs();
+      
+      res.json({
+        success: true,
+        message: 'LLM services disconnected successfully',
+        connected: this.llmConnections.size,
+        services: Array.from(this.llmConnections.keys())
+      });
+      
+      console.log(`✅ LLM services disconnected: ${this.llmConnections.size} services`);
+    } catch (error) {
+      console.error('❌ Failed to disconnect LLM services:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to disconnect LLM services',
+        message: error.message
+      });
+    }
+  }
+
+  async getLLMStatus(req, res) {
+    try {
+      const connectedServices = Array.from(this.llmConnections.entries())
+        .filter(([_, connection]) => connection.connected)
+        .map(([service, connection]) => ({
+          service,
+          status: connection.status,
+          connectedAt: connection.connectedAt ? new Date(connection.connectedAt).toISOString() : null
+        }));
+      
+      const activeServices = connectedServices.filter(s => s.status === 'active');
+      
+      res.json({
+        connected: connectedServices.length,
+        active: activeServices.length,
+        services: connectedServices.map(s => s.service),
+        lastActivity: this.startTime ? new Date(this.startTime).toISOString() : null,
+        details: connectedServices
+      });
+    } catch (error) {
+      console.error('❌ Failed to get LLM status:', error);
+      res.status(500).json({
+        error: 'Failed to get LLM status',
+        message: error.message
+      });
+    }
   }
 }
 

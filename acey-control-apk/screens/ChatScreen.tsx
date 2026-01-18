@@ -45,6 +45,13 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ navigation }) => {
     'status': 'Get current system status',
     'emergency stop': 'Emergency stop all processes',
     
+    // LLM Control
+    'start llm': 'Start LLM services',
+    'stop llm': 'Stop LLM services',
+    'connect llm': 'Connect to LLM services',
+    'disconnect llm': 'Disconnect from LLM services',
+    'llm status': 'Check LLM connection status',
+    
     // Advanced Controls
     'set mode': 'Change operating mode (e.g., "set mode to performance")',
     'enable throttling': 'Enable request throttling',
@@ -374,6 +381,109 @@ Health: ${metricsData.health.status}`;
         setIsLoading(false);
         return;
       }
+    }
+
+    // LLM Control Commands
+    if (lowerCommand === 'start llm' || lowerCommand === 'connect llm') {
+      setIsLoading(true);
+      try {
+        const response = await fetch('http://localhost:8080/api/acey/connect-llm', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          addMessage({
+            text: `✅ LLM services ${lowerCommand.includes('start') ? 'started' : 'connected'} successfully!`,
+            sender: 'acey',
+            type: 'control',
+            action: 'llm_control',
+            result: result
+          });
+        } else {
+          throw new Error('Failed to control LLM services');
+        }
+      } catch (error) {
+        addMessage({
+          text: `❌ Failed to ${lowerCommand.includes('start') ? 'start' : 'connect'} LLM services: ${error}`,
+          sender: 'acey',
+          type: 'system',
+          action: 'llm_control',
+          result: 'error'
+        });
+      }
+      setIsLoading(false);
+      return;
+    }
+
+    if (lowerCommand === 'stop llm' || lowerCommand === 'disconnect llm') {
+      setIsLoading(true);
+      try {
+        const response = await fetch('http://localhost:8080/api/acey/disconnect-llm', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          addMessage({
+            text: `✅ LLM services ${lowerCommand.includes('stop') ? 'stopped' : 'disconnected'} successfully!`,
+            sender: 'acey',
+            type: 'control',
+            action: 'llm_control',
+            result: result
+          });
+        } else {
+          throw new Error('Failed to control LLM services');
+        }
+      } catch (error) {
+        addMessage({
+          text: `❌ Failed to ${lowerCommand.includes('stop') ? 'stop' : 'disconnect'} LLM services: ${error}`,
+          sender: 'acey',
+          type: 'system',
+          action: 'llm_control',
+          result: 'error'
+        });
+      }
+      setIsLoading(false);
+      return;
+    }
+
+    if (lowerCommand === 'llm status') {
+      setIsLoading(true);
+      try {
+        const response = await fetch('http://localhost:8080/api/acey/llm-status');
+        const result = await response.json();
+        
+        const statusText = `LLM Services Status:
+Connected Services: ${result.connected || 0}
+Active Services: ${result.active || 0}
+Services: ${result.services ? result.services.join(', ') : 'None'}
+Last Activity: ${result.lastActivity || 'Never'}`;
+        
+        addMessage({
+          text: statusText,
+          sender: 'acey',
+          type: 'system',
+          action: 'llm_status',
+          result: result
+        });
+      } catch (error) {
+        addMessage({
+          text: `❌ Failed to get LLM status: ${error}`,
+          sender: 'acey',
+          type: 'system',
+          action: 'llm_status',
+          result: 'error'
+        });
+      }
+      setIsLoading(false);
+      return;
     }
 
     // AI Skills (mock implementations)
