@@ -25,7 +25,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
   useEffect(() => {
     // Check if already authenticated
-    if (state.isAuthenticated) {
+    if (state.isAuthenticated && navigation) {
       navigation.replace('MainTabs');
     }
   }, [state.isAuthenticated, navigation]);
@@ -87,17 +87,22 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
   const handleBiometricLogin = async () => {
     try {
+      console.log('🔐 Attempting biometric login...');
+      
       // Use the proper biometric login function
       const success = await actions.loginWithBiometric();
+      
+      console.log('🔐 Biometric login result:', success);
       
       if (success) {
         Alert.alert('Success', 'Biometric login successful!');
         
         // Safe navigation with error handling
         if (navigation && typeof navigation.replace === 'function') {
+          console.log('🔐 Navigating to MainTabs...');
           navigation.replace('MainTabs');
         } else {
-          console.error('Navigation is not available');
+          console.error('🔐 Navigation is not available for biometric login');
           Alert.alert('Error', 'Navigation error occurred');
         }
       } else {
@@ -105,7 +110,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       }
       
     } catch (error) {
-      console.error('Biometric login error:', error);
+      console.error('🔐 Biometric login error:', error);
       Alert.alert('Error', 'Biometric authentication failed');
     }
   };
