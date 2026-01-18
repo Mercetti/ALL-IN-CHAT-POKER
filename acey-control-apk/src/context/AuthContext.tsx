@@ -126,11 +126,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const storedUser = await AsyncStorage.getItem('user_data');
           
           if (storedToken && storedUser) {
-            dispatch({ type: 'SET_USER', payload: JSON.parse(storedUser) });
-            dispatch({ type: 'SET_TOKEN', payload: storedToken });
-            dispatch({ type: 'SET_AUTHENTICATED', payload: true });
-            return true;
+            try {
+              const parsedUser = JSON.parse(storedUser);
+              dispatch({ type: 'SET_USER', payload: parsedUser });
+              dispatch({ type: 'SET_TOKEN', payload: storedToken });
+              dispatch({ type: 'SET_AUTHENTICATED', payload: true });
+            } catch (parseError) {
+              console.error('Failed to parse stored user data:', parseError);
+              dispatch({ type: 'SET_ERROR', payload: 'Invalid stored user data' });
+            }
           }
+          return true;
         } else {
           dispatch({ type: 'SET_ERROR', payload: 'Biometric authentication failed' });
           return false;
@@ -199,8 +205,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (storedToken && storedUser) {
           dispatch({ type: 'SET_TOKEN', payload: storedToken });
-          dispatch({ type: 'SET_USER', payload: JSON.parse(storedUser) });
-          dispatch({ type: 'SET_AUTHENTICATED', payload: true });
+          try {
+            const parsedUser = JSON.parse(storedUser);
+            dispatch({ type: 'SET_USER', payload: parsedUser });
+            dispatch({ type: 'SET_AUTHENTICATED', payload: true });
+          } catch (parseError) {
+            console.error('Failed to parse stored user data:', parseError);
+            dispatch({ type: 'SET_ERROR', payload: 'Invalid stored user data' });
+          }
         }
       } catch (error) {
         console.error('Failed to check stored auth:', error);

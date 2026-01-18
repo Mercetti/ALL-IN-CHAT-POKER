@@ -36,7 +36,7 @@ type SystemAction =
   | { type: 'SET_STATUS'; payload: SystemState['status'] }
   | { type: 'SET_METRICS'; payload: SystemState['metrics'] }
   | { type: 'SET_MODE'; payload: SystemState['mode'] }
-  | { type: 'ADD_LOGS'; payload: SystemState['logs'] }
+  | { type: 'ADD_LOGS'; payload: SystemState['logs'] | { logs: SystemState['logs'] } }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null };
 
@@ -65,7 +65,14 @@ function systemReducer(state: SystemState, action: SystemAction): SystemState {
     case 'SET_MODE':
       return { ...state, mode: action.payload };
     case 'ADD_LOGS':
-      return { ...state, logs: [...action.payload, ...state.logs].slice(0, 100) };
+      // Handle API response structure: { logs: [...] } or direct array
+      let newLogs: SystemState['logs'] = [];
+      if (Array.isArray(action.payload)) {
+        newLogs = action.payload;
+      } else if (action.payload && 'logs' in action.payload) {
+        newLogs = action.payload.logs;
+      }
+      return { ...state, logs: [...newLogs, ...state.logs].slice(0, 100) };
     case 'SET_LOADING':
       return { ...state, loading: action.payload };
     case 'SET_ERROR':
