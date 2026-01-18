@@ -29,7 +29,16 @@
       "targetSdkVersion": 33
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": {
+        "metro": {
+          "config": {
+            "transformer": {
+              "assetPlugins": ["expo-asset-tools/build/hashedAssetPlugin"]
+            }
+          }
+        }
+      }
     },
     "plugins": [],
     "extra": {
