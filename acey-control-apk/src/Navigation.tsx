@@ -107,6 +107,8 @@ function MainTabs() {
 }
 
 function AppNavigator() {
+  const { state } = useAuth();
+
   return (
     <Stack.Navigator
       screenOptions={{
@@ -120,29 +122,32 @@ function AppNavigator() {
         },
       }}
     >
-      <Stack.Screen 
-        name="Login" 
-        component={LoginScreen}
-        options={{ 
-          headerShown: false,
-          gestureEnabled: false
-        }}
-      />
-      <Stack.Screen 
-        name="MainTabs" 
-        component={MainTabs}
-        options={{ headerShown: false }}
-      />
+      {!state.isAuthenticated ? (
+        <Stack.Screen 
+          name="Login" 
+          component={LoginScreen}
+          options={{ 
+            headerShown: false,
+            gestureEnabled: false
+          }}
+        />
+      ) : (
+        <>
+          <Stack.Screen 
+            name="MainTabs" 
+            component={MainTabs}
+            options={{ headerShown: false }}
+          />
+        </>
+      )}
     </Stack.Navigator>
   );
 }
 
 export default function Navigation() {
-  const { state } = useAuth();
-
   return (
     <NavigationContainer>
-      {state.isAuthenticated ? <AppNavigator /> : <LoginScreen />}
+      <AppNavigator />
     </NavigationContainer>
   );
 }

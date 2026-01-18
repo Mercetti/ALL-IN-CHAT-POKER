@@ -18,11 +18,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showBiometric, setShowBiometric] = useState(false);
 
-  // Debug navigation prop
-  console.log('🔐 LoginScreen navigation prop:', navigation);
-  console.log('🔐 Navigation type:', typeof navigation);
-  console.log('🔐 Navigation methods:', navigation ? Object.keys(navigation) : 'undefined');
-
   useEffect(() => {
     // Check if already authenticated
     if (state.isAuthenticated && navigation) {
@@ -87,22 +82,17 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
   const handleBiometricLogin = async () => {
     try {
-      console.log('🔐 Attempting biometric login...');
-      
       // Use the proper biometric login function
       const success = await actions.loginWithBiometric();
-      
-      console.log('🔐 Biometric login result:', success);
       
       if (success) {
         Alert.alert('Success', 'Biometric login successful!');
         
         // Safe navigation with error handling
         if (navigation && typeof navigation.replace === 'function') {
-          console.log('🔐 Navigating to MainTabs...');
           navigation.replace('MainTabs');
         } else {
-          console.error('🔐 Navigation is not available for biometric login');
+          console.error('Navigation is not available for biometric login');
           Alert.alert('Error', 'Navigation error occurred');
         }
       } else {
@@ -110,7 +100,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       }
       
     } catch (error) {
-      console.error('🔐 Biometric login error:', error);
+      console.error('Biometric login error:', error);
       Alert.alert('Error', 'Biometric authentication failed');
     }
   };
@@ -130,6 +120,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
+          autoComplete="email"
           editable={!isLoading}
         />
         
@@ -140,6 +131,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           onChangeText={setPassword}
           secureTextEntry
           autoCapitalize="none"
+          autoComplete="password"
           editable={!isLoading}
         />
         
