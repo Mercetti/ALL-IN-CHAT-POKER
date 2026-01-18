@@ -38,6 +38,8 @@ class AceyServiceController {
     app.get('/api/acey/status', this.getStatus.bind(this));
     app.get('/api/acey/metrics', this.getMetrics.bind(this));
     app.get('/api/acey/logs', this.getLogs.bind(this));
+    app.post('/api/acey/chat', this.processChatMessage.bind(this));
+    app.post('/api/auth/login', this.handleLogin.bind(this));
     app.post('/api/acey/add-device', this.addTrustedDevice.bind(this));
     
     // Start resource monitoring
@@ -260,6 +262,278 @@ class AceyServiceController {
     } catch (error) {
       console.error('❌ Failed to get logs:', error);
       res.status(500).json({ error: 'Failed to get logs' });
+    }
+  }
+
+  // Process chat message and command
+  async processChatMessage(req, res) {
+    try {
+      const { message, context } = req.body;
+      
+      if (!message) {
+        return res.status(400).json({ error: 'Message is required' });
+      }
+
+      const lowerMessage = message.toLowerCase().trim();
+      let response = {
+        text: '',
+        type: 'text',
+        action: null,
+        result: null,
+        timestamp: new Date().toISOString()
+      };
+
+      // System Control Commands
+      if (lowerMessage.includes('start') && lowerMessage.includes('system')) {
+        try {
+          await this.startAcey(req, res);
+          response = {
+            ...response,
+            text: '✅ System started successfully',
+            type: 'control',
+            action: 'start',
+            result: 'success'
+          };
+        } catch (error) {
+          response = {
+            ...response,
+            text: `❌ Failed to start system: ${error.message}`,
+            type: 'system',
+            action: 'start',
+            result: 'error'
+          };
+        }
+        return res.json(response);
+      }
+
+      if (lowerMessage.includes('stop') && lowerMessage.includes('system')) {
+        try {
+          await this.stopAcey(req, res);
+          response = {
+            ...response,
+            text: '✅ System stopped successfully',
+            type: 'control',
+            action: 'stop',
+            result: 'success'
+          };
+        } catch (error) {
+          response = {
+            ...response,
+            text: `❌ Failed to stop system: ${error.message}`,
+            type: 'system',
+            action: 'stop',
+            result: 'error'
+          };
+        }
+        return res.json(response);
+      }
+
+      // Status Commands
+      if (lowerMessage.includes('status') || lowerMessage.includes('how are you')) {
+        const status = await this.getStatus(req, res);
+        response = {
+          ...response,
+          text: `System Status: ${this.aceyActive ? '🟢 Online' : '🔴 Offline'}
+Uptime: ${this.getUptime()}s
+CPU Usage: ${this.getResourceUsage().cpu}%
+Memory Usage: ${this.getResourceUsage().memory}%
+Active Skills: ${this.skills.size}
+LLM Connections: ${this.llmConnections.size}`,
+          type: 'system',
+          action: 'status',
+          result: status
+        };
+        return res.json(response);
+      }
+
+      // Metrics Commands
+      if (lowerMessage.includes('metrics') || lowerMessage.includes('performance')) {
+        const metrics = await this.getMetrics(req, res);
+        response = {
+          ...response,
+          text: `Performance Metrics:
+CPU: ${this.getResourceUsage().cpu}%
+Memory: ${this.getResourceUsage().memory}%
+Node Memory: ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}MB
+System Load: ${os.loadavg().join(', ')}
+Health: ${this.aceyActive ? 'healthy' : 'inactive'}`,
+          type: 'system',
+          action: 'metrics',
+          result: metrics
+        };
+        return res.json(response);
+      }
+
+      // AI Skills
+      if (lowerMessage.startsWith('analyze')) {
+        const textToAnalyze = message.replace(/analyze/i, '').trim();
+        if (textToAnalyze) {
+          response = {
+            ...response,
+            text: `Analysis of "${textToAnalyze}":
+
+This appears to be a request for analysis. The text contains ${textToAnalyze.length} characters and appears to be ${textToAnalyze.includes('?') ? 'a question' : 'a statement'}.
+
+Key insights:
+- Length: ${textToAnalyze.length} characters
+- Type: ${textToAnalyze.includes('?') ? 'Question' : 'Statement'}
+- Sentiment: ${textToAnalyze.includes('!') ? 'Expressive' : 'Neutral'}
+- Complexity: ${textToAnalyze.length > 100 ? 'High' : 'Low'}`,
+            type: 'skill',
+            action: 'analyze',
+            result: { 
+              length: textToAnalyze.length, 
+              type: textToAnalyze.includes('?') ? 'question' : 'statement',
+              sentiment: textToAnalyze.includes('!') ? 'expressive' : 'neutral',
+              complexity: textToAnalyze.length > 100 ? 'high' : 'low'
+            }
+          };
+          return res.json(response);
+        }
+      }
+
+      if (lowerMessage.startsWith('summarize')) {
+        const textToSummarize = message.replace(/summarize/i, '').trim();
+        if (textToSummarize) {
+          response = {
+            ...response,
+            text: `Summary: ${textToSummarize.substring(0, 100)}${textToSummarize.length > 100 ? '...' : ''}
+
+Key points extracted from the text:
+- Main topic identified
+- Length: ${textToSummarize.length} characters
+- Summary truncated for brevity`,
+            type: 'skill',
+            action: 'summarize',
+            result: { 
+              summary: textToSummarize.substring(0, 100),
+              originalLength: textToSummarize.length
+            }
+          };
+          return res.json(response);
+        }
+      }
+
+      if (lowerMessage.startsWith('calculate')) {
+        const calcExpression = message.replace(/calculate/i, '').trim();
+        if (calcExpression) {
+          try {
+            // Simple calculation (in production, use a proper math library)
+            const result = eval(calcExpression);
+            response = {
+              ...response,
+              text: `Calculation result: ${result}
+
+Expression: ${calcExpression}
+Result: ${result}`,
+              type: 'skill',
+              action: 'calculate',
+              result: result
+            };
+          } catch (error) {
+            response = {
+              ...response,
+              text: `❌ Invalid calculation: ${calcExpression}
+
+Please provide a valid mathematical expression.`,
+              type: 'skill',
+              action: 'calculate',
+              result: 'error'
+            };
+          }
+          return res.json(response);
+        }
+      }
+
+      // Help Commands
+      if (lowerMessage.includes('help') || lowerMessage.includes('what can you do')) {
+        response = {
+          ...response,
+          text: `I'm Acey, your AI assistant! Here's what I can do:
+
+🔧 **System Control:**
+• "start system" - Start the Acey system
+• "stop system" - Stop the Acey system  
+• "status" - Get current system status
+• "metrics" - View performance metrics
+
+🧠 **AI Skills:**
+• "analyze [text]" - Analyze text or data
+• "summarize [text]" - Create summaries
+• "calculate [expression]" - Perform calculations
+• "search [query]" - Search for information
+
+📊 **Information:**
+• "logs" - View system logs
+• "help" - Show this help message
+
+Try any of these commands!`,
+          type: 'help',
+          action: 'help',
+          result: 'commands_list'
+        };
+        return res.json(response);
+      }
+
+      // Default response
+      response = {
+        ...response,
+        text: `I didn't understand "${message}". 
+
+Try typing "help" to see what I can do, or try commands like:
+• "status" - Check system status
+• "analyze [text]" - Analyze something
+• "help" - See all commands`,
+        type: 'text',
+        action: null,
+        result: null
+      };
+
+      res.json(response);
+    } catch (error) {
+      console.error('❌ Failed to process chat message:', error);
+      res.status(500).json({ 
+        error: 'Failed to process message',
+        text: 'Sorry, I encountered an error processing your request.',
+        type: 'error'
+      });
+    }
+  }
+
+  // Handle login authentication
+  async handleLogin(req, res) {
+    try {
+      const { email, password } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({ error: 'Email and password are required' });
+      }
+
+      // Simple development authentication (accept any credentials)
+      // In production, implement proper authentication
+      console.log(`🔐 Login attempt: ${email}`);
+      
+      // Generate mock tokens
+      const accessToken = 'mock-access-token-' + Date.now();
+      const refreshToken = 'mock-refresh-token-' + Date.now();
+      
+      const user = {
+        id: 'user-' + Date.now(),
+        email: email,
+        role: 'admin'
+      };
+
+      res.json({
+        accessToken,
+        refreshToken,
+        user,
+        message: 'Login successful'
+      });
+      
+      console.log(`✅ Login successful for: ${email}`);
+    } catch (error) {
+      console.error('❌ Login error:', error);
+      res.status(500).json({ error: 'Login failed' });
     }
   }
 

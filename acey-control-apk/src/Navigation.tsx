@@ -16,6 +16,7 @@ import LogsScreen from '../screens/LogsScreen';
 import LoginScreen from '../screens/LoginScreen';
 import AnalyticsScreen from '../screens/AnalyticsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import ChatScreen from '../screens/ChatScreen';
 import { useAuth } from './context/AuthContext';
 
 // Create tab navigator
@@ -58,6 +59,16 @@ function MainTabs() {
           tabBarLabel: 'Control',
           tabBarIcon: ({ color }) => (
             <Text style={{ color, fontSize: 12 }}>🎮</Text>
+          ),
+        }}
+      />
+      <Tab.Screen 
+        name="Chat" 
+        component={ChatScreen}
+        options={{
+          tabBarLabel: 'Chat',
+          tabBarIcon: ({ color }) => (
+            <Text style={{ color, fontSize: 12 }}>💬</Text>
           ),
         }}
       />

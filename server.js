@@ -202,6 +202,24 @@ const io = socketIo(server, {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
+
+// Simple CORS middleware for development
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && (origin.includes('localhost:8081') || origin.includes('127.0.0.1:8081') || origin.includes('localhost:8082') || origin.includes('127.0.0.1:8082'))) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key, X-Device-ID');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  next();
+});
+
 app.use(middleware.createRequestTrackingMiddleware({ recentErrors, recentSlowRequests }));
 app.use(middleware.createCorsMiddleware({ config }));
 

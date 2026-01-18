@@ -24,11 +24,11 @@ const envSchema = Joi.object({
     .description('Server host'),
   
   CORS_ALLOWED_ORIGINS: Joi.string()
-    .default('http://localhost:8081,http://127.0.0.1:8081')
+    .default('http://localhost:8081,http://127.0.0.1:8081,http://localhost:8082,http://127.0.0.1:8082')
     .description('Allowed CORS origins'),
   
   ADMIN_CONTROL_CENTER_ORIGINS: Joi.string()
-    .default('http://localhost:8081,http://127.0.0.1:8081')
+    .default('http://localhost:8081,http://127.0.0.1:8081,http://localhost:8082,http://127.0.0.1:8082')
     .description('Admin control center origins'),
   
   // Database Configuration

@@ -34,8 +34,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     setIsLoading(true);
     
     try {
-      // Simulate login API call
-      const response = await fetch('https://all-in-chat-poker.fly.dev/api/auth/login', {
+      // Use local backend for development
+      const response = await fetch('http://localhost:8080/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
