@@ -14,7 +14,7 @@
     "test:performance": "jest --testNamePattern=performance --config jest.config.js",
     "test:ci": "npm run test && npm run test:coverage && npm run test:performance",
     "lint": "eslint . --config .eslintrc.js",
-    "lint:fix": "eslint . --fix --config .eslintrc.js",
+    "lint:fix": "npx eslint . --ext .js,.jsx --fix --config .eslintrc.js",
     "test:full": "bash scripts/test.sh",
     "clean": "react-native clean",
     "pod-install": "cd ios && pod install",
