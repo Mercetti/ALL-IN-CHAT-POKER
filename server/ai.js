@@ -40,14 +40,27 @@ const resilienceManager = require('./resilience-manager');
 const aiCache = new AICache({ maxSize: 1000, ttl: 1800000 });
 const performanceMonitor = new AIPerformanceMonitor();
 
-if (process.env.NODE_ENV !== 'test') {
-  // Initialize AI manager
-  const aiManager = new FreeAIManager({
-    preferredProvider: config.AI_PROVIDER || 'ollama',
-    fallbackToRules: true,
-    enableLocalModels: true
-  });
+// Initialize AI manager at top level to fix scoping
+let aiManager;
+
+function initializeAIManager() {
+  if (process.env.NODE_ENV !== 'test') {
+    aiManager = new FreeAIManager({
+      preferredProvider: config.AI_PROVIDER || 'ollama',
+      fallbackToRules: true,
+      enableLocalModels: true
+    });
+  } else {
+    // Use mock AI manager for tests
+    aiManager = {
+      currentProvider: { name: 'test-provider' },
+      chat: async () => ({ message: 'Test response' })
+    };
+  }
 }
+
+// Initialize AI manager immediately
+initializeAIManager();
 
 // Initialize tunnel optimizer
 const optimizer = new TunnelOptimizer();
