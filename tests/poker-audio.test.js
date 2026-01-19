@@ -1,4 +1,4 @@
-const PokerAudioSystem = require('../server/poker-audio-system');
+const { PokerAudioSystem } = require('../server/poker-audio-system');
 
 describe('PokerAudioSystem', () => {
   let audioSystem;
