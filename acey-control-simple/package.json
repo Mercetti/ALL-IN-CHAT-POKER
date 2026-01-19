@@ -13,8 +13,8 @@
     "test:coverage": "jest --coverage --config jest.config.js",
     "test:performance": "jest --testNamePattern=performance --config jest.config.js",
     "test:ci": "npm run test && npm run test:coverage && npm run test:performance",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
+    "lint": "eslint . --config .eslintrc.js",
+    "lint:fix": "eslint . --fix --config .eslintrc.js",
     "test:full": "bash scripts/test.sh",
     "clean": "react-native clean",
     "pod-install": "cd ios && pod install",
@@ -48,6 +48,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.20.12",
+    "@babel/eslint-parser": "^7.28.6",
     "@babel/preset-env": "^7.20.12",
     "@babel/runtime": "^7.20.12",
     "@testing-library/react-native": "^12.4.2",

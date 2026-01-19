@@ -1,14 +1,33 @@
-const config = {
-  root: true,
-  extends: ['@react-native-community'],
-  parser: 'babel-eslint',
-  plugins: ['@react-native-community'],
+module.exports = {
   env: {
-    'react-native/react-native': true,
-    jest: true,
-    es6: true,
+    browser: true,
+    es2021: true,
     node: true,
-    browser: true
+    jest: true,
+    'react-native/react-native': true,
+  },
+  extends: [
+    'eslint:recommended',
+    '@react-native-community',
+  ],
+  parser: '@babel/eslint-parser',
+  parserOptions: {
+    ecmaFeatures: {
+      jsx: true,
+    },
+    ecmaVersion: 'latest',
+    sourceType: 'module',
+    requireConfigFile: false,
+  },
+  plugins: [
+    'react',
+    'react-native',
+  ],
+  rules: {
+    'react/react-in-jsx-scope': 'off',
+    'react/prop-types': 'off',
+    'no-unused-vars': 'warn',
+    'no-undef': 'off',
   },
   globals: {
     console: 'writable',
@@ -25,13 +44,7 @@ const config = {
     expect: 'readonly',
     it: 'readonly',
     module: 'writable',
-    process: 'writable'
-  },
-  rules: {
-    'react-native/no-unused-styles': 'error',
-    'react-native/no-inline-styles': 'warn',
-    'react-native/no-color-literals': 'warn'
+    process: 'writable',
+    global: 'writable'
   }
 };
-
-module.exports = config;

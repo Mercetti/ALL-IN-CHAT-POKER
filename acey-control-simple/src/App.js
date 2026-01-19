@@ -26,56 +26,41 @@ const App = () => {
     AppShortcutsService.initialize();
   }, []);
 
-  return React.createElement(
-    ThemeProvider,
-    { theme: theme },
-    React.createElement(
-      SafeAreaProvider,
-      { style: styles.container },
-      React.createElement(
-        NavigationContainer,
-        {},
-        React.createElement(
-          StatusBar,
-          {
-            barStyle: "light-content",
-            backgroundColor: theme.colors.background
-          }
-        ),
-        React.createElement(
-          Stack.Navigator,
-          {},
-          React.createElement(
-            Stack.Screen,
-            {
-              name: 'Game',
-              component: GameScreen,
-              options: {
+  return (
+    <ThemeProvider theme={theme}>
+      <SafeAreaProvider style={styles.container}>
+        <NavigationContainer>
+          <StatusBar 
+            barStyle="light-content" 
+            backgroundColor={theme.colors.background} 
+          />
+          <Stack.Navigator>
+            <Stack.Screen
+              name="Game"
+              component={GameScreen}
+              options={{
                 title: 'All-In Chat Poker',
                 headerStyle: {
                   backgroundColor: theme.colors.primary,
                 },
                 headerTintColor: theme.colors.surface,
-              }
-            }
-          ),
-          React.createElement(
-            Stack.Screen,
-            {
-              name: 'BiometricAuth',
-              component: BiometricAuth,
-              options: {
+              }}
+            />
+            <Stack.Screen
+              name="BiometricAuth"
+              component={BiometricAuth}
+              options={{
                 title: 'Secure Login',
                 headerStyle: {
                   backgroundColor: theme.colors.primary,
                 },
                 headerTintColor: theme.colors.surface,
-              }
-            }
-          )
-        )
-      )
-    )
+              }}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </SafeAreaProvider>
+    </ThemeProvider>
   );
 };
 
