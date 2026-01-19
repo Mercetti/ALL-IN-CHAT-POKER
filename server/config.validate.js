@@ -17,7 +17,6 @@ function validateConfig() {
 
   // Required security configs in production
   if (config.IS_PRODUCTION) {
-    const hardEnforcement = !config.ALLOW_INSECURE_DEFAULTS;
     const productionIssues = [];
     if (!config.JWT_SECRET || config.JWT_SECRET === 'your-secret-key-change-in-production') {
       productionIssues.push('JWT_SECRET must be set to a secure value in production');
@@ -26,11 +25,7 @@ function validateConfig() {
       productionIssues.push('ADMIN_PASSWORD must be set to a secure value in production');
     }
     if (productionIssues.length) {
-      if (hardEnforcement) {
-        errors.push(...productionIssues);
-      } else {
-        warnings.push(...productionIssues);
-      }
+      errors.push(...productionIssues);
     }
   }
 

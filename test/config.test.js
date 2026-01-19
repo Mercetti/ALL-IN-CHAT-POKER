@@ -13,20 +13,37 @@ describe('config validation', () => {
   });
 
   it('validateConfig checks required production configs', () => {
+    const fs = require('fs');
+    const path = require('path');
+    
+    // Temporarily rename .env file to prevent it from being loaded
+    const envPath = path.resolve(__dirname, '../.env');
+    const envBackupPath = path.resolve(__dirname, '../.env.backup');
+    let envFileExists = false;
+    
+    if (fs.existsSync(envPath)) {
+      fs.renameSync(envPath, envBackupPath);
+      envFileExists = true;
+    }
+    
     // Temporarily set production mode to test validation
     const originalNodeEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = 'production';
-    
-    // Clear required configs to trigger validation errors
     const originalJwtSecret = process.env.JWT_SECRET;
     const originalAdminPassword = process.env.ADMIN_PASSWORD;
+    const originalAllowInsecure = process.env.ALLOW_INSECURE_DEFAULTS;
+    
+    process.env.NODE_ENV = 'production';
+    process.env.ALLOW_INSECURE_DEFAULTS = 'false';
     delete process.env.JWT_SECRET;
     delete process.env.ADMIN_PASSWORD;
 
     try {
-      // Re-import to pick up new environment
-      delete require.cache[require.resolve('../server/config')];
-      delete require.cache[require.resolve('../server/config.validate')];
+      // Clear all require caches to force fresh config loading
+      Object.keys(require.cache).forEach(key => {
+        if (key.includes('config')) {
+          delete require.cache[key];
+        }
+      });
       
       const { validateConfig } = require('../server/config.validate');
       
@@ -36,12 +53,21 @@ describe('config validation', () => {
     } finally {
       // Restore environment
       process.env.NODE_ENV = originalNodeEnv;
+      process.env.ALLOW_INSECURE_DEFAULTS = originalAllowInsecure;
       if (originalJwtSecret) process.env.JWT_SECRET = originalJwtSecret;
       if (originalAdminPassword) process.env.ADMIN_PASSWORD = originalAdminPassword;
       
+      // Restore .env file if it existed
+      if (envFileExists) {
+        fs.renameSync(envBackupPath, envPath);
+      }
+      
       // Clear cache again to restore original config
-      delete require.cache[require.resolve('../server/config')];
-      delete require.cache[require.resolve('../server/config.validate')];
+      Object.keys(require.cache).forEach(key => {
+        if (key.includes('config')) {
+          delete require.cache[key];
+        }
+      });
     }
   });
 
@@ -50,8 +76,12 @@ describe('config validation', () => {
     process.env.PORT = '99999'; // Invalid port > 65535
 
     try {
-      delete require.cache[require.resolve('../server/config')];
-      delete require.cache[require.resolve('../server/config.validate')];
+      // Clear all require caches to force fresh config loading
+      Object.keys(require.cache).forEach(key => {
+        if (key.includes('config')) {
+          delete require.cache[key];
+        }
+      });
       
       const { validateConfig } = require('../server/config.validate');
       
@@ -60,8 +90,12 @@ describe('config validation', () => {
       }, /PORT must be an integer between 1 and 65535/);
     } finally {
       process.env.PORT = originalPort;
-      delete require.cache[require.resolve('../server/config')];
-      delete require.cache[require.resolve('../server/config.validate')];
+      // Clear cache again to restore original config
+      Object.keys(require.cache).forEach(key => {
+        if (key.includes('config')) {
+          delete require.cache[key];
+        }
+      });
     }
   });
 });
