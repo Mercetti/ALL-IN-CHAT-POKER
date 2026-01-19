@@ -6,22 +6,17 @@ const logger = new Logger('SystemHealth');
 // Test AI Manager connectivity
 async function testAIManager() {
   try {
-    const { initializeAIManager, aiManager } = require('./server/ai');
-    
-    // Ensure AI manager is initialized
-    if (!aiManager) {
-      initializeAIManager();
-    }
+    const ai = require('./server/ai');
     
     // Test basic connectivity
-    const testResponse = await aiManager.chat([
+    const testResponse = await ai.chat([
       { role: 'system', content: 'Health check' },
       { role: 'user', content: 'Respond with OK' }
     ], { timeout: 5000 });
     
     if (testResponse && testResponse.message) {
       logger.info('✅ AI Manager: CONNECTED');
-      logger.info(`   Provider: ${aiManager.currentProvider?.name || 'unknown'}`);
+      logger.info(`   Provider: ${ai.aiManager?.currentProvider?.name || 'unknown'}`);
       logger.info(`   Response: ${testResponse.message.substring(0, 50)}...`);
       return true;
     } else {
