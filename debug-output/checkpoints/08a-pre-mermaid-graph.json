@@ -1,10 +1,10 @@
 {
-  "timestamp": "2026-01-19T21:28:44.142Z",
+  "timestamp": "2026-01-19T21:39:51.498Z",
   "summary": {
-    "nodeCount": 1,
+    "nodeCount": 2,
     "edgeCount": 1,
     "nodeTypes": {
-      "symbol": 1
+      "symbol": 2
     },
     "edgeTypes": {
       "calls": 1
@@ -14,43 +14,59 @@
   },
   "sampleNodes": [
     {
-      "id": "method_c__Users_merce_Documents_poker_game_test_update_server_js_runUpdateServerTests",
-      "label": "runUpdateServerTests",
+      "id": "method_c__Users_merce_Documents_poker_game_clean_workspace_backend_all_in_chat_acey_src_utils_logger_ts_Logger",
+      "label": "Logger",
       "kind": "symbol",
-      "file": "c:\\Users\\merce\\Documents\\poker-game\\test-update-server.js",
-      "line": 226,
+      "file": "c:\\Users\\merce\\Documents\\poker-game\\clean-workspace\\backend\\all-in-chat-acey\\src\\utils\\logger.ts",
+      "line": 1,
       "badges": [
         "spine"
       ]
+    },
+    {
+      "id": "method_c__Users_merce_Documents_poker_game_clean_workspace_backend_all_in_chat_acey_src_utils_logger_ts_addEntry",
+      "label": "addEntry",
+      "kind": "symbol",
+      "file": "c:/Users/merce/Documents/poker-game/clean-workspace/backend/all-in-chat-acey/src/utils/logger.ts",
+      "line": 44,
+      "badges": []
     }
   ],
   "sampleEdges": [
     {
-      "from": "method_c__Users_merce_Documents_poker_game_test_update_server_js_runUpdateServerTests",
-      "to": "method_c__Users_merce_Documents_poker_game_test_update_server_js_runUpdateServerTests",
+      "from": "method_c__Users_merce_Documents_poker_game_clean_workspace_backend_all_in_chat_acey_src_utils_logger_ts_Logger",
+      "to": "method_c__Users_merce_Documents_poker_game_clean_workspace_backend_all_in_chat_acey_src_utils_logger_ts_addEntry",
       "kind": "calls",
-      "confidence": 0.5
+      "confidence": 0.4
     }
   ],
   "fullGraph": {
     "nodes": [
       {
-        "id": "method_c__Users_merce_Documents_poker_game_test_update_server_js_runUpdateServerTests",
-        "label": "runUpdateServerTests",
-        "file": "c:\\Users\\merce\\Documents\\poker-game\\test-update-server.js",
+        "id": "method_c__Users_merce_Documents_poker_game_clean_workspace_backend_all_in_chat_acey_src_utils_logger_ts_Logger",
+        "label": "Logger",
+        "file": "c:\\Users\\merce\\Documents\\poker-game\\clean-workspace\\backend\\all-in-chat-acey\\src\\utils\\logger.ts",
         "kind": "symbol",
-        "line": 226,
+        "line": 1,
         "badges": [
           "spine"
         ]
+      },
+      {
+        "id": "method_c__Users_merce_Documents_poker_game_clean_workspace_backend_all_in_chat_acey_src_utils_logger_ts_addEntry",
+        "label": "addEntry",
+        "file": "c:/Users/merce/Documents/poker-game/clean-workspace/backend/all-in-chat-acey/src/utils/logger.ts",
+        "kind": "symbol",
+        "line": 44,
+        "badges": []
       }
     ],
     "edges": [
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_update_server_js_runUpdateServerTests",
-        "to": "method_c__Users_merce_Documents_poker_game_test_update_server_js_runUpdateServerTests",
+        "from": "method_c__Users_merce_Documents_poker_game_clean_workspace_backend_all_in_chat_acey_src_utils_logger_ts_Logger",
+        "to": "method_c__Users_merce_Documents_poker_game_clean_workspace_backend_all_in_chat_acey_src_utils_logger_ts_addEntry",
         "kind": "calls",
-        "confidence": 0.5
+        "confidence": 0.4
       }
     ]
   }

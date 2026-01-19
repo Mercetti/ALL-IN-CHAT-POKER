@@ -73,7 +73,6 @@ const commandsRouter = require('./server/routes/commands.js');
 const createPartnersRouter = require('./server/routes/partners');
 const createCatalogRouter = require('./server/routes/catalog');
 const createAdminServicesRouter = require('./server/routes/admin-services');
-const { createSimpleAdminServicesRouter } = require('./server/routes/admin-services-simple');
 const { createUnlockRouter } = require('./server/routes/unlock.js');
 const { createIncidentRouter } = require('./server/routes/incident.js');
 const { createFinanceRouter } = require('./server/routes/finance');
@@ -288,8 +287,7 @@ const authRoutes = createAuthRouter({
 app.use('/auth', authRoutes);
 
 // Admin services routes
-const adminServicesRoutes = createSimpleAdminServicesRouter();
-app.use('/admin/services', adminServicesRoutes);
+app.use('/admin/services', createAdminServicesRouter);
 
 // Discord integration (if configured)
 try {
