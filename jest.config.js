@@ -6,6 +6,8 @@ module.exports = {
   testMatch: ['<rootDir>/tests/**/*.test.js'],
   testPathIgnorePatterns: ['<rootDir>/test/'],
   testTimeout: 30000, // Increase default test timeout to 30 seconds
+  forceExit: true, // Force Jest to exit after tests complete
+  detectOpenHandles: true, // Detect and close open handles
   globals: {
     express: true,
     jest: true,
