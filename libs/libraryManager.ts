@@ -236,7 +236,7 @@ class AceyLibraryManager {
     const resolvedPath = path.resolve(filePath);
     const normalizedPath = path.normalize(resolvedPath);
     
-    if (!normalizedPath.startsWith(allowedBase)) {
+    if (!normalizedPath.toLowerCase().startsWith(path.normalize(allowedBase).toLowerCase())) {
       throw new Error('Path traversal detected: access outside allowed directory');
     }
   }
