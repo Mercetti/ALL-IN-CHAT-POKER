@@ -60,7 +60,7 @@ const { CognitiveThrottling } = require('./server/stability/cognitive-throttling
 const { MobileAPIController } = require('./server/stability/mobile-api-controller');
 
 // Initialize Acey Financial Integration
-const financialIntegration = require('./server/financial/integration');
+const { integrateFinancialSystem, addFinancialHealthCheck } = require('./server/financial/financial-integration');
 
 // Initialize Acey Service Controller
 const aceyServiceController = require('./server/acey-service-controller');
@@ -416,12 +416,9 @@ app.use('/api', simulationRouter);
 app.use('/api', workflowRouter);
 app.use('/api', commandsRouter);
 
-// Register Acey Financial Operations API routes
-const financialApiRoutes = financialIntegration.getApiRoutes();
-Object.entries(financialApiRoutes).forEach(([route, handler]) => {
-  const [method, path] = route.split(' ');
-  app[method.toLowerCase()](path, handler);
-});
+// Register Acey Financial Operations System
+integrateFinancialSystem(app, db);
+addFinancialHealthCheck(app, db);
 
 // Register full AI Control Center routes (authenticated, feature-complete)
 if (!config.isTest()) {
@@ -728,7 +725,7 @@ try {
 // ======================
 // Acey Engine Integration
 // ======================
-const AceyEngine = require('./server/aceyEngine');
+const { AceyEngine } = require('./server/aceyEngine');
 const FallbackDealer = require('./server/fallbackDealer');
 
 let aceyEngine;

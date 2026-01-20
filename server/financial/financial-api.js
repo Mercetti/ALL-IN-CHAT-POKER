@@ -8,6 +8,8 @@ const express = require('express');
 const { auth } = require('../auth-contract');
 const Logger = require('../logger');
 const PayoutEngine = require('./payout-engine');
+const db = require('../db');
+const crypto = require('crypto');
 
 const logger = new Logger('financial-api');
 
