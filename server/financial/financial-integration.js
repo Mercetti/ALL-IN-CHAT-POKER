@@ -77,9 +77,15 @@ function initializeDatabase(db) {
       
       database.exec('BEGIN TRANSACTION');
       
-      for (const statement of statements) {
+      for (let i = 0; i < statements.length; i++) {
+        const statement = statements[i];
         if (statement.length > 0) {
-          database.exec(statement);
+          try {
+            database.exec(statement);
+          } catch (error) {
+            logger.error(`❌ Failed to execute statement ${i + 1}: ${statement}`, { error: error.message });
+            throw error;
+          }
         }
       }
       
