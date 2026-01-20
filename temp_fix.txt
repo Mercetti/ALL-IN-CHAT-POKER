@@ -1,0 +1,1 @@
+      .replace(/\.\./g, '.'); // Replace multiple dots with single

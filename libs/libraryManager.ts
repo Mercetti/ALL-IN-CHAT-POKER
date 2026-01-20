@@ -218,7 +218,7 @@ class AceyLibraryManager {
       .replace(/[\r\n]/g, '') // Remove newlines
       .replace(/[<>:"|?*]/g, '') // Remove special characters
       .replace(/^\.\.+/, '') // Remove leading dots
-      .replace(/\.\./g, '.'); // Replace multiple dots with single
+      .replace(/\\\.\\\./g, '.'); // Replace multiple dots with single
       .substring(0, 255); // Limit length
     
     // Ensure filename doesn't contain path traversal
