@@ -16,6 +16,11 @@ function integrateFinancialSystem(app, db) {
   try {
     logger.info('🏦 Integrating ACEY Financial Operations System...');
     
+    // Initialize database if needed
+    if (!db.initialized) {
+      db.init();
+    }
+    
     // Initialize database schema if needed
     initializeDatabase(db);
     
