@@ -4,9 +4,169 @@
  * Provides secure and efficient XML processing capabilities
  */
 
-const { XMLParser, XMLBuilder } = require('fast-xml-parser');
-const { DOMParser, XMLSerializer } = require('xmldom');
 const crypto = require('crypto');
+
+// Simple XML parser implementation
+class SimpleXMLParser {
+  constructor(options = {}) {
+    this.options = {
+      ignoreAttributes: false,
+      attributeNamePrefix: '@_',
+      textNodeName: '#text',
+      format: true,
+      indentBy: '  ',
+      suppressEmptyNode: false,
+      ...options
+    };
+  }
+
+  parse(xmlString) {
+    const result = {};
+    
+    // Simple XML parsing using string operations
+    function parseElement(element, parent) {
+      // Find opening tag
+      const openTagMatch = element.match(/<(\w+)([^>]*)>/);
+      if (!openTagMatch) return;
+      
+      const tagName = openTagMatch[1];
+      const attributes = openTagMatch[2] || '';
+      
+      // Find closing tag
+      const closeTag = `</${tagName}>`;
+      const closeIndex = element.indexOf(closeTag);
+      if (closeIndex === -1) return;
+      
+      // Extract content
+      const content = element.substring(openTagMatch[0].length, closeIndex);
+      
+      // Parse attributes
+      const attrs = {};
+      const attrRegex = /(\w+)="([^"]*)"/g;
+      let attrMatch;
+      while ((attrMatch = attrRegex.exec(attributes)) !== null) {
+        attrs[attrMatch[1]] = attrMatch[2];
+      }
+      
+      // Create element object
+      const elementObj = { ...attrs };
+      
+      // Parse content
+      if (content && content.trim()) {
+        // Check for nested elements
+        if (content.includes('<')) {
+          // Has nested elements, parse recursively
+          parseContent(content, elementObj);
+        } else {
+          // Text content
+          elementObj[this.options.textNodeName] = content.trim();
+        }
+      }
+      
+      // Add to parent
+      if (!parent[tagName]) {
+        parent[tagName] = [];
+      }
+      parent[tagName].push(elementObj);
+    }
+    
+    function parseContent(content, parent) {
+      // Parse nested elements
+      let remaining = content.trim();
+      while (remaining.length > 0) {
+        const openTagMatch = remaining.match(/<(\w+)([^>]*)>/);
+        if (!openTagMatch) break;
+        
+        const tagName = openTagMatch[1];
+        const closeTag = `</${tagName}>`;
+        const closeIndex = remaining.indexOf(closeTag);
+        if (closeIndex === -1) break;
+        
+        const element = remaining.substring(0, closeIndex + closeTag.length);
+        parseElement(element, parent);
+        
+        remaining = remaining.substring(element.length).trim();
+      }
+    }
+    
+    parseElement(xmlString, result);
+    return result;
+  }
+}
+
+// Simple XML builder implementation
+class SimpleXMLBuilder {
+  constructor(options = {}) {
+    this.options = {
+      ignoreAttributes: false,
+      attributeNamePrefix: '@_',
+      textNodeName: '#text',
+      format: true,
+      indentBy: '  ',
+      suppressEmptyNode: false,
+      ...options
+    };
+  }
+
+  build(obj) {
+    return this.buildObject(obj, 0);
+  }
+
+  buildObject(obj, indent = 0) {
+    let xml = '';
+    const indentStr = this.options.format ? this.options.indentBy.repeat(indent) : '';
+    
+    for (const [key, value] of Object.entries(obj)) {
+      if (Array.isArray(value)) {
+        value.forEach(item => {
+          xml += `${indentStr}<${key}`;
+          
+          // Add attributes
+          const attrs = Object.entries(item).filter(([k]) => k !== this.options.textNodeName);
+          if (attrs.length > 0) {
+            xml += ' ' + attrs.map(([k, v]) => `${k}="${v}"`).join(' ');
+          }
+          
+          xml += '>';
+          
+          // Add content
+          const content = item[this.options.textNodeName];
+          if (content) {
+            xml += content;
+          }
+          
+          // Add nested objects
+          const nested = Object.entries(item).filter(([k]) => k !== this.options.textNodeName && !k.startsWith('@_'));
+          if (nested.length > 0) {
+            xml += '\n';
+            nested.forEach(([k, v]) => {
+              xml += this.buildObject({ [k]: v }, indent + 1);
+            });
+            xml += indentStr;
+          }
+          
+          xml += `</${key}>`;
+          
+          if (this.options.format && nested.length > 0) {
+            xml += '\n';
+          }
+        });
+      } else if (typeof value === 'object' && value !== null) {
+        xml += `${indentStr}<${key}>`;
+        xml += '\n';
+        xml += this.buildObject(value, indent + 1);
+        xml += `${indentStr}</${key}>\n`;
+      } else {
+        xml += `${indentStr}<${key}>${value}</${key}>`;
+        if (this.options.format) {
+          xml += '\n';
+        }
+      }
+    }
+    
+    return xml;
+  }
+}
 
 class ModernXMLProcessor {
   constructor(options = {}) {
@@ -52,7 +212,7 @@ class ModernXMLProcessor {
       this.validateXMLSecurity(xmlString);
       
       // Create parser with options
-      const parser = new XMLParser({
+      const parser = new SimpleXMLParser({
         ...this.parserOptions,
         ...options
       });
@@ -75,7 +235,7 @@ class ModernXMLProcessor {
   buildXML(jsObject, options = {}) {
     try {
       // Create builder with options
-      const builder = new XMLBuilder({
+      const builder = new SimpleXMLBuilder({
         ...this.builderOptions,
         ...options
       });

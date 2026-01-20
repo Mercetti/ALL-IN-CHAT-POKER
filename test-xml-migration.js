@@ -32,8 +32,7 @@ async function testXMLMigration() {
     
     // Test 3: Parse XML
     console.log('\n🔍 Testing XML Parsing...');
-    const testXML = `<?xml version="1.0" encoding="UTF-8"?>
-    <root>
+    const testXML = `<root>
         <person id="1">
             <name>John Doe</name>
             <email>john@example.com</email>
