@@ -66,7 +66,7 @@ class ImageDeduplicator {
       // For now, return placeholder dimensions
       return {
         width: 512, // Default assumption
-        height: 512  // Default assumption
+        height: 512, // Default assumption
         format: 'unknown'
       };
     } catch (error) {

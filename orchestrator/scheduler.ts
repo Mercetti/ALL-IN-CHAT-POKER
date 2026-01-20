@@ -164,7 +164,7 @@ export class AutoScheduler extends EventEmitter {
       if (!this.isPaused) {
         await this.runCycle();
       }
-    }, this.config.intervalMs);
+    }, this.config.intervalMs) as unknown as NodeJS.Timeout;
 
     // Run first cycle immediately
     this.runCycle().catch(error => {
@@ -497,7 +497,7 @@ export class AutoScheduler extends EventEmitter {
   private startHealthMonitoring(): void {
     this.healthTimer = setInterval(() => {
       this.performHealthCheck();
-    }, this.config.healthCheckInterval);
+    }, this.config.healthCheckInterval) as unknown as NodeJS.Timeout;
   }
 
   /**

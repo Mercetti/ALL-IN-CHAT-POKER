@@ -17,7 +17,7 @@ export interface LLMOutput {
 }
 
 export class LLMValidator {
-  private validationRules: Map<string, (output: any) => ValidationResult>;
+  private validationRules: Map<string, (output: any) => ValidationResult> = new Map();
 
   constructor() {
     this.setupValidationRules();
@@ -67,12 +67,14 @@ export class LLMValidator {
     // Type-specific validation
     if (output.type && this.validationRules.has(output.type)) {
       const validator = this.validationRules.get(output.type);
-      const typeResult = validator(output);
-      result.errors.push(...typeResult.errors);
-      result.warnings.push(...typeResult.warnings);
-      
-      if (typeResult.errors.length > 0) {
-        result.passed = false;
+      if (validator) {
+        const typeResult = validator(output);
+        result.errors.push(...typeResult.errors);
+        result.warnings.push(...typeResult.warnings);
+        
+        if (typeResult.errors.length > 0) {
+          result.passed = false;
+        }
       }
     }
 
@@ -256,11 +258,31 @@ export class LLMValidator {
     this.validationRules = new Map();
     
     // Add type-specific validators
-    this.validationRules.set('code', (output: any) => this.validateCodeContent(output.content, { passed: true, errors: [], warnings: [] }));
-    this.validationRules.set('audio', (output: any) => this.validateAudioContent(output.content, { passed: true, errors: [], warnings: [] }));
-    this.validationRules.set('graphics', (output: any) => this.validateGraphicsContent(output.content, { passed: true, errors: [], warnings: [] }));
-    this.validationRules.set('text', (output: any) => this.validateTextContent(output.content, { passed: true, errors: [], warnings: [] }));
-    this.validationRules.set('financial', (output: any) => this.validateFinancialContent(output.content, { passed: true, errors: [], warnings: [] }));
+    this.validationRules.set('code', (output: any) => {
+      const result = { passed: true, errors: [], warnings: [] };
+      this.validateCodeContent(output.content, result);
+      return result;
+    });
+    this.validationRules.set('audio', (output: any) => {
+      const result = { passed: true, errors: [], warnings: [] };
+      this.validateAudioContent(output.content, result);
+      return result;
+    });
+    this.validationRules.set('graphics', (output: any) => {
+      const result = { passed: true, errors: [], warnings: [] };
+      this.validateGraphicsContent(output.content, result);
+      return result;
+    });
+    this.validationRules.set('text', (output: any) => {
+      const result = { passed: true, errors: [], warnings: [] };
+      this.validateTextContent(output.content, result);
+      return result;
+    });
+    this.validationRules.set('financial', (output: any) => {
+      const result = { passed: true, errors: [], warnings: [] };
+      this.validateFinancialContent(output.content, result);
+      return result;
+    });
   }
 
   // Get validation statistics

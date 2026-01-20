@@ -149,6 +149,4 @@ class AutoWatcher {
     const watcher = new AutoWatcher();
     watcher.startWatching();
   }
-}
-
 module.exports = AutoWatcher;

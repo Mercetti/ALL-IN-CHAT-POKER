@@ -229,9 +229,9 @@ async function demonstrateSkillDiscovery() {
     const finalProposals = discovery.analyzeUsage();
     console.log(`💡 Final proposals: ${finalProposals.length}`);
 
-    // Show learning data
-    const learningData = discovery.getLearningData();
-    console.log(`📚 Learning data entries: ${learningData.length}`);
+    // Show usage statistics
+    const stats = discovery.getUsageStats();
+    console.log(`📚 Total patterns: ${stats.totalPatterns}`);
 
     console.log('\n');
 
