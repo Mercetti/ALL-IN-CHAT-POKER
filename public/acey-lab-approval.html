@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acey Lab - Financial Approval System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .status-active {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .status-pending {
+            background: #f39c12;
+            color: white;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            font-size: 1.8em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .icon {
+            width: 24px;
+            height: 24px;
+            display: inline-block;
+        }
+
+        .batch-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .batch-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #3498db;
+            transition: all 0.3s ease;
+        }
+
+        .batch-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .batch-item.pending {
+            border-left-color: #f39c12;
+        }
+
+        .batch-item.approved {
+            border-left-color: #2ecc71;
+        }
+
+        .batch-item.rejected {
+            border-left-color: #e74c3c;
+        }
+
+        .batch-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .batch-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .batch-amount {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #27ae60;
+        }
+
+        .batch-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .detail-item {
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+
+        .detail-item strong {
+            color: #2c3e50;
+        }
+
+        .batch-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .btn-approve {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .btn-approve:hover {
+            background: #27ae60;
+            transform: translateY(-2px);
+        }
+
+        .btn-reject {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-reject:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        .btn-view {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-view:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+
+        .partner-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .partner-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .partner-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .partner-amount {
+            color: #27ae60;
+            font-weight: 600;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .batch-details {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏦 Acey Lab - Financial Approval System</h1>
+            <p>Owner-only financial operations approval and management</p>
+            <span class="status-indicator status-active" id="systemStatus">System Active</span>
+        </div>
+
+        <div class="main-content">
+            <div class="card">
+                <h2>
+                    <span class="icon">📋</span>
+                    Pending Batches
+                </h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="pendingCount">0</div>
+                        <div class="stat-label">Pending Batches</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalAmount">$0</div>
+                        <div class="stat-label">Total Amount</div>
+                    </div>
+                </div>
+
+                <div id="pendingBatches" class="batch-list">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <div>Loading pending batches...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>
+                    <span class="icon">📊</span>
+                    Recent Activity
+                </h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="approvedCount">0</div>
+                        <div class="stat-label">Approved Today</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="rejectedCount">0</div>
+                        <div class="stat-label">Rejected Today</div>
+                    </div>
+                </div>
+
+                <div id="recentActivity" class="batch-list">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <div>Loading recent activity...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Batch Detail Modal -->
+    <div id="batchModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Batch Details</h2>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            
+            <div id="modalContent">
+                <!-- Content will be dynamically loaded -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock data for demonstration
+        const mockBatches = [
+            {
+                id: 'batch_001',
+                name: 'January 2024 Payouts',
+                month: '2024-01',
+                totalAmount: 12500,
+                partnerCount: 15,
+                status: 'pending',
+                createdAt: '2024-01-20T10:00:00Z',
+                partners: [
+                    { name: 'Partner Alpha', amount: 2500 },
+                    { name: 'Partner Beta', amount: 1800 },
+                    { name: 'Partner Gamma', amount: 3200 },
+                    { name: 'Partner Delta', amount: 1500 },
+                    { name: 'Partner Epsilon', amount: 3500 }
+                ]
+            },
+            {
+                id: 'batch_002',
+                name: 'December 2023 Payouts',
+                month: '2023-12',
+                totalAmount: 8900,
+                partnerCount: 12,
+                status: 'approved',
+                createdAt: '2024-01-15T14:30:00Z',
+                approvedAt: '2024-01-16T09:15:00Z',
+                partners: [
+                    { name: 'Partner Alpha', amount: 2100 },
+                    { name: 'Partner Beta', amount: 1600 },
+                    { name: 'Partner Gamma', amount: 2800 },
+                    { name: 'Partner Delta', amount: 1200 },
+                    { name: 'Partner Epsilon', amount: 1200 }
+                ]
+            },
+            {
+                id: 'batch_003',
+                name: 'November 2023 Payouts',
+                month: '2023-11',
+                totalAmount: 15600,
+                partnerCount: 18,
+                status: 'rejected',
+                createdAt: '2024-01-10T11:45:00Z',
+                rejectedAt: '2024-01-11T16:20:00Z',
+                rejectionReason: 'Anomaly detected in partner calculations',
+                partners: [
+                    { name: 'Partner Alpha', amount: 2800 },
+                    { name: 'Partner Beta', amount: 1900 },
+                    { name: 'Partner Gamma', amount: 4100 },
+                    { name: 'Partner Delta', amount: 1700 },
+                    { name: 'Partner Epsilon', amount: 5100 }
+                ]
+            }
+        ];
+
+        let currentBatch = null;
+
+        // Initialize the application
+        function init() {
+            loadPendingBatches();
+            loadRecentActivity();
+            updateStats();
+        }
+
+        // Load pending batches
+        function loadPendingBatches() {
+            const pendingContainer = document.getElementById('pendingBatches');
+            const pendingBatches = mockBatches.filter(batch => batch.status === 'pending');
+            
+            if (pendingBatches.length === 0) {
+                pendingContainer.innerHTML = `
+                    <div class="alert alert-warning">
+                        No pending batches found. All financial operations are up to date.
+                    </div>
+                `;
+                return;
+            }
+
+            pendingContainer.innerHTML = pendingBatches.map(batch => `
+                <div class="batch-item pending" id="batch-${batch.id}">
+                    <div class="batch-header">
+                        <div class="batch-name">${batch.name}</div>
+                        <div class="batch-amount">$${batch.totalAmount.toLocaleString()}</div>
+                    </div>
+                    <div class="batch-details">
+                        <div class="detail-item"><strong>Partners:</strong> ${batch.partnerCount}</div>
+                        <div class="detail-item"><strong>Month:</strong> ${batch.month}</div>
+                        <div class="detail-item"><strong>Created:</strong> ${formatDate(batch.createdAt)}</div>
+                        <div class="detail-item"><strong>Status:</strong> <span class="status-indicator status-pending">Pending</span></div>
+                    </div>
+                    <div class="batch-actions">
+                        <button class="btn btn-view" onclick="viewBatch('${batch.id}')">View Details</button>
+                        <button class="btn btn-approve" onclick="approveBatch('${batch.id}')">Approve</button>
+                        <button class="btn btn-reject" onclick="rejectBatch('${batch.id}')">Reject</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Load recent activity
+        function loadRecentActivity() {
+            const activityContainer = document.getElementById('recentActivity');
+            const recentBatches = mockBatches.filter(batch => batch.status !== 'pending');
+            
+            if (recentBatches.length === 0) {
+                activityContainer.innerHTML = `
+                    <div class="alert alert-warning">
+                        No recent activity found.
+                    </div>
+                `;
+                return;
+            }
+
+            activityContainer.innerHTML = recentBatches.map(batch => `
+                <div class="batch-item ${batch.status}" id="batch-${batch.id}">
+                    <div class="batch-header">
+                        <div class="batch-name">${batch.name}</div>
+                        <div class="batch-amount">$${batch.totalAmount.toLocaleString()}</div>
+                    </div>
+                    <div class="batch-details">
+                        <div class="detail-item"><strong>Partners:</strong> ${batch.partnerCount}</div>
+                        <div class="detail-item"><strong>Month:</strong> ${batch.month}</div>
+                        <div class="detail-item"><strong>Status:</strong> <span class="status-indicator status-${batch.status}">${batch.status}</span></div>
+                        <div class="detail-item"><strong>${batch.status === 'approved' ? 'Approved' : 'Rejected'}:</strong> ${formatDate(batch.approvedAt || batch.rejectedAt)}</div>
+                    </div>
+                    <div class="batch-actions">
+                        <button class="btn btn-view" onclick="viewBatch('${batch.id}')">View Details</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update statistics
+        function updateStats() {
+            const pendingBatches = mockBatches.filter(batch => batch.status === 'pending');
+            const approvedBatches = mockBatches.filter(batch => batch.status === 'approved');
+            const rejectedBatches = mockBatches.filter(batch => batch.status === 'rejected');
+            
+            const totalPendingAmount = pendingBatches.reduce((sum, batch) => sum + batch.totalAmount, 0);
+            
+            document.getElementById('pendingCount').textContent = pendingBatches.length;
+            document.getElementById('totalAmount').textContent = `$${totalPendingAmount.toLocaleString()}`;
+            document.getElementById('approvedCount').textContent = approvedBatches.length;
+            document.getElementById('rejectedCount').textContent = rejectedBatches.length;
+        }
+
+        // View batch details
+        function viewBatch(batchId) {
+            currentBatch = mockBatches.find(batch => batch.id === batchId);
+            if (!currentBatch) return;
+
+            const modal = document.getElementById('batchModal');
+            const modalContent = document.getElementById('modalContent');
+            
+            modalContent.innerHTML = `
+                <div class="batch-details">
+                    <div class="batch-header">
+                        <div class="batch-name">${currentBatch.name}</div>
+                        <div class="batch-amount">$${currentBatch.totalAmount.toLocaleString()}</div>
+                    </div>
+                    <div class="batch-details">
+                        <div class="detail-item"><strong>Batch ID:</strong> ${currentBatch.id}</div>
+                        <div class="detail-item"><strong>Month:</strong> ${currentBatch.month}</div>
+                        <div class="detail-item"><strong>Partners:</strong> ${currentBatch.partnerCount}</div>
+                        <div class="detail-item"><strong>Status:</strong> <span class="status-indicator status-${currentBatch.status}">${currentBatch.status}</span></div>
+                        <div class="detail-item"><strong>Created:</strong> ${formatDate(currentBatch.createdAt)}</div>
+                        ${currentBatch.approvedAt ? `<div class="detail-item"><strong>Approved:</strong> ${formatDate(currentBatch.approvedAt)}</div>` : ''}
+                        ${currentBatch.rejectedAt ? `<div class="detail-item"><strong>Rejected:</strong> ${formatDate(currentBatch.rejectedAt)}</div>` : ''}
+                        ${currentBatch.rejectionReason ? `<div class="detail-item"><strong>Reason:</strong> ${currentBatch.rejectionReason}</div>` : ''}
+                    </div>
+                </div>
+                
+                <h3>Partner Breakdown</h3>
+                <div class="partner-list">
+                    ${currentBatch.partners.map(partner => `
+                        <div class="partner-item">
+                            <div class="partner-name">${partner.name}</div>
+                            <div class="partner-amount">$${partner.amount.toLocaleString()}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                ${currentBatch.status === 'pending' ? `
+                    <div class="batch-actions" style="margin-top: 20px;">
+                        <button class="btn btn-approve" onclick="approveBatch('${currentBatch.id}')">Approve Batch</button>
+                        <button class="btn btn-reject" onclick="rejectBatch('${currentBatch.id}')">Reject Batch</button>
+                    </div>
+                ` : ''}
+            `;
+            
+            modal.style.display = 'block';
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('batchModal').style.display = 'none';
+        }
+
+        // Approve batch
+        function approveBatch(batchId) {
+            if (!confirm('Are you sure you want to approve this batch? This will initiate the payout process.')) {
+                return;
+            }
+
+            // Update batch status
+            const batch = mockBatches.find(b => b.id === batchId);
+            if (batch) {
+                batch.status = 'approved';
+                batch.approvedAt = new Date().toISOString();
+            }
+
+            // Show success message
+            showAlert('Batch approved successfully! Payout process initiated.', 'success');
+            
+            // Close modal if open
+            closeModal();
+            
+            // Refresh data
+            loadPendingBatches();
+            loadRecentActivity();
+            updateStats();
+        }
+
+        // Reject batch
+        function rejectBatch(batchId) {
+            const reason = prompt('Please provide a reason for rejection:');
+            if (!reason) return;
+
+            // Update batch status
+            const batch = mockBatches.find(b => b.id === batchId);
+            if (batch) {
+                batch.status = 'rejected';
+                batch.rejectedAt = new Date().toISOString();
+                batch.rejectionReason = reason;
+            }
+
+            // Show success message
+            showAlert('Batch rejected successfully.', 'warning');
+            
+            // Close modal if open
+            closeModal();
+            
+            // Refresh data
+            loadPendingBatches();
+            loadRecentActivity();
+            updateStats();
+        }
+
+        // Show alert
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            alertDiv.style.position = 'fixed';
+            alertDiv.style.top = '20px';
+            alertDiv.style.right = '20px';
+            alertDiv.style.zIndex = '9999';
+            alertDiv.style.maxWidth = '400px';
+            
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('batchModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
