@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { AceyOutput, AceyInteractionLog, TaskType, PersonaMode } from "../server/utils/schema";
-import { AceyOrchestrator } from "../server/utils/orchestrator";
+import { HelmOrchestrator } from "../server/utils/orchestrator";
 
 interface SimulationDashboardProps {
-  orchestrator: AceyOrchestrator;
+  orchestrator: HelmOrchestrator;
 }
 
 export const OrchestratorDashboard: React.FC<SimulationDashboardProps> = ({ orchestrator }) => {

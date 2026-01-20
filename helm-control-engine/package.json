@@ -1,7 +1,7 @@
 {
-  "name": "acey-engine",
-  "version": "1.0.0",
-  "description": "Full Acey Engine with TypeScript and Expo mobile wiring",
+  "name": "helm-control-engine",
+  "version": "2.0.0",
+  "description": "Full Helm Control Engine with TypeScript and Expo mobile wiring",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
@@ -24,7 +24,7 @@
     "typescript",
     "expo"
   ],
-  "author": "Acey Team",
+  "author": "Helm Control Team",
   "license": "MIT",
   "dependencies": {
     "react": "18.2.0",
@@ -76,9 +76,9 @@
     "node": ">=18.0.0"
   },
   "expo": {
-    "name": "Acey Engine",
-    "slug": "acey-engine",
-    "version": "1.0.0",
+    "name": "Helm Control Engine",
+    "slug": "helm-control-engine",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -92,14 +92,14 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.acey.engine"
+      "bundleIdentifier": "com.helm.control"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "package": "com.acey.engine"
+      "package": "com.helm.control"
     },
     "web": {
       "favicon": "./assets/favicon.png",

@@ -11,7 +11,7 @@ import { Play, Pause, Settings, BarChart3, Brain, Zap } from 'lucide-react';
 import { AudioCodingOrchestrator } from '../server/utils/audioCodingOrchestrator';
 import { ContinuousLearningLoop } from '../server/utils/continuousLearning';
 import { RealTimeFineTune } from '../server/utils/realtimeFineTune';
-import { AceyOrchestrator } from '../server/utils/orchestrator';
+import { HelmOrchestrator } from '../server/utils/orchestrator';
 import { TaskType } from '../server/utils/schema';
 
 interface TaskDefinition {
@@ -89,7 +89,7 @@ export const InteractiveAceyDashboard: React.FC = () => {
       console.log('[Dashboard] Initializing Acey system...');
       
       // Create base orchestrator
-      const baseOrchestrator = new AceyOrchestrator({
+      const baseOrchestrator = new HelmOrchestrator({
         llmEndpoint: config.llmEndpoint,
         personaMode: 'hype',
         autoApprove: autoApproval,

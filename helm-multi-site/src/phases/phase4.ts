@@ -4,11 +4,11 @@ export const Phase4: Phase = {
   number: 4,
   name: 'Skill Boost',
   skills: ['Automation'],
-  trainingEnvironment: 'production-optimized.acey-multi-site.com',
+  trainingEnvironment: 'production-optimized.helm-multi-site.com',
   testSites: [
-    'automation-test.acey-multi-site.com',
-    'workflow-test.acey-multi-site.com',
-    'optimization-test.acey-multi-site.com'
+    'automation-test.helm-multi-site.com',
+    'workflow-test.helm-multi-site.com',
+    'optimization-test.helm-multi-site.com'
   ],
   escalationRules: [
     'notifyOwner',

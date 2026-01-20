@@ -4,11 +4,11 @@ export const Phase5: Phase = {
   number: 5,
   name: 'Continuous Learning',
   skills: ['ContinuousLearning'],
-  trainingEnvironment: 'production-learning.acey-multi-site.com',
+  trainingEnvironment: 'production-learning.helm-multi-site.com',
   testSites: [
-    'learning-test.acey-multi-site.com',
-    'ai-test.acey-multi-site.com',
-    'self-improvement-test.acey-multi-site.com'
+    'learning-test.helm-multi-site.com',
+    'ai-test.helm-multi-site.com',
+    'self-improvement-test.helm-multi-site.com'
   ],
   escalationRules: [
     'notifyOwner',

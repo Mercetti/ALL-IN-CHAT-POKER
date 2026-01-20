@@ -1,6 +1,6 @@
-# Acey Engine
+# Helm Control Engine
 
-Full Acey Engine repository skeleton with TypeScript and Expo mobile wiring, placeholder modules ready for LLM skill logic implementation.
+Full Helm Control Engine repository skeleton with TypeScript and Expo mobile wiring, placeholder modules ready for LLM skill logic implementation.
 
 ## 🏗️ Architecture
 

@@ -6,7 +6,7 @@ import { Personalization, PredictiveAnalytics } from './skills/webOperations';
 import { Automation, ContinuousLearning } from './skills/webOperations';
 import { Phase1, Phase2, Phase3, Phase4, Phase5 } from './phases/index';
 
-export class AceyOrchestrator {
+export class HelmOrchestrator {
   private skills: Map<string, SkillModule> = new Map();
   private phases: Phase[] = [Phase1, Phase2, Phase3, Phase4, Phase5];
   private sites: Map<string, SiteConfig> = new Map();

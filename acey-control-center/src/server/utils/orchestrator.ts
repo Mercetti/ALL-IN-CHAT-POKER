@@ -16,9 +16,9 @@ export interface OrchestratorOptions {
 }
 
 /**
- * Main orchestrator class for multi-task Acey
+ * Main orchestrator class for multi-task Helm Control
  */
-export class AceyOrchestrator {
+export class HelmOrchestrator {
   private llmEndpoint: string;
   private personaMode: PersonaMode;
   private autoApprove: boolean;
