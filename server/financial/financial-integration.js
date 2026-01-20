@@ -68,10 +68,13 @@ function initializeDatabase(db) {
     
     if (fs.existsSync(schemaPath)) {
       const schema = fs.readFileSync(schemaPath, 'utf8');
-      const statements = schema
-        .split(/;\s*(?=\n)/) // Split on semicolon followed by newline
+      
+      // Remove comments first, then split on semicolons
+      const cleanedSchema = schema.replace(/--.*$/gm, ''); // Remove line comments
+      const statements = cleanedSchema
+        .split(/;\s*/) // Split on semicolon
         .map(stmt => stmt.trim())
-        .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'));
+        .filter(stmt => stmt.length > 0);
       
       // Separate CREATE TABLE and CREATE INDEX statements
       const createTableStatements = statements.filter(stmt => 
