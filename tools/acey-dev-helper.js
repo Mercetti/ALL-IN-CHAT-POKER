@@ -42,12 +42,47 @@ function startProcess(res) {
   child._aceyStartedAt = new Date().toISOString();
   proc = child;
 
-  child.on('exit', () => {
+  // Add error listener to handle spawn failures
+  child.on('error', (err) => {
+    console.error('Failed to start process:', err);
+    proc = null;
+  });
+
+  child.on('exit', (code, signal) => {
+    console.log(`Process exited with code ${code}, signal ${signal}`);
     proc = null;
   });
 
   return res.json({ success: true, message: 'acey:dev started', status: buildStatus() });
 }
+
+function stopProcess(res) {
+  if (!proc) {
+    return res.json({ success: true, message: 'acey:dev not running', status: buildStatus() });
+  }
+
+  const pid = proc.pid;
+  proc.kill('SIGTERM');
+  proc = null;
+
+  return res.json({ success: true, message: 'acey:dev stopped', pid: pid, status: buildStatus() });
+}
+
+// Cleanup function to kill child process on shutdown
+function cleanup() {
+  console.log('[AceyHelper] Shutting down...');
+  if (proc) {
+    console.log(`[AceyHelper] Killing child process ${proc.pid}`);
+    proc.kill('SIGTERM');
+    proc = null;
+  }
+  process.exit(0);
+}
+
+// Register shutdown handlers
+process.on('SIGINT', cleanup);
+process.on('SIGTERM', cleanup);
+process.on('SIGUSR2', cleanup); // For nodemon restarts
 
 const app = express();
 app.use(express.json());
@@ -78,6 +113,10 @@ app.get('/acey-dev/status', (req, res) => {
 
 app.post('/acey-dev/start', (req, res) => {
   startProcess(res);
+});
+
+app.post('/acey-dev/stop', (req, res) => {
+  stopProcess(res);
 });
 
 app.listen(PORT, () => {

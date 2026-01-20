@@ -1,159 +1,135 @@
 {
-  "timestamp": "2026-01-20T05:37:38.322Z",
+  "timestamp": "2026-01-20T06:56:32.446Z",
   "summary": {
-    "nodeCount": 20,
-    "edgeCount": 300,
+    "nodeCount": 7,
+    "edgeCount": 37,
     "nodeTypes": {
-      "symbol": 20
+      "symbol": 7
     },
     "edgeTypes": {
-      "calls": 300
+      "calls": 37
     },
     "errorNodes": 0,
     "suspectNodes": 0
   },
   "sampleNodes": [
     {
-      "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-      "label": "testNewAPIMethods",
+      "id": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_startProcess",
+      "label": "startProcess",
       "kind": "symbol",
-      "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
-      "line": 48,
+      "file": "c:\\Users\\merce\\Documents\\poker-game\\tools\\acey-dev-helper.js",
+      "line": 31,
       "badges": [
         "spine"
       ]
     },
     {
-      "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-      "label": "getCurrentState",
+      "id": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
+      "label": "json",
       "kind": "symbol",
-      "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
+      "file": "c:\\Users\\merce\\Documents\\poker-game\\tools\\acey-dev-helper.js",
       "line": 1,
       "badges": []
     },
     {
-      "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-      "label": "getPlayerInfo",
+      "id": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
+      "label": "on",
       "kind": "symbol",
-      "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
+      "file": "c:\\Users\\merce\\Documents\\poker-game\\tools\\acey-dev-helper.js",
       "line": 1,
       "badges": []
     },
     {
-      "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-      "label": "updateOverlayConfig",
+      "id": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
+      "label": "platform",
       "kind": "symbol",
-      "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
+      "file": "c:\\Users\\merce\\Documents\\poker-game\\tools\\acey-dev-helper.js",
       "line": 1,
       "badges": []
     },
     {
-      "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-      "label": "getStats",
+      "id": "method_c__Users_merce_Documents_poker_game_server_routes_commands_ts_express",
+      "label": "express",
       "kind": "symbol",
-      "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
+      "file": "c:/Users/merce/Documents/poker-game/server/routes/commands.ts",
       "line": 1,
       "badges": []
     },
     {
-      "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSessionStats",
-      "label": "getSessionStats",
+      "id": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
+      "label": "use",
       "kind": "symbol",
-      "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
+      "file": "c:\\Users\\merce\\Documents\\poker-game\\tools\\acey-dev-helper.js",
       "line": 1,
       "badges": []
     },
     {
-      "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getAllSessionStats",
-      "label": "getAllSessionStats",
+      "id": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
+      "label": "get",
       "kind": "symbol",
-      "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
-      "line": 1,
-      "badges": []
-    },
-    {
-      "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_healthCheck",
-      "label": "healthCheck",
-      "kind": "symbol",
-      "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
-      "line": 1,
-      "badges": []
-    },
-    {
-      "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-      "label": "AceyEngine",
-      "kind": "symbol",
-      "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
-      "line": 1,
-      "badges": []
-    },
-    {
-      "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-      "label": "getSession",
-      "kind": "symbol",
-      "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
+      "file": "c:\\Users\\merce\\Documents\\poker-game\\tools\\acey-dev-helper.js",
       "line": 1,
       "badges": []
     }
   ],
   "sampleEdges": [
     {
-      "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-      "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
+      "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_startProcess",
+      "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
       "kind": "calls",
       "confidence": 0.4
     },
     {
-      "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-      "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
+      "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_startProcess",
+      "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
       "kind": "calls",
       "confidence": 0.4
     },
     {
-      "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-      "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
+      "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
+      "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
       "kind": "calls",
       "confidence": 0.4
     },
     {
-      "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-      "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
+      "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
+      "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
       "kind": "calls",
       "confidence": 0.4
     },
     {
-      "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-      "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSessionStats",
+      "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
+      "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
       "kind": "calls",
       "confidence": 0.4
     },
     {
-      "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-      "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getAllSessionStats",
+      "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
+      "to": "method_c__Users_merce_Documents_poker_game_server_routes_commands_ts_express",
       "kind": "calls",
       "confidence": 0.4
     },
     {
-      "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-      "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_healthCheck",
+      "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
+      "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
       "kind": "calls",
       "confidence": 0.4
     },
     {
-      "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-      "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
+      "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
+      "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
       "kind": "calls",
       "confidence": 0.4
     },
     {
-      "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-      "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
+      "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
+      "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_startProcess",
       "kind": "calls",
       "confidence": 0.4
     },
     {
-      "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-      "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
+      "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
+      "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
       "kind": "calls",
       "confidence": 0.4
     }
@@ -161,172 +137,68 @@
   "fullGraph": {
     "nodes": [
       {
-        "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-        "label": "testNewAPIMethods",
-        "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
+        "id": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_startProcess",
+        "label": "startProcess",
+        "file": "c:\\Users\\merce\\Documents\\poker-game\\tools\\acey-dev-helper.js",
         "kind": "symbol",
-        "line": 48,
+        "line": 31,
         "badges": [
           "spine"
         ]
       },
       {
-        "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "label": "getCurrentState",
-        "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
+        "id": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
+        "label": "json",
+        "file": "c:\\Users\\merce\\Documents\\poker-game\\tools\\acey-dev-helper.js",
         "kind": "symbol",
         "line": 1,
         "badges": []
       },
       {
-        "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "label": "getPlayerInfo",
-        "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
+        "id": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
+        "label": "on",
+        "file": "c:\\Users\\merce\\Documents\\poker-game\\tools\\acey-dev-helper.js",
         "kind": "symbol",
         "line": 1,
         "badges": []
       },
       {
-        "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "label": "updateOverlayConfig",
-        "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
+        "id": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
+        "label": "platform",
+        "file": "c:\\Users\\merce\\Documents\\poker-game\\tools\\acey-dev-helper.js",
         "kind": "symbol",
         "line": 1,
         "badges": []
       },
       {
-        "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "label": "getStats",
-        "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
+        "id": "method_c__Users_merce_Documents_poker_game_server_routes_commands_ts_express",
+        "label": "express",
+        "file": "c:/Users/merce/Documents/poker-game/server/routes/commands.ts",
         "kind": "symbol",
         "line": 1,
         "badges": []
       },
       {
-        "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSessionStats",
-        "label": "getSessionStats",
-        "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
+        "id": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
+        "label": "use",
+        "file": "c:\\Users\\merce\\Documents\\poker-game\\tools\\acey-dev-helper.js",
         "kind": "symbol",
         "line": 1,
         "badges": []
       },
       {
-        "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getAllSessionStats",
-        "label": "getAllSessionStats",
-        "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
+        "id": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
+        "label": "get",
+        "file": "c:\\Users\\merce\\Documents\\poker-game\\tools\\acey-dev-helper.js",
         "kind": "symbol",
         "line": 1,
-        "badges": []
-      },
-      {
-        "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_healthCheck",
-        "label": "healthCheck",
-        "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
-        "kind": "symbol",
-        "line": 1,
-        "badges": []
-      },
-      {
-        "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "label": "AceyEngine",
-        "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
-        "kind": "symbol",
-        "line": 1,
-        "badges": []
-      },
-      {
-        "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "label": "getSession",
-        "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
-        "kind": "symbol",
-        "line": 1,
-        "badges": []
-      },
-      {
-        "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "label": "addChatMessage",
-        "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
-        "kind": "symbol",
-        "line": 1,
-        "badges": []
-      },
-      {
-        "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "label": "processEvent",
-        "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
-        "kind": "symbol",
-        "line": 1,
-        "badges": []
-      },
-      {
-        "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "label": "has",
-        "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
-        "kind": "symbol",
-        "line": 1,
-        "badges": []
-      },
-      {
-        "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "label": "fn",
-        "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
-        "kind": "symbol",
-        "line": 1,
-        "badges": []
-      },
-      {
-        "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "label": "push",
-        "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
-        "kind": "symbol",
-        "line": 1,
-        "badges": []
-      },
-      {
-        "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testEnhancedCompatibility",
-        "label": "testEnhancedCompatibility",
-        "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
-        "kind": "symbol",
-        "line": 104,
-        "badges": []
-      },
-      {
-        "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "label": "filter",
-        "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
-        "kind": "symbol",
-        "line": 1,
-        "badges": []
-      },
-      {
-        "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "label": "forEach",
-        "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
-        "kind": "symbol",
-        "line": 1,
-        "badges": []
-      },
-      {
-        "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "label": "catch",
-        "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
-        "kind": "symbol",
-        "line": 1,
-        "badges": []
-      },
-      {
-        "id": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_runAceyEngineTests",
-        "label": "runAceyEngineTests",
-        "file": "c:\\Users\\merce\\Documents\\poker-game\\test-acey-engine-upgrades.js",
-        "kind": "symbol",
-        "line": 146,
         "badges": []
       }
     ],
     "edges": [
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_startProcess",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -334,8 +206,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_startProcess",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -343,8 +215,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -352,8 +224,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -361,8 +233,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSessionStats",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -370,2384 +242,18 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getAllSessionStats",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
+        "to": "method_c__Users_merce_Documents_poker_game_server_routes_commands_ts_express",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_healthCheck",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSessionStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getAllSessionStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_healthCheck",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testEnhancedCompatibility",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_runAceyEngineTests",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSessionStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getAllSessionStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_healthCheck",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testEnhancedCompatibility",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_runAceyEngineTests",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSessionStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getAllSessionStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_healthCheck",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testEnhancedCompatibility",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_runAceyEngineTests",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSessionStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getAllSessionStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_healthCheck",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testEnhancedCompatibility",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_runAceyEngineTests",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSessionStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getAllSessionStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_healthCheck",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testEnhancedCompatibility",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_runAceyEngineTests",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSessionStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getAllSessionStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_healthCheck",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testEnhancedCompatibility",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_runAceyEngineTests",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSessionStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getAllSessionStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_healthCheck",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testEnhancedCompatibility",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_runAceyEngineTests",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSessionStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getAllSessionStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_healthCheck",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testEnhancedCompatibility",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_runAceyEngineTests",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testEnhancedCompatibility",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testEnhancedCompatibility",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testEnhancedCompatibility",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testEnhancedCompatibility",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testEnhancedCompatibility",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_healthCheck",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSessionStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getAllSessionStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_healthCheck",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testEnhancedCompatibility",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_runAceyEngineTests",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSessionStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getAllSessionStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_healthCheck",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testEnhancedCompatibility",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_runAceyEngineTests",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSessionStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getAllSessionStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_healthCheck",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testEnhancedCompatibility",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_runAceyEngineTests",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_runAceyEngineTests",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_runAceyEngineTests",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_runAceyEngineTests",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_runAceyEngineTests",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testEnhancedCompatibility",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_runAceyEngineTests",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_runAceyEngineTests",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSessionStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getAllSessionStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_healthCheck",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testEnhancedCompatibility",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_runAceyEngineTests",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSessionStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getAllSessionStats",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
+          "ast-forward",
+          "cross-file"
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_healthCheck",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -2755,8 +261,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -2764,8 +270,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_startProcess",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -2773,8 +279,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -2782,8 +288,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testEnhancedCompatibility",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -2791,8 +297,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -2800,17 +306,18 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
+        "to": "method_c__Users_merce_Documents_poker_game_server_routes_commands_ts_express",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
-          "ast-forward"
+          "ast-forward",
+          "cross-file"
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -2818,8 +325,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_runAceyEngineTests",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -2827,8 +334,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_startProcess",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -2836,8 +343,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -2845,8 +352,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_addChatMessage",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -2854,8 +361,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_processEvent",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -2863,17 +370,18 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_has",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
+        "to": "method_c__Users_merce_Documents_poker_game_server_routes_commands_ts_express",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
-          "ast-forward"
+          "ast-forward",
+          "cross-file"
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getCurrentState",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -2881,8 +389,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getPlayerInfo",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -2890,8 +398,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_updateOverlayConfig",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_startProcess",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -2899,8 +407,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -2908,8 +416,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSessionStats",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -2917,8 +425,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getAllSessionStats",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -2926,17 +434,18 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_healthCheck",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
+        "to": "method_c__Users_merce_Documents_poker_game_server_routes_commands_ts_express",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
-          "ast-forward"
+          "ast-forward",
+          "cross-file"
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_fn",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -2944,8 +453,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_push",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -2953,8 +462,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testNewAPIMethods",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_startProcess",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -2962,8 +471,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_testEnhancedCompatibility",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -2971,8 +480,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_filter",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -2980,8 +489,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_forEach",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -2989,17 +498,18 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_catch",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
+        "to": "method_c__Users_merce_Documents_poker_game_server_routes_commands_ts_express",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
-          "ast-forward"
+          "ast-forward",
+          "cross-file"
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getStats",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_runAceyEngineTests",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -3007,8 +517,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSessionStats",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_AceyEngine",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -3016,8 +526,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSessionStats",
-        "to": "method_c__Users_merce_Documents_poker_game_test_acey_engine_upgrades_js_getSession",
+        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
+        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_startProcess",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
