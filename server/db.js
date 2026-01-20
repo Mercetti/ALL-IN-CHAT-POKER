@@ -16,6 +16,14 @@ class DBHelper {
   }
 
   /**
+   * Get the raw database instance
+   * @returns {Database} The raw database instance
+   */
+  getDatabase() {
+    return this.db;
+  }
+
+  /**
    * Initialize database connection and schema
    */
   init() {

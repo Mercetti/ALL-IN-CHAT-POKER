@@ -42,7 +42,8 @@ function initializeDatabase(db) {
     logger.info('🗄️ Initializing financial database schema...');
     
     // Check if tables exist
-    const tableCheck = db.prepare(`
+    const database = db.getDatabase();
+    const tableCheck = database.prepare(`
       SELECT name FROM sqlite_master 
       WHERE type='table' AND name IN (
         'financial_events', 'partner_profiles', 'monthly_ledgers', 
@@ -69,15 +70,15 @@ function initializeDatabase(db) {
       
       logger.info(`📋 Executing ${statements.length} schema statements...`);
       
-      db.exec('BEGIN TRANSACTION');
+      database.exec('BEGIN TRANSACTION');
       
       for (const statement of statements) {
         if (statement.length > 0) {
-          db.exec(statement);
+          database.exec(statement);
         }
       }
       
-      db.exec('COMMIT');
+      database.exec('COMMIT');
       logger.info('✅ Database schema initialized successfully');
       
     } else {
@@ -97,7 +98,8 @@ function addFinancialHealthCheck(app, db) {
   app.get('/health/financial', (req, res) => {
     try {
       // Test database connection
-      const dbTest = db.prepare('SELECT 1').get();
+      const database = db.getDatabase();
+      const dbTest = database.prepare('SELECT 1').get();
       
       // Test financial system
       const PayoutEngine = require('./payout-engine');
