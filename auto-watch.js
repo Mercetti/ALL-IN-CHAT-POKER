@@ -143,10 +143,12 @@ class AutoWatcher {
     
     console.log('✅ File watcher stopped');
   }
+}
 
-  // Auto-start if run directly
-  if (require.main === module) {
-    const watcher = new AutoWatcher();
-    watcher.startWatching();
-  }
+// Auto-start if run directly
+if (require.main === module) {
+  const watcher = new AutoWatcher();
+  watcher.startWatching();
+}
+
 module.exports = AutoWatcher;

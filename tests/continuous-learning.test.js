@@ -2,6 +2,8 @@
  * Test Continuous Learning System
  */
 
+/* eslint-disable */
+
 const AudioCodingOrchestrator = require('../server/audioCodingOrchestrator');
 const { TaskType } = require('../server/utils/learningSchema');
 

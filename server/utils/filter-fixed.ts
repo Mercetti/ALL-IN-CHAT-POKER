@@ -250,7 +250,7 @@ function getAutoRuleStats(logs: any[]) {
       governance: { applied: 0, rejected: 0 },
       financial: { applied: 0, rejected: 0 },
       simulation: { applied: 0, rejected: 0 }
-    }
+    } as { [key: string]: { applied: number; rejected: number } }
   };
   
   logs.forEach(log => {
@@ -269,7 +269,7 @@ function getAutoRuleStats(logs: any[]) {
       
       // Categorize by intent type if available
       if (log.aceyOutput && log.aceyOutput.intents) {
-        log.aceyOutput.intents.forEach(intent => {
+        log.aceyOutput.intents.forEach((intent: any) => {
           const category = getIntentCategory(intent.type);
           if (stats.ruleBreakdown[category]) {
             if (action === 'reject' || action === 'deny') {
