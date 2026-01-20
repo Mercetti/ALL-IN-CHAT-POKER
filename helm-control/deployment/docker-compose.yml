@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  helm-control:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - HELM_API_KEY=${HELM_API_KEY}
+      - HELM_TIER=${HELM_TIER}
+      - HELM_PORT=3000
+      - HELM_DATA_PATH=/usr/src/helm/data
+    volumes:
+      - helm_data:/usr/src/helm/data
+      - ./logs:/usr/src/helm/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  helm_data:
+    driver: local
