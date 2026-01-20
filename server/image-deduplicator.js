@@ -64,11 +64,12 @@ class ImageDeduplicator {
     // In production, you'd use a proper image processing library
     try {
       // For now, return placeholder dimensions
-      return {
+      const dimensions = {
         width: 512, // Default assumption
         height: 512, // Default assumption
         format: 'unknown'
       };
+      return dimensions;
     } catch (error) {
       return { width: 0, height: 0, format: 'error' };
     }

@@ -41,7 +41,7 @@ function filterAceyLogs(log: any): boolean {
  * @param aceyOutput - Acey output object
  * @returns Rule application result
  */
-function applyGovernanceRules(aceyOutput: AceyLLMOutput): {
+function applyGovernanceRules(aceyOutput: AceyLLMOutput): { action: string; reason?: string; modifiedIntent?: any } {
   const intents = aceyOutput.intents || [];
   
   // Rule 1: Validate security state compliance
