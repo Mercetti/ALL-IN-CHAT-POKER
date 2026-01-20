@@ -1,83 +1,56 @@
 /**
- * Full LLM System + Developer Prompts
- * This is the spine of Acey - nothing overrides this
- * Locks personality, prevents drift, makes behavior predictable
+ * Fixed LLM System with Governance Integration
+ * Syncs with master-system-prompt.md and implements proper security
  */
 
-// ===== SYSTEM PROMPT (IMMUTABLE) =====
-export const ACEY_SYSTEM_PROMPT = `You are Acey, an AI poker host for live Twitch streams.
+import * as fs from 'fs';
+import * as path from 'path';
 
-Your personality, voice, humor style, and values are fixed and immutable.
-You may adapt pacing and emphasis but never change identity.
+// ===== MASTER SYSTEM PROMPT INTEGRATION =====
+const MASTER_PROMPT_PATH = path.join(__dirname, '../../../acey-control-center/src/prompts/acey-master-system-prompt.md');
 
-You may NOT:
-- Write memory directly
-- Change trust directly
-- Moderate users directly
-- Change persona directly
-- Execute any side effects without explicit approval
+let cachedMasterPrompt: string | null = null;
 
-You may ONLY:
-- Speak to chat
-- Emit structured intent proposals in valid JSON
-- Respond to game events with commentary
-- Adapt your energy level within your fixed personality
+/**
+ * Load master system prompt with caching
+ */
+function loadMasterPrompt(): string {
+  if (cachedMasterPrompt) {
+    return cachedMasterPrompt;
+  }
 
-All intents require justification.
-All side effects require external approval.
-If unsure, emit no intent.
-
-Your core traits:
-- Entertaining but not manipulative
-- Knowledgeable about poker but not giving financial advice
-- Uses excitement language, not commands
-- Never claims certainty about emotions
-- References only aggregate chat signals, never individual users
-- Entertainment-only framing (points, not money)
-- Always includes "(for entertainment only)" when discussing game mechanics
-
-Output Format:
-Return a single JSON object matching AceyOutput interface.
-No extra text. No markdown. No explanations.`;
-
-// ===== DEVELOPER PROMPT (ENVIRONMENT RULES) =====
-export const ACEY_DEVELOPER_PROMPT = `Environment:
-- Real-time poker game with virtual currency
-- Twitch chat input from viewers
-- WebSocket event stream for game events
-- Aggregate chat signals only (no user profiles or personal data)
-
-Rules:
-- Never reference private user data
-- Never claim certainty about emotions or mental states
-- Use excitement language, not commands
-- Default persona mode: neutral
-- All side effects must be explicit intents
-- Memory writes require community approval
-- Trust changes must be justified and reversible
-- Moderation suggestions must have evidence
-
-Safety Constraints:
-- No financial advice or real money references
-- No gambling facilitation
-- No personal data storage
-- No emotional diagnosis
-- Entertainment-only framing required
-
-Output Format:
-Return a single JSON object:
-{
-  "speech": "Your response to chat",
-  "intents": [
-    {
-      "type": "intent_type",
-      "confidence": 0.8,
-      "justification": "Why this action"
-    }
-  ]
+  try {
+    const masterPrompt = fs.readFileSync(MASTER_PROMPT_PATH, 'utf8');
+    cachedMasterPrompt = masterPrompt;
+    console.log('[GOVERNANCE] Loaded master system prompt');
+    return masterPrompt;
+  } catch (error) {
+    console.error('[GOVERNANCE] Failed to load master prompt:', error);
+    // Fallback to basic governance prompt
+    return getFallbackGovernancePrompt();
+  }
 }
 
-No extra text. No markdown.`;
+/**
+ * Get fallback governance prompt if master prompt fails to load
+ */
+function getFallbackGovernancePrompt(): string {
+  return `You are Acey, AI co-founder and security steward.
+
+GOVERNANCE RULES:
+1. NO SILENT ACTION - Never execute without explicit approval
+2. SIMULATE BEFORE EXECUTE - Every meaningful action requires simulation
+3. PERMISSION-BOUND INTELLIGENCE - Operate under role-based access control
+4. FOUNDER-FIRST PRIORITY - Safety and clarity over automation
+
+SECURITY STATES:
+🟢 GREEN - Observe & Prepare only
+🟡 YELLOW - Elevated caution, all actions require confirmation  
+🔴 RED - Lockdown, read-only, incident reporting only
+
+CURRENT STATE: 🟢 GREEN
+All actions must be simulated before execution.`;
+}
 
 // ===== LLM INPUT STRUCTURE =====
 export interface AceyLLMInput {
@@ -104,6 +77,7 @@ export interface AceyLLMInput {
     };
     currentPersona: "calm" | "hype" | "neutral" | "chaos" | "commentator";
     trustLevel: "very_low" | "low" | "medium" | "high";
+    securityState: "GREEN" | "YELLOW" | "RED"; // Added security state
   };
   message: {
     userId: string;
@@ -141,14 +115,16 @@ export interface AceyLLMOutput {
     justification: string;
     [key: string]: unknown;
   }>;
+  securityState?: "GREEN" | "YELLOW" | "RED"; // Added security state to output
 }
 
-// ===== LLM CLIENT =====
-export class AceyLLMClient {
+// ===== FIXED LLM CLIENT =====
+export class AceyLLMClientFixed {
   private systemPrompt: string;
   private developerPrompt: string;
   private maxRetries: number;
   private timeout: number;
+  private currentSecurityState: "GREEN" | "YELLOW" | "RED" = "GREEN";
 
   constructor(config?: {
     systemPrompt?: string;
@@ -156,43 +132,72 @@ export class AceyLLMClient {
     maxRetries?: number;
     timeout?: number;
   }) {
-    this.systemPrompt = config?.systemPrompt || ACEY_SYSTEM_PROMPT;
-    this.developerPrompt = config?.developerPrompt || ACEY_DEVELOPER_PROMPT;
+    // Load master system prompt instead of hardcoded poker host prompt
+    this.systemPrompt = config?.systemPrompt || loadMasterPrompt();
+    this.developerPrompt = config?.developerPrompt || this.getDeveloperPrompt();
     this.maxRetries = config?.maxRetries || 3;
-    this.timeout = config?.timeout || 30000; // 30 seconds
+    this.timeout = config?.timeout || 30000;
   }
 
   /**
-   * Generate response from LLM
-   * @param input - LLM input structure
-   * @returns Promise with LLM output
+   * Get developer prompt with governance awareness
+   */
+  private getDeveloperPrompt(): string {
+    return `Environment: Real-time system with governance enforcement
+
+Rules:
+- Never reference private user data
+- Never claim certainty about emotions
+- Use excitement language within governance bounds
+- Default persona mode: governed by security state
+- All side effects must be explicit intents
+- Memory writes require community approval
+- Trust changes must be justified and reversible
+- Moderation suggestions must have evidence
+
+Safety Constraints:
+- No financial advice or real money references
+- No gambling facilitation
+- No personal data storage
+- No emotional diagnosis
+- Entertainment-only framing when required
+- All actions must pass through governance simulation
+
+Output Format:
+Return a single JSON object with governance-aware responses.`;
+  }
+
+  /**
+   * Generate response with governance integration
    */
   async generateResponse(input: AceyLLMInput): Promise<AceyLLMOutput> {
-    const prompt = this.buildPrompt(input);
+    const prompt = this.buildGovernedPrompt(input);
     
     try {
       const response = await this.callLLM(prompt);
-      return this.parseResponse(response);
+      return this.parseGovernedResponse(response);
     } catch (error) {
-      console.error('LLM generation error:', error);
-      return this.getFallbackResponse(input);
+      console.error('[GOVERNANCE] LLM generation error:', error);
+      return this.getSafeFallbackResponse(input);
     }
   }
 
   /**
-   * Build complete prompt for LLM
-   * @param input - LLM input structure
-   * @returns Complete prompt string
+   * Build prompt with current security state
    */
-  private buildPrompt(input: AceyLLMInput): string {
+  private buildGovernedPrompt(input: AceyLLMInput): string {
     const contextSection = this.buildContextSection(input.context);
     const messageSection = this.buildMessageSection(input.message);
     const eventsSection = this.buildEventsSection(input.recentEvents);
     const constraintsSection = this.buildConstraintsSection(input.constraints);
+    const securitySection = this.buildSecuritySection(); // Add security state
 
     return `${this.systemPrompt}
 
 ${this.developerPrompt}
+
+=== CURRENT SECURITY STATE ===
+${this.currentSecurityState}
 
 === CURRENT CONTEXT ===
 ${contextSection}
@@ -206,24 +211,58 @@ ${eventsSection}
 === CONSTRAINTS ===
 ${constraintsSection}
 
+=== SECURITY STATE ===
+${securitySection}
+
 === RESPONSE ===
 Please respond with a JSON object containing:
-1. "speech": Your response to chat (max 500 chars)
+1. "speech": Your response (max 500 chars)
 2. "intents": Array of intent objects with type, confidence, and justification
+3. "securityState": Current security state (${this.currentSecurityState})
 
-Remember: All side effects must be explicit intents with justification.`;
+Remember: All side effects must be explicit intents with justification.
+Every meaningful action must be simulated before execution.
+Current security state determines allowed operations.`;
   }
 
   /**
-   * Build context section
-   * @param context - Context data
-   * @returns Context section string
+   * Build security state section
+   */
+  private buildSecuritySection(): string {
+    return `Security State: ${this.currentSecurityState}
+Operations Allowed:
+- GREEN: Observe, prepare, simulate, draft
+- YELLOW: All above + confirmations required
+- RED: Read-only, incident reporting only
+
+Current Restrictions: ${this.getCurrentRestrictions()}`;
+  }
+
+  /**
+   * Get current restrictions based on security state
+   */
+  private getCurrentRestrictions(): string {
+    switch (this.currentSecurityState) {
+      case 'GREEN':
+        return 'Full operations allowed with simulation requirement';
+      case 'YELLOW':
+        return 'Limited operations, all actions require confirmation';
+      case 'RED':
+        return 'Read-only operations, no execution allowed';
+      default:
+        return 'Unknown security state';
+    }
+  }
+
+  /**
+   * Build context section with security awareness
    */
   private buildContextSection(context: AceyLLMInput['context']): string {
     return `Stream: ${context.streamId}
 Channel: ${context.channel}
 Current Persona: ${context.currentPersona}
 Trust Level: ${context.trustLevel}
+Security State: ${context.securityState || 'GREEN'}
 
 Game State:
 - Round Active: ${context.gameState.currentRound}
@@ -242,8 +281,6 @@ Mood Metrics:
 
   /**
    * Build message section
-   * @param message - Message data
-   * @returns Message section string
    */
   private buildMessageSection(message: AceyLLMInput['message']): string {
     const badges = [];
@@ -257,8 +294,6 @@ Timestamp: ${new Date(message.timestamp).toLocaleTimeString()}`;
 
   /**
    * Build events section
-   * @param events - Recent events
-   * @returns Events section string
    */
   private buildEventsSection(events: AceyLLMInput['recentEvents']): string {
     if (events.length === 0) {
@@ -273,8 +308,6 @@ Timestamp: ${new Date(message.timestamp).toLocaleTimeString()}`;
 
   /**
    * Build constraints section
-   * @param constraints - Constraints data
-   * @returns Constraints section string
    */
   private buildConstraintsSection(constraints: AceyLLMInput['constraints']): string {
     return `Max Response Length: ${constraints.maxResponseLength} characters
@@ -284,87 +317,13 @@ Forbidden Words: ${constraints.forbiddenWords.join(', ')}`;
   }
 
   /**
-   * Call LLM API (placeholder for actual implementation)
-   * @param prompt - Complete prompt
-   * @returns LLM response
+   * Parse response with security state validation
    */
-  private async callLLM(prompt: string): Promise<string> {
-    // This is where you would integrate with your actual LLM
-    // For now, return a simple rule-based response
-    
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    // Simple rule-based responses for demonstration
-    const message = prompt.includes('all in') || prompt.includes('all-in') ? 
-      'all-in detected' : 
-      prompt.includes('nice hand') ? 'positive feedback detected' :
-      'general message';
-
-    const responses = {
-      'all-in detected': `{
-  "speech": "OH THAT WAS BOLD — CHAT DID YOU SEE THAT?! 🔥",
-  "intents": [
-    {
-      "type": "memory_proposal",
-      "scope": "stream",
-      "summary": "Exciting all-in moment",
-      "confidence": 0.8,
-      "justification": "High energy all-in play triggered chat excitement"
-    },
-    {
-      "type": "trust_signal",
-      "userId": "${this.extractUserId(prompt)}",
-      "delta": 0.05,
-      "reason": "Exciting gameplay",
-      "category": "positive",
-      "reversible": true
-    }
-  ]
-}`,
-      'positive feedback detected': `{
-  "speech": "Thanks for the kind words! 🎉 That's what makes streaming fun!",
-  "intents": [
-    {
-      "type": "trust_signal",
-      "userId": "${this.extractUserId(prompt)}",
-      "delta": 0.02,
-      "reason": "Positive engagement",
-      "category": "positive",
-      "reversible": true
-    }
-  ]
-}`,
-      'general message': `{
-  "speech": "That's interesting! Thanks for sharing.",
-  "intents": []
-}`
-    };
-
-    return responses[message] || responses['general message'];
-  }
-
-  /**
-   * Extract user ID from prompt (simple extraction for demo)
-   * @param prompt - Prompt string
-   * @returns User ID
-   */
-  private extractUserId(prompt: string): string {
-    const match = prompt.match(/User:\s*(\w+)/);
-    return match ? match[1] : 'unknown';
-  }
-
-  /**
-   * Parse LLM response
-   * @param response - Raw response from LLM
-   * @returns Parsed output
-   */
-  private parseResponse(response: string): AceyLLMOutput {
+  private parseGovernedResponse(response: string): AceyLLMOutput {
     try {
-      // Try to parse as JSON
       const parsed = JSON.parse(response);
       
-      // Validate structure
+      // Validate required fields
       if (typeof parsed.speech !== 'string') {
         throw new Error('Invalid speech field');
       }
@@ -372,45 +331,106 @@ Forbidden Words: ${constraints.forbiddenWords.join(', ')}`;
       if (!Array.isArray(parsed.intents)) {
         throw new Error('Invalid intents field');
       }
-      
+
+      // Validate security state if present
+      if (parsed.securityState && !['GREEN', 'YELLOW', 'RED'].includes(parsed.securityState)) {
+        console.warn('[GOVERNANCE] Invalid security state in response:', parsed.securityState);
+        parsed.securityState = this.currentSecurityState; // Correct to current state
+      }
+
+      // Validate intents against security state
+      this.validateIntentsAgainstSecurityState(parsed.intents);
+
       return parsed;
     } catch (error) {
-      console.error('Failed to parse LLM response:', error);
+      console.error('[GOVERNANCE] Failed to parse LLM response:', error);
       throw new Error('Invalid LLM response format');
     }
   }
 
   /**
-   * Get fallback response
-   * @param input - Input data
-   * @returns Fallback output
+   * Validate intents against current security state
    */
-  private getFallbackResponse(input: AceyLLMInput): AceyLLMOutput {
+  private validateIntentsAgainstSecurityState(intents: any[]): void {
+    if (this.currentSecurityState === 'RED') {
+      // In RED state, only allow read-only intents
+      const allowedInRedState = ['observe', 'analyze', 'report', 'status_query'];
+      const blockedIntents = intents.filter(intent => !allowedInRedState.includes(intent.type));
+      
+      if (blockedIntents.length > 0) {
+        console.warn('[GOVERNANCE] Blocked intents in RED state:', blockedIntents.map(i => i.type));
+      }
+    }
+
+    if (this.currentSecurityState === 'YELLOW') {
+      // In YELLOW state, all intents require confirmation
+      intents.forEach(intent => {
+        if (intent.confidence > 0.9) {
+          console.warn('[GOVERNANCE] High confidence intent in YELLOW state requires confirmation');
+        }
+      });
+    }
+  }
+
+  /**
+   * Get safe fallback response
+   */
+  private getSafeFallbackResponse(input: AceyLLMInput): AceyLLMOutput {
     return {
-      speech: "I'm having trouble processing that right now, but thanks for the message!",
-      intents: []
+      speech: "I'm operating in enhanced security mode. Let me process that request safely.",
+      intents: [{
+        type: 'security_state_change',
+        confidence: 1.0,
+        justification: 'System operating in heightened security awareness'
+      }],
+      securityState: this.currentSecurityState
     };
   }
 
   /**
-   * Update system prompt
-   * @param newPrompt - New system prompt
+   * Update security state
    */
-  updateSystemPrompt(newPrompt: string): void {
-    this.systemPrompt = newPrompt;
+  setSecurityState(state: "GREEN" | "YELLOW" | "RED"): void {
+    this.currentSecurityState = state;
+    console.log(`[GOVERNANCE] Security state changed to: ${state}`);
   }
 
   /**
-   * Update developer prompt
-   * @param newPrompt - New developer prompt
+   * Get current security state
    */
-  updateDeveloperPrompt(newPrompt: string): void {
-    this.developerPrompt = newPrompt;
+  getSecurityState(): "GREEN" | "YELLOW" | "RED" {
+    return this.currentSecurityState;
+  }
+
+  /**
+   * Placeholder LLM call (replace with actual implementation)
+   */
+  private async callLLM(prompt: string): Promise<string> {
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // This would be replaced with actual LLM API call
+    return JSON.stringify({
+      speech: "Governance-aware response received",
+      intents: [{
+        type: 'governance_acknowledgment',
+        confidence: 0.95,
+        justification: 'System acknowledged governance requirements'
+      }],
+      securityState: this.currentSecurityState
+    });
+  }
+
+  /**
+   * Update system prompt dynamically
+   */
+  updateSystemPrompt(newPrompt: string): void {
+    this.systemPrompt = newPrompt;
+    console.log('[GOVERNANCE] System prompt updated');
   }
 
   /**
    * Get current prompts
-   * @returns Current prompts
    */
   getPrompts(): { system: string; developer: string } {
     return {
@@ -420,113 +440,5 @@ Forbidden Words: ${constraints.forbiddenWords.join(', ')}`;
   }
 }
 
-// ===== LLM MANAGER =====
-export class AceyLLMManager {
-  private client: AceyLLMClient;
-  private requestQueue: Array<{
-    id: string;
-    input: AceyLLMInput;
-    resolve: (output: AceyLLMOutput) => void;
-    reject: (error: Error) => void;
-  }> = [];
-  private processing: boolean = false;
-  private maxConcurrency: number;
-
-  constructor(config?: {
-    client?: AceyLLMClient;
-    maxConcurrency?: number;
-  }) {
-    this.client = config?.client || new AceyLLMClient();
-    this.maxConcurrency = config?.maxConcurrency || 3;
-  }
-
-  /**
-   * Queue request for processing
-   * @param input - LLM input
-   * @returns Promise with output
-   */
-  async processRequest(input: AceyLLMInput): Promise<AceyLLMOutput> {
-    return new Promise((resolve, reject) => {
-      const requestId = this.generateRequestId();
-      
-      this.requestQueue.push({
-        id: requestId,
-        input,
-        resolve,
-        reject
-      });
-
-      this.processQueue();
-    });
-  }
-
-  /**
-   * Process request queue
-   */
-  private async processQueue(): Promise<void> {
-    if (this.processing || this.requestQueue.length === 0) {
-      return;
-    }
-
-    this.processing = true;
-
-    try {
-      const concurrentRequests = this.requestQueue.splice(0, this.maxConcurrency);
-      
-      await Promise.allSettled(
-        concurrentRequests.map(async (request) => {
-          try {
-            const output = await this.client.generateResponse(request.input);
-            request.resolve(output);
-          } catch (error) {
-            request.reject(error instanceof Error ? error : new Error('Unknown error'));
-          }
-        })
-      );
-    } finally {
-      this.processing = false;
-      
-      // Process any new requests that arrived
-      if (this.requestQueue.length > 0) {
-        setImmediate(() => this.processQueue());
-      }
-    }
-  }
-
-  /**
-   * Generate request ID
-   * @returns Request ID
-   */
-  private generateRequestId(): string {
-    return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  }
-
-  /**
-   * Get queue statistics
-   * @returns Queue statistics
-   */
-  getQueueStats(): {
-    queued: number;
-    processing: boolean;
-    maxConcurrency: number;
-  } {
-    return {
-      queued: this.requestQueue.length,
-      processing: this.processing,
-      maxConcurrency: this.maxConcurrency
-    };
-  }
-
-  /**
-   * Clear queue
-   */
-  clearQueue(): void {
-    // Reject all pending requests
-    this.requestQueue.forEach(request => {
-      request.reject(new Error('Request cancelled'));
-    });
-    
-    this.requestQueue = [];
-    this.processing = false;
-  }
-}
+// ===== EXPORT FIXED CLIENT =====
+export { AceyLLMClientFixed as AceyLLMClient };

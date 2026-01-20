@@ -65,8 +65,14 @@ async function testIncidentManagementIntegration() {
   console.log('🚨 Testing Incident Management Integration...');
   
   try {
-    // Test that incident router can be loaded
-    const incidentRouter = require('./server/routes/incident-fixed');
+    // Test that incident router can be loaded (try both .js and .ts)
+    let incidentRouter;
+    try {
+      incidentRouter = require('./server/routes/incident-fixed');
+    } catch (e) {
+      console.log('Trying .js version...');
+      incidentRouter = require('./server/routes/incident-fixed.js');
+    }
     
     if (incidentRouter && typeof incidentRouter === 'function') {
       console.log('✅ Fixed incident router loaded successfully');
@@ -89,10 +95,19 @@ async function testGovernanceIntegration() {
   console.log('⚖️ Testing Governance Integration...');
   
   try {
-    // Test that governance fixes are loaded
-    const fixedLLM = require('./server/acey/interfaces/acey-llm-system-fixed');
-    const fixedFilter = require('./server/utils/filter-fixed');
-    const fixedGovernance = require('./server/finalGovernance/finalGovernanceLayer-fixed');
+    // Test that governance fixes are loaded (try both .js and .ts)
+    let fixedLLM, fixedFilter, fixedGovernance;
+    
+    try {
+      fixedLLM = require('./server/acey/interfaces/acey-llm-system-fixed');
+      fixedFilter = require('./server/utils/filter-fixed');
+      fixedGovernance = require('./server/finalGovernance/finalGovernanceLayer-fixed');
+    } catch (e) {
+      console.log('Trying .js versions...');
+      fixedLLM = require('./server/acey/interfaces/acey-llm-system-fixed.js');
+      fixedFilter = require('./server/utils/filter-fixed.js');
+      fixedGovernance = require('./server/finalGovernance/finalGovernanceLayer-fixed.js');
+    }
     
     console.log('✅ Fixed LLM system with master prompt integration');
     console.log('✅ Fixed filter system with fail-safe logic');
