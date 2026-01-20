@@ -69,27 +69,53 @@ function initializeDatabase(db) {
     if (fs.existsSync(schemaPath)) {
       const schema = fs.readFileSync(schemaPath, 'utf8');
       const statements = schema
-        .split(';')
+        .split(/;\s*(?=\n)/) // Split on semicolon followed by newline
         .map(stmt => stmt.trim())
         .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'));
       
-      logger.info(`📋 Executing ${statements.length} schema statements...`);
+      // Separate CREATE TABLE and CREATE INDEX statements
+      const createTableStatements = statements.filter(stmt => 
+        stmt.toUpperCase().includes('CREATE TABLE')
+      );
+      const createIndexStatements = statements.filter(stmt => 
+        stmt.toUpperCase().includes('CREATE INDEX')
+      );
       
-      database.exec('BEGIN TRANSACTION');
+      logger.info(`🔍 Found ${statements.length} total statements`);
+      logger.info(`🔍 Found ${createTableStatements.length} CREATE TABLE statements`);
+      logger.info(`🔍 Found ${createIndexStatements.length} CREATE INDEX statements`);
       
-      for (let i = 0; i < statements.length; i++) {
-        const statement = statements[i];
-        if (statement.length > 0) {
-          try {
-            database.exec(statement);
-          } catch (error) {
-            logger.error(`❌ Failed to execute statement ${i + 1}: ${statement}`, { error: error.message });
-            throw error;
-          }
+      // Debug: log first few statements
+      statements.slice(0, 3).forEach((stmt, i) => {
+        logger.info(`🔍 Statement ${i + 1}: ${stmt.substring(0, 50)}...`);
+      });
+      
+      // Execute CREATE TABLE statements first
+      logger.info(`📋 Executing ${createTableStatements.length} CREATE TABLE statements...`);
+      
+      for (let i = 0; i < createTableStatements.length; i++) {
+        const statement = createTableStatements[i];
+        try {
+          database.exec(statement);
+        } catch (error) {
+          logger.error(`❌ Failed to execute CREATE TABLE statement ${i + 1}: ${statement}`, { error: error.message });
+          throw error;
         }
       }
       
-      database.exec('COMMIT');
+      // Execute CREATE INDEX statements after tables are created
+      logger.info(`📋 Executing ${createIndexStatements.length} CREATE INDEX statements...`);
+      
+      for (let i = 0; i < createIndexStatements.length; i++) {
+        const statement = createIndexStatements[i];
+        try {
+          database.exec(statement);
+        } catch (error) {
+          logger.error(`❌ Failed to execute CREATE INDEX statement ${i + 1}: ${statement}`, { error: error.message });
+          throw error;
+        }
+      }
+      
       logger.info('✅ Database schema initialized successfully');
       
     } else {
