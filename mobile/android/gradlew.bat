@@ -42,6 +42,20 @@ set JAVA_EXE=java.exe
 %JAVA_EXE% -version >NUL 2>&1
 if %ERRORLEVEL% equ 0 goto execute
 
+@rem Try to find compatible Java version (17 or 21)
+set JAVA_EXE=java.exe
+%JAVA_EXE% -version 2>&1 | findstr "17\." >NUL
+if %ERRORLEVEL% equ 0 goto execute
+
+@rem Try Java 21
+%JAVA_EXE% -version 2>&1 | findstr "21\." >NUL
+if %ERRORLEVEL% equ 0 goto execute
+
+@rem Try Java 11
+%JAVA_EXE=java.exe
+%JAVA_EXE% -version 2>&1 | findstr "11\." >NUL
+if %ERRORLEVEL% equ 0 goto execute
+
 echo.
 echo ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.
 echo.
