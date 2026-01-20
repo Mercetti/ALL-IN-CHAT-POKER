@@ -6,8 +6,26 @@ export interface LogEntry {
 }
 
 export class Logger {
+  private static instance: Logger;
   private logs: LogEntry[] = [];
   private maxLogSize = 1000;
+
+  /**
+   * Get singleton instance
+   */
+  static getInstance(serviceName = 'app'): Logger {
+    if (!Logger.instance) {
+      Logger.instance = new Logger(serviceName);
+    }
+    return Logger.instance;
+  }
+
+  /**
+   * Private constructor for singleton
+   */
+  private constructor(private serviceName = 'app') {
+    // Private constructor for singleton pattern
+  }
 
   /**
    * Log info message
@@ -27,6 +45,13 @@ export class Logger {
    * Log error message
    */
   error(message: string, error?: any, context?: any): void {
+    // Handle case where metadata is passed as second argument
+    if (error && typeof error === 'object' && !(error instanceof Error)) {
+      // error is actually metadata/context
+      context = error;
+      error = undefined;
+    }
+    
     const errorMessage = error ? `${message}: ${error.message || error}` : message;
     this.addEntry('error', errorMessage, context);
   }
@@ -98,7 +123,19 @@ export class Logger {
       entries: this.logs
     };
     
-    return JSON.stringify(logData, null, 2);
+    // Safe serialization with circular reference protection
+    const seen = new WeakSet();
+    const replacer = (key: any, value: any) => {
+      if (typeof value === 'object' && value !== null) {
+        if (seen.has(value)) {
+          return '[Circular Reference]';
+        }
+        seen.add(value);
+      }
+      return value;
+    };
+    
+    return JSON.stringify(logData, replacer, 2);
   }
 
   /**
@@ -127,3 +164,9 @@ export class Logger {
     };
   }
 }
+
+// Export singleton instance for backward compatibility
+export const logger = Logger.getInstance();
+
+// Default export
+export default Logger;

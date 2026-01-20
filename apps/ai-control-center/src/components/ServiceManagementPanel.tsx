@@ -1,5 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { apiFetch } from '../services/api';
+
+// Simple debounce function
+function debounce<T extends (...args: any[]) => any>(func: T, wait: number): T {
+  let timeout: NodeJS.Timeout;
+  return ((...args: any[]) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  }) as T;
+}
 
 interface ServiceStatus {
   ollama: {
@@ -60,14 +69,8 @@ export default function ServiceManagementPanel() {
       }
     } catch (error) {
       console.error('Failed to fetch models:', error);
-      // Set some default models if fetch fails
-      setModels([
-        { name: 'deepseek-coder:1.3b', model: 'deepseek-coder:1.3b', size: 0, digest: '' },
-        { name: 'qwen:0.5b', model: 'qwen:0.5b', size: 0, digest: '' },
-        { name: 'llama3.2:1b', model: 'llama3.2:1b', size: 0, digest: '' },
-        { name: 'tinyllama:latest', model: 'tinyllama:latest', size: 0, digest: '' },
-        { name: 'llama3.2:latest', model: 'llama3.2:latest', size: 0, digest: '' }
-      ]);
+      // Set empty array to show actual error state
+      setModels([]);
     }
   };
 
@@ -75,11 +78,11 @@ export default function ServiceManagementPanel() {
   const handleServiceAction = async (service: 'ollama' | 'tunnel', action: 'start' | 'stop') => {
     setActionLoading(`${service}-${action}`);
     try {
-      const response = await apiFetch(`/admin/ai/services/${service}/${action}`, {
+      const response = await apiFetch<{ success: boolean; data: any }>(`/admin/ai/services/${service}/${action}`, {
         method: 'POST'
       });
       
-      if (response.success) {
+      if ((response as any).success) {
         // Refresh status after action
         setTimeout(fetchServiceStatus, 1000);
         
@@ -99,13 +102,13 @@ export default function ServiceManagementPanel() {
   const testConnection = async (provider: string) => {
     setActionLoading(`test-${provider}`);
     try {
-      const response = await apiFetch('/admin/ai/services/test-connection', {
+      const response = await apiFetch<{ success: boolean; data: { message: string } }>('/admin/ai/services/test-connection', {
         method: 'POST',
         body: JSON.stringify({ provider })
       });
       
-      if (response.success) {
-        alert(`Connection test: ${response.data.message}`);
+      if ((response as any).success) {
+        alert(`Connection test: ${(response as any).data.message}`);
       }
     } catch (error) {
       console.error('Failed to test connection:', error);
@@ -114,40 +117,51 @@ export default function ServiceManagementPanel() {
     }
   };
 
-  // Update configuration
-  const updateConfig = async (updates: Partial<ServiceConfig>) => {
-    setActionLoading('config-update');
-    try {
-      const response = await apiFetch('/admin/ai/services/config/update', {
-        method: 'POST',
-        body: JSON.stringify(updates)
-      });
-      
-      if (response.success) {
-        if (response.data.requiresRestart) {
-          alert('Configuration updated! Run these commands and restart:\n\n' + 
-                response.data.updates.map((u: any) => u.command).join('\n'));
-        } else {
-          // Local update - refresh the config
-          if (response.data.currentConfig) {
-            setConfig(response.data.currentConfig);
+  // Debounced update configuration
+  const debouncedUpdateConfig = useCallback(
+    debounce(async (updates: Partial<ServiceConfig>) => {
+      setActionLoading('config-update');
+      try {
+        const response = await apiFetch<{ success: boolean; data: any }>('/admin/ai/services/config/update', {
+          method: 'POST',
+          body: JSON.stringify(updates)
+        });
+        
+        if ((response as any).success) {
+          if ((response as any).data.requiresRestart) {
+            alert('Configuration updated! Run these commands and restart:\n\n' + 
+                  (response as any).data.updates.map((u: any) => u.command).join('\n'));
+          } else {
+            // Local update - refresh the config
+            if ((response as any).data.currentConfig) {
+              setConfig((response as any).data.currentConfig);
+            }
+            alert(`Configuration updated successfully!`);
           }
-          alert(`Configuration updated successfully!`);
         }
+      } catch (error) {
+        console.error('Failed to update config:', error);
+      } finally {
+        setActionLoading(null);
       }
-    } catch (error) {
-      console.error('Failed to update config:', error);
-    } finally {
-      setActionLoading(null);
-    }
+    }, 500),
+    []
+  );
+
+  // Update configuration (now debounced)
+  const updateConfig = (updates: Partial<ServiceConfig>) => {
+    debouncedUpdateConfig(updates);
   };
 
   useEffect(() => {
     fetchServiceStatus();
     fetchModels();
     
-    // Auto-refresh status every 30 seconds
-    const interval = setInterval(fetchServiceStatus, 30000);
+    // Auto-refresh status and models every 30 seconds
+    const interval = setInterval(() => {
+      fetchServiceStatus();
+      fetchModels(); // Also refresh models
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -265,7 +279,20 @@ export default function ServiceManagementPanel() {
             <div className="mt-1 flex items-center gap-2">
               <code className="text-xs bg-gray-100 px-2 py-1 rounded">{services.tunnel.url}</code>
               <button
-                onClick={() => navigator.clipboard.writeText(services.tunnel.url!)}
+                onClick={() => {
+                  if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(services.tunnel.url!);
+                  } else {
+                    // Fallback for non-secure contexts
+                    const textArea = document.createElement('textarea');
+                    textArea.value = services.tunnel.url!;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    alert('URL copied to clipboard!');
+                  }
+                }}
                 className="text-xs text-blue-600 hover:text-blue-800"
               >
                 Copy

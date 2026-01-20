@@ -1,7 +1,7 @@
 import AceyLibraryManager from "./utils/libraryManager";
-import { AceyOrchestrator } from "../utils/orchestrator";
-import { AudioCodingOrchestrator } from "../utils/audioCodingOrchestrator";
-import { ContinuousLearningLoop } from "../utils/continuousLearning";
+import { AceyOrchestrator } from "./utils/orchestrator";
+import { AudioCodingOrchestrator } from "./utils/audioCodingOrchestrator";
+import { ContinuousLearningLoop } from "./utils/continuousLearning";
 import { RealTimeFineTune } from "./utils/realtimeFineTune";
 
 export interface SystemConfig {
@@ -53,7 +53,8 @@ export async function initializeSystem(config: SystemConfig): Promise<System> {
   // Validate library structure
   const validation = AceyLibraryManager.validateLibrary();
   if (!validation.valid) {
-    console.warn('⚠️ Library validation issues:', validation.issues);
+    console.error('❌ Library validation failed:', validation.issues);
+    throw new Error(`Library validation failed: ${validation.issues.join(', ')}`);
   }
 
   // 2. Initialize Core Orchestrator

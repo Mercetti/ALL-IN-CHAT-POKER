@@ -3,7 +3,7 @@
  * Central coordinator for all stability and resource management
  */
 
-import { SkillModule } from "../skills/skill-module";
+import { SkillModule } from "./skill-module";
 import { ResourceMonitor } from "./resource-monitor";
 import { Watchdog } from "./watchdog";
 import { Scheduler } from "./scheduler";

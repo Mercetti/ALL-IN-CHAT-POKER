@@ -359,15 +359,15 @@ export const getEmergencyLockStats = async (): Promise<{
     }
 
     const now = new Date();
-    const expiresAt = new Date(details.expiresAt);
+    const expiresAt = details.expiresAt ? new Date(details.expiresAt) : new Date();
     const timeRemaining = Math.max(0, expiresAt.getTime() - now.getTime());
 
     return {
       isActive: details.active,
-      triggeredBy: details.triggeredBy,
-      reason: details.reason,
-      triggeredAt: details.triggeredAt,
-      expiresAt: details.expiresAt,
+      triggeredBy: details.triggeredBy || '',
+      reason: details.reason || '',
+      triggeredAt: details.triggeredAt || '',
+      expiresAt: details.expiresAt || '',
       timeRemaining: Math.floor(timeRemaining / (1000 * 60)), // Convert to minutes
     };
   } catch (error) {

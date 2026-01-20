@@ -5,7 +5,8 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { spawnSync } = require('child_process');
+const chokidar = require('chokidar');
 
 class AutoWatcher {
   constructor() {
@@ -17,8 +18,30 @@ class AutoWatcher {
 
   checkFile(filePath) {
     try {
-      // Syntax check
-      execSync(`node -c "${filePath}"`, { stdio: 'pipe' });
+      // Validate and sanitize file path
+      if (!filePath || typeof filePath !== 'string') {
+        throw new Error('Invalid file path');
+      }
+      
+      // Prevent path traversal
+      const resolvedPath = path.resolve(filePath);
+      const normalizedPath = path.normalize(resolvedPath);
+      
+      // Ensure file is within expected bounds
+      if (!normalizedPath.startsWith(process.cwd())) {
+        throw new Error('File path outside project bounds');
+      }
+      
+      // Safe syntax check using spawnSync with arguments array
+      const result = spawnSync('node', ['-c', normalizedPath], { 
+        stdio: 'pipe',
+        timeout: 5000,
+        encoding: 'utf8'
+      });
+      
+      if (result.status !== 0) {
+        throw new Error(`Syntax check failed: ${result.stderr}`);
+      }
       
       // Check for critical functions if it's server.js
       if (filePath.includes('server.js')) {
@@ -51,32 +74,50 @@ class AutoWatcher {
     
     this.isWatching = true;
     
-    // Watch server.js specifically
-    const serverPath = path.join(__dirname, 'server.js');
-    
-    fs.watchFile(serverPath, (curr, prev) => {
-      if (curr.mtime > prev.mtime) {
-        const timerId = `server.js`;
-        
-        // Clear existing timer
-        if (this.timers.has(timerId)) {
-          clearTimeout(this.timers.get(timerId));
-        }
-        
-        // Set new timer with debounce
-        const timer = setTimeout(() => {
-          console.log(`\n🔄 File changed: server.js`);
-          this.checkFile(serverPath);
-          console.log('---');
-        }, this.debounceTime);
-        
-        this.timers.set(timerId, timer);
-      }
+    // Use chokidar for robust glob-based file watching
+    const watcher = chokidar.watch(this.watchedFiles, {
+      cwd: __dirname,
+      ignoreInitial: false,
+      persistent: true
     });
     
-    // Initial check
+    // Handle file changes
+    watcher.on('change', (filePath) => {
+      const fullPath = path.join(__dirname, filePath);
+      const timerId = filePath;
+      
+      // Clear existing timer
+      if (this.timers.has(timerId)) {
+        clearTimeout(this.timers.get(timerId));
+      }
+      
+      // Set new timer with debounce
+      const timer = setTimeout(() => {
+        console.log(`\n🔄 File changed: ${filePath}`);
+        this.checkFile(fullPath);
+        console.log('---');
+      }, this.debounceTime);
+      
+      this.timers.set(timerId, timer);
+    });
+    
+    // Handle errors
+    watcher.on('error', (error) => {
+      console.error('❌ Watcher error:', error);
+    });
+    
+    // Initial check for all files
     console.log('🔍 Initial syntax check...');
-    this.checkFile(serverPath);
+    this.watchedFiles.forEach(pattern => {
+      const files = require('glob').sync(pattern, { cwd: __dirname });
+      files.forEach(file => {
+        const fullPath = path.join(__dirname, file);
+        this.checkFile(fullPath);
+      });
+    });
+    
+    // Store watcher reference for cleanup
+    this.watcher = watcher;
     
     // Handle process termination
     process.on('SIGINT', () => {
@@ -89,22 +130,25 @@ class AutoWatcher {
   stopWatching() {
     if (!this.isWatching) return;
     
+    this.isWatching = false;
+    
     // Clear all timers
     this.timers.forEach(timer => clearTimeout(timer));
     this.timers.clear();
     
-    // Stop watching files
-    fs.unwatchFile(path.join(__dirname, 'server.js'));
+    // Close file watcher
+    if (this.watcher) {
+      this.watcher.close();
+    }
     
-    this.isWatching = false;
     console.log('✅ File watcher stopped');
   }
-}
 
-// Start watching if run directly
-if (require.main === module) {
-  const watcher = new AutoWatcher();
-  watcher.startWatching();
+  // Auto-start if run directly
+  if (require.main === module) {
+    const watcher = new AutoWatcher();
+    watcher.startWatching();
+  }
 }
 
 module.exports = AutoWatcher;

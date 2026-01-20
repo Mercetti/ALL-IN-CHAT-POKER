@@ -74,6 +74,7 @@ class AceyLibraryManager {
 
       const files = fs.readdirSync(folder);
       let folderArchived = 0;
+      const stagedFiles: string[] = [];
 
       files.forEach((file) => {
         const filePath = path.join(folder, file);
@@ -84,10 +85,27 @@ class AceyLibraryManager {
         
         if (ageInDays > days) {
           try {
+            // Stage file for archiving
             const archivePath = path.join(archiveSubFolder, file);
-            fs.renameSync(filePath, archivePath);
-            folderArchived++;
-            result.archived++;
+            const tempPath = `${archivePath}.tmp`;
+            
+            // Copy to temporary location first
+            fs.copyFileSync(filePath, tempPath);
+            
+            // Verify copy succeeded before moving
+            const tempStats = fs.statSync(tempPath);
+            if (tempStats.size === stats.size) {
+              // Atomic move - this is the critical fix
+              fs.renameSync(tempPath, archivePath);
+              folderArchived++;
+              result.archived++;
+            } else {
+              result.errors.push(`Failed to stage ${file}: size mismatch`);
+              // Clean up temp file
+              if (fs.existsSync(tempPath)) {
+                fs.unlinkSync(tempPath);
+              }
+            }
           } catch (error) {
             result.errors.push(`Failed to archive ${file}: ${error instanceof Error ? error.message : 'Unknown error'}`);
           }
@@ -191,6 +209,39 @@ class AceyLibraryManager {
   }
 
   /**
+   * Sanitize filename to prevent path traversal
+   */
+  static sanitizeFileName(fileName: string): string {
+    // Remove null bytes and control characters
+    const sanitized = fileName
+      .replace(/\0/g, '') // Remove null bytes
+      .replace(/[\r\n]/g, '') // Remove newlines
+      .replace(/[<>:"|?*]/g, '') // Remove special characters
+      .replace(/^\.\.+/, '') // Remove leading dots
+      .replace(/\.\./g, '.'); // Replace multiple dots with single
+      .substring(0, 255); // Limit length
+    
+    // Ensure filename doesn't contain path traversal
+    if (sanitized.includes('..') || sanitized.includes('/') || sanitized.includes('\\')) {
+      throw new Error('Invalid filename: path traversal detected');
+    }
+    
+    return sanitized;
+  }
+
+  /**
+   * Validate path stays within allowed boundaries
+   */
+  static validatePath(filePath: string, allowedBase: string): void {
+    const resolvedPath = path.resolve(filePath);
+    const normalizedPath = path.normalize(resolvedPath);
+    
+    if (!normalizedPath.startsWith(allowedBase)) {
+      throw new Error('Path traversal detected: access outside allowed directory');
+    }
+  }
+
+  /**
    * Save file to appropriate library folder
    */
   static saveFile(
@@ -198,13 +249,18 @@ class AceyLibraryManager {
     fileName: string,
     content: string | Buffer
   ): string {
+    // Sanitize filename
+    const sanitizedFileName = this.sanitizeFileName(fileName);
     const folderPath = this.paths[folderName];
     
     if (!fs.existsSync(folderPath)) {
       fs.mkdirSync(folderPath, { recursive: true });
     }
 
-    const filePath = path.join(folderPath, fileName);
+    const filePath = path.join(folderPath, sanitizedFileName);
+    
+    // Validate final path
+    this.validatePath(filePath, folderPath);
     
     if (typeof content === 'string') {
       fs.writeFileSync(filePath, content, 'utf8');
@@ -222,11 +278,18 @@ class AceyLibraryManager {
     folderName: keyof typeof ACEY_STORAGE_PATHS,
     fileName: string
   ): Buffer | null {
-    const filePath = path.join(this.paths[folderName], fileName);
+    // Sanitize filename
+    const sanitizedFileName = this.sanitizeFileName(fileName);
+    const folderPath = this.paths[folderName];
     
-    if (!fs.existsSync(filePath)) {
+    if (!fs.existsSync(folderPath)) {
       return null;
     }
+
+    const filePath = path.join(folderPath, sanitizedFileName);
+    
+    // Validate final path
+    this.validatePath(filePath, folderPath);
 
     return fs.readFileSync(filePath);
   }
@@ -238,17 +301,22 @@ class AceyLibraryManager {
     folderName: keyof typeof ACEY_STORAGE_PATHS,
     fileName: string
   ): boolean {
-    const filePath = path.join(this.paths[folderName], fileName);
+    // Sanitize filename
+    const sanitizedFileName = this.sanitizeFileName(fileName);
+    const filePath = path.join(this.paths[folderName], sanitizedFileName);
     
     if (!fs.existsSync(filePath)) {
       return false;
     }
 
+    // Validate final path
+    this.validatePath(filePath, this.paths[folderName]);
+
     try {
       fs.unlinkSync(filePath);
       return true;
     } catch (error) {
-      console.error(`Failed to delete file ${fileName}:`, error);
+      console.error(`Failed to delete file ${sanitizedFileName}:`, error);
       return false;
     }
   }

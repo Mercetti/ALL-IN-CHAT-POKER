@@ -88,29 +88,39 @@ class FreeAIManager {
 
   /**
    * Chat with AI using available provider
+   * Implements proper Chain of Responsibility pattern
    */
   async chat(messages = [], options = {}) {
-    try {
-      if (!this.currentProvider) {
-        throw new Error('No AI provider available');
+    const availableProviders = this.getAvailableProviders();
+    let lastError;
+
+    // Traverse through providers until one succeeds (The "Continue" Logic)
+    for (const providerName of availableProviders) {
+      const provider = this.providers[providerName];
+      
+      try {
+        logger.debug(`Attempting provider ${providerName}...`);
+        const response = await provider.chat(messages, options);
+        logger.info(`Provider ${providerName} succeeded`);
+        return response;
+      } catch (error) {
+        lastError = error;
+        logger.warn(`Provider ${providerName} failed, continuing to next...`, { 
+          error: error.message,
+          provider: providerName 
+        });
+        // Continue to next provider (correct "Continue" signal implementation)
+        continue;
       }
-      
-      const response = await this.currentProvider.chat(messages, options);
-      return response;
-    } catch (error) {
-      logger.error('AI chat failed', { 
-        provider: this.currentProvider.name, 
-        error: error.message 
-      });
-      
-      // Try fallback provider
-      if (this.options.fallbackToRules && this.currentProvider.name !== 'rules') {
-        logger.info('Falling back to rule-based responses');
-        return await this.providers.rules.chat(messages, options);
-      }
-      
-      throw error;
     }
+
+    // All providers failed, throw the last error
+    const errorMessage = `All AI providers failed. Last error: ${lastError?.message || 'Unknown error'}`;
+    logger.error(errorMessage, { 
+      availableProviders,
+      lastError: lastError?.message 
+    });
+    throw new Error(errorMessage);
   }
 
   /**

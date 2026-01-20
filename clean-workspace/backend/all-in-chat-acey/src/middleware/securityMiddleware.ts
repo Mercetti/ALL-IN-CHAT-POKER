@@ -23,6 +23,16 @@ export interface SecurityConfig {
 export interface RateLimitData {
   count: number;
   resetTime: number;
+  lastResetTime: number;
+}
+
+export interface RateLimitConfig {
+  windowMs: number;
+  max: number;
+  message: string;
+  standardHeaders: boolean;
+  ttlMs: number; // Time to live for each key
+  slidingWindowMs: number; // Sliding window for burst protection
 }
 
 export class SecurityMiddleware {
@@ -108,10 +118,12 @@ export class SecurityMiddleware {
   private corsMiddleware() {
     return (req: Request, res: Response, next: NextFunction) => {
       const origin = req.headers.origin;
+      
+      // Use exact matching instead of substring matching
       const isAllowed = this.config.trustedOrigins.some(trusted => 
-        origin && origin.toLowerCase().includes(trusted.toLowerCase())
+        trusted === origin
       );
-
+      
       if (isAllowed) {
         res.header('Access-Control-Allow-Origin', origin);
         res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -122,7 +134,7 @@ export class SecurityMiddleware {
         this.logger.warn(`CORS blocked for origin: ${origin}`, { ip: req.ip });
         return res.status(403).json({ error: 'CORS policy violation' });
       }
-
+      
       next();
     };
   }
@@ -159,30 +171,8 @@ export class SecurityMiddleware {
       max: this.config.rateLimit?.max || 100,
       message: this.config.rateLimit?.message || 'Too many requests',
       standardHeaders: this.config.rateLimit?.standardHeaders || true,
-      keyGenerator: (req: Request) => {
-        const ip = req.ip || req.connection.remoteAddress || 'unknown';
-        return `${ip}_${Date.now()}`;
-      },
-      skip: (req: Request) => {
-        // Skip rate limiting for health checks and static assets
-        const skipPaths = ['/health', '/metrics', '/favicon.ico', '/robots.txt'];
-        return skipPaths.some(path => req.path?.startsWith(path));
-      },
-      handler: (req: Request, res: Response, next: NextFunction) => {
-        // Custom rate limit handling
-        const ip = req.ip || req.connection.remoteAddress || 'unknown';
-        const key = this.rateLimitStore.get(ip);
-        
-        if (key) {
-          key.count++;
-          if (key.count > (this.config.rateLimit?.max || 100)) {
-            res.status(429).json({
-              error: 'Too many requests',
-              message: this.config.rateLimit?.message || 'Too many requests',
-              retryAfter: (this.config.rateLimit?.windowMs || 900000) / 1000,
-            });
-            return;
-          }
+      ttlMs: this.config.rateLimit?.ttlMs || 900000, // 15 minutes
+      slidingWindowMs: this.config.rateLimit?.slidingWindowMs || 60000 // 1 minute
         } else {
           this.rateLimitStore.set(ip, {
             count: 1,

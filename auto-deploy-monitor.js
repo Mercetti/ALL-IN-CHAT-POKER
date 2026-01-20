@@ -54,21 +54,70 @@ class AutoDeployMonitor {
     try {
       console.log('🔄 Rolling back deployment...');
       
-      // Get previous deployment
-      const deployments = execSync('fly deployments list -a all-in-chat-poker', { encoding: 'utf8' });
-      const lines = deployments.split('\n').filter(line => line.trim());
+      // Get previous deployment with JSON output for reliability
+      let deployments;
+      try {
+        deployments = execSync('fly deployments list -a all-in-chat-poker --format json', { encoding: 'utf8' });
+      } catch (cliError) {
+        console.error('Failed to get deployments:', cliError.message);
+        // Fallback to basic parsing
+        deployments = execSync('fly deployments list -a all-in-chat-poker', { encoding: 'utf8' });
+      }
       
-      if (lines.length > 2) {
-        const previousDeployment = lines[1].split(' ')[0];
-        console.log(`📦 Rolling back to deployment: ${previousDeployment}`);
-        
-        execSync(`fly deploy rollback -a all-in-chat-poker ${previousDeployment}`, { stdio: 'inherit' });
+      if (!deployments || typeof deployments !== 'string') {
+        console.log('❌ No deployments found');
+        return false;
+      }
+      
+      // Parse JSON response
+      let deploymentList;
+      try {
+        deploymentList = JSON.parse(deployments);
+      } catch (parseError) {
+        console.error('Failed to parse deployments JSON:', parseError.message);
+        return false;
+      }
+      
+      // Find the most recent successful deployment
+      const successfulDeployments = deploymentList.filter(d => 
+        d.status === 'successful' || d.status === 'deployed'
+      );
+      
+      if (successfulDeployments.length === 0) {
+        console.log('❌ No successful deployments found to rollback');
+        return false;
+      }
+      
+      // Sort by creation time and get the most recent
+      successfulDeployments.sort((a, b) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      
+      const previousDeployment = successfulDeployments[0];
+      
+      if (!previousDeployment || !previousDeployment.id) {
+        console.log('❌ Invalid deployment data');
+        return false;
+      }
+      
+      console.log(`📦 Rolling back to deployment: ${previousDeployment.id} (${previousDeployment.created_at})`);
+      
+      // Execute rollback with better error handling
+      const rollbackResult = execSync(`fly deploy rollback -a all-in-chat-poker ${previousDeployment.id}`, { 
+        stdio: 'inherit',
+        timeout: 30000,
+        encoding: 'utf8'
+      });
+      
+      // Check rollback success
+      if (rollbackResult.includes('successfully') || rollbackResult.includes('rolled back')) {
         console.log('✅ Rollback completed');
         return true;
       } else {
-        console.log('❌ No previous deployment found');
+        console.error('❌ Rollback command output:', rollbackResult);
         return false;
       }
+      
     } catch (error) {
       console.error('❌ Rollback failed:', error.message);
       return false;

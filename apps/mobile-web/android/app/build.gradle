@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     namespace = "com.merce.aceycontrol"
-    compileSdk = rootProject.ext.compileSdkVersion
+    compileSdk 33
     defaultConfig {
         applicationId "com.merce.aceycontrol"
         minSdkVersion rootProject.ext.minSdkVersion
