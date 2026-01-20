@@ -1,0 +1,271 @@
+{
+  "engineName": "Helm Control",
+  "version": "v2",
+  "skills": [
+    {
+      "id": "code_helper",
+      "name": "Code Helper",
+      "description": "Generates, validates, and refactors code for supported projects",
+      "version": "1.0.0",
+      "permissions": ["owner", "admin", "developer"],
+      "learningBoundaries": {
+        "autoImprove": true,
+        "locked": ["sensitive_security_routines"]
+      },
+      "loggingPriority": "critical",
+      "orchestrationFallback": ["llm_secondary", "llm_tertiary"],
+      "integration": ["websites", "All-In Chat Poker demo"],
+      "metadata": {
+        "author": "Helm Control",
+        "lastUpdated": "2026-01-20"
+      }
+    },
+    {
+      "id": "audio_maestro",
+      "name": "Audio Maestro",
+      "description": "Generates audio content, voice effects, or background music using internal audio engine",
+      "version": "1.0.0",
+      "permissions": ["owner", "admin"],
+      "learningBoundaries": {
+        "autoImprove": true,
+        "locked": []
+      },
+      "loggingPriority": "info",
+      "orchestrationFallback": ["llm_secondary"],
+      "integration": ["websites", "All-In Chat Poker demo"],
+      "metadata": {
+        "author": "Helm Control",
+        "lastUpdated": "2026-01-20"
+      }
+    },
+    {
+      "id": "graphics_wizard",
+      "name": "Graphics Wizard",
+      "description": "Generates custom graphics, badges, and cosmetic assets",
+      "version": "1.0.0",
+      "permissions": ["owner", "admin", "creator"],
+      "learningBoundaries": {
+        "autoImprove": true,
+        "locked": []
+      },
+      "loggingPriority": "info",
+      "orchestrationFallback": ["llm_secondary"],
+      "integration": ["websites", "All-In Chat Poker demo"],
+      "metadata": {
+        "author": "Helm Control",
+        "lastUpdated": "2026-01-20"
+      }
+    },
+    {
+      "id": "analytics_engine",
+      "name": "Analytics Engine",
+      "description": "Processes data, generates reports, and provides insights",
+      "version": "1.0.0",
+      "permissions": ["owner", "admin", "developer"],
+      "learningBoundaries": {
+        "autoImprove": true,
+        "locked": ["user_data_access"]
+      },
+      "loggingPriority": "info",
+      "orchestrationFallback": ["llm_secondary"],
+      "integration": ["websites", "All-In Chat Poker demo"],
+      "metadata": {
+        "author": "Helm Control",
+        "lastUpdated": "2026-01-20"
+      }
+    },
+    {
+      "id": "web_manager",
+      "name": "Web Manager",
+      "description": "Manages website deployment, monitoring, and optimization",
+      "version": "1.0.0",
+      "permissions": ["owner", "admin"],
+      "learningBoundaries": {
+        "autoImprove": true,
+        "locked": ["production_changes"]
+      },
+      "loggingPriority": "critical",
+      "orchestrationFallback": ["llm_secondary", "llm_tertiary"],
+      "integration": ["websites"],
+      "metadata": {
+        "author": "Helm Control",
+        "lastUpdated": "2026-01-20"
+      }
+    },
+    {
+      "id": "security_monitor",
+      "name": "Security Monitor",
+      "description": "Monitors system security, compliance, and access controls",
+      "version": "1.0.0",
+      "permissions": ["owner", "admin"],
+      "learningBoundaries": {
+        "autoImprove": true,
+        "locked": ["audit_modification", "core_security"]
+      },
+      "loggingPriority": "critical",
+      "orchestrationFallback": ["llm_secondary"],
+      "integration": ["websites"],
+      "metadata": {
+        "author": "Helm Control",
+        "lastUpdated": "2026-01-20"
+      }
+    },
+    {
+      "id": "partner_integration",
+      "name": "Partner Integration",
+      "description": "Manages third-party service integrations and APIs",
+      "version": "1.0.0",
+      "permissions": ["owner", "admin"],
+      "learningBoundaries": {
+        "autoImprove": true,
+        "locked": ["credential_sharing", "cross_tenant_access"]
+      },
+      "loggingPriority": "critical",
+      "orchestrationFallback": ["llm_secondary"],
+      "integration": ["websites"],
+      "metadata": {
+        "author": "Helm Control",
+        "lastUpdated": "2026-01-20"
+      }
+    },
+    {
+      "id": "financial_processor",
+      "name": "Financial Processor",
+      "description": "Processes payments, financial calculations, and compliance",
+      "version": "1.0.0",
+      "permissions": ["owner"],
+      "learningBoundaries": {
+        "autoImprove": false,
+        "locked": ["auto_payouts", "compliance_bypass"]
+      },
+      "loggingPriority": "critical",
+      "orchestrationFallback": ["manual_approval", "emergency_freeze"],
+      "integration": ["websites"],
+      "metadata": {
+        "author": "Helm Control",
+        "lastUpdated": "2026-01-20"
+      }
+    },
+    {
+      "id": "multi_site_manager",
+      "name": "Multi-Site Manager",
+      "description": "Manages multiple websites and deployments",
+      "version": "1.0.0",
+      "permissions": ["owner", "admin"],
+      "learningBoundaries": {
+        "autoImprove": true,
+        "locked": ["cross_site_modifications"]
+      },
+      "loggingPriority": "info",
+      "orchestrationFallback": ["llm_secondary"],
+      "integration": ["websites"],
+      "metadata": {
+        "author": "Helm Control",
+        "lastUpdated": "2026-01-20"
+      }
+    },
+    {
+      "id": "white_label_engine",
+      "name": "White-Label Engine",
+      "description": "Manages branding, customization, and white-label deployments",
+      "version": "1.0.0",
+      "permissions": ["owner"],
+      "learningBoundaries": {
+        "autoImprove": false,
+        "locked": ["brand_removal", "helm_branding_modification"]
+      },
+      "loggingPriority": "info",
+      "orchestrationFallback": ["manual_configuration", "template_based"],
+      "integration": ["websites"],
+      "metadata": {
+        "author": "Helm Control",
+        "lastUpdated": "2026-01-20"
+      }
+    },
+    {
+      "id": "helm_orchestrator",
+      "name": "Helm Orchestrator",
+      "description": "Internal orchestration and system management",
+      "version": "1.0.0",
+      "permissions": ["owner"],
+      "learningBoundaries": {
+        "autoImprove": true,
+        "locked": ["user_data_access", "core_security_modification"]
+      },
+      "loggingPriority": "critical",
+      "orchestrationFallback": ["rule_based", "manual_override"],
+      "integration": ["helm-control"],
+      "metadata": {
+        "author": "Helm Control",
+        "lastUpdated": "2026-01-20"
+      }
+    },
+    {
+      "id": "memory_manager",
+      "name": "Memory Manager",
+      "description": "Manages data storage, retrieval, and memory optimization",
+      "version": "1.0.0",
+      "permissions": ["owner", "admin"],
+      "learningBoundaries": {
+        "autoImprove": true,
+        "locked": ["encrypted_data_access", "backup_policy_modification"]
+      },
+      "loggingPriority": "info",
+      "orchestrationFallback": ["manual_cleanup", "emergency_purge"],
+      "integration": ["helm-control"],
+      "metadata": {
+        "author": "Helm Control",
+        "lastUpdated": "2026-01-20"
+      }
+    },
+    {
+      "id": "self_healing",
+      "name": "Self-Healing System",
+      "description": "System recovery, error correction, and maintenance",
+      "version": "1.0.0",
+      "permissions": ["owner", "admin"],
+      "learningBoundaries": {
+        "autoImprove": true,
+        "locked": ["core_security_settings", "recovery_action_modification"]
+      },
+      "loggingPriority": "critical",
+      "orchestrationFallback": ["manual_recovery", "emergency_restart"],
+      "integration": ["helm-control"],
+      "metadata": {
+        "author": "Helm Control",
+        "lastUpdated": "2026-01-20"
+      }
+    }
+  ],
+  "schema": {
+    "version": "2.0.0",
+    "requiredFields": ["id", "name", "description", "version", "permissions"],
+    "optionalFields": ["learningBoundaries", "loggingPriority", "orchestrationFallback", "integration"],
+    "validationRules": {
+      "id": "required|string|unique",
+      "version": "required|semver",
+      "permissions": "required|array|min:1",
+      "learningBoundaries.autoImprove": "boolean",
+      "loggingPriority": "enum:critical,info,debug"
+    }
+  },
+  "deployment": {
+    "engineName": "Helm Control",
+    "version": "v2",
+    "compatibility": {
+      "node": ">=18.0.0",
+      "memory": ">=4GB",
+      "storage": ">=10GB"
+    },
+    "installation": {
+      "steps": [
+        "Clone repository",
+        "Install dependencies",
+        "Configure environment",
+        "Initialize data directories",
+        "Start services"
+      ],
+      "estimatedTime": "15-30 minutes"
+    }
+  }
+}
