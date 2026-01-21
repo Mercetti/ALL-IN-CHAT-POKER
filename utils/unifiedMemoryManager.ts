@@ -168,7 +168,7 @@ export function updatePatternUsage(patternId: string, success: boolean): void {
 
 export function getLearningAnalytics(): UnifiedLearningAnalytics {
   const patternsBySkill = {} as Record<SkillType, number>;
-  const patternsByContentType = {} as Record<'Code' | 'Image' | 'Audio', number>;
+  const patternsByContentType = {} as Record<'Code' | 'Image' | 'Audio' | 'Analytics' | 'MiniPersona' | 'DonationAutomation', number>;
   let totalSuccessRate = 0;
   
   aceyLearningDataset.forEach(pattern => {
