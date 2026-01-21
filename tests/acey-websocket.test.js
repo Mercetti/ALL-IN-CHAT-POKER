@@ -1,6 +1,6 @@
 /**
- * Acey WebSocket Integration Tests
- * Tests the Acey WebSocket server functionality with helper utilities
+ * Helm WebSocket Integration Tests
+ * Tests the Helm WebSocket server functionality with helper utilities
  */
 
 // Mock logger to avoid console output during tests
@@ -15,12 +15,12 @@ jest.mock('../server/logger', () => {
   return jest.fn(() => mockLogger);
 });
 
-const { AceyWebSocket } = require('../server/acey-websocket');
+const { HelmWebSocket } = require('../server/helm-websocket');
 const { WebSocketTestServer, WebSocketTestClient, WebSocketTestUtils } = require('./utils/websocket-test-helper');
 
-describe('AceyWebSocket Integration Tests', () => {
+describe('HelmWebSocket Integration Tests', () => {
   let testServer;
-  let aceyWebSocket;
+  let helmWebSocket;
   let client;
   let port;
   let wsUrl;

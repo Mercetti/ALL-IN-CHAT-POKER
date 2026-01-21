@@ -198,7 +198,7 @@ const DiskUsageMonitor: React.FC = () => {
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
               className="bg-blue-600 h-2 rounded-full"
-              style={{ width: `${Math.min((diskUsage?.librarySize || 0) / 1024 / 1024 / 1000 * 100, 100)}%` }}
+              style="{% raw %}{{ width: `${Math.min((diskUsage?.librarySize || 0) / 1024 / 1024 / 1000 * 100, 100)}%` }}{% endraw %}"
             />
           </div>
         </div>

@@ -907,32 +907,22 @@ io.on('connection', (socket) => {
 });
 
 // ======================
-// Acey WebSocket Integration
+// Helm WebSocket Integration
 // ======================
-const { AceyWebSocket } = require('./server/acey-websocket');
+const { HelmWebSocket } = require('./server/helm-websocket');
 const { extractUserLogin, getChannelFromSocket } = require('./server/auth');
 
-// Initialize Acey WebSocket server
-const aceyWebSocket = new AceyWebSocket({ 
+// Initialize Helm WebSocket server
+const helmWebSocket = new HelmWebSocket({ 
   server: server, // Attach to main HTTP server
-  path: '/acey',
+  path: '/helm',
   logger: console,
-  useAI: true,
-  // Add authentication handler
-  authenticate: (req) => {
-    const user = extractUserLogin(req);
-    const channel = getChannelFromSocket(req);
-    if (!user || !channel) {
-      return false;
-    }
-    return { user, channel };
-  }
+  helmEngine: helmEngine
 });
 
-// Start Acey WebSocket service
+// Start Helm WebSocket service
 if (!config.isTest()) {
-  aceyWebSocket.start();
-  console.log('🎤 Acey WebSocket server initialized');
+  console.log('🎤 Helm WebSocket server initialized');
 }
 
 // Initialize database and modules
@@ -1018,7 +1008,7 @@ server.listen(PORT, HOST, () => {
 // Handle graceful shutdown
 process.on('SIGTERM', () => {
   console.log('SIGTERM received, shutting down gracefully...');
-  aceyWebSocket.stop();  // Add Acey shutdown
+  helmWebSocket.close();  // Add Helm shutdown
   if (aceyBridge) {
     aceyBridge.disconnect();  // Add Bridge shutdown
   }
@@ -1030,7 +1020,7 @@ process.on('SIGTERM', () => {
 
 process.on('SIGINT', () => {
   console.log('SIGINT received, shutting down gracefully...');
-  aceyWebSocket.stop();  // Add Acey shutdown
+  helmWebSocket.close();  // Add Helm shutdown
   if (aceyBridge) {
     aceyBridge.disconnect();  // Add Bridge shutdown
   }
