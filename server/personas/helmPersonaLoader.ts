@@ -3,7 +3,7 @@
  * Dynamically loads and manages persona configurations for the Helm Control engine
  */
 
-import { PersonaConfig, loadPersonaConfig, generatePersonaResponse, validatePersonaResponse } from '../personas/acey/persona-config';
+import { PersonaConfig, loadPersonaConfig, generatePersonaResponse, validatePersonaResponse } from '../../personas/acey/persona-config';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -226,10 +226,10 @@ You are ${config.personaName}, an AI assistant for ${config.domain}.
 - Traits: ${config.personality.traits.join(', ')}
 
 ## Capabilities
-${config.domainKnowledge.primary.map(capability => `- ${capability}`).join('\n')}
+${config.domainKnowledge.primary.map((capability: string) => `- ${capability}`).join('\n')}
 
 ## Limitations
-${config.domainKnowledge.limitations.map(limitation => `- ${limitation}`).join('\n')}
+${config.domainKnowledge.limitations.map((limitation: string) => `- ${limitation}`).join('\n')}
 
 ## Safety Guidelines
 - Always disclose AI nature

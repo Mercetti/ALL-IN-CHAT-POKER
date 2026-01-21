@@ -1,0 +1,111 @@
+version: '3.8'
+
+services:
+  helm-engine:
+    image: helm/control:enterprise
+    container_name: helm-enterprise
+    restart: unless-stopped
+    environment:
+      - HELM_LICENSE_PATH=/license/helm.json
+      - HELM_CHECKIN_REQUIRED=true
+      - HELM_TAMPER_DETECTION=true
+      - HELM_OBFUSCATED=true
+      - HELM_NODE_ID=${HELM_NODE_ID:-helm-node-1}
+      - HELM_VERSION=1.0.0
+      - NODE_ENV=production
+    volumes:
+      - ./license:/license:ro
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./config:/app/config:ro
+    ports:
+      - "8080:8080"
+    networks:
+      - helm-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+    labels:
+      - "helm.control=enterprise"
+      - "helm.control.version=1.0.0"
+
+  # Optional: Redis for caching (enterprise feature)
+  redis:
+    image: redis:7-alpine
+    container_name: helm-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-helm-redis-secure}
+    volumes:
+      - redis-data:/data
+    networks:
+      - helm-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # Optional: PostgreSQL for audit logs (enterprise feature)
+  postgres:
+    image: postgres:15-alpine
+    container_name: helm-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-helm_audit}
+      - POSTGRES_USER=${POSTGRES_USER:-helm}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-secure-helm-password}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - helm-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+
+  # Optional: Nginx reverse proxy (enterprise feature)
+  nginx:
+    image: nginx:alpine
+    container_name: helm-nginx
+    restart: unless-stopped
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    networks:
+      - helm-network
+    depends_on:
+      - helm-engine
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+volumes:
+  redis-data:
+    driver: local
+  postgres-data:
+    driver: local
+
+networks:
+  helm-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
