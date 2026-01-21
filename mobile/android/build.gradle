@@ -16,7 +16,18 @@ buildscript {
     }
     dependencies {
         classpath("com.android.tools.build:gradle:8.7.2")
+        classpath("com.facebook.react:react-native-gradle-plugin:0.72.11")
     }
+}
+
+// Apply React Native plugin
+apply plugin: "com.facebook.react"
+
+// React Native configuration
+ext {
+    react = [
+        enableHermes: false
+    ]
 }
 
 allprojects {
