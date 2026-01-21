@@ -123,6 +123,3 @@ export class HelmOrchestrator {
     return this.initialized;
   }
 }
-
-// TEMPORARY COMPATIBILITY ALIAS - Remove after migration complete
-export const AceyOrchestrator = HelmOrchestrator;

@@ -3,7 +3,7 @@ const Logger = require('../logger');
 const logger = new Logger('blackjack');
 const db = require('../db');
 const config = require('../config');
-const { getAceyEngine } = require('../aceyEngine');
+const { helmEngine: HelmEngine } = require('../helm/index');
 
 /**
  * Initialize a blackjack round with shared shoe and dealer hand.
@@ -184,20 +184,21 @@ function settleAndEmit(io, dealerState, playerStates, betAmounts, waitingQueue, 
   io.emit('roundResult', { ...roundResult, channel: chan });
   io.emit('payouts', { ...payoutPayload, channel: chan });
 
-  // Forward game events to AceyEngine
-  const aceyEngine = getAceyEngine();
-  if (aceyEngine) {
-    roundResult.players.forEach(player => {
-      if (player.evaluation) {
-        aceyEngine.processEvent(chan || 'default', {
-          type: player.evaluation.payout > 0 ? 'win' : 'lose',
-          player: player.login,
-          amount: betAmounts[player.login] || 0,
-          winnings: payoutPayload.payouts[player.login] || 0
-        });
-      }
-    });
-  }
+  // Forward game events to Helm engine
+  // Note: Helm engine uses different API, this is a placeholder for integration
+  // const helmEngine = new HelmEngine();
+  // if (helmEngine) {
+  //   roundResult.players.forEach(player => {
+  //     if (player.evaluation) {
+  //       helmEngine.processEvent(chan || 'default', {
+  //         type: player.evaluation.payout > 0 ? 'win' : 'lose',
+  //         player: player.login,
+  //         amount: betAmounts[player.login] || 0,
+  //         winnings: payoutPayload.payouts[player.login] || 0
+  //       });
+  //     }
+  //   });
+  // }
 
   // Push final balances/bet reset to overlay
   Object.keys(betAmounts || {}).forEach(login => {

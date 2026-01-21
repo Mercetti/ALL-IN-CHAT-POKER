@@ -1,6 +1,6 @@
 const game = require('../game');
 const db = require('../db');
-const { getAceyEngine } = require('../aceyEngine');
+const { helmEngine: HelmEngine } = require('../helm/index');
 
 /**
  * Initialize a poker round with shared deck/community and per-player hole cards.
@@ -111,20 +111,21 @@ function settleAndEmit(io, playerStates, communityCards, betAmounts, waitingQueu
   io.emit('roundResult', { ...roundResult, channel: chan });
   io.emit('payouts', { ...payoutPayload, channel: chan });
 
-  // Forward game events to AceyEngine
-  const aceyEngine = getAceyEngine();
-  if (aceyEngine) {
-    roundResult.players.forEach(player => {
-      if (player.evaluation) {
-        aceyEngine.processEvent(chan || 'default', {
-          type: player.evaluation.payout > 0 ? 'win' : 'lose',
-          player: player.login,
-          amount: betAmounts[player.login] || 0,
-          winnings: payoutPayload.payouts[player.login] || 0
-        });
-      }
-    });
-  }
+  // Forward game events to Helm engine
+  // Note: Helm engine uses different API, this is a placeholder for integration
+  // const helmEngine = new HelmEngine();
+  // if (helmEngine) {
+  //   roundResult.players.forEach(player => {
+  //     if (player.evaluation) {
+  //       helmEngine.processEvent(chan || 'default', {
+  //         type: player.evaluation.payout > 0 ? 'win' : 'lose',
+  //         player: player.login,
+  //         amount: betAmounts[player.login] || 0,
+  //         winnings: payoutPayload.payouts[player.login] || 0
+  //       });
+  //     }
+  //   });
+  // }
 
   const broke = [];
   Object.keys(playerStates).forEach(login => {

@@ -1,23 +1,14 @@
 /**
- * Helm Compatibility Layer
- * Provides backward compatibility during migration from Acey to Helm
+ * Helm Engine - Direct Exports
+ * Use these imports for new code
  */
 
 // Import Helm components
 const { helmEngine, processHelmRequest, HelmEngine } = require('./helm/index');
 const { helmPersonaLoader } = require('./personas/helmPersonaLoader');
 
-// Export compatibility aliases
+// Export direct Helm components
 module.exports = {
-  // Engine compatibility
-  AceyEngine: HelmEngine,
-  aceyEngine: helmEngine,
-  processAceyRequest: processHelmRequest,
-  
-  // Persona compatibility
-  aceyPersonaLoader: helmPersonaLoader,
-  
-  // Direct Helm exports (for new code)
   helmEngine,
   processHelmRequest,
   HelmEngine,
@@ -25,10 +16,6 @@ module.exports = {
 };
 
 // Also export as ES6 modules for TypeScript compatibility
-exports.AceyEngine = HelmEngine;
-exports.aceyEngine = helmEngine;
-exports.processAceyRequest = processHelmRequest;
-exports.aceyPersonaLoader = helmPersonaLoader;
 exports.helmEngine = helmEngine;
 exports.processHelmRequest = processHelmRequest;
 exports.HelmEngine = HelmEngine;

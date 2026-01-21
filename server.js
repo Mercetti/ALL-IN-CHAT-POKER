@@ -723,20 +723,23 @@ try {
 }
 
 // ======================
-// Acey Engine Integration
+// Helm Engine Integration
 // ======================
-const { AceyEngine } = require('./server/aceyEngine');
+const { helmEngine: HelmEngine } = require('./server/helm/index');
 const FallbackDealer = require('./server/fallbackDealer');
 
-let aceyEngine;
+let helmEngine;
 try {
-  aceyEngine = new AceyEngine({
-    logger: console,
-    useAI: true
+  helmEngine = new HelmEngine({
+    enableSecurity: true,
+    enableMemory: true,
+    enablePersonaSystem: true,
+    defaultPersona: 'acey',
+    logLevel: 'info'
   });
 } catch (error) {
-  console.error('Failed to initialize AceyEngine, using fallback dealer', error);
-  aceyEngine = {
+  console.error('Failed to initialize Helm engine, using fallback dealer', error);
+  helmEngine = {
     addChatMessage: () => {},
     addGameEvent: (sessionId, event) => {
       const { type, player, card } = event;
@@ -753,7 +756,7 @@ try {
     }
   };
 }
-console.log('AceyEngine created successfully');
+console.log('Helm engine created successfully');
 
 // ======================
 // AI Control Center Integration

@@ -355,8 +355,3 @@ export const helmEngine = new HelmEngine();
 export async function processHelmRequest(request: HelmRequest): Promise<HelmResponse> {
   return helmEngine.processRequest(request);
 }
-
-// Compatibility aliases for migration
-export const AceyEngine = HelmEngine;
-export const aceyEngine = helmEngine;
-export const processAceyRequest = processHelmRequest;
