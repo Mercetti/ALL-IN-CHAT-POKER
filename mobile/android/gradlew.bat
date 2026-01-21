@@ -42,17 +42,20 @@ set JAVA_EXE=java.exe
 %JAVA_EXE% -version >NUL 2>&1
 if %ERRORLEVEL% equ 0 goto execute
 
-@rem Try to find compatible Java version (17 or 21)
+@rem Try to find compatible Java version (25)
 set JAVA_EXE=java.exe
-%JAVA_EXE% -version 2>&1 | findstr "17\." >NUL
+%JAVA_EXE% -version 2>&1 | findstr "25\." >NUL
 if %ERRORLEVEL% equ 0 goto execute
 
 @rem Try Java 21
 %JAVA_EXE% -version 2>&1 | findstr "21\." >NUL
 if %ERRORLEVEL% equ 0 goto execute
 
+@rem Try Java 17
+%JAVA_EXE% -version 2>&1 | findstr "17\." >NUL
+if %ERRORLEVEL% equ 0 goto execute
+
 @rem Try Java 11
-%JAVA_EXE=java.exe
 %JAVA_EXE% -version 2>&1 | findstr "11\." >NUL
 if %ERRORLEVEL% equ 0 goto execute
 
