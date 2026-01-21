@@ -1,135 +1,97 @@
 {
-  "timestamp": "2026-01-20T06:56:32.446Z",
+  "timestamp": "2026-01-21T17:09:58.635Z",
   "summary": {
-    "nodeCount": 7,
-    "edgeCount": 37,
+    "nodeCount": 3,
+    "edgeCount": 9,
     "nodeTypes": {
-      "symbol": 7
+      "symbol": 3
     },
     "edgeTypes": {
-      "calls": 37
+      "calls": 9
     },
     "errorNodes": 0,
     "suspectNodes": 0
   },
   "sampleNodes": [
     {
-      "id": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_startProcess",
-      "label": "startProcess",
+      "id": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_classpath",
+      "label": "classpath",
       "kind": "symbol",
-      "file": "c:\\Users\\merce\\Documents\\poker-game\\tools\\acey-dev-helper.js",
-      "line": 31,
+      "file": "c:\\Users\\merce\\Documents\\poker-game\\mobile\\android\\build.gradle",
+      "line": 1,
       "badges": [
         "spine"
       ]
     },
     {
-      "id": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
-      "label": "json",
+      "id": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_google",
+      "label": "google",
       "kind": "symbol",
-      "file": "c:\\Users\\merce\\Documents\\poker-game\\tools\\acey-dev-helper.js",
+      "file": "c:\\Users\\merce\\Documents\\poker-game\\mobile\\android\\build.gradle",
       "line": 1,
       "badges": []
     },
     {
-      "id": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
-      "label": "on",
+      "id": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_mavenCentral",
+      "label": "mavenCentral",
       "kind": "symbol",
-      "file": "c:\\Users\\merce\\Documents\\poker-game\\tools\\acey-dev-helper.js",
-      "line": 1,
-      "badges": []
-    },
-    {
-      "id": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
-      "label": "platform",
-      "kind": "symbol",
-      "file": "c:\\Users\\merce\\Documents\\poker-game\\tools\\acey-dev-helper.js",
-      "line": 1,
-      "badges": []
-    },
-    {
-      "id": "method_c__Users_merce_Documents_poker_game_server_routes_commands_ts_express",
-      "label": "express",
-      "kind": "symbol",
-      "file": "c:/Users/merce/Documents/poker-game/server/routes/commands.ts",
-      "line": 1,
-      "badges": []
-    },
-    {
-      "id": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
-      "label": "use",
-      "kind": "symbol",
-      "file": "c:\\Users\\merce\\Documents\\poker-game\\tools\\acey-dev-helper.js",
-      "line": 1,
-      "badges": []
-    },
-    {
-      "id": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
-      "label": "get",
-      "kind": "symbol",
-      "file": "c:\\Users\\merce\\Documents\\poker-game\\tools\\acey-dev-helper.js",
+      "file": "c:\\Users\\merce\\Documents\\poker-game\\mobile\\android\\build.gradle",
       "line": 1,
       "badges": []
     }
   ],
   "sampleEdges": [
     {
-      "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_startProcess",
-      "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
+      "from": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_classpath",
+      "to": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_google",
       "kind": "calls",
       "confidence": 0.4
     },
     {
-      "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_startProcess",
-      "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
+      "from": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_classpath",
+      "to": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_mavenCentral",
       "kind": "calls",
       "confidence": 0.4
     },
     {
-      "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
-      "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
+      "from": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_classpath",
+      "to": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_classpath",
       "kind": "calls",
       "confidence": 0.4
     },
     {
-      "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
-      "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
+      "from": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_google",
+      "to": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_google",
       "kind": "calls",
       "confidence": 0.4
     },
     {
-      "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
-      "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
+      "from": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_google",
+      "to": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_mavenCentral",
       "kind": "calls",
       "confidence": 0.4
     },
     {
-      "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
-      "to": "method_c__Users_merce_Documents_poker_game_server_routes_commands_ts_express",
+      "from": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_google",
+      "to": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_classpath",
       "kind": "calls",
       "confidence": 0.4
     },
     {
-      "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
-      "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
+      "from": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_mavenCentral",
+      "to": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_google",
       "kind": "calls",
       "confidence": 0.4
     },
     {
-      "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
-      "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
+      "from": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_mavenCentral",
+      "to": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_mavenCentral",
       "kind": "calls",
       "confidence": 0.4
     },
     {
-      "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
-      "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_startProcess",
-      "kind": "calls",
-      "confidence": 0.4
-    },
-    {
-      "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
-      "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
+      "from": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_mavenCentral",
+      "to": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_classpath",
       "kind": "calls",
       "confidence": 0.4
     }
@@ -137,59 +99,27 @@
   "fullGraph": {
     "nodes": [
       {
-        "id": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_startProcess",
-        "label": "startProcess",
-        "file": "c:\\Users\\merce\\Documents\\poker-game\\tools\\acey-dev-helper.js",
+        "id": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_classpath",
+        "label": "classpath",
+        "file": "c:\\Users\\merce\\Documents\\poker-game\\mobile\\android\\build.gradle",
         "kind": "symbol",
-        "line": 31,
+        "line": 1,
         "badges": [
           "spine"
         ]
       },
       {
-        "id": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
-        "label": "json",
-        "file": "c:\\Users\\merce\\Documents\\poker-game\\tools\\acey-dev-helper.js",
+        "id": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_google",
+        "label": "google",
+        "file": "c:\\Users\\merce\\Documents\\poker-game\\mobile\\android\\build.gradle",
         "kind": "symbol",
         "line": 1,
         "badges": []
       },
       {
-        "id": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
-        "label": "on",
-        "file": "c:\\Users\\merce\\Documents\\poker-game\\tools\\acey-dev-helper.js",
-        "kind": "symbol",
-        "line": 1,
-        "badges": []
-      },
-      {
-        "id": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
-        "label": "platform",
-        "file": "c:\\Users\\merce\\Documents\\poker-game\\tools\\acey-dev-helper.js",
-        "kind": "symbol",
-        "line": 1,
-        "badges": []
-      },
-      {
-        "id": "method_c__Users_merce_Documents_poker_game_server_routes_commands_ts_express",
-        "label": "express",
-        "file": "c:/Users/merce/Documents/poker-game/server/routes/commands.ts",
-        "kind": "symbol",
-        "line": 1,
-        "badges": []
-      },
-      {
-        "id": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
-        "label": "use",
-        "file": "c:\\Users\\merce\\Documents\\poker-game\\tools\\acey-dev-helper.js",
-        "kind": "symbol",
-        "line": 1,
-        "badges": []
-      },
-      {
-        "id": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
-        "label": "get",
-        "file": "c:\\Users\\merce\\Documents\\poker-game\\tools\\acey-dev-helper.js",
+        "id": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_mavenCentral",
+        "label": "mavenCentral",
+        "file": "c:\\Users\\merce\\Documents\\poker-game\\mobile\\android\\build.gradle",
         "kind": "symbol",
         "line": 1,
         "badges": []
@@ -197,8 +127,8 @@
     ],
     "edges": [
       {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_startProcess",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
+        "from": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_classpath",
+        "to": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_google",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -206,8 +136,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_startProcess",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
+        "from": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_classpath",
+        "to": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_mavenCentral",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -215,8 +145,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
+        "from": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_classpath",
+        "to": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_classpath",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -224,8 +154,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
+        "from": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_google",
+        "to": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_google",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -233,8 +163,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
+        "from": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_google",
+        "to": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_mavenCentral",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -242,18 +172,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
-        "to": "method_c__Users_merce_Documents_poker_game_server_routes_commands_ts_express",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward",
-          "cross-file"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
+        "from": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_google",
+        "to": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_classpath",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -261,8 +181,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
+        "from": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_mavenCentral",
+        "to": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_google",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -270,8 +190,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_startProcess",
+        "from": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_mavenCentral",
+        "to": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_mavenCentral",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
@@ -279,255 +199,8 @@
         ]
       },
       {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
-        "to": "method_c__Users_merce_Documents_poker_game_server_routes_commands_ts_express",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward",
-          "cross-file"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_startProcess",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
-        "to": "method_c__Users_merce_Documents_poker_game_server_routes_commands_ts_express",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward",
-          "cross-file"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_startProcess",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
-        "to": "method_c__Users_merce_Documents_poker_game_server_routes_commands_ts_express",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward",
-          "cross-file"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_startProcess",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_platform",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_json",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
-        "to": "method_c__Users_merce_Documents_poker_game_server_routes_commands_ts_express",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward",
-          "cross-file"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_use",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_get",
-        "kind": "calls",
-        "confidence": 0.4,
-        "evidence": [
-          "ast-forward"
-        ]
-      },
-      {
-        "from": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_on",
-        "to": "method_c__Users_merce_Documents_poker_game_tools_acey_dev_helper_js_startProcess",
+        "from": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_mavenCentral",
+        "to": "method_c__Users_merce_Documents_poker_game_mobile_android_build_gradle_classpath",
         "kind": "calls",
         "confidence": 0.4,
         "evidence": [
