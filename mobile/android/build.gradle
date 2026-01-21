@@ -5,6 +5,7 @@ buildscript {
         google()
         mavenCentral()
         maven { url "https://www.jitpack.io" }
+        maven { url "https://repo.maven.apache.org/maven2" }
     }
     ext {
         buildToolsVersion = "34.0.0"
@@ -15,7 +16,7 @@ buildscript {
     }
     dependencies {
         classpath("com.android.tools.build:gradle:8.9.0")
-        classpath("com.facebook.react:react-native-gradle-plugin:0.72.6")
+        classpath("com.facebook.react:react-native-gradle-plugin")
     }
 }
 
