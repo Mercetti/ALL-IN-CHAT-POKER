@@ -1,18 +1,82 @@
-# Exclude files not needed for container builds to speed up Fly deploys
-node_modules
+# Development dependencies
+node_modules/
 npm-debug.log*
-.git
-.gitignore
-.vscode
-.DS_Store
-*.log
-*.db
-data/
-tmp/
-temp/
-dist/
+yarn-debug.log*
+yarn-error.log*
+
+# Build artifacts
 build/
+dist/
+.next/
+.turbo/
+.vite/
+.cache/
+
+# Development files
+.env.local
+.env.development
+.env.test
+
+# Logs
+logs/
+*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
 coverage/
-*.local
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
 .env
-.env.*
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Large development apps (keep source, exclude built)
+acey-control-apk/
+acey-control-center/
+acey-control-simple/
+mobile/
+apps/
+
+# Test outputs
+test-results/
+playwright-report/
+test-output/
+
+# Clean workspace
+clean-workspace/
+
+# Git (will be rebuilt in container)
+.git/

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Helm Control - Optimized</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/optimized-bundle.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Navigation -->
+        <nav class="bg-gray-900 text-white p-4">
+            <div class="container mx-auto flex justify-between items-center">
+                <h1 class="text-xl font-bold">HELM CONTROL</h1>
+                <div class="space-x-4">
+                    <button data-panel="dashboard" class="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700">Dashboard</button>
+                    <button data-panel="analytics" class="px-4 py-2 bg-green-600 rounded hover:bg-green-700">Analytics</button>
+                    <button data-panel="logs" class="px-4 py-2 bg-yellow-600 rounded hover:bg-yellow-700">Logs</button>
+                    <button data-panel="demo" class="px-4 py-2 bg-purple-600 rounded hover:bg-purple-700">Demo</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="container mx-auto p-6">
+            <div id="admin-panel-container">
+                <!-- Dynamic content will be loaded here -->
+                <div class="text-center py-8">
+                    <div class="loading-spinner"></div>
+                    <p>Loading Helm Control...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Optimized JavaScript Bundle -->
+    <script src="js/dynamic-loader.js"></script>
+    <script src="js/optimized-admin.js"></script>
+    <script src="js/audio-streaming.js"></script>
+    
+    <!-- Preload critical panels -->
+    <script>
+        window.addEventListener('load', () => {
+            window.dynamicLoader.preloadCriticalPanels();
+        });
+    </script>
+</body>
+</html>

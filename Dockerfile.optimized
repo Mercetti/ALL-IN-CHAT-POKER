@@ -1,0 +1,72 @@
+# Multi-stage Dockerfile for Helm Control
+# Stage 1: Build stage
+FROM node:20-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache python3 make g++
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install ALL dependencies (including dev dependencies for build)
+RUN npm ci --include=dev
+
+# Copy source code
+COPY . .
+
+# Build the application
+RUN npm run build
+
+# Clean up dev dependencies after build
+RUN npm prune --production
+
+# Stage 2: Production stage
+FROM node:20-alpine AS production
+
+# Install runtime dependencies only
+RUN apk add --no-cache     dumb-init     && rm -rf /var/cache/apk/*
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S helm -u 1001
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install ONLY production dependencies
+RUN npm ci --only=production --no-cache
+
+# Copy built application from builder stage
+COPY --from=builder --chown=helm:nodejs /app/dist ./dist
+COPY --from=builder --chown=helm:nodejs /app/public ./public
+COPY --from=builder --chown=helm:nodejs /app/server ./server
+
+# Copy essential files
+COPY --chown=helm:nodejs server.js ./
+COPY --chown=helm:nodejs helm-server.js ./
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/data /app/temp && \
+    chown -R helm:nodejs /app/logs /app/data /app/temp
+
+# Switch to non-root user
+USER helm
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start the application
+CMD ["node", "helm-server.js"]
