@@ -1,0 +1,53 @@
+# fly-helm-websocket.toml - Dedicated Helm WebSocket Service Configuration
+app = "helm-ws"
+primary_region = "iad"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "8081"
+  HELM_API_URL = "https://helm-api.fly.dev"
+  JWT_SECRET = "helm-ws-jwt-secret-key-change-this-in-production"
+
+[processes]
+  ws = "node helm-websocket-server.js"
+
+[http_service]
+  internal_port = 8081
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_started = 1
+  processes = ["ws"]
+
+  [[http_service.ports]]
+    port = 80
+    handlers = ["http"]
+  [[http_service.ports]]
+    port = 443
+    handlers = ["http", "tls"]
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "2s"
+    path = "/ws/health"
+
+[deploy]
+  strategy = "rolling"
+
+[metrics]
+  port = 9093
+  path = "/metrics"
+
+[[vm]]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1
+  processes = ["ws"]
+
+[scale]
+  min = 1
+  max = 2
+  processes = ["ws"]
+
+[experimental]
+  auto_rollback = true

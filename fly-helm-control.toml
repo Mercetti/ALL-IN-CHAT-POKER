@@ -1,0 +1,55 @@
+# fly-helm-control.toml - Dedicated Helm Control Machine Configuration
+app = "helm-control"
+primary_region = "iad"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "3000"
+  HELM_API_URL = "https://helm-api.fly.dev"
+  HELM_WS_URL = "wss://helm-ws.fly.dev"
+  JWT_SECRET = "helm-jwt-secret-key-change-this-in-production"
+  SESSION_SECRET = "helm-session-secret-key-change-this-in-production"
+
+[processes]
+  web = "node helm-server.js"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_started = 1
+  processes = ["web"]
+
+  [[http_service.ports]]
+    port = 80
+    handlers = ["http"]
+  [[http_service.ports]]
+    port = 443
+    handlers = ["http", "tls"]
+
+  [[http_service.checks]]
+    interval = "15s"
+    timeout = "5s"
+    path = "/health"
+
+[deploy]
+  strategy = "rolling"
+
+[metrics]
+  port = 9091
+  path = "/metrics"
+
+[[vm]]
+  memory = "1gb"
+  cpu_kind = "shared"
+  cpus = 1
+  processes = ["web"]
+
+[scale]
+  min = 1
+  max = 2
+  processes = ["web"]
+
+[experimental]
+  auto_rollback = true
