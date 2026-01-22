@@ -187,7 +187,6 @@ class IntegratedWebServer {
         controlCenter: this.aceyEngine.controlCenter ? 'connected' : 'disconnected',
         mode: this.aceyEngine.controlCenter?.getConfig()?.mode || 'unknown'
       });
-    });
   }
 
   setupWebSocket() {
@@ -224,7 +223,6 @@ class IntegratedWebServer {
       socket.on('control_center_event', (event) => {
         console.log('🧠 Control Center event:', event);
         this.aceyEngine.handleControlCenterDecision(event);
-      });
     });
   }
 
@@ -233,7 +231,6 @@ class IntegratedWebServer {
       this.server.listen(port, () => {
         console.log(`🚀 Integrated server running on port ${port}`);
         resolve();
-      });
     });
   }
 }
@@ -261,12 +258,10 @@ class IntegratedClient {
     this.socket.on('control_center_update', (update) => {
       // Handle Control Center updates
       this.handleControlCenterUpdate(update);
-    });
 
     this.socket.on('error', (error) => {
       console.error('Socket error:', error);
       this.showError(error.message);
-    });
   }
 
   sendMessage(message) {
@@ -502,7 +497,6 @@ class GracefulShutdown {
       // Stop accepting new connections
       this.server.close(() => {
         console.log('✅ Server stopped accepting connections');
-      });
 
       // Wait for pending operations to complete
       await this.waitForPendingOperations(10000);

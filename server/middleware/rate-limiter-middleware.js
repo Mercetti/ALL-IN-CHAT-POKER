@@ -129,7 +129,6 @@ class RateLimiterMiddleware {
             }
             
             next(error);
-          });
         };
         
         wrappedMiddleware(req, res, next);

@@ -339,7 +339,6 @@ class WebPConverter {
           : null;
         
         return this.convertImage(filePath, outputPath);
-      });
       
       const chunkResults = await Promise.all(chunkPromises);
       results.push(...chunkResults);

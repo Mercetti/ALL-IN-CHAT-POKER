@@ -135,7 +135,6 @@ export const AudioCodingDashboard: React.FC<Props> = ({ orchestrator }) => {
           intents: result.intents?.length || 0,
           approved: result.approved
         });
-      });
 
     } catch (error) {
       addLog('error', `Simulation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);

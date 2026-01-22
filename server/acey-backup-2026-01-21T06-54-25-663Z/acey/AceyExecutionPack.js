@@ -151,7 +151,6 @@ class AceyExecutionPack {
       // Set up security event handling
       securitySkill.instance.on('securityAlert', async (alert) => {
         await this.handleSecurityAlert(alert);
-      });
       
       this.config.logger.info('🛡️ Security suite initialized');
     }

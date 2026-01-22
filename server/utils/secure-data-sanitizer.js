@@ -145,7 +145,6 @@ class SecureDataSanitizer {
         redactionCount++;
         this.logRedaction('email', 'email', config.logLevel);
         return this.redactionMethods.partial(match, 2);
-      });
     }
 
     if (config.redactPhone) {
@@ -153,7 +152,6 @@ class SecureDataSanitizer {
         redactionCount++;
         this.logRedaction('phone', 'phone', config.logLevel);
         return this.redactionMethods.partial(match, 3);
-      });
     }
 
     if (config.redactSSN) {
@@ -161,7 +159,6 @@ class SecureDataSanitizer {
         redactionCount++;
         this.logRedaction('ssn', 'social security number', config.logLevel);
         return this.redactionMethods.type(match, 'SSN');
-      });
     }
 
     if (config.redactCreditCard) {
@@ -169,7 +166,6 @@ class SecureDataSanitizer {
         redactionCount++;
         this.logRedaction('credit_card', 'credit card', config.logLevel);
         return this.redactionMethods.partial(match, 4);
-      });
     }
 
     if (config.redactAPIKeys) {
@@ -177,7 +173,6 @@ class SecureDataSanitizer {
         redactionCount++;
         this.logRedaction('api_key', 'API key/secret', config.logLevel);
         return this.redactionMethods.type(full, 'API_KEY');
-      });
     }
 
     if (config.redactURLs) {
@@ -185,7 +180,6 @@ class SecureDataSanitizer {
         redactionCount++;
         this.logRedaction('url', 'URL', config.logLevel);
         return this.redactionMethods.type(match, 'URL');
-      });
     }
 
     if (config.redactIPs) {
@@ -193,7 +187,6 @@ class SecureDataSanitizer {
         redactionCount++;
         this.logRedaction('ip', 'IP address', config.logLevel);
         return this.redactionMethods.type(match, 'IP');
-      });
     }
 
     if (config.redactPasswords) {
@@ -201,7 +194,6 @@ class SecureDataSanitizer {
         redactionCount++;
         this.logRedaction('password', 'password', config.logLevel);
         return this.redactionMethods.type(full, 'PASSWORD');
-      });
     }
 
     // Additional sanitizations

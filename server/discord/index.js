@@ -83,7 +83,6 @@ function registerDiscordRoutes(app) {
       </body>
       </html>
     `);
-  });
 
   console.log('✅ Discord routes registered');
   console.log(`📋 Interactions: ${discordConfig.endpoints.interactions}`);

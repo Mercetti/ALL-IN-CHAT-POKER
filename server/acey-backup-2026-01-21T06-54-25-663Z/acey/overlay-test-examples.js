@@ -29,8 +29,7 @@ const aceyTestAnalysis = {
     
     // Acey enhancement: Add interaction test
     await expect(page.locator('.chat-messages')).toBeVisible();
-    await expect(page.locator('.chat-title')).toContainText('Live Chat');
-  });`,
+    await expect(page.locator('.chat-title')).toContainText('Live Chat');`,
     reasoning: "The page needs time to load all JavaScript and CSS before elements become visible"
   }
 };
@@ -46,7 +45,6 @@ test.describe('Overlay Core Functionality - Acey Generated', () => {
     await page.goto('/overlay');
     await page.waitForLoadState('networkidle');
     await expect(page.locator('.overlay-container')).toBeVisible();
-  });
 
   test('should display all player seats', async ({ page }) => {
     await page.goto('/overlay');
@@ -59,7 +57,6 @@ test.describe('Overlay Core Functionality - Acey Generated', () => {
     // Check first seat has proper structure
     await expect(page.locator('.seat[data-seat="0"]')).toBeVisible();
     await expect(page.locator('.seat[data-seat="0"] .seat-name')).toBeVisible();
-  });
 
   test('should display community cards area', async ({ page }) => {
     await page.goto('/overlay');
@@ -74,7 +71,6 @@ test.describe('Overlay Core Functionality - Acey Generated', () => {
     await expect(page.locator('#flop3')).toBeVisible();
     await expect(page.locator('#turn')).toBeVisible();
     await expect(page.locator('#river')).toBeVisible();
-  });
 });
 
 test.describe('Overlay Interactions - Acey Generated', () => {
@@ -92,7 +88,6 @@ test.describe('Overlay Interactions - Acey Generated', () => {
     // Click again to close
     await page.click('.settings-button');
     await expect(page.locator('.overlay-settings')).toBeHidden();
-  });
 
   test('should handle chat message addition', async ({ page }) => {
     await page.goto('/overlay?chat=true');
@@ -109,7 +104,6 @@ test.describe('Overlay Interactions - Acey Generated', () => {
     });
     
     await expect(page.locator('.chat-messages')).toContainText('I generated this test!');
-  });
 });
   `,
   
@@ -141,8 +135,7 @@ const aceyMaintenance = {
     await expect(page.locator('.seat-name')).toBeVisible();
     
     // Check specific seat
-    await expect(page.locator('.seat[data-seat="0"] .seat-name')).toContainText('Open Seat');
-  });`,
+    await expect(page.locator('.seat[data-seat="0"] .seat-name')).toContainText('Open Seat');`,
     prevention: "I'll monitor HTML changes and proactively update tests"
   }
 };
@@ -168,8 +161,7 @@ const aceyOptimization = {
     await expect(page.locator('.overlay-container')).toBeVisible();
     await expect(page.locator('.seat')).toHaveCount(8);
     await expect(page.locator('.community-cards')).toBeVisible();
-    await expect(page.locator('.table-stats')).toBeVisible();
-  });`,
+    await expect(page.locator('.table-stats')).toBeVisible();`,
     
     reliability: `
   // Acey enhanced: Added proper error handling

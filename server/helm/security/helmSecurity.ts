@@ -123,7 +123,6 @@ export class HelmSecurity {
 
     defaultPolicies.forEach(policy => {
       this.policies.set(policy.id, policy);
-    });
   }
 
   private initializeDefaultUsers(): void {
@@ -164,7 +163,6 @@ export class HelmSecurity {
 
     defaultUsers.forEach(user => {
       this.users.set(user.id, user);
-    });
   }
 
   // User Management

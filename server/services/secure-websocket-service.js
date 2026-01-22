@@ -103,19 +103,15 @@ class SecureWebSocketService extends BaseService {
   setupWebSocketListeners() {
     this.wsServer.on('connection', (clientInfo) => {
       this.handleConnection(clientInfo);
-    });
     
     this.wsServer.on('message', ({ client, message }) => {
       this.handleMessage(client, message);
-    });
     
     this.wsServer.on('disconnection', ({ client, code, reason }) => {
       this.handleDisconnection(client, code, reason);
-    });
     
     this.wsServer.on('error', (error) => {
       this.handleError(error);
-    });
   }
 
   /**

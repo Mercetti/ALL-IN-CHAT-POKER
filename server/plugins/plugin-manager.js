@@ -289,7 +289,6 @@ class PluginManager extends EventEmitter {
       for (const [eventName, handler] of Object.entries(listeners)) {
         this.on(eventName, async (...args) => {
           await this.executePluginMethod(plugin, handler, ...args);
-        });
       }
     }
     

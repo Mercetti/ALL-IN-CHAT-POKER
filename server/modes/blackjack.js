@@ -208,13 +208,11 @@ function settleAndEmit(io, dealerState, playerStates, betAmounts, waitingQueue, 
       balance: dbInstance.getBalance(login),
       channel: chan,
     });
-  });
 
   const broke = [];
   Object.keys(playerStates).forEach(login => {
     const balance = dbInstance.getBalance(login);
     if (balance <= 0) broke.push(login);
-  });
 
   return {
     broke,

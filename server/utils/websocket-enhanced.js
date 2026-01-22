@@ -64,11 +64,9 @@ class EnhancedWebSocket extends EventEmitter {
       // Listen for batch events
       this.messageBatcher.on('batchSend', (batch) => {
         this.sendBatchToClients(batch);
-      });
       
       this.messageBatcher.on('metrics', (metrics) => {
         this.emit('batchMetrics', metrics);
-      });
     }
   }
 
@@ -96,7 +94,6 @@ class EnhancedWebSocket extends EventEmitter {
           compression: this.options.enableCompression,
           metrics: this.options.enableMetrics
         });
-      });
       
     } catch (error) {
       logger.error('Failed to start WebSocket server', { error: error.message });
@@ -110,12 +107,10 @@ class EnhancedWebSocket extends EventEmitter {
   setupServerEvents() {
     this.wss.on('connection', (ws, req) => {
       this.handleConnection(ws, req);
-    });
 
     this.wss.on('error', (error) => {
       this.stats.errors++;
       logger.error('WebSocket server error', { error: error.message });
-    });
 
     // Setup heartbeat
     this.setupHeartbeat();
@@ -184,11 +179,9 @@ class EnhancedWebSocket extends EventEmitter {
     
     ws.on('message', (data) => {
       this.handleMessage(clientInfo, data);
-    });
     
     ws.on('close', (code, reason) => {
       this.handleDisconnection(clientInfo, code, reason);
-    });
     
     ws.on('error', (error) => {
       this.stats.errors++;
@@ -196,12 +189,10 @@ class EnhancedWebSocket extends EventEmitter {
         clientId,
         error: error.message
       });
-    });
     
     ws.on('pong', () => {
       clientInfo.alive = true;
       clientInfo.lastActivity = Date.now();
-    });
   }
 
   /**
@@ -302,7 +293,6 @@ class EnhancedWebSocket extends EventEmitter {
     
     channels.forEach(channel => {
       clientInfo.subscriptions.add(channel);
-    });
     
     this.sendToClient(clientInfo.id, {
       type: 'subscribed',
@@ -325,7 +315,6 @@ class EnhancedWebSocket extends EventEmitter {
     if (clientInfo.subscriptions) {
       channels.forEach(channel => {
         clientInfo.subscriptions.delete(channel);
-      });
     }
     
     this.sendToClient(clientInfo.id, {
@@ -389,7 +378,6 @@ class EnhancedWebSocket extends EventEmitter {
         
         ws.alive = false;
         ws.ping();
-      });
     }, this.options.heartbeatInterval);
   }
 
@@ -594,7 +582,6 @@ class EnhancedWebSocket extends EventEmitter {
     
     this.sessions.forEach((clients, sessionId) => {
       stats[sessionId] = this.getSessionStats(sessionId);
-    });
     
     return stats;
   }
@@ -637,12 +624,10 @@ class EnhancedWebSocket extends EventEmitter {
       // Close all connections
       this.wss.clients.forEach(ws => {
         ws.close(1000, 'Server shutting down');
-      });
       
       // Close server
       this.wss.close(() => {
         logger.info('Enhanced WebSocket server closed');
-      });
       
       // Cleanup batcher
       if (this.messageBatcher) {

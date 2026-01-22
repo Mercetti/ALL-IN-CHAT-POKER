@@ -130,7 +130,6 @@ class AIStreaming extends EventEmitter {
     // Handle client disconnect
     res.on('close', () => {
       logger.debug('SSE client disconnected');
-    });
   }
 
   /**

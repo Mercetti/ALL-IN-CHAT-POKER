@@ -24,17 +24,14 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA12345678901234567890
 
     licenseValidator = new LicenseValidator(testPublicKey);
     testLicense = LicenseValidator.createTestLicense();
-  });
 
   describe('Constructor', () => {
     test('should initialize with public key', () => {
       expect(licenseValidator).toBeDefined();
-    });
 
     test('should initialize with empty public key', () => {
       const validator = new LicenseValidator('');
       expect(validator).toBeDefined();
-    });
   });
 
   describe('validateLicense()', () => {
@@ -42,7 +39,6 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA12345678901234567890
       expect(() => {
         licenseValidator.validateLicense(testLicense);
       }).not.toThrow();
-    });
 
     test('should throw error with invalid signature', () => {
       const invalidLicense = LicenseValidator.createTestLicense({
@@ -52,7 +48,6 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA12345678901234567890
       expect(() => {
         licenseValidator.validateLicense(invalidLicense);
       }).toThrow('Invalid Helm license signature');
-    });
 
     test('should throw error with expired license', () => {
       const expiredLicense = LicenseValidator.createTestLicense({
@@ -62,7 +57,6 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA12345678901234567890
       expect(() => {
         licenseValidator.validateLicense(expiredLicense);
       }).toThrow('Helm license expired');
-    });
 
     test('should throw error with missing license_id', () => {
       const invalidLicense = LicenseValidator.createTestLicense({
@@ -72,7 +66,6 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA12345678901234567890
       expect(() => {
         licenseValidator.validateLicense(invalidLicense);
       }).toThrow();
-    });
 
     test('should throw error with missing org', () => {
       const invalidLicense = LicenseValidator.createTestLicense({
@@ -82,7 +75,6 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA12345678901234567890
       expect(() => {
         licenseValidator.validateLicense(invalidLicense);
       }).toThrow();
-    });
 
     test('should throw error with missing expires', () => {
       const invalidLicense = LicenseValidator.createTestLicense({
@@ -92,19 +84,16 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA12345678901234567890
       expect(() => {
         licenseValidator.validateLicense(invalidLicense);
       }).toThrow();
-    });
   });
 
   describe('isSkillAllowed()', () => {
     beforeEach(() => {
       licenseValidator.validateLicense(testLicense);
-    });
 
     test('should allow all skills with wildcard permission', () => {
       expect(licenseValidator.isSkillAllowed('any_skill')).toBe(true);
       expect(licenseValidator.isSkillAllowed('')).toBe(true);
       expect(licenseValidator.isSkillAllowed('nonexistent_skill')).toBe(true);
-    });
 
     test('should deny skills if not validated', () => {
       const unvalidatedValidator = new LicenseValidator(testPublicKey);
@@ -112,7 +101,6 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA12345678901234567890
       expect(() => {
         unvalidatedValidator.isSkillAllowed('basic_chat');
       }).toThrow('AccessController not validated');
-    });
 
     test('should work with specific skill permissions', () => {
       const specificLicense = LicenseValidator.createTestLicense({
@@ -124,24 +112,20 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA12345678901234567890
       expect(licenseValidator.isSkillAllowed('basic_chat')).toBe(true);
       expect(licenseValidator.isSkillAllowed('poker_deal')).toBe(true);
       expect(licenseValidator.isSkillAllowed('analytics')).toBe(false);
-    });
   });
 
   describe('isNodeLimitExceeded()', () => {
     beforeEach(() => {
       licenseValidator.validateLicense(testLicense);
-    });
 
     test('should not exceed limit within bounds', () => {
       expect(licenseValidator.isNodeLimitExceeded(1)).toBe(false);
       expect(licenseValidator.isNodeLimitExceeded(5)).toBe(false);
       expect(licenseValidator.isNodeLimitExceeded(10)).toBe(false);
-    });
 
     test('should exceed limit beyond bounds', () => {
       expect(licenseValidator.isNodeLimitExceeded(11)).toBe(true);
       expect(licenseValidator.isNodeLimitExceeded(100)).toBe(true);
-    });
 
     test('should throw error if not validated', () => {
       const unvalidatedValidator = new LicenseValidator(testPublicKey);
@@ -149,7 +133,6 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA12345678901234567890
       expect(() => {
         unvalidatedValidator.isNodeLimitExceeded(1);
       }).toThrow('AccessController not validated');
-    });
   });
 
   describe('getTier()', () => {
@@ -160,7 +143,6 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA12345678901234567890
 
       licenseValidator.validateLicense(enterpriseLicense);
       expect(licenseValidator.getTier()).toBe('enterprise');
-    });
 
     test('should return pro tier for pro license', () => {
       const proLicense = LicenseValidator.createTestLicense({
@@ -169,7 +151,6 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA12345678901234567890
 
       licenseValidator.validateLicense(proLicense);
       expect(licenseValidator.getTier()).toBe('pro');
-    });
 
     test('should return free tier for free license', () => {
       const freeLicense = LicenseValidator.createTestLicense({
@@ -178,18 +159,15 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA12345678901234567890
 
       licenseValidator.validateLicense(freeLicense);
       expect(licenseValidator.getTier()).toBe('free');
-    });
   });
 
   describe('getOrganization()', () => {
     test('should return organization name', () => {
       licenseValidator.validateLicense(testLicense);
       expect(licenseValidator.getOrganization()).toBe('Test Organization');
-    });
 
     test('should return unknown if not validated', () => {
       expect(licenseValidator.getOrganization()).toBe('unknown');
-    });
   });
 
   describe('getStatus()', () => {
@@ -198,7 +176,6 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA12345678901234567890
       expect(status.valid).toBe(false);
       expect(status.tier).toBe('invalid');
       expect(status.organization).toBe('unknown');
-    });
 
     test('should return valid status after validation', () => {
       licenseValidator.validateLicense(testLicense);
@@ -210,7 +187,6 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA12345678901234567890
       expect(status.expires).toBe(testLicense.expires);
       expect(status.skillsAllowed).toEqual(['*']);
       expect(status.maxNodes).toBe(10);
-    });
   });
 
   describe('verifySkillSignature()', () => {
@@ -225,13 +201,11 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA12345678901234567890
       // This should return false since we're using test data
       const result = LicenseValidator.verifySkillSignature(skill, testPublicKey);
       expect(typeof result).toBe('boolean');
-    });
 
     test('should handle invalid skill data', () => {
       const invalidSkill = null;
       const result = LicenseValidator.verifySkillSignature(invalidSkill, testPublicKey);
       expect(result).toBe(false);
-    });
 
     test('should handle missing signature', () => {
       const skill = {
@@ -242,7 +216,6 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA12345678901234567890
 
       const result = LicenseValidator.verifySkillSignature(skill, testPublicKey);
       expect(result).toBe(false);
-    });
   });
 
   describe('loadLicenseFromFile()', () => {
@@ -250,13 +223,11 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA12345678901234567890
       expect(() => {
         licenseValidator.loadLicenseFromFile('/nonexistent/file.json');
       }).toThrow('Failed to load license from /nonexistent/file.json');
-    });
 
     test('should handle invalid JSON', () => {
       // This would require mocking file system operations
       // For now, just test that the method exists
       expect(typeof licenseValidator.loadLicenseFromFile).toBe('function');
-    });
   });
 
   describe('createTestLicense()', () => {
@@ -268,7 +239,6 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA12345678901234567890
       expect(license.skills_allowed).toEqual(['*']);
       expect(license.max_nodes).toBe(10);
       expect(license.signature).toBe('test-signature');
-    });
 
     test('should create test license with overrides', () => {
       const license = LicenseValidator.createTestLicense({
@@ -280,7 +250,6 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA12345678901234567890
       expect(license.tier).toBe('pro');
       expect(license.max_nodes).toBe(5);
       expect(license.org).toBe('Custom Org');
-    });
   });
 
   describe('Edge Cases', () => {
@@ -289,39 +258,33 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA12345678901234567890
       expect(() => {
         validator.validateLicense(testLicense);
       }).toThrow();
-    });
 
     test('should handle undefined public key', () => {
       const validator = new LicenseValidator(undefined as any);
       expect(() => {
         validator.validateLicense(testLicense);
       }).toThrow();
-    });
 
     test('should handle empty public key', () => {
       const validator = new LicenseValidator('');
       expect(() => {
         validator.validateLicense(testLicense);
       }).toThrow();
-    });
 
     test('should handle null license', () => {
       expect(() => {
         licenseValidator.validateLicense(null as any);
       }).toThrow();
-    });
 
     test('should handle undefined license', () => {
       expect(() => {
         licenseValidator.validateLicense(undefined as any);
       }).toThrow();
-    });
 
     test('should handle empty license object', () => {
       expect(() => {
         licenseValidator.validateLicense({} as any);
       }).toThrow();
-    });
   });
 
   describe('Integration Tests', () => {
@@ -336,7 +299,6 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA12345678901234567890
       
       const nodeLimit = licenseValidator.isNodeLimitExceeded(5);
       expect(nodeLimit).toBe(false);
-    });
 
     test('should handle multiple validations', () => {
       // First validation
@@ -349,7 +311,6 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA12345678901234567890
       }).not.toThrow();
 
       expect(licenseValidator.getStatus().valid).toBe(true);
-    });
 
     test('should handle license with custom expiration', () => {
       const futureDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
@@ -362,6 +323,4 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA12345678901234567890
       }).not.toThrow();
 
       expect(licenseValidator.getStatus().valid).toBe(true);
-    });
   });
-});

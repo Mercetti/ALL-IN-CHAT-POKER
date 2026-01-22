@@ -59,7 +59,6 @@ class SecurityManager {
       res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
       res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
       next();
-    });
   }
 
   setupRateLimiting() {
@@ -128,7 +127,6 @@ class SecurityManager {
       }
       
       next();
-    });
   }
 
   setupCSRFProtection() {
@@ -144,7 +142,6 @@ class SecurityManager {
         config: this.config,
       });
       res.json({ csrfToken: token });
-    });
   }
 
   setupContentSecurityPolicy() {
@@ -169,7 +166,6 @@ class SecurityManager {
       
       res.setHeader('Content-Security-Policy', csp);
       next();
-    });
   }
 
   generateNonce() {

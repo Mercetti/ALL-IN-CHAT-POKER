@@ -379,7 +379,6 @@ class GovernanceContractManager {
         // Default to approval for testing - would be human decision in production
         resolve(true);
       }, 1000);
-    });
   }
 
   /**

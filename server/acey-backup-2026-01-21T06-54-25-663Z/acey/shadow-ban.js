@@ -169,7 +169,6 @@ class ShadowBanIntelligence {
     recentMessages.forEach(msg => {
       const content = msg.message.toLowerCase().trim();
       contentMap.set(content, (contentMap.get(content) || 0) + 1);
-    });
 
     const maxRepeats = Math.max(...contentMap.values());
     if (maxRepeats >= 3) {
@@ -479,7 +478,6 @@ class ShadowBanIntelligence {
 
     expired.forEach(userId => {
       this.removeShadowBan(userId);
-    });
 
     if (expired.length > 0) {
       console.log(`🧹 Cleaned up ${expired.length} expired shadow-bans`);

@@ -403,7 +403,6 @@ class SQLitePool extends ConnectionPool {
             logger.error('Database backup failed', { error: error.message });
             backup.close();
             reject(error);
-          });
       });
       
     } catch (error) {

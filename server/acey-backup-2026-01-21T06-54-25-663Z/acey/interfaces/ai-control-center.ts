@@ -625,7 +625,6 @@ export class AIControlCenter extends EventEmitter {
 
     expired.forEach(id => {
       this.rejectIntent(id, 'Intent expired', 'auto');
-    });
   }
 
   /**

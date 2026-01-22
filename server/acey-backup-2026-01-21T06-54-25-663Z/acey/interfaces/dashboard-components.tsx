@@ -77,28 +77,22 @@ export const AIDashboard: React.FC = () => {
     newSocket.on('connect', () => {
       console.log('Connected to AI Control Center');
       setConnected(true);
-    });
 
     newSocket.on('disconnect', () => {
       console.log('Disconnected from AI Control Center');
       setConnected(false);
-    });
 
     newSocket.on('dashboard_update', (data: DashboardData) => {
       setDashboardData(data);
-    });
 
     newSocket.on('intent_received', (intent) => {
       console.log('Intent received:', intent);
-    });
 
     newSocket.on('intent_approved', (approved) => {
       console.log('Intent approved:', approved);
-    });
 
     newSocket.on('intent_rejected', (rejected) => {
       console.log('Intent rejected:', rejected);
-    });
 
     setSocket(newSocket);
 

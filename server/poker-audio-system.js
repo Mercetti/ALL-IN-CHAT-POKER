@@ -399,7 +399,6 @@ class PokerAudioSystem {
           filtered[category][itemKey] = item;
         }
       });
-    });
     
     return filtered;
   }
@@ -874,7 +873,6 @@ class PokerAudioSystem {
     // Filter all phases by user tier
     Object.keys(this.audioLibrary).forEach(phase => {
       available[phase] = this.filterByTier(this.audioLibrary[phase], settings.tier);
-    });
     
     return available;
   }

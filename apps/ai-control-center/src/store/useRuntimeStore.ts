@@ -71,7 +71,6 @@ const useRuntimeStore = create<RuntimeStore>((set, get) => ({
     if (!window.aiBridge?.runtime?.onLog) return;
     const unsubscribe = window.aiBridge.runtime.onLog((log) => {
       get().appendLog(log);
-    });
     const unloadHandler = () => unsubscribe?.();
     window.addEventListener('beforeunload', unloadHandler);
     return () => {

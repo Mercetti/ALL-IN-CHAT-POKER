@@ -140,7 +140,6 @@ const runCommand = (command, args) => {
         stdout: stdout.join(''),
         stderr: stderr.join(''),
       });
-    });
     
     child.on('error', (error) => {
       resolve({
@@ -148,7 +147,6 @@ const runCommand = (command, args) => {
         stdout: '',
         stderr: error.message,
       });
-    });
   });
 };
 

@@ -82,7 +82,6 @@ export class AudioCodingOrchestrator {
       // Store batch results
       results.forEach((result, index) => {
         this.batchResults.set(tasks[index].id, result);
-      });
 
       return results;
     } catch (error) {

@@ -46,7 +46,6 @@ class AICodeQualityGuardian {
     functionMatches.forEach(match => {
       const funcName = match.replace(/function\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/, '$1');
       this.functionRegistry.add(funcName);
-    });
   }
 
   /**
@@ -301,7 +300,6 @@ const { pokerFoldAction, pokerCallAction, pokerRaiseAction } = require('./game-a
     newRoutes.forEach(route => {
       const routeKey = `${route.method}:${route.path}`;
       this.routeRegistry.set(routeKey, addedCode);
-    });
   }
 
   /**

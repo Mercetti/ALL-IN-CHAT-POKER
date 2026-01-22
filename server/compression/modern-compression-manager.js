@@ -101,7 +101,6 @@ class ModernCompressionManager {
       
       gzip.write(data);
       gzip.end();
-    });
   }
 
   /**
@@ -121,7 +120,6 @@ class ModernCompressionManager {
       
       gunzip.write(data);
       gunzip.end();
-    });
   }
 
   /**
@@ -141,7 +139,6 @@ class ModernCompressionManager {
       
       deflate.write(data);
       deflate.end();
-    });
   }
 
   /**
@@ -161,7 +158,6 @@ class ModernCompressionManager {
       
       inflate.write(data);
       inflate.end();
-    });
   }
 
   /**
@@ -272,10 +268,8 @@ class ModernCompressionManager {
         filePaths.forEach(filePath => {
           const fileName = path.basename(filePath);
           archive.file(fs.readFileSync(filePath), { name: fileName });
-        });
         
         archive.finalize();
-      });
     } catch (error) {
       throw new Error(`Archive creation failed: ${error.message}`);
     }
@@ -313,12 +307,10 @@ class ModernCompressionManager {
                 .on('finish', () => {
                   // File extracted
                 });
-            });
           });
           
           zipfile.on('end', resolve);
           zipfile.on('error', reject);
-        });
       });
     } catch (error) {
       throw new Error(`Archive extraction failed: ${error.message}`);
@@ -395,7 +387,6 @@ class ModernCompressionManager {
         outputStream.on('finish', resolve);
         
         inputStream.pipe(compressor).pipe(outputStream);
-      });
     } catch (error) {
       throw new Error(`Stream compression failed: ${error.message}`);
     }
@@ -430,7 +421,6 @@ class ModernCompressionManager {
         outputStream.on('finish', resolve);
         
         inputStream.pipe(decompressor).pipe(outputStream);
-      });
     } catch (error) {
       throw new Error(`Stream decompression failed: ${error.message}`);
     }

@@ -19,37 +19,31 @@ class HealthCheckManager {
     this.app.get('/health', (req, res) => {
       const health = this.getBasicHealth();
       res.status(health.status === 'healthy' ? 200 : 503).json(health);
-    });
 
     // Detailed health check
     this.app.get('/health/detailed', (req, res) => {
       const health = this.getDetailedHealth();
       res.status(health.status === 'healthy' ? 200 : 503).json(health);
-    });
 
     // Readiness probe
     this.app.get('/ready', (req, res) => {
       const ready = this.checkReadiness();
       res.status(ready ? 200 : 503).json({ ready });
-    });
 
     // Liveness probe
     this.app.get('/live', (req, res) => {
       const alive = this.checkLiveness();
       res.status(alive ? 200 : 503).json({ alive });
-    });
 
     // Metrics endpoint
     this.app.get('/metrics', (req, res) => {
       const metrics = this.getMetrics();
       res.set('Content-Type', 'text/plain');
       res.send(metrics);
-    });
 
     // Version info
     this.app.get('/version', (req, res) => {
       res.json(this.getVersionInfo());
-    });
   }
 
   getBasicHealth() {

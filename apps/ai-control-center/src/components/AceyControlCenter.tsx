@@ -197,7 +197,6 @@ export const AceyControlCenter: React.FC<Props> = ({ orchestrator }) => {
         learningLoop.processOutput(task.taskType, task.prompt, res, approved);
         
         addLog('info', `Task ${task.taskType} ${approved ? 'approved' : 'rejected'} (confidence: ${newTrustMetrics[idx].confidence.toFixed(2)})`, task.id);
-      });
 
       // Update task statuses
       setTaskQueue(prev => prev.map(task => ({ ...task, status: 'completed' as const })));

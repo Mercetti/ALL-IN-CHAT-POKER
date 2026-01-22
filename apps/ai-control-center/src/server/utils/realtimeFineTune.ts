@@ -278,7 +278,6 @@ export class RealTimeFineTune {
           createdAt: stats.mtime,
           isActive: false // Would be determined by current active model
         });
-      });
     }
 
     // Sort by creation date (newest first)

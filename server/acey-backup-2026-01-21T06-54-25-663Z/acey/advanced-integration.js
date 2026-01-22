@@ -361,7 +361,6 @@ class AdvancedAceyIntelligence {
     const activeVotes = this.communityVoting.getActiveVotes();
     activeVotes.forEach(vote => {
       this.communityVoting.cancelVote(vote.id);
-    });
 
     console.log('🔄 All advanced systems reset');
   }

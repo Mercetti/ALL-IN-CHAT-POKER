@@ -104,7 +104,6 @@ function sanitizeText(text) {
   Object.entries(SAFE_TERMS).forEach(([banned, safe]) => {
     const regex = new RegExp(banned, 'gi');
     sanitized = sanitized.replace(regex, safe);
-  });
   
   return sanitized;
 }

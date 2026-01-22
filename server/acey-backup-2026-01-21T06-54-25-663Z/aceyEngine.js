@@ -196,7 +196,6 @@ class AceyEngine extends EventEmitter {
     const stats = {};
     this.sessions.forEach((session, sessionId) => {
       stats[sessionId] = this.getSessionStats(sessionId);
-    });
     return stats;
   }
 

@@ -103,7 +103,6 @@ class PokerAudioProductionSystem {
     Object.keys(metadata).forEach(key => {
       const value = metadata[key].toString().toLowerCase().replace(/[^a-z0-9-]/g, '-');
       filename = filename.replace(new RegExp(`{${key}}`, 'g'), value);
-    });
 
     // Remove any remaining placeholders
     filename = filename.replace(/{[^}]+}/g, 'unknown');

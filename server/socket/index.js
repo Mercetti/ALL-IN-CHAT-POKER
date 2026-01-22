@@ -10,7 +10,6 @@ function createSocketHandlers({ io, auth, db, logger, recentSocketDisconnects, g
     socket.on('disconnect', (reason) => {
       recentSocketDisconnects.push({ reason, at: Date.now(), channel });
       if (recentSocketDisconnects.length > 50) recentSocketDisconnects.shift();
-    });
 
     // Send current state
     const stateView = getStateForChannel(channel);
@@ -101,7 +100,6 @@ function createSocketHandlers({ io, auth, db, logger, recentSocketDisconnects, g
         settleRound({ ...data, channel: channelName });
       }
     });
-  });
 }
 
 module.exports = { createSocketHandlers };

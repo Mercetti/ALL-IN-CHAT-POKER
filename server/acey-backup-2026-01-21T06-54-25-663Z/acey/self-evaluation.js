@@ -498,7 +498,6 @@ class SelfEvaluationLoops {
     messages.forEach(msg => {
       const pattern = msg.message.substring(0, 20); // First 20 chars
       patterns.set(pattern, (patterns.get(pattern) || 0) + 1);
-    });
 
     const maxCount = Math.max(...patterns.values());
     const totalPatterns = patterns.size;
@@ -569,16 +568,12 @@ class SelfEvaluationLoops {
       });
       e.questions.responseAppropriateness.issues.forEach(issue => {
         commonIssues[issue] = (commonIssues[issue] || 0) + 1);
-      });
       e.questions.complianceCheck.issues.forEach(issue => {
         commonIssues[issue] = (commonIssues[issue] || 0) + 1);
-      });
       e.questions.personaConsistency.issues.forEach(issue => {
         commonIssues[issue] = (commonIssues[issue] || 0) + 1);
-      });
       e.questions.performanceMetrics.issues.forEach(issue => {
         commonIssues[issue] = (commonIssues[issue] || 0) + 1);
-      });
     });
 
     return {

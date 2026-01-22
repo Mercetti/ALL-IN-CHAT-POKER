@@ -266,7 +266,6 @@ export class HelmMemory {
       // Track time range
       oldestEntry = Math.min(oldestEntry, entry.timestamp);
       newestEntry = Math.max(newestEntry, entry.timestamp);
-    });
 
     return {
       totalEntries: entries.length,
@@ -343,7 +342,6 @@ export class HelmMemory {
     const tagIndex = this.indexes.get('tags')!;
     entry.tags.forEach(tag => {
       tagIndex.add(`tag:${tag}`);
-    });
 
     // Timestamp index (for time-based queries)
     const timestampIndex = this.indexes.get('timestamp')!;
@@ -369,7 +367,6 @@ export class HelmMemory {
     const tagIndex = this.indexes.get('tags')!;
     entry.tags.forEach(tag => {
       tagIndex.delete(`tag:${tag}`);
-    });
 
     // Remove from timestamp index
     const timestampIndex = this.indexes.get('timestamp')!;

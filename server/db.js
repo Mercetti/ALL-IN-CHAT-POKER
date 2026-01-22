@@ -1187,7 +1187,6 @@ class DBHelper {
           unlock_value: item.unlock_value || null,
           unlock_note: item.unlock_note || null,
         });
-      });
     });
     tx(catalog);
   }
@@ -1227,7 +1226,6 @@ class DBHelper {
           unlock_value: item.unlock_value || 0,
           unlock_note: item.unlock_note || '',
         });
-      });
     });
     tx(catalog || []);
   }
@@ -1324,7 +1322,6 @@ class DBHelper {
         INSERT OR IGNORE INTO user_cosmetics (login, item_id, slot, equipped)
         VALUES (?, ?, ?, 0)
       `).run(login, itemId, item.type);
-    });
   }
 
   grantDefaultCosmetics() {
@@ -1340,7 +1337,6 @@ class DBHelper {
     const users = this.db.prepare('SELECT DISTINCT login FROM profiles').all();
     users.forEach(user => {
       this.ensureDefaultCosmetics(user.login, freeCosmetics);
-    });
     
     logger.info('Granted default cosmetics to users', { count: users.length });
   }
@@ -1698,7 +1694,6 @@ class DBHelper {
       rounds += Number(r.rounds) || 0;
       totalPlayers += players.length;
       players.forEach(p => uniquePlayers.add(p));
-    });
     const avgPlayersPerStream = streams ? totalPlayers / streams : 0;
     const estimatedHours = Math.max(rounds * 2 / 60, streams * 2); // rough: 2 min/round, floor 2h/stream requirement baseline
 

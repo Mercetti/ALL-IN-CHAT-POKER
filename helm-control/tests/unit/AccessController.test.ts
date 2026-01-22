@@ -13,12 +13,10 @@ describe('AccessController', () => {
       apiKey: 'pk_live_12345678901234567890123456789012',
       environment: 'hosted'
     });
-  });
 
   describe('Constructor', () => {
     test('should initialize with valid config', () => {
       expect(accessController).toBeDefined();
-    });
 
     test('should throw error with invalid API key format', () => {
       expect(() => {
@@ -27,7 +25,6 @@ describe('AccessController', () => {
           environment: 'hosted'
         });
       }).toThrow('Invalid API key format');
-    });
 
     test('should throw error with missing environment', () => {
       expect(() => {
@@ -36,7 +33,6 @@ describe('AccessController', () => {
           environment: undefined as any
         });
       }).toThrow('Environment required');
-    });
   });
 
   describe('validate()', () => {
@@ -44,7 +40,6 @@ describe('AccessController', () => {
       expect(() => {
         accessController.validate();
       }).not.toThrow();
-    });
 
     test('should throw error if already validated', () => {
       accessController.validate();
@@ -52,23 +47,19 @@ describe('AccessController', () => {
         accessController.validate();
       }).not.toThrow(); // Should not throw, just ignore
     });
-  });
 
   describe('checkSkillAccess()', () => {
     beforeEach(() => {
       accessController.validate();
-    });
 
     test('should allow access to allowed skills', () => {
       expect(accessController.checkSkillAccess('basic_chat')).toBe(true);
       expect(accessController.checkSkillAccess('poker_deal')).toBe(true);
       expect(accessController.checkSkillAccess('analytics')).toBe(true);
-    });
 
     test('should deny access to disallowed skills', () => {
       expect(accessController.checkSkillAccess('unauthorized_skill')).toBe(false);
       expect(accessController.checkSkillAccess('')).toBe(false);
-    });
 
     test('should throw error if not validated', () => {
       const unvalidatedController = new AccessController({
@@ -79,13 +70,11 @@ describe('AccessController', () => {
       expect(() => {
         unvalidatedController.checkSkillAccess('basic_chat');
       }).toThrow('AccessController not validated');
-    });
   });
 
   describe('checkPersonaAccess()', () => {
     beforeEach(() => {
       accessController.validate();
-    });
 
     test('should allow access to valid persona', () => {
       const validPersona = {
@@ -96,14 +85,12 @@ describe('AccessController', () => {
       };
 
       expect(accessController.checkPersonaAccess(validPersona)).toBe(true);
-    });
 
     test('should deny access to invalid persona', () => {
       expect(accessController.checkPersonaAccess(null)).toBe(false);
       expect(accessController.checkPersonaAccess(undefined)).toBe(false);
       expect(accessController.checkPersonaAccess({})).toBe(false);
       expect(accessController.checkPersonaAccess('string' as any)).toBe(false);
-    });
 
     test('should throw error if not validated', () => {
       const unvalidatedController = new AccessController({
@@ -114,7 +101,6 @@ describe('AccessController', () => {
       expect(() => {
         unvalidatedController.checkPersonaAccess({ id: 'test' });
       }).toThrow('AccessController not validated');
-    });
   });
 
   describe('getTier()', () => {
@@ -125,7 +111,6 @@ describe('AccessController', () => {
       });
 
       expect(liveController.getTier()).toBe('enterprise');
-    });
 
     test('should return test tier for test API key', () => {
       const testController = new AccessController({
@@ -134,7 +119,6 @@ describe('AccessController', () => {
       });
 
       expect(testController.getTier()).toBe('creator');
-    });
 
     test('should return free tier for unknown API key', () => {
       const unknownController = new AccessController({
@@ -143,7 +127,6 @@ describe('AccessController', () => {
       });
 
       expect(unknownController.getTier()).toBe('free');
-    });
   });
 
   describe('getOrganization()', () => {
@@ -156,7 +139,6 @@ describe('AccessController', () => {
       // Note: getOrganization method doesn't exist in AccessController
       // This test should be removed or the method should be implemented
       expect(controller.getTier()).toBe('enterprise');
-    });
   });
 
   describe('Edge Cases', () => {
@@ -167,7 +149,6 @@ describe('AccessController', () => {
           environment: 'hosted'
         });
       }).toThrow('Invalid API key format');
-    });
 
     test('should handle null API key', () => {
       expect(() => {
@@ -176,7 +157,6 @@ describe('AccessController', () => {
           environment: 'hosted'
         });
       }).toThrow('Invalid API key format');
-    });
 
     test('should handle undefined API key', () => {
       expect(() => {
@@ -185,7 +165,6 @@ describe('AccessController', () => {
           environment: 'hosted'
         });
       }).toThrow('Invalid API key format');
-    });
 
     test('should handle API key with special characters', () => {
       expect(() => {
@@ -194,7 +173,6 @@ describe('AccessController', () => {
           environment: 'hosted'
         });
       }).toThrow('Invalid API key format');
-    });
 
     test('should handle API key that is too short', () => {
       expect(() => {
@@ -203,7 +181,6 @@ describe('AccessController', () => {
           environment: 'hosted'
         });
       }).toThrow('Invalid API key format');
-    });
 
     test('should handle API key that is too long', () => {
       const longKey = 'pk_live_' + '1'.repeat(100);
@@ -213,7 +190,6 @@ describe('AccessController', () => {
           environment: 'hosted'
         });
       }).not.toThrow();
-    });
   });
 
   describe('Integration with other modules', () => {
@@ -229,7 +205,6 @@ describe('AccessController', () => {
 
       expect(controller.checkSkillAccess('basic_chat')).toBe(true);
       expect(controller.getTier()).toBe('enterprise');
-    });
 
     test('should handle enterprise environment', () => {
       const enterpriseController = new AccessController({
@@ -240,6 +215,4 @@ describe('AccessController', () => {
       enterpriseController.validate();
       expect(enterpriseController.checkSkillAccess('analytics')).toBe(true);
       expect(enterpriseController.getTier()).toBe('enterprise');
-    });
   });
-});

@@ -53,7 +53,6 @@ runTest('helmEngine', 'Helm engine files exist and are complete', () => {
   ];
   
   return requiredFiles.every(file => fs.existsSync(path.resolve(__dirname, '..', file)));
-});
 
 runTest('helmEngine', 'Helm engine exports are clean (no Acey aliases)', () => {
   const helmIndexPath = path.resolve(__dirname, '../server/helm/index.ts');
@@ -64,7 +63,6 @@ runTest('helmEngine', 'Helm engine exports are clean (no Acey aliases)', () => {
          content.includes('HelmEngine') &&
          !content.includes('AceyEngine') &&
          !content.includes('aceyEngine');
-});
 
 runTest('helmEngine', 'Helm engine has production configuration', () => {
   const helmIndexPath = path.resolve(__dirname, '../server/helm/index.ts');
@@ -74,7 +72,6 @@ runTest('helmEngine', 'Helm engine has production configuration', () => {
          content.includes('enableSecurity') &&
          content.includes('enableMemory') &&
          content.includes('enablePersonaSystem');
-});
 
 // === PERSONA SYSTEM PRODUCTION READINESS ===
 console.log('\n🎭 Testing Persona System Production Readiness...');
@@ -84,7 +81,6 @@ runTest('personaSystem', 'Persona configuration files are complete', () => {
   const systemPrompt = path.resolve(__dirname, '../personas/acey/prompts/system-prompt.md');
   
   return fs.existsSync(personaConfig) && fs.existsSync(systemPrompt);
-});
 
 runTest('personaSystem', 'Persona loader is properly configured', () => {
   const loaderPath = path.resolve(__dirname, '../server/personas/helmPersonaLoader.ts');
@@ -93,7 +89,6 @@ runTest('personaSystem', 'Persona loader is properly configured', () => {
   const content = fs.readFileSync(loaderPath, 'utf8');
   return content.includes('HelmPersonaLoader') && 
          content.includes('helmPersonaLoader');
-});
 
 runTest('personaSystem', 'Persona system has safety constraints', () => {
   const personaConfig = path.resolve(__dirname, '../personas/acey/persona-config.ts');
@@ -102,7 +97,6 @@ runTest('personaSystem', 'Persona system has safety constraints', () => {
   return content.includes('safetyConstraints') && 
          content.includes('permissions') &&
          content.includes('contentFilters');
-});
 
 // === INTEGRATION PRODUCTION READINESS ===
 console.log('\n📱 Testing Integration Production Readiness...');
@@ -114,12 +108,10 @@ runTest('integration', 'Server.js updated to use Helm engine', () => {
   return content.includes('Helm Engine Integration') && 
          content.includes('helmEngine') &&
          !content.includes('AceyEngine');
-});
 
 runTest('integration', 'Mobile app integration service exists', () => {
   const servicePath = path.resolve(__dirname, '../mobile/src/services/HelmEngineService.js');
   return fs.existsSync(servicePath);
-});
 
 runTest('integration', 'Game modes updated for Helm compatibility', () => {
   const blackjackPath = path.resolve(__dirname, '../server/modes/blackjack.js');
@@ -132,7 +124,6 @@ runTest('integration', 'Game modes updated for Helm compatibility', () => {
   
   return blackjackContent.includes('helmEngine') && 
          pokerContent.includes('helmEngine');
-});
 
 // === CLEANUP VALIDATION ===
 console.log('\n🧹 Testing Cleanup Validation...');
@@ -149,7 +140,6 @@ runTest('cleanup', 'Old Acey engine files removed', () => {
   
   // All should be removed (return true if none exist)
   return !oldFiles.some(file => fs.existsSync(path.resolve(__dirname, '..', file)));
-});
 
 runTest('cleanup', 'Backup directory exists', () => {
   const backupDirs = fs.readdirSync(path.resolve(__dirname))
@@ -164,7 +154,6 @@ runTest('cleanup', 'Compatibility layer cleaned up', () => {
   
   const content = fs.readFileSync(compatPath, 'utf8');
   return !content.includes('AceyEngine') && !content.includes('aceyEngine');
-});
 
 // === DEPLOYMENT READINESS ===
 console.log('\n📦 Testing Deployment Readiness...');
@@ -177,7 +166,6 @@ runTest('integration', 'Documentation is complete', () => {
   ];
   
   return docs.every(doc => fs.existsSync(path.resolve(__dirname, '..', doc)));
-});
 
 runTest('integration', 'Test suites are available', () => {
   const tests = [
@@ -187,7 +175,6 @@ runTest('integration', 'Test suites are available', () => {
   ];
   
   return tests.every(test => fs.existsSync(path.resolve(__dirname, '..', test)));
-});
 
 // === RESULTS SUMMARY ===
 console.log('\n📊 Production Deployment Readiness Results');
@@ -200,7 +187,6 @@ Object.entries(testResults).forEach(([category, results]) => {
   const status = percentage === 100 ? '✅' : percentage >= 80 ? '⚠️' : '❌';
   
   console.log(`${status} ${category.toUpperCase()}: ${results.passed}/${results.total} tests passed (${percentage}%)`);
-});
 
 const overallPercentage = testResults.overall.total > 0 ? 
   Math.round((testResults.overall.passed / testResults.overall.total) * 100) : 0;

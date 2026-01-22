@@ -62,7 +62,6 @@ async function runMigration() {
             console.warn('⚠️  Warning: Failed to execute statement:', statement.substring(0, 50) + '...');
           }
         });
-      });
       
       migration();
       console.log('✅ Security schema migration completed successfully!');

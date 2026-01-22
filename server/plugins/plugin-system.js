@@ -101,12 +101,10 @@ class PluginSystem {
         this.metrics.totalPlugins++;
         this.metrics.activePlugins++;
         this.emit('pluginLoaded', { pluginName, plugin });
-      });
       
       this.pluginManager.on('pluginUnloaded', ({ pluginName }) => {
         this.metrics.activePlugins--;
         this.emit('pluginUnloaded', { pluginName });
-      });
       
       this.pluginManager.on('pluginError', ({ pluginName, error, action }) => {
         this.metrics.failedPlugins++;
@@ -118,15 +116,12 @@ class PluginSystem {
         });
         
         this.emit('pluginError', { pluginName, error, action });
-      });
       
       this.pluginManager.on('metrics', (metrics) => {
         this.updateMetrics(metrics);
-      });
       
       this.pluginManager.on('healthCheck', (healthChecks) => {
         this.emit('healthCheck', healthChecks);
-      });
     }
     
     if (this.pluginAPI) {
@@ -139,7 +134,6 @@ class PluginSystem {
         });
         
         this.emit('apiError', error);
-      });
     }
   }
 

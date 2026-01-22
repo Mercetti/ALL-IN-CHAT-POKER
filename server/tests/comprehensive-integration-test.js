@@ -52,7 +52,6 @@ runTest('helmEngine', 'Helm engine files exist', () => {
   ];
   
   return files.every(file => fs.existsSync(path.resolve(__dirname, '..', file)));
-});
 
 runTest('helmEngine', 'Helm engine exports correct classes', () => {
   const helmIndexPath = path.resolve(__dirname, '..', 'server/helm/index.ts');
@@ -61,7 +60,6 @@ runTest('helmEngine', 'Helm engine exports correct classes', () => {
   return content.includes('HelmEngine') && 
          content.includes('AceyEngine') && 
          content.includes('helmEngine');
-});
 
 runTest('helmEngine', 'Compatibility aliases in place', () => {
   const helmIndexPath = path.resolve(__dirname, '..', 'server/helm/index.ts');
@@ -69,7 +67,6 @@ runTest('helmEngine', 'Compatibility aliases in place', () => {
   
   return content.includes('AceyEngine = HelmEngine') && 
          content.includes('aceyEngine = helmEngine');
-});
 
 runTest('helmEngine', 'Helm engine has proper structure', () => {
   const helmIndexPath = path.resolve(__dirname, '..', 'server/helm/index.ts');
@@ -78,7 +75,6 @@ runTest('helmEngine', 'Helm engine has proper structure', () => {
   return content.includes('processRequest') && 
          content.includes('HelmConfig') && 
          content.includes('HelmResponse');
-});
 
 // === PERSONA SYSTEM TESTS ===
 console.log('\n🎭 Testing Persona System...');
@@ -90,7 +86,6 @@ runTest('personaSystem', 'Persona configuration files exist', () => {
   ];
   
   return files.every(file => fs.existsSync(path.resolve(__dirname, file)));
-});
 
 runTest('personaSystem', 'Persona config has required exports', () => {
   const configPath = path.resolve(__dirname, '../personas/acey/persona-config.ts');
@@ -104,7 +99,6 @@ runTest('personaSystem', 'Persona config has required exports', () => {
   ];
   
   return requiredExports.every(exportName => content.includes(exportName));
-});
 
 runTest('personaSystem', 'System prompt has required sections', () => {
   const promptPath = path.resolve(__dirname, '../personas/acey/prompts/system-prompt.md');
@@ -118,7 +112,6 @@ runTest('personaSystem', 'System prompt has required sections', () => {
   ];
   
   return requiredSections.every(section => content.includes(section));
-});
 
 runTest('personaSystem', 'Persona loader exists and exports correctly', () => {
   const loaderPath = path.resolve(__dirname, '../server/personas/helmPersonaLoader.ts');
@@ -127,7 +120,6 @@ runTest('personaSystem', 'Persona loader exists and exports correctly', () => {
   const content = fs.readFileSync(loaderPath, 'utf8');
   return content.includes('helmPersonaLoader') && 
          content.includes('HelmPersonaLoader');
-});
 
 // === MOBILE APP INTEGRATION TESTS ===
 console.log('\n📱 Testing Mobile App Integration...');
@@ -135,7 +127,6 @@ console.log('\n📱 Testing Mobile App Integration...');
 runTest('mobileApp', 'Helm service created', () => {
   const servicePath = path.resolve(__dirname, '../mobile/src/services/HelmEngineService.js');
   return fs.existsSync(servicePath);
-});
 
 runTest('mobileApp', 'Helm service has correct structure', () => {
   const servicePath = path.resolve(__dirname, '../mobile/src/services/HelmEngineService.js');
@@ -145,7 +136,6 @@ runTest('mobileApp', 'Helm service has correct structure', () => {
   return content.includes('HelmEngineService') && 
          content.includes('sendMessage') && 
          content.includes('initialize');
-});
 
 runTest('mobileApp', 'Package.json includes Helm dependency', () => {
   const packagePath = path.resolve(__dirname, '../mobile/package.json');
@@ -161,7 +151,6 @@ runTest('mobileApp', 'Package.json includes Helm dependency', () => {
 runTest('mobileApp', 'Integration hooks prepared', () => {
   const gameScreenPath = path.resolve(__dirname, '../mobile/src/screens/GameScreen.js.helm');
   return fs.existsSync(gameScreenPath);
-});
 
 // === DOCUMENTATION TESTS ===
 console.log('\n📚 Testing Documentation...');
@@ -174,7 +163,6 @@ runTest('overall', 'Architecture documentation exists', () => {
   ];
   
   return docs.every(doc => fs.existsSync(path.resolve(__dirname, doc)));
-});
 
 runTest('overall', 'Migration notes are complete', () => {
   const migrationPath = path.resolve(__dirname, '../MIGRATION-NOTES.md');
@@ -184,7 +172,6 @@ runTest('overall', 'Migration notes are complete', () => {
   return content.includes('Phase 1') && 
          content.includes('Phase 2') && 
          content.includes('Compatibility Aliases');
-});
 
 // === COMPATIBILITY TESTS ===
 console.log('\n🔄 Testing Compatibility Layer...');
@@ -192,7 +179,6 @@ console.log('\n🔄 Testing Compatibility Layer...');
 runTest('overall', 'Compatibility layer exists', () => {
   const compatPath = path.resolve(__dirname, '../server/helm-compatibility.js');
   return fs.existsSync(compatPath);
-});
 
 runTest('overall', 'Compatibility layer exports correct aliases', () => {
   const compatPath = path.resolve(__dirname, '../server/helm-compatibility.js');
@@ -202,7 +188,6 @@ runTest('overall', 'Compatibility layer exports correct aliases', () => {
   return content.includes('AceyEngine') && 
          content.includes('processAceyRequest') && 
          content.includes('helmEngine');
-});
 
 // === TEST RESULTS SUMMARY ===
 console.log('\n📊 Integration Test Results Summary');
@@ -215,7 +200,6 @@ Object.entries(testResults).forEach(([category, results]) => {
   const status = percentage === 100 ? '✅' : percentage >= 75 ? '⚠️' : '❌';
   
   console.log(`${status} ${category.toUpperCase()}: ${results.passed}/${results.total} tests passed (${percentage}%)`);
-});
 
 const overallPercentage = testResults.overall.total > 0 ? 
   Math.round((testResults.overall.passed / testResults.overall.total) * 100) : 0;

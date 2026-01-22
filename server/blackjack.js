@@ -17,7 +17,6 @@ function createDeck() {
   const deck = [];
   suits.forEach(suit => {
     ranks.forEach(rank => deck.push({ rank, suit }));
-  });
   return deck.sort(() => Math.random() - 0.5);
 }
 

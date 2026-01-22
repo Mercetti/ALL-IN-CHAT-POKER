@@ -47,7 +47,6 @@ function settlePoker(playerStates, communityCards) {
     const finalHand = (state.hole || []).concat(communityCards || []);
     const evaluation = game.evaluateBestOfSeven(finalHand);
     playerResults.push({ login, finalHand, evaluation });
-  });
 
   return { playerResults };
 }
@@ -131,7 +130,6 @@ function settleAndEmit(io, playerStates, communityCards, betAmounts, waitingQueu
   Object.keys(playerStates).forEach(login => {
     const balance = db.getBalance(login);
     if (balance <= 0) broke.push(login);
-  });
 
   return {
     broke,

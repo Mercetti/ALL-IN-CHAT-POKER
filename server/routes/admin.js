@@ -8,25 +8,20 @@ function createAdminRouter({ auth, middleware, config, logger, rateLimit, db, tm
   // Admin-only pages
   router.get('/admin-chat.html', auth.requireAdmin, (_req, res) => {
     res.sendFile(path.join(__dirname, '..', '..', 'public', 'admin-chat.html'));
-  });
 
   router.get('/admin-chat', auth.requireAdmin, (_req, res) => {
     res.redirect('/admin-chat.html');
-  });
 
   router.get('/admin-code.html', auth.requireAdmin, (_req, res) => {
     res.sendFile(path.join(__dirname, '..', '..', 'public', 'admin-code.html'));
-  });
 
   router.get('/admin-code', auth.requireAdmin, (_req, res) => {
     res.redirect('/admin-code.html');
-  });
 
   // CSRF token
   router.get('/csrf', auth.requireAdmin, (req, res) => {
     const token = middleware.issueCsrfCookie(res, { auth, config });
     res.json({ token });
-  });
 
   // Admin login with rate limiting and DB-backed authentication
   router.post('/login', rateLimit('admin-login', 60 * 1000, 5), (req, res) => {
@@ -122,7 +117,6 @@ function createAdminRouter({ auth, middleware, config, logger, rateLimit, db, tm
     res.clearCookie('admin_jwt', cookieOptions);
     res.clearCookie('csrf_token', middleware.getCsrfCookieOptions({ auth, config }));
     res.json({ success: true });
-  });
 
   // Ephemeral admin token
   router.post('/token', rateLimit('admin-token', 60 * 1000, 5), auth.requireAdmin, (req, res) => {
@@ -133,7 +127,6 @@ function createAdminRouter({ auth, middleware, config, logger, rateLimit, db, tm
     const token = db.createToken('admin_overlay', req.ip, ttl);
     logger.info('Ephemeral token created', { ip: req.ip, ttl });
     res.json({ token, ttl });
-  });
 
   // Security snapshot
   router.get('/security-snapshot', auth.requireAdmin, (req, res) => {
@@ -161,7 +154,6 @@ function createAdminRouter({ auth, middleware, config, logger, rateLimit, db, tm
       } : null,
     };
     res.json({ snapshot });
-  });
 
   // Refresh cosmetics catalog
   router.post('/refresh-cosmetics', auth.requireAdmin, async (req, res) => {

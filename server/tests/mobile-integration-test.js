@@ -193,7 +193,6 @@ const useHelmIntegration = () => {
     // Initialize Helm engine
     helmEngineService.initialize().then(success => {
       setHelmStatus(success ? 'connected' : 'error');
-    });
   }, []);
 
   const sendMessage = async () => {

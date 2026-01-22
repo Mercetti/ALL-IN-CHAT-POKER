@@ -109,13 +109,10 @@ function selectModelForContext(messages = [], options = {}) {
 if (process.env.NODE_ENV !== 'test' && performanceMonitor) {
   performanceMonitor.on('slow-response', (data) => {
     logger.warn('Slow AI response detected', data);
-  });
   performanceMonitor.on('high-error-rate', (data) => {
     logger.error('High AI error rate detected', data);
-  });
   performanceMonitor.on('recommendations', (recommendations) => {
     logger.info('AI Performance Recommendations:', recommendations);
-  });
 }
 
 function assertProvider() {

@@ -95,7 +95,6 @@ function createSimpleAuthRouter() {
       return res.status(403).json({ error: 'registration_disabled' });
     }
     return res.status(400).json({ error: 'registration_not_available' });
-  });
 
   // Logout endpoint
   router.post('/logout', (req, res) => {

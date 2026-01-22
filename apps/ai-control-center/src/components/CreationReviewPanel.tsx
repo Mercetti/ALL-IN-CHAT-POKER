@@ -294,13 +294,11 @@ export default function CreationReviewPanel() {
         console.error('Audio preview failed - showing fallback');
         // Show a nice notification instead of error
         alert(`🎵 Audio Preview: ${file.name}\n\nDuration: ${file.duration}\n\nAudio preview is not available in this browser, but you can see the audio details above.`);
-      });
       
       audio.addEventListener('canplay', () => {
         audio.play().catch(error => {
           console.error('Audio play failed:', error);
           alert(`🎵 Audio Preview: ${file.name}\n\nDuration: ${file.duration}\n\nAudio playback failed. The audio file may not be supported in this browser.`);
-        });
       });
       
       // Start loading

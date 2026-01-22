@@ -68,11 +68,9 @@ class AIServiceManager {
 
       ollama.stdout.on('data', (data) => {
         logger.debug('Ollama stdout', { data: data.toString().trim() });
-      });
 
       ollama.stderr.on('data', (data) => {
         logger.debug('Ollama stderr', { data: data.toString().trim() });
-      });
 
       ollama.on('close', (code) => {
         logger.info('Ollama process exited', { code });
@@ -189,7 +187,6 @@ class AIServiceManager {
 
       tunnel.stderr.on('data', (data) => {
         logger.debug('Tunnel stderr', { data: data.toString().trim() });
-      });
 
       tunnel.on('close', (code) => {
         logger.info('Tunnel process exited', { code });

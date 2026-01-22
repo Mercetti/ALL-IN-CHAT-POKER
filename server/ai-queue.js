@@ -44,7 +44,6 @@ class AIQueue extends EventEmitter {
       
       this.processQueue();
       logger.debug('Request queued', { id: queueItem.id });
-    });
   }
 
   /**

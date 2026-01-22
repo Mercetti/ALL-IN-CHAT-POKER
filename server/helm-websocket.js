@@ -37,15 +37,12 @@ class HelmWebSocket {
   setupEventHandlers() {
     this.wss.on('connection', (ws, req) => {
       this.handleConnection(ws, req);
-    });
 
     this.wss.on('error', (error) => {
       this.logger.error?.('🔗 Helm WebSocket server error:', error);
-    });
 
     this.wss.on('close', () => {
       this.logger.info?.('🔗 Helm WebSocket server closed');
-    });
   }
 
   async handleConnection(ws, req) {
@@ -78,16 +75,13 @@ class HelmWebSocket {
       // Setup client event handlers
       ws.on('message', (data) => {
         this.handleMessage(client, data);
-      });
 
       ws.on('close', () => {
         this.handleDisconnection(client);
-      });
 
       ws.on('error', (error) => {
         this.logger.error?.(`🔗 WebSocket error for ${userLogin}:`, error);
         this.handleDisconnection(client);
-      });
 
       this.logger.info?.(`🔗 Client connected: ${userLogin} (${client.sessionId})`);
 
@@ -367,7 +361,6 @@ class HelmWebSocket {
 
       this.wss.close(() => {
         this.logger.info?.('🔗 Helm WebSocket server closed');
-      });
     }
   }
 }

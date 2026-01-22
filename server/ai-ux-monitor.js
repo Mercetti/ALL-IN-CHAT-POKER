@@ -149,7 +149,6 @@ class AIUXMonitor {
     
     Object.keys(this.uxMetrics).forEach(key => {
       this.uxMetrics[key] = this.uxMetrics[key].filter(m => m.timestamp > cutoff);
-    });
   }
 
   /**
@@ -244,7 +243,6 @@ class AIUXMonitor {
         if (interaction.success) patterns[key].success++;
         patterns[key].totalDuration += interaction.duration || 0;
       });
-    });
     
     return patterns;
   }
@@ -263,7 +261,6 @@ class AIUXMonitor {
         }
         patterns[key].count++;
         if (error.context) patterns[key].contexts.push(error.context);
-      });
     });
     
     return patterns;
@@ -284,7 +281,6 @@ class AIUXMonitor {
         patterns[key].count++;
         patterns[key].totalDuration += nav.duration;
       });
-    });
     
     return patterns;
   }

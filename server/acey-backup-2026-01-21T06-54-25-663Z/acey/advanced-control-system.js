@@ -111,7 +111,6 @@ Never store intent.`
     const pendingProposals = this.memoryVeto.getPendingProposals();
     pendingProposals.forEach(proposal => {
       this.memoryVeto.handleStreamerResponse(proposal.id, false, 'Stream start cleanup');
-    });
 
     console.log(`🎮 Stream started: ${streamId} (${channel})`);
   }

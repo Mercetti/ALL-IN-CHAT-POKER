@@ -331,7 +331,6 @@ class WebSocketMessageBatcher extends EventEmitter {
         sessionGroups.set(message.sessionId, []);
       }
       sessionGroups.get(message.sessionId).push(message);
-    });
     
     // Send batch for each session
     sessionGroups.forEach((messages, sessionId) => {
@@ -350,7 +349,6 @@ class WebSocketMessageBatcher extends EventEmitter {
     // Clear all timers
     this.batchTimers.forEach((timer, id) => {
       clearTimeout(timer);
-    });
     this.batchTimers.clear();
   }
 
@@ -444,7 +442,6 @@ class WebSocketMessageBatcher extends EventEmitter {
     // Clear all timers
     this.batchTimers.forEach((timer, id) => {
       clearTimeout(timer);
-    });
     this.batchTimers.clear();
     
     // Clear queues

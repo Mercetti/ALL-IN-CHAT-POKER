@@ -99,7 +99,6 @@ async function readFileAsBase64(file: File): Promise<string> {
     };
     reader.onerror = reject;
     reader.readAsDataURL(file);
-  });
 }
 
 export default function ChatPanel() {

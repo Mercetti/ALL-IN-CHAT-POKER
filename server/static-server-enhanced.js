@@ -120,7 +120,6 @@ class EnhancedStaticServer {
       res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
       
       next();
-    });
   }
 
   /**
@@ -213,7 +212,6 @@ class EnhancedStaticServer {
       }.bind(this);
       
       next();
-    });
   }
 
   /**
@@ -335,26 +333,22 @@ class EnhancedStaticServer {
 📊 Metrics: ${this.options.enableMetrics ? 'Enabled' : 'Disabled'}
 ⏱️ Uptime: ${uptime}ms
         `);
-      });
       
       // Handle server errors
       this.server.on('error', (error) => {
         logger.error('Server error', { error: error.message });
-      });
       
       // Handle graceful shutdown
       process.on('SIGTERM', () => {
         logger.info('Received SIGTERM, shutting down gracefully');
         this.server.close(() => {
           process.exit(0);
-        });
       });
       
       process.on('SIGINT', () => {
         logger.info('Received SIGINT, shutting down gracefully');
         this.server.close(() => {
           process.exit(0);
-        });
       });
       
     } catch (error) {
@@ -449,7 +443,6 @@ class EnhancedStaticServer {
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Cache-Control', 'no-cache');
       res.json(health);
-    });
   }
 
   /**
@@ -462,7 +455,6 @@ class EnhancedStaticServer {
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Cache-Control', 'no-cache');
       res.json(stats);
-    });
   }
 
   /**
@@ -472,7 +464,6 @@ class EnhancedStaticServer {
     if (this.server) {
       this.server.close(() => {
         logger.info('Enhanced static server stopped');
-      });
     }
   }
 }

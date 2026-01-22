@@ -99,7 +99,6 @@ app.whenReady().then(() => {
       createWindow();
     }
   });
-});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -118,7 +117,6 @@ ipcMain.handle('notify', (_event, payload) => {
     silent: false
   });
   notification.show();
-});
 
 function appendRuntimeLog(message, level = 'info') {
   const entry = {
@@ -265,15 +263,12 @@ ipcMain.handle('runtime:start', async () => {
 
   runtimeProcess.stdout.on('data', (data) => {
     appendRuntimeLog(data.toString().trim(), 'stdout');
-  });
 
   runtimeProcess.stderr.on('data', (data) => {
     appendRuntimeLog(data.toString().trim(), 'stderr');
-  });
 
   runtimeProcess.on('error', (err) => {
     appendRuntimeLog(`Runtime error: ${err.message}`, 'error');
-  });
 
   runtimeProcess.on('exit', (code, signal) => {
     appendRuntimeLog(`Runtime exited (code ${code ?? 'null'}, signal ${signal ?? 'null'})`, 'info');

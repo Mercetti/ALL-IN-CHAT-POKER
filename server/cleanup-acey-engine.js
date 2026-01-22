@@ -88,13 +88,11 @@ function copyDirectory(src, dest) {
 console.log('\n📁 Removing old Acey engine files...');
 filesToRemove.forEach(file => {
   backupAndRemove(file, false);
-});
 
 // Remove directories
 console.log('\n📂 Removing old Acey engine directories...');
 dirsToRemove.forEach(dir => {
   backupAndRemove(dir, true);
-});
 
 // Check for any remaining references
 console.log('\n🔍 Checking for remaining references...');
@@ -147,7 +145,6 @@ searchTerms.forEach(term => {
       console.log(`   📄 ${relativePath}:`);
       ref.matches.slice(0, 3).forEach(match => {
         console.log(`      "${match}"`);
-      });
       if (ref.matches.length > 3) {
         console.log(`      ... and ${ref.matches.length - 3} more`);
       }

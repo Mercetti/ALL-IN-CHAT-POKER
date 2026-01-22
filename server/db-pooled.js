@@ -141,7 +141,6 @@ class PooledDBHelper {
       connection.exec('CREATE INDEX IF NOT EXISTS idx_tournaments_start_time ON tournaments(start_time)');
 
       logger.info('Database schema initialized');
-    });
   }
 
   /**
@@ -425,7 +424,6 @@ class PooledDBHelper {
       
       // This would typically be called by a scheduled job
       logger.debug('User statistics updated');
-    });
   }
 
   /**

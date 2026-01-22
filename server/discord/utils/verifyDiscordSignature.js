@@ -81,12 +81,10 @@ function rawBodyParser() {
     req.on('end', () => {
       req.rawBody = Buffer.concat(chunks).toString('utf8');
       next();
-    });
     
     req.on('error', error => {
       console.error('❌ Raw body parser error:', error);
       res.status(400).json({ error: 'Invalid request body' });
-    });
   };
 }
 

@@ -741,7 +741,6 @@ Explanation: [brief explanation]`;
         
         patterns.forEach(([key, pattern]) => {
           this.patterns.set(key, pattern);
-        });
         
         logger.info('Loaded learned patterns', { count: patterns.length });
       } catch (error) {

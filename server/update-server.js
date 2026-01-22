@@ -64,7 +64,6 @@ app.use(express.static('updates'));
 app.get('/api/version', (req, res) => {
   const updateInfo = loadUpdateInfo();
   res.json(updateInfo);
-});
 
 app.get('/api/download/:filename', (req, res) => {
   const filename = req.params.filename;
@@ -104,7 +103,6 @@ app.get('/api/updates', (req, res) => {
     .sort((a, b) => new Date(b.uploadDate) - new Date(a.uploadDate));
   
   res.json({ updates: files });
-});
 
 app.post('/api/upload', upload.single('apk'), (req, res) => {
   if (!req.file) {
@@ -135,7 +133,6 @@ app.post('/api/upload', upload.single('apk'), (req, res) => {
     success: true,
     update: updateInfo
   });
-});
 
 app.delete('/api/update/:filename', (req, res) => {
   const filename = req.params.filename;
@@ -260,13 +257,11 @@ const checkForUpdates = async () => {
     </body>
     </html>
   `);
-});
 
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Update server running on http://localhost:${PORT}`);
   console.log(`📱 Admin interface: http://localhost:${PORT}/admin`);
   console.log(`📦 Version API: http://localhost:${PORT}/api/version`);
-});
 
 module.exports = app;

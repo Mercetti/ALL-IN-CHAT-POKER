@@ -242,7 +242,6 @@
       // Auto-initialize
       helmInstance.initialize().catch(error => {
         console.error('Helm auto-initialization failed:', error);
-      });
     }
   }
 

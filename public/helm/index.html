@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Helm Control - AI Orchestration Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap');
+        
+        :root {
+            --circuit-blue: #00d4ff;
+            --circuit-green: #00ff88;
+            --circuit-purple: #9945ff;
+            --circuit-pink: #ff006e;
+            --dark-bg: #0a0a0f;
+            --dark-card: #1a1a2e;
+            --dark-border: #2a2a3e;
+        }
+        
+        body {
+            font-family: 'Orbitron', monospace;
+            background: var(--dark-bg);
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+        
+        .circuit-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(45deg, transparent 24%, rgba(0, 212, 255, 0.05) 25%, rgba(0, 212, 255, 0.05) 26%, transparent 27%, transparent 74%, rgba(0, 212, 255, 0.05) 75%, rgba(0, 212, 255, 0.05) 76%, transparent 77%, transparent),
+                linear-gradient(-45deg, transparent 24%, rgba(0, 255, 136, 0.05) 25%, rgba(0, 255, 136, 0.05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 136, 0.05) 75%, rgba(0, 255, 136, 0.05) 76%, transparent 77%, transparent);
+            background-size: 50px 50px;
+            animation: circuit-move 10s linear infinite;
+            z-index: -1;
+        }
+        
+        @keyframes circuit-move {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+        
+        .glow-text {
+            text-shadow: 0 0 10px var(--circuit-blue), 0 0 20px var(--circuit-blue);
+        }
+        
+        .circuit-border {
+            border: 2px solid var(--circuit-blue);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.5), inset 0 0 20px rgba(0, 212, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .circuit-border::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--circuit-blue), var(--circuit-green), var(--circuit-purple), var(--circuit-pink), var(--circuit-blue));
+            z-index: -1;
+            animation: circuit-border-rotate 3s linear infinite;
+        }
+        
+        @keyframes circuit-border-rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .neon-button {
+            background: linear-gradient(45deg, var(--circuit-blue), var(--circuit-purple));
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .neon-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.5);
+        }
+        
+        .neon-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .neon-button:hover::before {
+            left: 100%;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--circuit-green);
+            box-shadow: 0 0 10px var(--circuit-green);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .terminal-text {
+            font-family: 'Space Mono', monospace;
+            color: var(--circuit-green);
+            text-shadow: 0 0 5px var(--circuit-green);
+        }
+        
+        .data-stream {
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+            color: var(--circuit-blue);
+            opacity: 0.8;
+            white-space: pre-wrap;
+        }
+        
+        .persona-card {
+            background: var(--dark-card);
+            border: 1px solid var(--dark-border);
+            transition: all 0.3s ease;
+        }
+        
+        .persona-card:hover {
+            border-color: var(--circuit-blue);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, var(--dark-card), rgba(0, 212, 255, 0.1));
+            border: 1px solid var(--circuit-blue);
+            backdrop-filter: blur(10px);
+        }
+        
+        .loading-bar {
+            height: 4px;
+            background: linear-gradient(90deg, var(--circuit-blue), var(--circuit-green), var(--circuit-purple));
+            background-size: 200% 100%;
+            animation: loading-move 2s linear infinite;
+        }
+        
+        @keyframes loading-move {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 200% 0%; }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="circuit-bg"></div>
+    
+    <!-- Header -->
+    <header class="relative z-10 p-6 border-b border-gray-800">
+        <div class="container mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 circuit-border rounded-lg flex items-center justify-center">
+                    <div class="text-2xl font-bold glow-text">H</div>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold glow-text">HELM CONTROL</h1>
+                    <p class="text-sm text-gray-400">AI Orchestration Platform</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-6">
+                <div class="flex items-center space-x-2">
+                    <div class="status-indicator"></div>
+                    <span class="text-sm text-gray-400">ONLINE</span>
+                </div>
+                <div class="terminal-text text-xs">
+                    v1.0.0 | NODE: <span id="node-status">ACTIVE</span>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="container mx-auto p-6 relative z-10">
+        <!-- Control Panel -->
+        <section class="mb-8">
+            <div class="circuit-border rounded-lg p-6 bg-black bg-opacity-50">
+                <h2 class="text-xl font-bold mb-4 glow-text">AI CONTROL CENTER</h2>
+                
+                <!-- Persona Selection -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="persona-card rounded-lg p-4 cursor-pointer" onclick="selectPersona('acey')">
+                        <div class="flex items-center space-x-3 mb-2">
+                            <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full"></div>
+                            <h3 class="font-bold">ACEY</h3>
+                        </div>
+                        <p class="text-sm text-gray-400">AI Control Assistant</p>
+                        <div class="mt-2 text-xs terminal-text">STATUS: READY</div>
+                    </div>
+                    
+                    <div class="persona-card rounded-lg p-4 cursor-pointer" onclick="selectPersona('professional')">
+                        <div class="flex items-center space-x-3 mb-2">
+                            <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-600 rounded-full"></div>
+                            <h3 class="font-bold">PROFESSIONAL</h3>
+                        </div>
+                        <p class="text-sm text-gray-400">Business Assistant</p>
+                        <div class="mt-2 text-xs terminal-text">STATUS: READY</div>
+                    </div>
+                    
+                    <div class="persona-card rounded-lg p-4 cursor-pointer" onclick="selectPersona('casual')">
+                        <div class="flex items-center space-x-3 mb-2">
+                            <div class="w-8 h-8 bg-gradient-to-br from-pink-500 to-orange-600 rounded-full"></div>
+                            <h3 class="font-bold">CASUAL</h3>
+                        </div>
+                        <p class="text-sm text-gray-400">Friendly Assistant</p>
+                        <div class="mt-2 text-xs terminal-text">STATUS: READY</div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex flex-wrap gap-4">
+                    <button class="neon-button" onclick="sendChat()">SEND CHAT</button>
+                    <button class="neon-button" onclick="simulateWin()">SIMULATE WIN</button>
+                    <button class="neon-button" onclick="simulateLoss()">SIMULATE LOSS</button>
+                    <button class="neon-button" onclick="clearLogs()">CLEAR LOGS</button>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Metrics Dashboard -->
+        <section class="mb-8">
+            <h2 class="text-xl font-bold mb-4 glow-text">SYSTEM METRICS</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="metric-card rounded-lg p-4">
+                    <div class="text-sm text-gray-400 mb-1">CPU USAGE</div>
+                    <div class="text-2xl font-bold terminal-text" id="cpu-usage">12%</div>
+                    <div class="loading-bar mt-2"></div>
+                </div>
+                <div class="metric-card rounded-lg p-4">
+                    <div class="text-sm text-gray-400 mb-1">MEMORY</div>
+                    <div class="text-2xl font-bold terminal-text" id="memory-usage">256MB</div>
+                    <div class="loading-bar mt-2"></div>
+                </div>
+                <div class="metric-card rounded-lg p-4">
+                    <div class="text-sm text-gray-400 mb-1">ACTIVE SKILLS</div>
+                    <div class="text-2xl font-bold terminal-text" id="active-skills">8</div>
+                    <div class="loading-bar mt-2"></div>
+                </div>
+                <div class="metric-card rounded-lg p-4">
+                    <div class="text-sm text-gray-400 mb-1">RESPONSE TIME</div>
+                    <div class="text-2xl font-bold terminal-text" id="response-time">42ms</div>
+                    <div class="loading-bar mt-2"></div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Terminal Output -->
+        <section>
+            <div class="circuit-border rounded-lg p-6 bg-black bg-opacity-50">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold glow-text">TERMINAL OUTPUT</h2>
+                    <div class="flex items-center space-x-2">
+                        <div class="status-indicator"></div>
+                        <span class="text-sm text-gray-400">LIVE</span>
+                    </div>
+                </div>
+                <div id="output" class="data-stream h-64 overflow-y-auto bg-black bg-opacity-50 rounded p-4 font-mono text-xs">
+                    <div>[00:00:00] HELM CONTROL SYSTEM INITIALIZED</div>
+                    <div>[00:00:01] WebSocket connection established</div>
+                    <div>[00:00:02] All personas loaded and ready</div>
+                    <div>[00:00:03] System monitoring active</div>
+                    <div>[00:00:04] Awaiting user input...</div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="relative z-10 p-6 border-t border-gray-800 mt-12">
+        <div class="container mx-auto text-center">
+            <p class="text-sm text-gray-400 terminal-text">
+                © 2024 HELM CONTROL | INFRASTRUCTURE FOR SAFE, DEPLOYABLE AI OPERATORS
+            </p>
+        </div>
+    </footer>
+    
+    <script src="helmUI.js"></script>
+</body>
+</html>

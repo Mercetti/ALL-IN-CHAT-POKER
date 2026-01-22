@@ -181,7 +181,6 @@ test.describe('Overlay Elements - Acey Generated', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/overlay');
     await page.waitForLoadState('networkidle');
-  });
 
 ${testCases.map(testCase => `
   test('${testCase.description}', async ({ page }) => {
@@ -201,7 +200,6 @@ test.describe('Overlay Interactions - Acey Generated', () => {
     // Close settings
     await page.click('.settings-button');
     await expect(page.locator('.overlay-settings')).toBeHidden();
-  });
 
   test('should handle chat overlay interaction', async ({ page }) => {
     await page.goto('/overlay?chat=true');
@@ -218,7 +216,6 @@ test.describe('Overlay Interactions - Acey Generated', () => {
     });
     
     await expect(page.locator('.chat-messages')).toContainText('Auto-test message!');
-  });
 });
 `;
   }

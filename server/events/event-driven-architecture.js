@@ -124,12 +124,10 @@ class EventDrivenArchitecture {
     if (this.options.enableMetrics) {
       this.eventBus.on('metrics', (metrics) => {
         this.updateMetrics(metrics);
-      });
       
       if (this.eventAggregator) {
         this.eventAggregator.on('metrics', (metrics) => {
           this.updateMetrics(metrics);
-        });
       }
     }
     
@@ -137,13 +135,11 @@ class EventDrivenArchitecture {
     this.eventBus.on('error', (error) => {
       this.metrics.failedEvents++;
       this.emit('error', error);
-    });
     
     if (this.eventAggregator) {
       this.eventAggregator.on('processingError', ({ event, error }) => {
         this.metrics.failedEvents++;
         this.emit('error', { event, error });
-      });
     }
   }
 

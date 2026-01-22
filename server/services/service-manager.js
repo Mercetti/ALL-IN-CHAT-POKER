@@ -104,23 +104,18 @@ class ServiceManager extends EventEmitter {
   setupServiceListeners(service) {
     service.on('started', () => {
       this.handleServiceStarted(service);
-    });
     
     service.on('stopped', () => {
       this.handleServiceStopped(service);
-    });
     
     service.on('error', (error) => {
       this.handleServiceError(service, error);
-    });
     
     service.on('metric', (metric) => {
       this.handleServiceMetric(service, metric);
-    });
     
     service.on('healthCheck', (health) => {
       this.handleServiceHealthCheck(service, health);
-    });
   }
 
   /**

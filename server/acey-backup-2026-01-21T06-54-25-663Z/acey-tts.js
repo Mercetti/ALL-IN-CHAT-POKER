@@ -162,6 +162,5 @@ router.get('/health', (req, res) => {
     providers: Object.keys(TTS_PROVIDERS).filter(key => TTS_PROVIDERS[key].enabled),
     timestamp: Date.now()
   });
-});
 
 module.exports = router;

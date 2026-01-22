@@ -141,7 +141,6 @@ class SimpleXMLBuilder {
             xml += '\n';
             nested.forEach(([k, v]) => {
               xml += this.buildObject({ [k]: v }, indent + 1);
-            });
             xml += indentStr;
           }
           
@@ -577,7 +576,6 @@ class ModernXMLProcessor {
       xmlStrings.forEach((xmlString, index) => {
         const parsed = this.parseXML(xmlString);
         Object.assign(merged, parsed);
-      });
       
       const wrapped = { [rootElement]: merged };
       return this.buildXML(wrapped);

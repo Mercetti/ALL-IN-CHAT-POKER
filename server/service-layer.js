@@ -84,37 +84,29 @@ class ServiceLayer {
   setupServiceManagerListeners() {
     this.serviceManager.on('serviceStarted', ({ serviceName }) => {
       logger.info(`Service started: ${serviceName}`);
-    });
     
     this.serviceManager.on('serviceStopped', ({ serviceName }) => {
       logger.info(`Service stopped: ${serviceName}`);
-    });
     
     this.serviceManager.on('serviceError', ({ serviceName, error }) => {
       logger.error(`Service error: ${serviceName}`, { error: error.message });
-    });
     
     this.serviceManager.on('allServicesStarted', () => {
       this.state = 'running';
       logger.info('All services started successfully');
-    });
     
     this.serviceManager.on('allServicesStopped', () => {
       this.state = 'stopped';
       logger.info('All services stopped');
-    });
     
     this.serviceManager.on('error', (error) => {
       logger.error('Service manager error', { error: error.message });
-    });
     
     this.serviceManager.on('healthCheck', (healthChecks) => {
       this.emit('healthCheck', healthChecks);
-    });
     
     this.serviceManager.on('metrics', (metrics) => {
       this.emit('metrics', metrics);
-    });
   }
 
   /**
@@ -301,7 +293,6 @@ class ServiceLayer {
           error: error.error,
           context: error.context
         });
-      });
     }
     
     // Sort by timestamp (most recent first)

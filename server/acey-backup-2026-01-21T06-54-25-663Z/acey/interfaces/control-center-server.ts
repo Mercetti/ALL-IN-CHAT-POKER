@@ -57,7 +57,6 @@ export class AIControlCenterServer {
         timestamp: Date.now(),
         controlCenter: this.controlCenter.getState().active
       });
-    });
 
     // ===== MEMORY MANAGER ENDPOINTS =====
     
@@ -129,7 +128,6 @@ export class AIControlCenterServer {
         ),
         moduleData: memoryModule?.getModuleData()
       });
-    });
 
     // ===== TRUST & SAFETY ENDPOINTS =====
 
@@ -145,7 +143,6 @@ export class AIControlCenterServer {
         totalUsers: moduleData?.totalTrustScores || 0,
         recentActivity: moduleData?.moderationLog?.slice(-10) || []
       });
-    });
 
     // GET /trust/suggestions - Get moderation suggestions
     this.app.get('/trust/suggestions', (req, res) => {
@@ -158,7 +155,6 @@ export class AIControlCenterServer {
           log.type === 'shadow_ban_suggestion'
         ) || []
       });
-    });
 
     // POST /trust/apply - Apply trust signal
     this.app.post('/trust/apply', async (req, res) => {
@@ -191,7 +187,6 @@ export class AIControlCenterServer {
         locked: this.controlCenter.getConfig().personaLocked,
         history: moduleData?.personaHistory?.slice(-10) || []
       });
-    });
 
     // POST /persona/lock - Lock/unlock persona system
     this.app.post('/persona/lock', (req, res) => {
@@ -202,7 +197,6 @@ export class AIControlCenterServer {
         success: true,
         locked: this.controlCenter.getConfig().personaLocked
       });
-    });
 
     // POST /persona/approve - Approve persona change
     this.app.post('/persona/approve', async (req, res) => {
@@ -243,7 +237,6 @@ export class AIControlCenterServer {
         sessionId,
         mode
       });
-    });
 
     // POST /simulation/process - Process intent in simulation
     this.app.post('/simulation/process', async (req, res) => {
@@ -272,7 +265,6 @@ export class AIControlCenterServer {
         success: true,
         simulations: moduleData?.recentSimulations || []
       });
-    });
 
     // ===== ENGAGEMENT & MOOD ENDPOINTS =====
 
@@ -295,7 +287,6 @@ export class AIControlCenterServer {
           }
         }
       });
-    });
 
     // POST /engagement/event - Process game event
     this.app.post('/engagement/event', async (req, res) => {
@@ -335,7 +326,6 @@ export class AIControlCenterServer {
         auditLog,
         total: state.auditLog.length
       });
-    });
 
     // GET /audit/export - Export audit data
     this.app.get('/audit/export', (req, res) => {
@@ -443,7 +433,6 @@ export class AIControlCenterServer {
           pendingApprovals: state.systemStats.pending
         }
       });
-    });
 
     // GET /dashboard/stats - Get system statistics
     this.app.get('/dashboard/stats', (req, res) => {
@@ -453,7 +442,6 @@ export class AIControlCenterServer {
         success: true,
         stats
       });
-    });
 
     // ===== CONFIGURATION ENDPOINTS =====
 
@@ -463,7 +451,6 @@ export class AIControlCenterServer {
         success: true,
         config: this.controlCenter.getConfig()
       });
-    });
 
     // POST /config - Update configuration
     this.app.post('/config', (req, res) => {
@@ -532,7 +519,6 @@ export class AIControlCenterServer {
       // Handle dashboard requests
       socket.on('get_dashboard', () => {
         socket.emit('dashboard_update', this.controlCenter.getDashboardData());
-      });
 
       // Handle configuration updates
       socket.on('update_config', (newConfig) => {
@@ -552,7 +538,6 @@ export class AIControlCenterServer {
         const state = this.controlCenter.getState();
         state.operatorConnected = false;
       });
-    });
   }
 
   /**
@@ -563,30 +548,24 @@ export class AIControlCenterServer {
     this.controlCenter.on('intent_received', (intent) => {
       this.io.emit('intent_received', intent);
       this.io.emit('dashboard_update', this.controlCenter.getDashboardData());
-    });
 
     this.controlCenter.on('intent_approved', (approved) => {
       this.io.emit('intent_approved', approved);
       this.io.emit('dashboard_update', this.controlCenter.getDashboardData());
-    });
 
     this.controlCenter.on('intent_rejected', (rejected) => {
       this.io.emit('intent_rejected', rejected);
       this.io.emit('dashboard_update', this.controlCenter.getDashboardData());
-    });
 
     this.controlCenter.on('intent_executed', (result) => {
       this.io.emit('intent_executed', result);
       this.io.emit('dashboard_update', this.controlCenter.getDashboardData());
-    });
 
     this.controlCenter.on('audit_logged', (entry) => {
       this.io.emit('audit_logged', entry);
-    });
 
     this.controlCenter.on('config_updated', (config) => {
       this.io.emit('config_updated', config);
-    });
   }
 
   /**
@@ -599,7 +578,6 @@ export class AIControlCenterServer {
         console.log(`📊 Dashboard available at http://localhost:${this.port}/dashboard`);
         console.log(`🔌 WebSocket connection ready`);
         resolve();
-      });
     });
   }
 
@@ -612,7 +590,6 @@ export class AIControlCenterServer {
         console.log('🛑 AI Control Center Server stopped');
         this.controlCenter.destroy();
         resolve();
-      });
     });
   }
 
@@ -656,5 +633,4 @@ if (require.main === module) {
     .catch((error) => {
       console.error('❌ Failed to start AI Control Center Server:', error);
       process.exit(1);
-    });
 }

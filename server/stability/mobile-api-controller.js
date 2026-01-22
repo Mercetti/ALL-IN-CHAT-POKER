@@ -26,19 +26,16 @@ class MobileAPIController {
         memory: process.memoryUsage(),
         timestamp: new Date().toISOString()
       });
-    });
 
     // Start endpoint
     this.app.post('/api/acey/start', (req, res) => {
       console.log('[MOBILE-API] Start request received');
       res.json({ success: true, message: 'Acey started' });
-    });
 
     // Stop endpoint
     this.app.post('/api/acey/stop', (req, res) => {
       console.log('[MOBILE-API] Stop request received');
       res.json({ success: true, message: 'Acey stopped' });
-    });
 
     // Skills endpoint
     this.app.get('/api/acey/skills', (req, res) => {
@@ -46,7 +43,6 @@ class MobileAPIController {
         skills: ['stability', 'monitoring', 'basic-ops'],
         timestamp: new Date().toISOString()
       });
-    });
 
     console.log('[MOBILE-API] Routes registered');
   }

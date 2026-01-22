@@ -146,7 +146,6 @@ export class HelmSkillRegistry {
 
     defaultSkills.forEach(skill => {
       this.skills.set(skill.id, skill);
-    });
   }
 
   // Skill Management
@@ -226,7 +225,6 @@ export class HelmSkillRegistry {
         this.results.set(execution.requestId, result);
         resolve(result);
       }, 100);
-    });
   }
 
   // Analytics and Monitoring

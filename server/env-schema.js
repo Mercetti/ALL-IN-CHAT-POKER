@@ -372,7 +372,6 @@ function generateEnvExample() {
       exampleLines.push(`${key}=`);
     }
     exampleLines.push('');
-  });
   
   return exampleLines.join('\n');
 }

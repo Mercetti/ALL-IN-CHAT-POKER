@@ -226,14 +226,12 @@ class ProductionConfigValidator {
       console.log('\n❌ Errors:');
       validation.errors.forEach(error => {
         console.log(`  • ${error}`);
-      });
     }
     
     if (validation.warnings.length > 0) {
       console.log('\n⚠️  Warnings:');
       validation.warnings.forEach(warning => {
         console.log(`  • ${warning}`);
-      });
     }
     
     if (validation.isValid && validation.warnings.length === 0) {

@@ -163,7 +163,6 @@ class ContinuousLearningLoop {
         task.approved, 
         task.metadata
       );
-    });
   }
 
   /**

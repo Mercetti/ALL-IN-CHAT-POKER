@@ -75,7 +75,6 @@ class ControllerDebugDashboards {
     
     Object.entries(this.dashboards).forEach(([name, dashboard]) => {
       data[name] = dashboard.getData();
-    });
 
     return data;
   }
@@ -356,7 +355,6 @@ class MemoryDashboard {
       const pending = Array.from(this.memoryVeto.pendingProposals.keys());
       pending.forEach(id => {
         this.memoryVeto.handleStreamerResponse(id, false, 'Cleared by dashboard');
-      });
     }
     
     return { success: true, message: 'Pending proposals cleared' };

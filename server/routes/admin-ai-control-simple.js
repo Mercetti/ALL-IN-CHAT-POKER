@@ -2067,7 +2067,6 @@ The All-In Chat Poker Team"
     res.setHeader('Content-Type', 'image/png');
     res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 1 day
     res.send(transparentPixel);
-  });
 
   // Dynamic cosmetic preview image generation
   router.get('/uploads/cosmetics/:filename', (req, res) => {

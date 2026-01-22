@@ -269,7 +269,6 @@ const requestLogger = (req, res, next) => {
   res.on('finish', () => {
     const responseTime = Date.now() - startTime;
     logger.logAccess(req, res, responseTime);
-  });
   
   next();
 };

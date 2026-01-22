@@ -153,11 +153,9 @@ class DatabaseBatcher {
         const results = this.executeBatch(queryType, queries);
         queries.forEach(({ resolve }, index) => {
           resolve(results[index]);
-        });
       } catch (error) {
         queries.forEach(({ reject }) => {
           reject(error);
-        });
       }
     }
     
@@ -321,7 +319,6 @@ class DatabaseOptimizer {
     
     return this.batcher.batch('getBalance', usernames, (batch) => {
       return this.batcher.batchGetBalances(batch);
-    });
   }
 
   /**
@@ -358,7 +355,6 @@ class DatabaseOptimizer {
     
     return this.batcher.batch('getProfile', logins, (batch) => {
       return this.batcher.batchGetProfiles(batch);
-    });
   }
 
   /**

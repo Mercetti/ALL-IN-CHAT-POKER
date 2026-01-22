@@ -167,18 +167,15 @@ class ModernSSLManager {
             });
           }
         });
-      });
       
       req.on('error', (error) => {
         reject(error);
-      });
       
       if (data) {
         req.write(JSON.stringify(data));
       }
       
       req.end();
-    });
   }
 
   /**

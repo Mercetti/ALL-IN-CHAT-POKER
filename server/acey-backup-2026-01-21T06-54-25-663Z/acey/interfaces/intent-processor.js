@@ -617,7 +617,6 @@ class IntentProcessingEngine {
 
     expired.forEach(id => {
       this.rejectIntent(id, 'Intent expired');
-    });
 
     if (expired.length > 0) {
       console.log(`🧹 Cleaned up ${expired.length} expired intents`);

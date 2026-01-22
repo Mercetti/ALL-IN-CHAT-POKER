@@ -376,7 +376,6 @@ class CommunityVoting {
 
     expired.forEach(id => {
       this.resolveVote(id);
-    });
 
     if (expired.length > 0) {
       console.log(`🧹 Cleaned up ${expired.length} expired votes`);

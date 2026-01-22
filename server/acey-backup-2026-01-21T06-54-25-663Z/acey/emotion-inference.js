@@ -214,7 +214,6 @@ class EmotionInference {
             clusters[type]++;
           }
         });
-      });
     });
 
     return clusters;

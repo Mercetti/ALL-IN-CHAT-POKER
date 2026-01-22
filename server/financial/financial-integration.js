@@ -91,7 +91,6 @@ function initializeDatabase(db) {
       // Debug: log first few statements
       statements.slice(0, 3).forEach((stmt, i) => {
         logger.info(`🔍 Statement ${i + 1}: ${stmt.substring(0, 50)}...`);
-      });
       
       // Execute CREATE TABLE statements first
       logger.info(`📋 Executing ${createTableStatements.length} CREATE TABLE statements...`);

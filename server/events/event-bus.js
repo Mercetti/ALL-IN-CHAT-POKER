@@ -74,7 +74,6 @@ class EventBus extends EventEmitter {
     // Set up error handling
     this.on('error', (error) => {
       this.logger.error('Event bus error', { error: error.message });
-    });
   }
 
   /**
@@ -467,7 +466,6 @@ class EventBus extends EventEmitter {
     // Replay events
     events.forEach(event => {
       super.emit(event.name, event, ...event.args);
-    });
     
     return events.length;
   }

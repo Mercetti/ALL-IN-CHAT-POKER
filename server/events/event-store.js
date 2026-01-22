@@ -173,7 +173,6 @@ class EventStore {
           resolve();
         }
       });
-    });
   }
 
   /**

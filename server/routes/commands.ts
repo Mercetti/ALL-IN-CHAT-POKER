@@ -127,11 +127,9 @@ function executeCommandWithTimeout(command, timeout) {
 
     child.stdout.on('data', (data) => {
       stdout += data.toString();
-    });
 
     child.stderr.on('data', (data) => {
       stderr += data.toString();
-    });
 
     const timer = setTimeout(() => {
       child.kill('SIGTERM');
@@ -145,12 +143,10 @@ function executeCommandWithTimeout(command, timeout) {
         stderr,
         exitCode: code
       });
-    });
 
     child.on('error', (error) => {
       clearTimeout(timer);
       reject(error);
-    });
   });
 }
 

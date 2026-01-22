@@ -97,7 +97,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Cleanup on page unload
 window.addEventListener('beforeunload', () => {
   webHelm.shutdown();
-});
 
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {

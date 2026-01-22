@@ -343,7 +343,6 @@ class MemoryVetoSystem {
     const pendingIds = Array.from(this.pendingProposals.keys());
     pendingIds.forEach(id => {
       this.handleStreamerResponse(id, false, 'Memory system locked');
-    });
 
     console.log(`🔒 Memory system locked by: ${userId}`);
 
@@ -381,7 +380,6 @@ class MemoryVetoSystem {
     pendingIds.forEach(id => {
       const result = this.handleStreamerResponse(id, true, 'Bulk approval');
       results.push(result);
-    });
 
     console.log(`✅ All pending proposals approved by: ${userId}`);
 
@@ -404,7 +402,6 @@ class MemoryVetoSystem {
     pendingIds.forEach(id => {
       const result = this.handleStreamerResponse(id, false, 'Bulk denial');
       results.push(result);
-    });
 
     console.log(`❌ All pending proposals denied by: ${userId}`);
 
@@ -432,7 +429,6 @@ class MemoryVetoSystem {
       const pendingIds = Array.from(this.pendingProposals.keys());
       pendingIds.forEach(id => {
         this.handleStreamerResponse(id, false, 'Memory type disabled');
-      });
     }
 
     console.log('⚙️ Memory veto configuration updated');
@@ -530,7 +526,6 @@ class MemoryVetoSystem {
       });
 
       this.pendingProposals.delete(id);
-    });
 
     if (expired.length > 0) {
       console.log(`🧹 Cleaned up ${expired.length} expired proposals`);
@@ -574,7 +569,6 @@ class MemoryVetoSystem {
     const pendingIds = Array.from(this.pendingProposals.keys());
     pendingIds.forEach(id => {
       this.handleStreamerResponse(id, false, 'System shutdown');
-    });
 
     this.pendingProposals.clear();
     this.vetoHistory = [];

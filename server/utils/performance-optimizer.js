@@ -148,7 +148,6 @@ class PerformanceOptimizer {
         hourlyUsage[hour] = [];
       }
       hourlyUsage[hour].push(snapshot.usagePercent);
-    });
     
     // Find peak hours
     const peakHours = Object.entries(hourlyUsage)

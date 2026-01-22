@@ -345,12 +345,10 @@ router.ws('/live', (ws, req) => {
     
     ws.on('close', () => {
       mobileClients.delete(decoded.deviceId);
-    });
     
     ws.on('error', (error) => {
       console.error('Mobile WebSocket error:', error);
       mobileClients.delete(decoded.deviceId);
-    });
     
   } catch (error) {
     ws.close(1008, 'Invalid token');

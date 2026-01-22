@@ -180,7 +180,6 @@ class ConstitutionalOrchestrator extends EventEmitter {
         timestamp: Date.now(),
         data
       });
-    });
   }
 
   /**
@@ -190,17 +189,14 @@ class ConstitutionalOrchestrator extends EventEmitter {
     // Intercept all skill executions
     this.on('skill_execution_request', async (request) => {
       return await this.enforceSkillExecution(request);
-    });
     
     // Intercept all API calls
     this.on('api_call_request', async (request) => {
       return await this.enforceApiCall(request);
-    });
     
     // Intercept all mode changes
     this.on('mode_change_request', async (request) => {
       return await this.enforceModeChange(request);
-    });
   }
 
   /**

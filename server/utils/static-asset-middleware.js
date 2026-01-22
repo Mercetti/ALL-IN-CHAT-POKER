@@ -368,7 +368,6 @@ class StaticAssetMiddleware {
           req.path = req.path + 'index.html';
         }
         next();
-      });
     }
     
     return app;

@@ -32,7 +32,6 @@ class AceyWebSocket {
         data,
         sessionId: data.sessionId 
       });
-    });
     
     this.aceyEngine.on('dynamicMemory', (data) => {
       if (this.wss) this.broadcast({ 
@@ -40,7 +39,6 @@ class AceyWebSocket {
         data,
         sessionId: data.sessionId 
       });
-    });
   }
 
   start() {
@@ -68,7 +66,6 @@ class AceyWebSocket {
       ws.on('close', () => {
         this.removeClientFromSession(ws);
         logger.info('Acey WebSocket client disconnected');
-      });
 
       ws.on('message', async (data) => {
         try {
@@ -85,7 +82,6 @@ class AceyWebSocket {
       ws.on('error', (error) => {
         logger.error('Acey WebSocket error', { error: error.message });
         this.removeClientFromSession(ws);
-      });
     });
   }
 

@@ -126,7 +126,6 @@ class ModernProcessManager {
       
       // Move to history
       this.moveToHistory(processMonitor);
-    });
     
     // Monitor process errors
     process.on('error', (error) => {
@@ -134,7 +133,6 @@ class ModernProcessManager {
       processMonitor.error = error.message;
       processMonitor.endTime = Date.now();
       this.moveToHistory(processMonitor);
-    });
     
     // Monitor process health
     const healthCheckInterval = setInterval(() => {
@@ -159,14 +157,12 @@ class ModernProcessManager {
     if (process.stdout) {
       process.stdout.on('data', (data) => {
         processMonitor.output.push(data.toString());
-      });
     }
     
     // Capture stderr
     if (process.stderr) {
       process.stderr.on('data', (data) => {
         processMonitor.errorOutput.push(data.toString());
-      });
     }
   }
 
@@ -400,7 +396,6 @@ class ModernProcessManager {
       };
       
       checkCompletion();
-    });
   }
 
   /**
@@ -435,7 +430,6 @@ class ModernProcessManager {
       };
       
       checkCompletion();
-    });
   }
 
   /**
