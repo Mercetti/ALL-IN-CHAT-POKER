@@ -37,7 +37,7 @@ class SecurityManager {
       },
       standardHeaders: true,
       legacyHeaders: false,
-    }));
+    });
 
     this.app.use(limiter);
   }
