@@ -13,7 +13,7 @@ primary_region = "iad"
   api = "node helm-api-server.js"
 
 [[mounts]]
-  source = "helm-db-data"
+  source = "helm_db_data"
   destination = "/data"
 
 [http_service]
