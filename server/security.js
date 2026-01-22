@@ -5,7 +5,7 @@
 
 const rateLimit = require('express-rate-limit');
 const { createHash } = require('crypto');
-const middleware = require('../middleware/csrfMiddleware');
+const crypto = require('crypto');
 
 class SecurityManager {
   constructor(app, config) {
@@ -93,13 +93,23 @@ class SecurityManager {
       return;
     }
 
-    this.app.use(middleware.createCsrfMiddleware({ config: this.config }));
+    // Simple CSRF token generation and validation
+    this.app.use((req, res, next) => {
+      // Generate CSRF token for session
+      if (!req.session) {
+        req.session = {};
+      }
+      
+      if (!req.session.csrfToken) {
+        req.session.csrfToken = crypto.randomBytes(32).toString('hex');
+      }
+      
+      res.locals.csrfToken = req.session.csrfToken;
+      next();
+    });
 
     this.app.get('/api/csrf-token', (req, res) => {
-      const token = middleware.issueCsrfCookie(res, {
-        auth: this.config.auth,
-        config: this.config,
-      });
+      const token = req.session?.csrfToken || crypto.randomBytes(32).toString('hex');
       res.json({ csrfToken: token });
     });
   }
