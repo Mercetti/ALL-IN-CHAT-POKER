@@ -1,13 +1,11 @@
 /**
- * Production security enhancements
- * Rate limiting, security headers, and advanced authentication
+ * Security Module for Helm Control
+ * Handles authentication, authorization, and security middleware
  */
 
 const rateLimit = require('express-rate-limit');
-const helmet = require('helmet');
 const { createHash } = require('crypto');
-const middleware = require('./middleware');
-const logger = require('./utils/logger');
+const middleware = require('../middleware/csrfMiddleware');
 
 class SecurityManager {
   constructor(app, config) {
@@ -16,50 +14,16 @@ class SecurityManager {
     this.failedAttempts = new Map();
     this.suspiciousIPs = new Set();
     
-    this.init();
+    this.setupSecurity();
   }
 
-  init() {
-    this.setupSecurityHeaders();
+  setupSecurity() {
     this.setupRateLimiting();
     this.setupAdvancedRateLimiting();
     this.setupIPBlocking();
     this.setupCSRFProtection();
     this.setupContentSecurityPolicy();
-  }
-
-  setupSecurityHeaders() {
-    // Basic security headers
-    this.app.use(helmet({
-      contentSecurityPolicy: {
-        directives: {
-          defaultSrc: ["'self'"],
-          styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-          scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.socket.io"],
-          imgSrc: ["'self'", "data:", "https:", "blob:"],
-          connectSrc: ["'self'", "wss:", "ws:"],
-          fontSrc: ["'self'", "https://fonts.gstatic.com"],
-          objectSrc: ["'none'"],
-          mediaSrc: ["'self'"],
-          frameSrc: ["'none'"],
-        },
-      },
-      hsts: {
-        maxAge: 31536000,
-        includeSubDomains: true,
-        preload: true
-      }
-    }));
-
-    // Custom security headers
-    this.app.use((req, res, next) => {
-      res.setHeader('X-Content-Type-Options', 'nosniff');
-      res.setHeader('X-Frame-Options', 'DENY');
-      res.setHeader('X-XSS-Protection', '1; mode=block');
-      res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-      res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
-      next();
-    });
+    this.setupSecurityHeaders();
   }
 
   setupRateLimiting() {
@@ -73,14 +37,7 @@ class SecurityManager {
       },
       standardHeaders: true,
       legacyHeaders: false,
-      handler: (req, res) => {
-        this.logSuspiciousActivity(req.ip, 'rate_limit_exceeded');
-        res.status(429).json({
-          error: 'Too many requests',
-          retryAfter: '15 minutes'
-        });
-      }
-    });
+    }));
 
     this.app.use(limiter);
   }
@@ -128,6 +85,7 @@ class SecurityManager {
       }
       
       next();
+    });
   }
 
   setupCSRFProtection() {
@@ -168,6 +126,19 @@ class SecurityManager {
       
       res.setHeader('Content-Security-Policy', csp);
       next();
+    });
+  }
+
+  setupSecurityHeaders() {
+    // Custom security headers
+    this.app.use((req, res, next) => {
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('X-Frame-Options', 'DENY');
+      res.setHeader('X-XSS-Protection', '1; mode=block');
+      res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+      res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+      next();
+    });
   }
 
   generateNonce() {
@@ -186,22 +157,62 @@ class SecurityManager {
     }, 60 * 60 * 1000);
   }
 
-  logSuspiciousActivity(ip, reason) {
-    logger.security(`Suspicious activity from ${ip}: ${reason}`);
+  logSuspiciousActivity(ip, activity) {
+    console.log(`[SECURITY] Suspicious activity from ${ip}: ${activity}`);
+    // In production, this would log to a secure audit system
+  }
+
+  // Middleware for checking admin access
+  requireAdminAuth(req, res, next) {
+    const token = req.headers.authorization?.split(' ')[1];
     
-    // In production, you'd send this to a security monitoring service
-    if (this.config.IS_PRODUCTION) {
-      // TODO: Send to security monitoring service
+    if (!token) {
+      return res.status(401).json({
+        error: 'Authentication required',
+        message: 'Admin access requires authentication'
+      });
+    }
+
+    // Verify token (implement proper JWT verification)
+    try {
+      const decoded = this.verifyAdminToken(token);
+      req.admin = decoded;
+      next();
+    } catch (error) {
+      return res.status(401).json({
+        error: 'Invalid authentication',
+        message: 'Admin token is invalid or expired'
+      });
     }
   }
 
-  clearFailedAttempts(ip) {
-    this.failedAttempts.delete(ip);
+  verifyAdminToken(token) {
+    // Implement proper JWT verification
+    // This is a placeholder - implement proper verification
+    return { userId: 'admin', role: 'admin' };
   }
 
-  unblockIP(ip) {
-    this.suspiciousIPs.delete(ip);
-    this.failedAttempts.delete(ip);
+  // Middleware for API rate limiting
+  requireAPIAuth(req, res, next) {
+    const apiKey = req.headers['x-api-key'];
+    
+    if (!apiKey) {
+      return res.status(401).json({
+        error: 'API key required',
+        message: 'API access requires valid API key'
+      });
+    }
+
+    // Verify API key
+    if (this.config.apiKeys && !this.config.apiKeys.includes(apiKey)) {
+      return res.status(401).json({
+        error: 'Invalid API key',
+        message: 'Provided API key is not valid'
+      });
+    }
+
+    req.apiKey = apiKey;
+    next();
   }
 }
 
