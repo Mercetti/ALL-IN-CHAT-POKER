@@ -64,6 +64,12 @@ class PerformanceMonitor {
    * Start performance monitoring
    */
   start() {
+    // Skip monitoring in production and test environments
+    if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'test') {
+      console.log('[PERF] Skipping performance monitoring in', process.env.NODE_ENV, 'mode');
+      return;
+    }
+    
     if (this.isMonitoring) return;
     
     this.isMonitoring = true;
