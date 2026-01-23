@@ -996,7 +996,9 @@ async function initializeServer() {
 }
 
 // Initialize server
-initializeServer();
+// Temporarily disabled to test startup
+// initializeServer();
+console.log('⚠️ Server initialization temporarily disabled for testing');
 
 // Start server
 const serverConfig = config.getServerConfig();
