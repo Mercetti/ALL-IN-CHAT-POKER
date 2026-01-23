@@ -36,8 +36,8 @@ class AIPerformanceMonitor extends EventEmitter {
    * Start performance monitoring
    */
   startMonitoring() {
-    // Skip intervals in test environment
-    if (process.env.NODE_ENV !== 'test') {
+    // Skip intervals in test environment and production
+    if (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'production') {
       setInterval(() => {
         this.collectMetrics();
         this.analyzePerformance();

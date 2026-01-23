@@ -937,7 +937,14 @@ if (!config.isTest()) {
 // Initialize database and modules
 async function initializeServer() {
   try {
-    db.init();
+    if (typeof db.initialize === 'function') {
+      db.initialize();
+    } else if (typeof db.init === 'function') {
+      db.init();
+    } else {
+      console.log('⚠️ No database initialization method found');
+    }
+    
     console.log('🗄️ Database initialized successfully');
     
     // Initialize Acey Service Controller
