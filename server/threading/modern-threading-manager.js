@@ -113,6 +113,7 @@ class ModernThreadingManager {
       console.error(`Uncaught exception in thread ${thread.getName()}:`, error);
       // Log to error tracking system
       this.logThreadError(thread, error);
+    });
     
     return builder;
   }
