@@ -1,46 +1,39 @@
-# fly.toml for Acey Mobile Web App
+# fly.toml app configuration file generated for acey-mobile-web on 2026-01-22T18:52:41-06:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
 
-app = "acey-mobile-web"
-primary_region = "iad"
+app = 'acey-mobile-web'
+primary_region = 'iad'
+
+[experimental]
+  auto_rollback = true
+
+[build]
+
+[deploy]
+  strategy = 'rolling'
 
 [env]
-  NODE_ENV = "production"
+  NODE_ENV = 'production'
 
 [http_service]
   internal_port = 80
   force_https = true
-  auto_stop_machines = false
+  auto_stop_machines = 'off'
   auto_start_machines = true
-  min_started = 1
-
-  [[http_service.ports]]
-    port = 80
-    handlers = ["http"]
-  [[http_service.ports]]
-    port = 443
-    handlers = ["http", "tls"]
 
   [[http_service.checks]]
-    interval = "10s"
-    timeout = "2s"
-    path = "/"
-
-[deploy]
-  strategy = "rolling"
-
-[metrics]
-  port = 9091
-  path = "/metrics"
+    interval = '10s'
+    timeout = '2s'
+    path = '/'
 
 [[vm]]
-  memory = "512mb"
-  cpu_kind = "shared"
+  memory = '512mb'
+  cpu_kind = 'shared'
   cpus = 1
+  memory_mb = 512
 
-# Keep at least 1 machine running and disable autoscaling
-[experimental]
-  auto_rollback = true
-
-[[scale]]
-  min = 1
-  max = 3
+[[metrics]]
+  port = 9091
+  path = '/metrics'
