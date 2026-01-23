@@ -124,6 +124,7 @@ class ResilienceManager {
         return new Promise((resolve) => {
           db.get('SELECT 1 as test', (err) => {
             resolve(!err);
+          });
         });
       } catch (error) {
         return false;
@@ -152,6 +153,7 @@ class ResilienceManager {
       
       // Don't exit the process, just log and continue
       this.handleCriticalError('uncaughtException', error);
+    });
 
     process.on('unhandledRejection', (reason, promise) => {
       logger.error('Unhandled Rejection caught by resilience manager', { 
@@ -160,6 +162,7 @@ class ResilienceManager {
       });
       
       this.handleCriticalError('unhandledRejection', reason);
+    });
   }
 
   async executeWithCircuitBreaker(serviceName, operation, fallback = null) {
