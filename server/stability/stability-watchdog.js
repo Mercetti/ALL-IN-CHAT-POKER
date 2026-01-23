@@ -12,6 +12,12 @@ class StabilityWatchdog {
   }
 
   async start() {
+    // Skip watchdog in production and test environments
+    if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'test') {
+      console.log('[WATCHDOG] Skipping stability watchdog in', process.env.NODE_ENV, 'mode');
+      return true;
+    }
+    
     console.log('[WATCHDOG] Starting stability watchdog');
     this.isRunning = true;
     
