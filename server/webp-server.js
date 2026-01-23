@@ -119,6 +119,7 @@ class WebPServer {
           duration,
           userAgent: req.headers['user-agent']
         });
+      });
       
       next();
     });
@@ -182,6 +183,7 @@ class WebPServer {
     if (this.options.enableMetrics) {
       this.app.get('/metrics', (req, res) => {
         res.json(this.getStats());
+      });
     }
     
     // WebP info endpoint
@@ -192,6 +194,7 @@ class WebPServer {
         cacheEnabled: this.options.enableCache,
         supportedFormats: this.webpMiddleware.options.supportedFormats
       });
+    });
   }
 
   /**
@@ -310,6 +313,7 @@ class WebPServer {
         middleware: this.webpMiddleware.getStats(),
         converter: this.converter.getStats()
       });
+    });
     
     this.app.use(this.options.apiPrefix, apiRouter);
   }
@@ -325,6 +329,7 @@ class WebPServer {
         message: 'The requested resource was not found',
         path: req.path
       });
+    });
     
     // Global error handler
     this.app.use((error, req, res, next) => {
@@ -341,6 +346,7 @@ class WebPServer {
         error: 'Internal Server Error',
         message: 'An unexpected error occurred'
       });
+    });
   }
 
   /**
@@ -375,18 +381,22 @@ class WebPServer {
       // Handle server errors
       this.server.on('error', (error) => {
         logger.error('WebP server error', { error: error.message });
+      });
       
       // Handle graceful shutdown
       process.on('SIGTERM', () => {
         logger.info('Received SIGTERM, shutting down gracefully');
         this.server.close(() => {
           process.exit(0);
+        });
       });
       
       process.on('SIGINT', () => {
         logger.info('Received SIGINT, shutting down gracefully');
         this.server.close(() => {
           process.exit(0);
+        });
+      });
       });
       
     } catch (error) {
@@ -544,6 +554,7 @@ class WebPServer {
     if (this.server) {
       this.server.close(() => {
         logger.info('WebP server stopped');
+      });
     }
   }
 }
