@@ -1,495 +1,316 @@
 /**
- * WebSocket Service
- * Service layer for WebSocket operations with message batching
+ * WebSocket Service - Simplified Version
+ * Basic WebSocket service functionality
  */
 
-const BaseService = require('./base-service');
-const { AceyWebSocketEnhanced } = require('../acey-websocket-enhanced');
-const Logger = require('../utils/logger');
+const logger = require('../utils/logger');
 
-class WebSocketService extends BaseService {
+class WebSocketService {
   constructor(options = {}) {
-    super('websocket-service', options);
-    
-    this.options = {
-      ...this.options,
-      port: options.port || 8082,
-      path: options.path || '/acey-enhanced',
-      enableBatching: options.enableBatching !== false,
-      enableCompression: options.enableCompression !== false,
-      enableMetrics: options.enableMetrics !== false,
-      maxConnections: options.maxConnections || 500,
-      heartbeatInterval: options.heartbeatInterval || 30000
-    };
-    
-    this.wsServer = null;
-    this.connectionStats = {
-      totalConnections: 0,
-      activeConnections: 0,
-      totalMessages: 0,
-      totalBatches: 0,
-      averageMessageSize: 0,
-      messageTypes: {},
-      errors: []
-    };
+    this.options = options;
+    this.isInitialized = false;
+    this.clients = new Map();
+    this.rooms = new Map();
+    this.stats = { connections: 0, messages: 0, rooms: 0, errors: 0 };
   }
 
   /**
-   * Start the WebSocket service
+   * Initialize WebSocket service
    */
-  async onStart() {
+  async initialize() {
+    logger.info('WebSocket Service initialized');
+    this.isInitialized = true;
+    return true;
+  }
+
+  /**
+   * Add client
+   */
+  addClient(clientId, socket) {
     try {
-      // Create WebSocket server
-      this.wsServer = new AceyWebSocketEnhanced({
-        port: this.options.port,
-        path: this.options.path,
-        enableBatching: this.options.enableBatching,
-        enableCompression: this.options.enableCompression,
-        enableMetrics: this.options.enableMetrics,
-        maxConnections: this.options.maxConnections,
-        heartbeatInterval: this.options.heartbeatInterval
-      });
-      
-      // Set up event listeners
-      this.setupWebSocketListeners();
-      
-      // Start the server
-      this.wsServer.start();
-      
-      this.logger.info('WebSocket service started', {
-        port: this.options.port,
-        path: this.options.path,
-        batching: this.options.enableBatching,
-        compression: this.options.enableCompression
-      });
-      
+      const client = {
+        id: clientId,
+        socket: socket,
+        connectedAt: new Date(),
+        lastActivity: new Date(),
+        rooms: new Set(),
+        messages: 0
+      };
+
+      this.clients.set(clientId, client);
+      this.stats.connections++;
+
+      logger.info('WebSocket client added', { clientId });
+
+      return {
+        success: true,
+        client
+      };
+
     } catch (error) {
-      this.logger.error('Failed to start WebSocket service', { error: error.message });
-      throw error;
+      this.stats.errors++;
+      logger.error('Failed to add WebSocket client', { clientId, error: error.message });
+
+      return {
+        success: false,
+        error: error.message
+      };
     }
   }
 
   /**
-   * Stop the WebSocket service
+   * Remove client
    */
-  async onStop() {
+  removeClient(clientId) {
+    const client = this.clients.get(clientId);
+    if (!client) {
+      return { success: false, message: 'Client not found' };
+    }
+
     try {
-      if (this.wsServer) {
-        this.wsServer.close();
-        this.wsServer = null;
-      }
-      
-      this.logger.info('WebSocket service stopped');
-      
+      client.rooms.forEach(room => {
+        this.leaveRoom(clientId, room);
+      });
+
+      this.clients.delete(clientId);
+      this.stats.connections--;
+
+      logger.info('WebSocket client removed', { clientId });
+
+      return {
+        success: true,
+        message: 'Client removed successfully'
+      };
+
     } catch (error) {
-      this.logger.error('Failed to stop WebSocket service', { error: error.message });
-      throw error;
+      this.stats.errors++;
+      logger.error('Failed to remove WebSocket client', { clientId, error: error.message });
+
+      return {
+        success: false,
+        error: error.message
+      };
     }
   }
 
   /**
-   * Set up WebSocket event listeners
+   * Join room
    */
-  setupWebSocketListeners() {
-    this.wsServer.on('connection', (clientInfo) => {
-      this.handleConnection(clientInfo);
-    
-    this.wsServer.on('message', ({ client, message }) => {
-      this.handleMessage(client, message);
-    
-    this.wsServer.on('disconnection', ({ client, code, reason }) => {
-      this.handleDisconnection(client, code, reason);
-    
-    this.wsServer.on('batchMetrics', (metrics) => {
-      this.handleBatchMetrics(metrics);
-    
-    this.wsServer.on('error', (error) => {
-      this.handleError(error);
-  }
-
-  /**
-   * Handle new WebSocket connection
-   */
-  handleConnection(clientInfo) {
-    this.connectionStats.totalConnections++;
-    this.connectionStats.activeConnections++;
-    
-    this.logger.info('WebSocket client connected', {
-      clientId: clientInfo.id,
-      sessionId: clientInfo.sessionId,
-      ip: clientInfo.ip,
-      totalConnections: this.connectionStats.activeConnections
-    });
-    
-    this.emit('clientConnected', clientInfo);
-  }
-
-  /**
-   * Handle WebSocket message
-   */
-  handleMessage(clientInfo, message) {
-    this.connectionStats.totalMessages++;
-    
-    // Track message types
-    const messageType = message.type || 'unknown';
-    this.connectionStats.messageTypes[messageType] = 
-      (this.connectionStats.messageTypes[messageType] || 0) + 1;
-    
-    // Track message size
-    const messageSize = JSON.stringify(message).length;
-    this.updateAverageMessageSize(messageSize);
-    
-    this.logger.debug('WebSocket message received', {
-      clientId: clientInfo.id,
-      sessionId: clientInfo.sessionId,
-      type: messageType,
-      size: messageSize
-    });
-    
-    this.emit('message', { client: clientInfo, message });
-  }
-
-  /**
-   * Handle WebSocket disconnection
-   */
-  handleDisconnection(clientInfo, code, reason) {
-    this.connectionStats.activeConnections--;
-    
-    this.logger.info('WebSocket client disconnected', {
-      clientId: clientInfo.id,
-      sessionId: clientInfo.sessionId,
-      code,
-      reason,
-      connectionDuration: Date.now() - clientInfo.connectedAt,
-      messageCount: clientInfo.messageCount,
-      activeConnections: this.connectionStats.activeConnections
-    });
-    
-    this.emit('clientDisconnected', { client: clientInfo, code, reason });
-  }
-
-  /**
-   * Handle batch metrics
-   */
-  handleBatchMetrics(metrics) {
-    this.connectionStats.totalBatches += metrics.batchesSent || 0;
-    
-    this.emit('batchMetrics', metrics);
-  }
-
-  /**
-   * Handle WebSocket error
-   */
-  handleError(error) {
-    this.connectionStats.errors.push({
-      timestamp: Date.now(),
-      error: error.message,
-      stack: error.stack
-    });
-    
-    // Keep only last 50 errors
-    if (this.connectionStats.errors.length > 50) {
-      this.connectionStats.errors = this.connectionStats.errors.slice(-50);
+  joinRoom(clientId, room) {
+    const client = this.clients.get(clientId);
+    if (!client) {
+      return { success: false, message: 'Client not found' };
     }
-    
-    this.logger.error('WebSocket error', { error: error.message });
-    this.emit('error', error);
-  }
 
-  /**
-   * Update average message size
-   */
-  updateAverageMessageSize(messageSize) {
-    if (this.connectionStats.totalMessages === 1) {
-      this.connectionStats.averageMessageSize = messageSize;
-    } else {
-      this.connectionStats.averageMessageSize = 
-        (this.connectionStats.averageMessageSize * (this.connectionStats.totalMessages - 1) + messageSize) / 
-        this.connectionStats.totalMessages;
-    }
-  }
+    try {
+      client.rooms.add(room);
+      client.lastActivity = new Date();
 
-  /**
-   * Send message to specific client
-   */
-  async sendToClient(clientId, message) {
-    return this.executeWithMetrics(async () => {
-      if (!this.wsServer) {
-        throw new Error('WebSocket server is not running');
+      if (!this.rooms.has(room)) {
+        this.rooms.set(room, new Set());
+        this.stats.rooms++;
       }
-      
-      return this.wsServer.sendToClient(clientId, message);
-    }, 'sendToClient');
+
+      this.rooms.get(room).add(clientId);
+
+      logger.debug('Client joined room', { clientId, room });
+
+      return {
+        success: true,
+        room,
+        members: this.rooms.get(room).size
+      };
+
+    } catch (error) {
+      this.stats.errors++;
+      logger.error('Failed to join room', { clientId, room, error: error.message });
+
+      return {
+        success: false,
+        error: error.message
+      };
+    }
   }
 
   /**
-   * Send message to session
+   * Leave room
    */
-  async sendToSession(sessionId, message) {
-    return this.executeWithMetrics(async () => {
-      if (!this.wsServer) {
-        throw new Error('WebSocket server is not running');
+  leaveRoom(clientId, room) {
+    const client = this.clients.get(clientId);
+    if (!client || !client.rooms.has(room)) {
+      return { success: false, message: 'Client not in room' };
+    }
+
+    try {
+      client.rooms.delete(room);
+      client.lastActivity = new Date();
+
+      const roomClients = this.rooms.get(room);
+      if (roomClients) {
+        roomClients.delete(clientId);
+
+        if (roomClients.size === 0) {
+          this.rooms.delete(room);
+          this.stats.rooms--;
+        }
       }
-      
-      return this.wsServer.sendToSession(sessionId, message);
-    }, 'sendToSession');
+
+      logger.debug('Client left room', { clientId, room });
+
+      return {
+        success: true,
+        room
+      };
+
+    } catch (error) {
+      this.stats.errors++;
+      logger.error('Failed to leave room', { clientId, room, error: error.message });
+
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Send message to client
+   */
+  sendToClient(clientId, message) {
+    const client = this.clients.get(clientId);
+    if (!client) {
+      return { success: false, message: 'Client not found' };
+    }
+
+    try {
+      this.stats.messages++;
+      client.messages++;
+      client.lastActivity = new Date();
+
+      const messageData = {
+        id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        data: message,
+        timestamp: new Date().toISOString()
+      };
+
+      client.socket.send(JSON.stringify(messageData));
+
+      return {
+        success: true,
+        messageId: messageData.id
+      };
+
+    } catch (error) {
+      this.stats.errors++;
+      logger.error('Failed to send message to client', { clientId, error: error.message });
+
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Send message to room
+   */
+  sendToRoom(room, message) {
+    const roomClients = this.rooms.get(room);
+    if (!roomClients || roomClients.size === 0) {
+      return { success: false, message: 'Room not found or empty' };
+    }
+
+    try {
+      this.stats.messages++;
+      const results = [];
+
+      roomClients.forEach(clientId => {
+        const result = this.sendToClient(clientId, message);
+        results.push({ clientId, result });
+      });
+
+      return {
+        success: true,
+        room,
+        sent: results.filter(r => r.result.success).length,
+        failed: results.filter(r => !r.result.success).length
+      };
+
+    } catch (error) {
+      this.stats.errors++;
+      logger.error('Failed to send message to room', { room, error: error.message });
+
+      return {
+        success: false,
+        error: error.message
+      };
+    }
   }
 
   /**
    * Broadcast message to all clients
    */
-  async broadcast(message, options = {}) {
-    return this.executeWithMetrics(async () => {
-      if (!this.wsServer) {
-        throw new Error('WebSocket server is not running');
-      }
-      
-      return this.wsServer.broadcast(message, options);
-    }, 'broadcast');
-  }
-
-  /**
-   * Send overlay update
-   */
-  async sendOverlayUpdate(data) {
-    return this.executeWithMetrics(async () => {
-      if (!this.wsServer) {
-        throw new Error('WebSocket server is not running');
-      }
-      
-      this.wsServer.sendOverlayUpdate(data);
-    }, 'sendOverlayUpdate');
-  }
-
-  /**
-   * Send game state update
-   */
-  async sendGameStateUpdate(data) {
-    return this.executeWithMetrics(async () => {
-      if (!this.wsServer) {
-        throw new Error('WebSocket server is not running');
-      }
-      
-      this.wsServer.sendGameStateUpdate(data);
-    }, 'sendGameStateUpdate');
-  }
-
-  /**
-   * Send player action update
-   */
-  async sendPlayerActionUpdate(data) {
-    return this.executeWithMetrics(async () => {
-      if (!this.wsServer) {
-        throw new Error('WebSocket server is not running');
-      }
-      
-      this.wsServer.sendPlayerActionUpdate(data);
-    }, 'sendPlayerActionUpdate');
-  }
-
-  /**
-   * Get session statistics
-   */
-  getSessionStats(sessionId) {
-    if (!this.wsServer) {
-      return null;
-    }
-    
-    return this.wsServer.getSessionStats(sessionId);
-  }
-
-  /**
-   * Get all session statistics
-   */
-  getAllSessionStats() {
-    if (!this.wsServer) {
-      return {};
-    }
-    
-    return this.wsServer.getAllSessionStats();
-  }
-
-  /**
-   * Get client information
-   */
-  getClientInfo(clientId) {
-    if (!this.wsServer) {
-      return null;
-    }
-    
-    const stats = this.wsServer.getStats();
-    
-    // Find client in session stats
-    for (const [sessionId, sessionStats] of Object.entries(stats.sessionStats || {})) {
-      const client = sessionStats.clients.find(c => c.id === clientId);
-      if (client) {
-        return {
-          ...client,
-          sessionId
-        };
-      }
-    }
-    
-    return null;
-  }
-
-  /**
-   * Get all connected clients
-   */
-  getAllClients() {
-    if (!this.wsServer) {
-      return [];
-    }
-    
-    const stats = this.wsServer.getStats();
-    const allClients = [];
-    
-    for (const [sessionId, sessionStats] of Object.entries(stats.sessionStats || {})) {
-      for (const client of sessionStats.clients) {
-        allClients.push({
-          ...client,
-          sessionId
-        });
-      }
-    }
-    
-    return allClients;
-  }
-
-  /**
-   * Force flush all pending messages
-   */
-  async flushAllMessages() {
-    if (!this.wsServer) {
-      return;
-    }
-    
-    this.wsServer.flushAllMessages();
-  }
-
-  /**
-   * Get WebSocket health checks
-   */
-  async getHealthChecks() {
-    const checks = await super.getHealthChecks();
-    
+  broadcast(message) {
     try {
-      if (this.wsServer) {
-        const wsHealth = await this.wsServer.healthCheck();
-        
-        checks.websocket = {
-          status: wsHealth.status,
-          message: wsHealth.status === 'healthy' ? 'WebSocket server healthy' : 'WebSocket server unhealthy',
-          details: wsHealth
-        };
-      } else {
-        checks.websocket = {
-          status: 'unhealthy',
-          message: 'WebSocket server is not running'
-        };
-      }
-      
-      // Check connection metrics
-      checks.connections = {
-        status: this.connectionStats.activeConnections >= 0 ? 'healthy' : 'unhealthy',
-        message: `${this.connectionStats.activeConnections} active connections`,
-        details: {
-          totalConnections: this.connectionStats.totalConnections,
-          activeConnections: this.connectionStats.activeConnections,
-          totalMessages: this.connectionStats.totalMessages
-        }
+      this.stats.messages++;
+      const results = [];
+
+      this.clients.forEach((client, clientId) => {
+        const result = this.sendToClient(clientId, message);
+        results.push({ clientId, result });
+      });
+
+      return {
+        success: true,
+        sent: results.filter(r => r.result.success).length,
+        failed: results.filter(r => !r.result.success).length
       };
-      
-      // Check error rate
-      const errorRate = this.connectionStats.totalMessages > 0 
-        ? (this.connectionStats.errors.length / this.connectionStats.totalMessages * 100)
-        : 0;
-      
-      checks.errors = {
-        status: errorRate < 5 ? 'healthy' : errorRate < 10 ? 'degraded' : 'unhealthy',
-        message: `${errorRate.toFixed(2)}% error rate`,
-        details: {
-          errorCount: this.connectionStats.errors.length,
-          errorRate: errorRate.toFixed(2)
-        }
-      };
-      
+
     } catch (error) {
-      checks.websocket = {
-        status: 'unhealthy',
-        message: error.message
+      this.stats.errors++;
+      logger.error('Failed to broadcast message', { error: error.message });
+
+      return {
+        success: false,
+        error: error.message
       };
     }
-    
-    return checks;
   }
 
   /**
-   * Get WebSocket statistics
+   * Get service status
    */
-  getWebSocketStats() {
-    const wsStats = this.wsServer ? this.wsServer.getStats() : null;
-    
+  getStatus() {
     return {
-      connectionStats: this.connectionStats,
-      serverStats: wsStats,
-      sessionStats: this.getAllSessionStats()
+      isInitialized: this.isInitialized,
+      stats: this.stats,
+      clients: this.clients.size,
+      rooms: this.rooms.size,
+      timestamp: new Date().toISOString()
     };
   }
 
   /**
-   * Reset connection statistics
+   * Get client info
    */
-  resetConnectionStats() {
-    this.connectionStats = {
-      totalConnections: 0,
-      activeConnections: 0,
-      totalMessages: 0,
-      totalBatches: 0,
-      averageMessageSize: 0,
-      messageTypes: {},
-      errors: []
-    };
-    
-    if (this.wsServer) {
-      this.wsServer.resetStats();
-    }
-    
-    this.logger.info('WebSocket connection statistics reset');
+  getClient(clientId) {
+    return this.clients.get(clientId);
   }
 
   /**
-   * Get service metrics
+   * Get room info
    */
-  getMetrics() {
-    const baseMetrics = super.getMetrics();
-    
+  getRoom(room) {
+    const roomClients = this.rooms.get(room);
     return {
-      ...baseMetrics,
-      websocket: this.getWebSocketStats()
+      room,
+      clients: roomClients ? Array.from(roomClients) : [],
+      size: roomClients ? roomClients.size : 0
     };
-  }
-
-  /**
-   * Validate configuration
-   */
-  validateConfig(config) {
-    const errors = super.validateConfig(config);
-    
-    if (config.port !== undefined && (config.port < 1 || config.port > 65535)) {
-      errors.push('Port must be between 1 and 65535');
-    }
-    
-    if (config.maxConnections !== undefined && config.maxConnections < 1) {
-      errors.push('Max connections must be at least 1');
-    }
-    
-    if (config.heartbeatInterval !== undefined && config.heartbeatInterval < 1000) {
-      errors.push('Heartbeat interval must be at least 1000ms');
-    }
-    
-    return errors;
   }
 }
 
-module.exports = WebSocketService;
+// Create singleton instance
+const webSocketService = new WebSocketService();
+
+module.exports = webSocketService;

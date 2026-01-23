@@ -1,482 +1,274 @@
 /**
- * Rate Limiter Middleware
- * Express middleware for applying rate limiting to routes
+ * Rate Limiter Middleware - Simplified Version
+ * Basic rate limiting functionality
  */
 
-const RateLimiterFactory = require('./rate-limiter-factory');
-const Logger = require('../utils/logger');
-
-const logger = new Logger('rate-limiter-middleware');
+const logger = require('../utils/logger');
 
 class RateLimiterMiddleware {
   constructor(options = {}) {
     this.options = {
-      // Factory configuration
-      factory: options.factory || new RateLimiterFactory(),
-      
-      // Default rate limiter
-      defaultLimiter: options.defaultLimiter || 'api',
-      
-      // Path-based rate limiting
-      pathLimiters: options.pathLimiters || {},
-      
-      // Method-based rate limiting
-      methodLimiters: options.methodLimiters || {},
-      
-      // User-based rate limiting
-      userLimiters: options.userLimiters || {},
-      
-      // Global settings
-      enableLogging: options.enableLogging !== false,
-      enableMetrics: options.enableMetrics !== false,
-      enableHealthCheck: options.enableHealthCheck !== false,
-      healthCheckInterval: options.healthCheckInterval || 60000,
-      
-      // Skip conditions
-      skipPaths: options.skipPaths || [],
-      skipMethods: options.skipMethods || [],
-      skipUsers: options.skipUsers || [],
-      skipRoles: options.skipRoles || [],
-      
-      // Custom skip function
-      skip: options.skip || (() => false)
+      windowMs: options.windowMs || 15 * 60 * 1000, // 15 minutes
+      maxRequests: options.maxRequests || 100,
+      keyGenerator: options.keyGenerator || this.defaultKeyGenerator,
+      ...options
     };
     
-    this.metrics = {
-      totalRequests: 0,
-      blockedRequests: 0,
-      allowedRequests: 0,
-      averageResponseTime: 0,
-      errors: [],
-      startTime: Date.now()
-    };
-    
-    this.setupMetrics();
+    this.clients = new Map();
+    this.stats = { requests: 0, blocked: 0, warnings: 0 };
   }
 
   /**
-   * Setup metrics collection
+   * Default key generator (uses IP address)
    */
-  setupMetrics() {
-    if (this.options.enableMetrics) {
-      setInterval(() => {
-        this.emit('metrics', this.getMetrics());
-      }, 60000); // Every minute
-    }
+  defaultKeyGenerator(req) {
+    return req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for'] || 'unknown';
   }
 
   /**
-   * Create a rate limiter middleware
+   * Create middleware
    */
-  createMiddleware(limiterName = null) {
+  middleware() {
     return (req, res, next) => {
-      const startTime = Date.now();
-      
       try {
-        this.metrics.totalRequests++;
+        this.stats.requests++;
         
-        // Skip rate limiting if conditions are met
-        if (this.shouldSkip(req, limiterName)) {
-          this.metrics.allowedRequests++;
-          return next();
+        const key = this.options.keyGenerator(req);
+        const now = Date.now();
+        const windowStart = now - this.options.windowMs;
+
+        // Get or create client record
+        if (!this.clients.has(key)) {
+          this.clients.set(key, {
+            requests: [],
+            warnings: 0,
+            blockedUntil: null
+          });
         }
-        
-        // Determine which limiter to use
-        const selectedLimiter = this.selectLimiter(req, limiterName);
-        
-        if (!selectedLimiter) {
-          this.metrics.allowedRequests++;
-          return next();
+
+        const client = this.clients.get(key);
+
+        // Check if client is currently blocked
+        if (client.blockedUntil && now < client.blockedUntil) {
+          this.stats.blocked++;
+          
+          return res.status(429).json({
+            error: 'Too Many Requests',
+            message: 'Rate limit exceeded. Please try again later.',
+            retryAfter: Math.ceil((client.blockedUntil - now) / 1000)
+          });
         }
-        
-        // Get rate limiter instance
-        const limiter = this.options.factory.get(selectedLimiter);
-        
-        if (!limiter) {
-          this.metrics.allowedRequests++;
-          return next();
+
+        // Clean old requests outside the window
+        client.requests = client.requests.filter(timestamp => timestamp > windowStart);
+
+        // Check rate limit
+        if (client.requests.length >= this.options.maxRequests) {
+          // Block the client
+          client.blockedUntil = now + this.options.windowMs;
+          this.stats.blocked++;
+
+          logger.warn('Rate limit exceeded', { 
+            key, 
+            requests: client.requests.length, 
+            maxRequests: this.options.maxRequests 
+          });
+
+          return res.status(429).json({
+            error: 'Too Many Requests',
+            message: 'Rate limit exceeded. Please try again later.',
+            retryAfter: Math.ceil(this.options.windowMs / 1000)
+          });
         }
-        
-        // Apply rate limiting
-        const limiterMiddleware = limiter.middleware();
-        
-        // Wrap the middleware to add metrics
-        const wrappedMiddleware = (req, res, next) => {
-          limiterMiddleware(req, res, (error) => {
-            const responseTime = Date.now() - startTime;
-            this.updateAverageResponseTime(responseTime);
-            
-            if (error) {
-              this.metrics.errors.push({
-                timestamp: Date.now(),
-                limiter: selectedLimiter,
-                error: error.message,
-                url: req.url,
-                method: req.method
-              });
-              
-              // Keep only last 100 errors
-              if (this.metrics.errors.length > 100) {
-                this.metrics.errors = this.metrics.errors.slice(-100);
-              }
-              
-              this.logger.error('Rate limiter middleware error', {
-                limiter: selectedLimiter,
-                error: error.message,
-                url: req.url,
-                method: req.method
-              });
-            }
-            
-            next(error);
-        };
-        
-        wrappedMiddleware(req, res, next);
-        
+
+        // Add current request
+        client.requests.push(now);
+
+        // Add rate limit headers
+        res.set({
+          'X-RateLimit-Limit': this.options.maxRequests,
+          'X-RateLimit-Remaining': Math.max(0, this.options.maxRequests - client.requests.length),
+          'X-RateLimit-Reset': new Date(now + this.options.windowMs).toISOString()
+        });
+
+        // Check if we should send a warning
+        const warningThreshold = Math.floor(this.options.maxRequests * 0.8);
+        if (client.requests.length >= warningThreshold && client.warnings === 0) {
+          client.warnings++;
+          this.stats.warnings++;
+          
+          res.set('X-RateLimit-Warning', 'true');
+          
+          logger.info('Rate limit warning', { 
+            key, 
+            requests: client.requests.length, 
+            threshold: warningThreshold 
+          });
+        }
+
+        next();
+
       } catch (error) {
-        const responseTime = Date.now() - startTime;
-        this.updateAverageResponseTime(responseTime);
-        
-        this.metrics.errors.push({
-          timestamp: Date.now(),
-          error: error.message,
-          url: req.url,
-          method: req.method
-        });
-        
-        this.logger.error('Rate limiter middleware error', {
-          error: error.message,
-          url: req.url,
-          method: req.method
-        });
-        
-        next(error);
+        logger.error('Rate limiter middleware error', { error: error.message });
+        next(); // Continue on error to not break the application
       }
     };
   }
 
   /**
-   * Determine if request should skip rate limiting
+   * Create custom rate limiter with specific options
    */
-  shouldSkip(req, limiterName) {
-    // Custom skip function
-    if (this.options.skip(req, limiterName)) {
-      return true;
-    }
-    
-    // Skip by path
-    if (this.options.skipPaths.length > 0) {
-      for (const path of this.options.skipPaths) {
-        if (this.matchPath(req.path, path)) {
-          return true;
-        }
-      }
-    }
-    
-    // Skip by method
-    if (this.options.skipMethods.length > 0) {
-      for (const method of this.options.skipMethods) {
-        if (req.method === method.toUpperCase()) {
-          return true;
-        }
-      }
-    }
-    
-    // Skip by user
-    if (this.options.skipUsers.length > 0 && req.user) {
-      for (const user of this.options.skipUsers) {
-        if (req.user.id === user || req.user.username === user) {
-          return true;
-        }
-      }
-    }
-    
-    // Skip by role
-    if (this.options.skipRoles.length > 0 && req.user && req.user.role) {
-      for (const role of this.options.skipRoles) {
-        if (req.user.role === role) {
-          return true;
-        }
-      }
-    }
-    
-    return false;
+  createLimiter(customOptions = {}) {
+    const options = { ...this.options, ...customOptions };
+    return new RateLimiterMiddleware(options);
   }
 
   /**
-   * Select the appropriate rate limiter for the request
+   * Check if a key is currently rate limited
    */
-  selectLimiter(req, limiterName) {
-    // Use specified limiter if provided
-    if (limiterName && this.options.factory.has(limiterName)) {
-      return limiterName;
-    }
-    
-    // Check path-based limiters
-    for (const [pathPattern, limiter] of Object.entries(this.options.pathLimiters)) {
-      if (this.matchPath(req.path, pathPattern)) {
-        return limiter;
-      }
-    }
-    
-    // Check method-based limiters
-    for (const [method, limiter] of Object.entries(this.options.methodLimiters)) {
-      if (req.method === method.toUpperCase()) {
-        return limiter;
-      }
-    }
-    
-    // Check user-based limiters
-    if (req.user) {
-      for (const [userType, limiter] of Object.entries(this.options.userLimiters)) {
-        if (this.matchUser(req.user, userType)) {
-          return limiter;
-        }
-      }
-    }
-    
-    // Use default limiter
-    return this.options.defaultLimiter;
+  isRateLimited(key) {
+    const client = this.clients.get(key);
+    if (!client) return false;
+
+    const now = Date.now();
+    const windowStart = now - this.options.windowMs;
+
+    // Clean old requests
+    client.requests = client.requests.filter(timestamp => timestamp > windowStart);
+
+    return client.requests.length >= this.options.maxRequests;
   }
 
   /**
-   * Match path against pattern
+   * Get rate limit status for a key
    */
-  matchPath(path, pattern) {
-    // Exact match
-    if (path === pattern) {
-      return true;
+  getRateLimitStatus(key) {
+    const client = this.clients.get(key);
+    if (!client) {
+      return {
+        limit: this.options.maxRequests,
+        remaining: this.options.maxRequests,
+        resetTime: Date.now() + this.options.windowMs,
+        isBlocked: false
+      };
     }
-    
-    // Wildcard pattern
-    if (pattern.includes('*')) {
-      const regex = new RegExp(
-        '^' + pattern.replace(/\*/g, '.*') + '$'
-      );
-      return regex.test(path);
-    }
-    
-    // Parameterized pattern
-    if (pattern.includes(':')) {
-      const regex = new RegExp(
-        '^' + pattern.replace(/:\w+/g, '[^/]+') + '$'
-      );
-      return regex.test(path);
-    }
-    
-    return false;
+
+    const now = Date.now();
+    const windowStart = now - this.options.windowMs;
+
+    // Clean old requests
+    client.requests = client.requests.filter(timestamp => timestamp > windowStart);
+
+    return {
+      limit: this.options.maxRequests,
+      remaining: Math.max(0, this.options.maxRequests - client.requests.length),
+      resetTime: now + this.options.windowMs,
+      isBlocked: client.blockedUntil && now < client.blockedUntil,
+      blockedUntil: client.blockedUntil,
+      warnings: client.warnings
+    };
   }
 
   /**
-   * Match user against user type
+   * Reset rate limit for a key
    */
-  matchUser(user, userType) {
-    if (typeof userType === 'string') {
-      // By ID
-      if (user.id === userType) {
-        return true;
-      }
-      
-      // By username
-      if (user.username === userType) {
-        return true;
-      }
-      
-      // By role
-      if (user.role === userType) {
-        return true;
-      }
-      
-      // By property
-      if (userType.includes('.')) {
-        const [prop, value] = userType.split('.');
-        return user[prop] === value;
-      }
-    }
-    
-    return false;
+  resetKey(key) {
+    this.clients.delete(key);
+    logger.debug('Rate limit reset for key', { key });
   }
 
   /**
-   * Create path-based rate limiter
+   * Clear all rate limit data
    */
-  createPathRateLimiter(pathPattern, config = {}) {
-    const name = `path:${pathPattern}`;
-    return this.options.factory.create(name, {
-      keyGenerator: (req) => `path:${pathPattern}:${req.ip}`,
-      ...config
-    });
+  clear() {
+    const clientCount = this.clients.size;
+    this.clients.clear();
+    logger.info('All rate limit data cleared', { clientCount });
   }
 
   /**
-   * Create method-based rate limiter
-   */
-  createMethodRateLimiter(method, config = {}) {
-    const name = `method:${method}`;
-    return this.options.factory.create(name, {
-      keyGenerator: (req) => `method:${method}:${req.ip}`,
-      ...config
-    });
-  }
-
-  /**
-   * Create user-based rate limiter
-   */
-  createUserRateLimiter(userType, config = {}) {
-    const name = `user:${userType}`;
-    return this.options.factory.create(name, {
-      keyGenerator: (req) => {
-        if (userType === 'anonymous') {
-          return `anonymous:${req.ip}`;
-        }
-        
-        const user = req.user;
-        if (user) {
-          return `${userType}:${user.id || user.username || user.role || req.ip}`;
-        }
-        
-        return `user:${req.ip}`;
-      },
-      ...config
-    });
-  }
-
-  /**
-   * Apply rate limiting to Express app
-   */
-  applyToApp(app, options = {}) {
-    const {
-      defaultLimiter = this.options.defaultLimiter,
-      global = options.global !== false,
-      paths = options.paths || {},
-      methods = options.methods || {},
-      users = options.users || {}
-    } = options;
-
-    // Apply global rate limiter if enabled
-    if (global) {
-      app.use(this.createMiddleware(defaultLimiter));
-    }
-
-    // Apply path-based rate limiters
-    for (const [pathPattern, config] of Object.entries(paths)) {
-      const limiter = this.createPathRateLimiter(pathPattern, config);
-      app.use(pathPattern, this.createMiddleware(limiter));
-    }
-
-    // Apply method-based rate limiters
-    for (const [method, config] of Object.entries(methods)) {
-      const limiter = this.createMethodRateLimiter(method, config);
-      app.use(this.createMiddleware(limiter));
-    }
-
-    // Apply user-based rate limiters
-    for (const [userType, config] of Object.entries(users)) {
-      const limiter = this.createUserRateLimiter(userType, config);
-      app.use(this.createMiddleware(limiter));
-    }
-  }
-
-  /**
-   * Update average response time
-   */
-  updateAverageResponseTime(responseTime) {
-    if (this.metrics.totalRequests === 1) {
-      this.metrics.averageResponseTime = rateTime;
-    } else {
-      this.metrics.averageResponseTime = 
-        (this.metrics.averageResponseTime * (this.metrics.totalRequests - 1) + responseTime) / 
-        this.metrics.totalRequests;
-    }
-  }
-
-  /**
-   * Get middleware statistics
+   * Get rate limiter statistics
    */
   getStats() {
-    const uptime = Date.now() - this.metrics.startTime;
-    const blockRate = this.metrics.totalRequests > 0 
-      ? (this.metrics.blockedRequests / this.metrics.totalRequests * 100).toFixed(2)
-      : 0;
-    
     return {
-      ...this.metrics,
-      uptime,
-      blockRate: parseFloat(blockRate),
-      averageResponseTime: Math.round(this.metrics.averageResponseTime),
-      errorRate: this.metrics.errors.length > 0 
-        ? (this.metrics.errors.length / this.metrics.totalRequests * 100).toFixed(2)
-        : 0,
-      factoryStats: this.options.factory.getAllStats()
+      ...this.stats,
+      activeClients: this.clients.size,
+      options: this.options,
+      timestamp: new Date().toISOString()
     };
   }
 
   /**
-   * Reset middleware statistics
+   * Get detailed client information
    */
-  resetStats() {
-    this.metrics = {
-      totalRequests: 0,
-      blockedRequests: 0,
-      allowedRequests: 0,
-      averageResponseTime: 0,
-      errors: [],
-      startTime: Date.now()
+  getClientInfo(key) {
+    const client = this.clients.get(key);
+    if (!client) return null;
+
+    const now = Date.now();
+    const windowStart = now - this.options.windowMs;
+
+    // Clean old requests
+    client.requests = client.requests.filter(timestamp => timestamp > windowStart);
+
+    return {
+      key,
+      requests: client.requests.length,
+      maxRequests: this.options.maxRequests,
+      warnings: client.warnings,
+      isBlocked: client.blockedUntil && now < client.blockedUntil,
+      blockedUntil: client.blockedUntil,
+      requestTimes: client.requests,
+      windowStart,
+      windowEnd: now
     };
+  }
+
+  /**
+   * Get all active clients
+   */
+  getAllClients() {
+    const clients = [];
     
-    this.logger.info('Rate limiter middleware statistics reset');
-  }
-
-  /**
-   * Get health status
-   */
-  async healthCheck() {
-    try {
-      const stats = this.getStats();
-      const factoryHealth = await this.options.factory.healthCheck();
-      
-      return {
-        status: factoryHealth.status === 'healthy' && stats.errorRate < 5 ? 'healthy' : 'degraded',
-        timestamp: Date.now(),
-        stats,
-        factory: factoryHealth
-      };
-      
-    } catch (error) {
-      return {
-        status: 'unhealthy',
-        timestamp: Date.now(),
-        error: error.message
-      };
+    for (const [key, client] of this.clients.entries()) {
+      clients.push(this.getClientInfo(key));
     }
+
+    return clients;
   }
 
   /**
-   * Create rate limiter with poker game specific settings
+   * Cleanup expired data
    */
-  createPokerGameLimiter() {
-    return this.options.factory.createCommonLimiters();
-  }
+  cleanup() {
+    const now = Date.now();
+    const windowStart = now - this.options.windowMs;
+    let cleaned = 0;
 
-  /**
-   * Create rate limiter for different user tiers
-   */
-  createUserTierLimiter() {
-    return this.options.factory.createUserTypeLimiters();
-  }
+    for (const [key, client] of this.clients.entries()) {
+      // Clean old requests
+      const originalLength = client.requests.length;
+      client.requests = client.requests.filter(timestamp => timestamp > windowStart);
+      
+      // Remove blocked status if expired
+      if (client.blockedUntil && now >= client.blockedUntil) {
+        client.blockedUntil = null;
+      }
 
-  /**
-   * Create rate limiter for game endpoints
-   */
-  createGameLimiter() {
-    return this.options.factory.createEndpointLimiters();
-  }
+      // Remove client if no recent activity
+      if (client.requests.length === 0 && !client.blockedUntil) {
+        this.clients.delete(key);
+        cleaned++;
+      }
+    }
 
-  /**
-   * Create adaptive rate limiter
-   */
-  createAdaptiveLimiter(name, config = {}) {
-    return this.options.factory.createAdaptiveLimiter(name, config);
+    logger.debug('Rate limiter cleanup completed', { cleaned });
+
+    return {
+      success: true,
+      cleaned,
+      activeClients: this.clients.size
+    };
   }
 }
 

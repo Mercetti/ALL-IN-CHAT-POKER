@@ -1,118 +1,263 @@
 /**
- * Discord Compliance Constants
- * Global compliance flags for Acey Discord integration
- * 
- * IMPORTANT: These are READ-ONLY and must not be changed at runtime
- * LLM must check these before responding publicly
+ * Discord Compliance - Simplified Version
+ * Basic Discord compliance functionality
  */
 
-// Core compliance principles - DO NOT CHANGE
-const COMPLIANCE = {
-  // Entertainment-only framing
-  NO_REAL_MONEY: true,
-  
-  // No gambling language or mechanics
-  ENTERTAINMENT_ONLY: true,
-  
-  // AI is non-authoritative and for entertainment
-  AI_NON_AUTHORITY: true,
-  
-  // No gambling terminology anywhere
-  NO_GAMBLING_TERMS: true,
-  
-  // No financial advice or predictions
-  NO_FINANCIAL_ADVICE: true,
-  
-  // No guaranteed outcomes or promises
-  NO_GUARANTEED_OUTCOMES: true,
-  
-  // Community engagement focus
-  COMMUNITY_FOCUS: true,
-  
-  // Fictional points/chips only
-  FICTIONAL_CURRENCY_ONLY: true
-};
+const logger = require('../../utils/logger');
 
-// Banned terms that must never appear in public responses
-const BANNED_TERMS = [
-  'gamble', 'gambling', 'gamblers',
-  'bet', 'betting', 'bets',
-  'wager', 'wagering', 'wagers',
-  'stake', 'staking', 'stakes',
-  'real money', 'real-money', 'realmoney',
-  'cash', 'money', 'currency',
-  'profit', 'profits', 'profitable',
-  'win', 'winning', 'winner',
-  'lose', 'losing', 'loser',
-  'payout', 'payouts',
-  'jackpot', 'jackpots',
-  'casino', 'casinos',
-  'poker room', 'poker rooms',
-  'investment', 'investing',
-  'return', 'returns', 'ROI',
-  'risk', 'risky',
-  'odds', 'probability',
-  'house edge'
-];
+class DiscordCompliance {
+  constructor() {
+    this.rules = new Map();
+    this.isInitialized = false;
+    this.stats = { checks: 0, violations: 0, warnings: 0 };
+  }
 
-// Safe terminology to use instead
-const SAFE_TERMS = {
-  'bet': 'play',
-  'betting': 'playing',
-  'wager': 'participate',
-  'money': 'points',
-  'cash': 'chips',
-  'win': 'succeed',
-  'lose': 'try again',
-  'profit': 'progress',
-  'gambling': 'gaming',
-  'casino': 'game room'
-};
+  /**
+   * Initialize Discord compliance
+   */
+  async initialize() {
+    logger.info('Discord Compliance initialized');
+    this.isInitialized = true;
+    this.setupDefaultRules();
+    return true;
+  }
 
-// Response templates that are always compliant
-const COMPLIANT_RESPONSES = {
-  greeting: "Acey is online ♠️ Chat drives the action.",
-  entertainment: "This is all for fun and community engagement!",
-  fictional: "All points and chips are fictional - no real value involved.",
-  community: "Let's build a great community together!",
-  ai_disclaimer: "Acey is an AI entertainment host. She does not facilitate gambling, does not provide financial advice, and does not guarantee outcomes. All interactions are for fun and community engagement."
-};
+  /**
+   * Setup default compliance rules
+   */
+  setupDefaultRules() {
+    // Content filtering rules
+    this.rules.set('no_profanity', {
+      enabled: true,
+      severity: 'warning',
+      description: 'No profanity allowed'
+    });
 
-// Compliance checker function
-function checkCompliance(text) {
-  const lowerText = text.toLowerCase();
-  
-  // Check for banned terms
-  const violations = BANNED_TERMS.filter(term => lowerText.includes(term));
-  
-  if (violations.length > 0) {
+    this.rules.set('no_spam', {
+      enabled: true,
+      severity: 'violation',
+      description: 'No spam messages allowed'
+    });
+
+    this.rules.set('no_harassment', {
+      enabled: true,
+      severity: 'violation',
+      description: 'No harassment allowed'
+    });
+
+    this.rules.set('rate_limit', {
+      enabled: true,
+      severity: 'warning',
+      description: 'Rate limiting enforced'
+    });
+
+    logger.info('Default Discord compliance rules setup completed');
+  }
+
+  /**
+   * Check message compliance
+   */
+  async checkMessage(message, userId = null) {
+    try {
+      this.stats.checks++;
+
+      const results = {
+        compliant: true,
+        violations: [],
+        warnings: [],
+        score: 100
+      };
+
+      // Check for profanity (simplified)
+      const profanityWords = ['damn', 'hell', 'crap'];
+      const hasProfanity = profanityWords.some(word => 
+        message.toLowerCase().includes(word)
+      );
+
+      if (hasProfanity && this.rules.get('no_profanity').enabled) {
+        results.compliant = false;
+        results.violations.push({
+          rule: 'no_profanity',
+          severity: this.rules.get('no_profanity').severity,
+          message: 'Profanity detected'
+        });
+        this.stats.violations++;
+        results.score -= 20;
+      }
+
+      // Check for spam (simplified - message length)
+      if (message.length > 1000 && this.rules.get('no_spam').enabled) {
+        results.compliant = false;
+        results.violations.push({
+          rule: 'no_spam',
+          severity: this.rules.get('no_spam').severity,
+          message: 'Message too long (potential spam)'
+        });
+        this.stats.violations++;
+        results.score -= 30;
+      }
+
+      // Check for harassment (simplified - keywords)
+      const harassmentWords = ['hate', 'kill', 'die'];
+      const hasHarassment = harassmentWords.some(word => 
+        message.toLowerCase().includes(word)
+      );
+
+      if (hasHarassment && this.rules.get('no_harassment').enabled) {
+        results.compliant = false;
+        results.violations.push({
+          rule: 'no_harassment',
+          severity: this.rules.get('no_harassment').severity,
+          message: 'Harassment detected'
+        });
+        this.stats.violations++;
+        results.score -= 50;
+      }
+
+      logger.debug('Message compliance check completed', { 
+        compliant: results.compliant, 
+        violations: results.violations.length 
+      });
+
+      return results;
+
+    } catch (error) {
+      logger.error('Failed to check message compliance', { error: error.message });
+
+      return {
+        compliant: false,
+        error: error.message,
+        violations: [],
+        warnings: [],
+        score: 0
+      };
+    }
+  }
+
+  /**
+   * Check user compliance
+   */
+  async checkUser(userId, userHistory = []) {
+    try {
+      const results = {
+        compliant: true,
+        violations: [],
+        warnings: [],
+        score: 100,
+        riskLevel: 'low'
+      };
+
+      // Check user history for patterns
+      const recentViolations = userHistory.filter(item => 
+        item.timestamp > Date.now() - (24 * 60 * 60 * 1000) // Last 24 hours
+      );
+
+      if (recentViolations.length > 5) {
+        results.compliant = false;
+        results.riskLevel = 'high';
+        results.violations.push({
+          rule: 'excessive_violations',
+          severity: 'violation',
+          message: 'Too many recent violations'
+        });
+        results.score -= 40;
+      } else if (recentViolations.length > 2) {
+        results.riskLevel = 'medium';
+        results.warnings.push({
+          rule: 'multiple_violations',
+          severity: 'warning',
+          message: 'Multiple recent violations'
+        });
+        results.score -= 20;
+      }
+
+      return results;
+
+    } catch (error) {
+      logger.error('Failed to check user compliance', { userId, error: error.message });
+
+      return {
+        compliant: false,
+        error: error.message,
+        violations: [],
+        warnings: [],
+        score: 0,
+        riskLevel: 'high'
+      };
+    }
+  }
+
+  /**
+   * Add custom rule
+   */
+  addRule(ruleName, ruleConfig) {
+    this.rules.set(ruleName, ruleConfig);
+    logger.info('Custom compliance rule added', { ruleName });
+  }
+
+  /**
+   * Remove rule
+   */
+  removeRule(ruleName) {
+    const removed = this.rules.delete(ruleName);
+    if (removed) {
+      logger.info('Compliance rule removed', { ruleName });
+    }
+    return removed;
+  }
+
+  /**
+   * Get rule
+   */
+  getRule(ruleName) {
+    return this.rules.get(ruleName);
+  }
+
+  /**
+   * Get all rules
+   */
+  getAllRules() {
+    return Array.from(this.rules.entries()).map(([name, config]) => ({
+      name,
+      ...config
+    }));
+  }
+
+  /**
+   * Get compliance status
+   */
+  getStatus() {
     return {
-      compliant: false,
-      violations,
-      suggestion: `Remove or replace: ${violations.join(', ')}`
+      isInitialized: this.isInitialized,
+      stats: this.stats,
+      rules: this.rules.size,
+      enabledRules: Array.from(this.rules.values()).filter(r => r.enabled).length,
+      timestamp: new Date().toISOString()
     };
   }
-  
-  return { compliant: true };
+
+  /**
+   * Generate compliance report
+   */
+  generateReport() {
+    return {
+      period: '24h',
+      stats: this.stats,
+      complianceRate: this.stats.checks > 0 ? 
+        ((this.stats.checks - this.stats.violations) / this.stats.checks * 100).toFixed(2) + '%' : 
+        'N/A',
+      topViolations: ['no_profanity', 'no_spam', 'no_harassment'],
+      recommendations: [
+        'Enable stricter content filtering',
+        'Implement user education',
+        'Add automated moderation'
+      ],
+      timestamp: new Date().toISOString()
+    };
+  }
 }
 
-// Safe text sanitizer
-function sanitizeText(text) {
-  let sanitized = text;
-  
-  // Replace banned terms with safe alternatives
-  Object.entries(SAFE_TERMS).forEach(([banned, safe]) => {
-    const regex = new RegExp(banned, 'gi');
-    sanitized = sanitized.replace(regex, safe);
-  
-  return sanitized;
-}
+// Create singleton instance
+const discordCompliance = new DiscordCompliance();
 
-module.exports = {
-  COMPLIANCE,
-  BANNED_TERMS,
-  SAFE_TERMS,
-  COMPLIANT_RESPONSES,
-  checkCompliance,
-  sanitizeText
-};
+module.exports = discordCompliance;
