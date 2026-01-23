@@ -234,6 +234,7 @@ class DiscordSignatureVerifier {
 // Create singleton instance
 const discordSignatureVerifier = new DiscordSignatureVerifier();
 
+// Export the instance and methods
 module.exports = {
   discordSignatureVerifier,
   verifyDiscordSignature: discordSignatureVerifier.verifyDiscordSignature.bind(discordSignatureVerifier),
