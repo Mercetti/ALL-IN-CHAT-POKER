@@ -117,6 +117,7 @@ function createAdminRouter({ auth, middleware, config, logger, rateLimit, db, tm
     res.clearCookie('admin_jwt', cookieOptions);
     res.clearCookie('csrf_token', middleware.getCsrfCookieOptions({ auth, config }));
     res.json({ success: true });
+  });
 
   // Ephemeral admin token
   router.post('/token', rateLimit('admin-token', 60 * 1000, 5), auth.requireAdmin, (req, res) => {
@@ -127,6 +128,7 @@ function createAdminRouter({ auth, middleware, config, logger, rateLimit, db, tm
     const token = db.createToken('admin_overlay', req.ip, ttl);
     logger.info('Ephemeral token created', { ip: req.ip, ttl });
     res.json({ token, ttl });
+  });
 
   // Security snapshot
   router.get('/security-snapshot', auth.requireAdmin, (req, res) => {
