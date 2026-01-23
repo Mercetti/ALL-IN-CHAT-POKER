@@ -154,6 +154,7 @@ function createAdminRouter({ auth, middleware, config, logger, rateLimit, db, tm
       } : null,
     };
     res.json({ snapshot });
+  });
 
   // Refresh cosmetics catalog
   router.post('/refresh-cosmetics', auth.requireAdmin, async (req, res) => {
