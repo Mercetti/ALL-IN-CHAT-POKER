@@ -260,10 +260,12 @@ async function payoutSubmit({ periodStart, periodEnd, currency, payoutMinimumCen
           );
         }
         await c2.query('UPDATE payout_batches SET paypal_batch_id = $2 WHERE id = $1', [batchId, paypalBatchId]);
+      });
     }
   } catch (err) {
     await withClient(async (c3) => {
       await c3.query('UPDATE payout_batches SET status = $2, completed_at = now() WHERE id = $1', [batchId, 'failed']);
+    });
     throw err;
   }
 
@@ -382,7 +384,9 @@ async function exportSummaryCsv({ periodStart, periodEnd }) {
     const lines = [headers.join(',')];
     rows.forEach(r => {
       lines.push(headers.map(h => r[h]).join(','));
+    });
     return lines.join('\n');
+  });
 }
 
 async function exportItemsCsv({ batchId, masked = true }) {
@@ -394,6 +398,7 @@ async function exportItemsCsv({ batchId, masked = true }) {
     const lines = [headers.join(',')];
     res.rows.forEach(r => lines.push(headers.map(h => r[h]).join(',')));
     return lines.join('\n');
+  });
 }
 
 module.exports = {
