@@ -400,6 +400,7 @@ class PerformanceMonitor {
       
       // Log alert
       logger.performance(`${alert.type.toUpperCase()}: ${alert.message}`, alert);
+    });
     
     // Maintain alert limit
     if (this.alerts.length > 100) {
@@ -433,6 +434,7 @@ class PerformanceMonitor {
       
       // Log alert
       logger.warn(`${alert.type.toUpperCase()}: ${alert.message}`, alert);
+    });
   }
 
   /**
