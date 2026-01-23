@@ -143,6 +143,7 @@ const runCommand = (command, args, options = {}) => {
         stdout: stdout.join(''),
         stderr: stderr.join(''),
       });
+    });
     
     child.on('error', (error) => {
       resolve({
@@ -150,6 +151,7 @@ const runCommand = (command, args, options = {}) => {
         stdout: '',
         stderr: error.message,
       });
+    });
   });
 };
 

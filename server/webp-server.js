@@ -100,6 +100,7 @@ class WebPServer {
         res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
         res.setHeader('Access-Control-Allow-Headers', 'Accept, User-Agent, Cache-Control');
         next();
+      });
     }
     
     // Request logging
@@ -120,6 +121,7 @@ class WebPServer {
         });
       
       next();
+    });
   }
 
   /**
