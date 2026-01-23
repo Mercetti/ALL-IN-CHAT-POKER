@@ -173,15 +173,9 @@ async function payoutSubmit({ periodStart, periodEnd, currency, payoutMinimumCen
   let batchId = null;
   const idem = idempotencyKey || buildPayoutIdempotencyKey({
     periodStart,
-    periodEnd,
-    currency: currency || 'USD',
-    payoutMinimumCents,
-    noteTemplate: noteTemplate || '',
-    items,
-  });
-  await withClient(async (client) => {
     await client.query('BEGIN');
     const existing = await client.query('SELECT * FROM payout_batches WHERE idempotency_key = $1 FOR UPDATE', [idem]);
+    let batchId = null;
     if (existing.rows.length) {
       batchId = existing.rows[0].id;
     } else {
@@ -218,65 +212,66 @@ async function payoutSubmit({ periodStart, periodEnd, currency, payoutMinimumCen
     await client.query('UPDATE payout_batches SET status = $2, submitted_at = now() WHERE id = $1', [batchId, 'submitted']);
     await client.query('COMMIT');
 
-  // Phase 2: PayPal submission (outside transaction)
-  let paypalBatchId = null;
-  try {
-    const token = await getPayPalToken();
-    const payload = {
-      sender_batch_header: {
-        sender_batch_id: batchId,
-        email_subject: 'You received a payout from All-In Chat Poker',
-        email_message: 'All-In Chat Poker Partner payout',
-      },
-      items: items.map((it) => ({
-        recipient_type: 'EMAIL',
-        receiver: it.receiver,
-        amount: { value: centsToValue(it.amountCents), currency: (currency || 'USD').toUpperCase() },
-        note: noteTemplate || 'All-In Chat Poker Partner payout',
-        sender_item_id: it._itemId || it.partnerId,
-      })),
-    };
-    const res = await fetch(`${PAYPAL_BASE_URL}/v1/payments/payouts`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'PayPal-Request-Id': idem,
-      },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(`paypal_payout_failed:${res.status}:${JSON.stringify(data)}`);
-    paypalBatchId = data?.batch_header?.payout_batch_id || null;
-    if (Array.isArray(data?.items)) {
-      await withClient(async (c2) => {
-        for (const itRes of data.items) {
-          const senderItemId = itRes?.payout_item?.sender_item_id;
-          const payoutItemId = itRes?.payout_item_id;
-          if (!senderItemId || !payoutItemId) continue;
-          await c2.query(
-            `UPDATE payout_items SET status='submitted', paypal_item_id=$2, paypal_payout_item_id=$3, submitted_at=now() WHERE id = $1`,
-            [senderItemId, itRes?.payout_item?.sender_item_id || null, payoutItemId]
-          );
-        }
-        await c2.query('UPDATE payout_batches SET paypal_batch_id = $2 WHERE id = $1', [batchId, paypalBatchId]);
+    // Phase 2: PayPal submission (outside transaction)
+    let paypalBatchId = null;
+    try {
+      const token = await getPayPalToken();
+      const payload = {
+        sender_batch_header: {
+          sender_batch_id: batchId,
+          email_subject: 'You received a payout from All-In Chat Poker',
+          email_message: 'All-In Chat Poker Partner payout',
+        },
+        items: items.map((it) => ({
+          recipient_type: 'EMAIL',
+          receiver: it.receiver,
+          amount: { value: centsToValue(it.amountCents), currency: (currency || 'USD').toUpperCase() },
+          note: noteTemplate || 'All-In Chat Poker Partner payout',
+          sender_item_id: it._itemId || it.partnerId,
+        })),
+      };
+      const res = await fetch(`${PAYPAL_BASE_URL}/v1/payments/payouts`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'PayPal-Request-Id': idem,
+        },
+        body: JSON.stringify(payload),
       });
+      const data = await res.json();
+      if (!res.ok) throw new Error(`paypal_payout_failed:${res.status}:${JSON.stringify(data)}`);
+      paypalBatchId = data?.batch_header?.payout_batch_id || null;
+      if (Array.isArray(data?.items)) {
+        await withClient(async (c2) => {
+          for (const itRes of data.items) {
+            const senderItemId = itRes?.payout_item?.sender_item_id;
+            const payoutItemId = itRes?.payout_item_id;
+            if (!senderItemId || !payoutItemId) continue;
+            await c2.query(
+              `UPDATE payout_items SET status='submitted', paypal_item_id=$2, paypal_payout_item_id=$3, submitted_at=now() WHERE id = $1`,
+              [senderItemId, itRes?.payout_item?.sender_item_id || null, payoutItemId]
+            );
+          }
+          await c2.query('UPDATE payout_batches SET paypal_batch_id = $2 WHERE id = $1', [batchId, paypalBatchId]);
+        });
+      }
+    } catch (err) {
+      await withClient(async (c3) => {
+        await c3.query('UPDATE payout_batches SET status = $2, completed_at = now() WHERE id = $1', [batchId, 'failed']);
+      });
+      throw err;
     }
-  } catch (err) {
-    await withClient(async (c3) => {
-      await c3.query('UPDATE payout_batches SET status = $2, completed_at = now() WHERE id = $1', [batchId, 'failed']);
-    });
-    throw err;
-  }
 
-  const total = items.reduce((sum, i) => sum + (i.amountCents || 0), 0);
-  return {
-    batch_id: batchId,
-    status: 'submitted',
-    paypal_batch_id: paypalBatchId,
-    summary: { partner_count: items.length, total_amount_cents: total, currency: currency || 'USD' },
-    idempotency_key: idem,
-  };
+    const total = items.reduce((sum, i) => sum + (i.amountCents || 0), 0);
+    return {
+      batch_id: batchId,
+      status: 'submitted',
+      paypal_batch_id: paypalBatchId,
+      summary: { partner_count: items.length, total_amount_cents: total, currency: currency || 'USD' },
+      idempotency_key: idem,
+    };
+  });
 }
 
 async function getBatchDetail(batchId) {
