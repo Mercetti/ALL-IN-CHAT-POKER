@@ -452,7 +452,7 @@ class AssetCaching {
    * Create Express middleware
    */
   middleware() {
-    return (req, res, next) => {
+    return async (req, res, next) => {
       this.stats.totalRequests++;
       
       try {

@@ -100,6 +100,7 @@ class ConnectionPool extends EventEmitter {
         reject,
         timeout
       });
+    });
   }
 
   /**
@@ -391,6 +392,8 @@ class ConnectionPool extends EventEmitter {
     this.waitingQueue.forEach(waiter => {
       clearTimeout(waiter.timeout);
       waiter.reject(new Error('Connection pool destroyed'));
+    });
+    
     this.waitingQueue = [];
     
     // Destroy all connections
