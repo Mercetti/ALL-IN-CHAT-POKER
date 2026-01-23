@@ -170,9 +170,16 @@ async function payoutDryRun({ periodStart, periodEnd, currency, payoutMinimumCen
 // Admin: submit payout batch with PayPal call
 async function payoutSubmit({ periodStart, periodEnd, currency, payoutMinimumCents, noteTemplate, items, idempotencyKey, adminId }) {
   // Phase 1: reserve and create batch/items
-  let batchId = null;
   const idem = idempotencyKey || buildPayoutIdempotencyKey({
     periodStart,
+    periodEnd,
+    currency: currency || 'USD',
+    payoutMinimumCents,
+    noteTemplate: noteTemplate || '',
+    items,
+  });
+  
+  return withClient(async (client) => {
     await client.query('BEGIN');
     const existing = await client.query('SELECT * FROM payout_batches WHERE idempotency_key = $1 FOR UPDATE', [idem]);
     let batchId = null;
