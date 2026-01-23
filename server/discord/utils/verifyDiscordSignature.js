@@ -235,9 +235,13 @@ class DiscordSignatureVerifier {
 const discordSignatureVerifier = new DiscordSignatureVerifier();
 
 // Export the instance and methods
+const rawBodyParser = discordSignatureVerifier.rawBodyParser.bind(discordSignatureVerifier);
+const createSignatureMiddleware = discordSignatureVerifier.createSignatureMiddleware.bind(discordSignatureVerifier);
+const verifyDiscordSignature = discordSignatureVerifier.verifyDiscordSignature.bind(discordSignatureVerifier);
+
 module.exports = {
   discordSignatureVerifier,
-  verifyDiscordSignature: discordSignatureVerifier.verifyDiscordSignature.bind(discordSignatureVerifier),
-  createSignatureMiddleware: discordSignatureVerifier.createSignatureMiddleware.bind(discordSignatureVerifier),
-  rawBodyParser: discordSignatureVerifier.rawBodyParser.bind(discordSignatureVerifier)
+  verifyDiscordSignature,
+  createSignatureMiddleware,
+  rawBodyParser
 };

@@ -447,7 +447,7 @@ let pokerAudioSystem;
 if (!config.isTest()) {
   try {
     // Check if PokerAudioSystem class exists
-    const PokerAudioSystem = require('./server/poker-audio-system');
+    const PokerAudioSystem = require('./server/poker-audio-system-simple');
     pokerAudioSystem = new PokerAudioSystem({
       outputDir: path.join(__dirname, 'public/assets/audio'),
       enableGeneration: true,
