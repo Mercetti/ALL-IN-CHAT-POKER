@@ -17,7 +17,9 @@ class DatabaseManager {
     if (this.initialized) return;
     
     try {
-      this.db = new Database(path.join(__dirname, '../data/helm.db'), { verbose: true });
+      this.db = new Database(path.join(__dirname, '../data/helm.db'), { 
+        verbose: process.env.NODE_ENV === 'development' ? console.log : undefined 
+      });
       this.createTables();
       this.initialized = true;
       console.log('Database initialized successfully');

@@ -456,7 +456,7 @@ if (!config.isTest()) {
     });
     
     // Initialize the audio system
-    pokerAudioSystem.init();
+    pokerAudioSystem.initialize();
     console.log('🎵 Poker Audio System initialized successfully');
   } catch (error) {
     console.error('❌ Failed to create Poker Audio System:', error.message);
@@ -782,6 +782,16 @@ try {
     console.warn('⚠️ Acey Bridge connection failed, running without Control Center:', error.message);
   });
   
+  // Fallback aceyEngine if not defined
+  const aceyEngine = global.aceyEngine || {
+    addChatMessage: async (data) => {
+      console.log('🤖 Acey fallback: addChatMessage called', data);
+    },
+    addGameEvent: async (sessionId, event) => {
+      console.log('🎮 Acey fallback: addGameEvent called', { sessionId, event });
+    }
+  };
+  
   // Override Acey Engine's addChatMessage to route through Control Center
   const originalAddChatMessage = aceyEngine.addChatMessage;
   aceyEngine.addChatMessage = async function(data) {
@@ -909,15 +919,14 @@ io.on('connection', (socket) => {
 // ======================
 // Helm WebSocket Integration
 // ======================
-const { HelmWebSocket } = require('./server/helm-websocket');
+const HelmWebSocketServer = require('./server/helm-websocket-simple');
 const { extractUserLogin, getChannelFromSocket } = require('./server/auth');
 
 // Initialize Helm WebSocket server
-const helmWebSocket = new HelmWebSocket({ 
-  server: server, // Attach to main HTTP server
+const helmWebSocket = new HelmWebSocketServer({ 
+  port: 8081,
   path: '/helm',
-  logger: console,
-  helmEngine: helmEngine
+  logger: console
 });
 
 // Start Helm WebSocket service
