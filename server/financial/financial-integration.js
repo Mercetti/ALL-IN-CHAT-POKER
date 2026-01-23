@@ -17,8 +17,12 @@ function integrateFinancialSystem(app, db) {
     logger.info('🏦 Integrating ACEY Financial Operations System...');
     
     // Initialize database if needed
-    if (!db.initialized) {
+    if (db && typeof db.initialize === 'function') {
+      db.initialize();
+    } else if (db && typeof db.init === 'function') {
       db.init();
+    } else {
+      logger.warn('Database initialization method not found, skipping');
     }
     
     // Initialize database schema if needed

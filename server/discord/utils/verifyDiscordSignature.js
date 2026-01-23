@@ -208,9 +208,35 @@ class DiscordSignatureVerifier {
   getSupportedMethods() {
     return ['ed25519', 'webhook_hmac'];
   }
+
+  /**
+   * Raw body parser middleware (required for signature verification)
+   * Must be used before JSON body parser
+   */
+  rawBodyParser() {
+    return (req, res, next) => {
+      const chunks = [];
+      
+      req.on('data', chunk => chunks.push(chunk));
+      req.on('end', () => {
+        req.rawBody = Buffer.concat(chunks).toString('utf8');
+        next();
+      });
+      
+      req.on('error', error => {
+        console.error('❌ Raw body parser error:', error);
+        res.status(400).json({ error: 'Invalid request body' });
+      });
+    };
+  }
 }
 
 // Create singleton instance
 const discordSignatureVerifier = new DiscordSignatureVerifier();
 
-module.exports = discordSignatureVerifier;
+module.exports = {
+  discordSignatureVerifier,
+  verifyDiscordSignature: discordSignatureVerifier.verifyDiscordSignature.bind(discordSignatureVerifier),
+  createSignatureMiddleware: discordSignatureVerifier.createSignatureMiddleware.bind(discordSignatureVerifier),
+  rawBodyParser: discordSignatureVerifier.rawBodyParser.bind(discordSignatureVerifier)
+};
