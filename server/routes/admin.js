@@ -8,20 +8,25 @@ function createAdminRouter({ auth, middleware, config, logger, rateLimit, db, tm
   // Admin-only pages
   router.get('/admin-chat.html', auth.requireAdmin, (_req, res) => {
     res.sendFile(path.join(__dirname, '..', '..', 'public', 'admin-chat.html'));
+  });
 
   router.get('/admin-chat', auth.requireAdmin, (_req, res) => {
     res.redirect('/admin-chat.html');
+  });
 
   router.get('/admin-code.html', auth.requireAdmin, (_req, res) => {
     res.sendFile(path.join(__dirname, '..', '..', 'public', 'admin-code.html'));
+  });
 
   router.get('/admin-code', auth.requireAdmin, (_req, res) => {
     res.redirect('/admin-code.html');
+  });
 
   // CSRF token
   router.get('/csrf', auth.requireAdmin, (req, res) => {
     const token = middleware.issueCsrfCookie(res, { auth, config });
     res.json({ token });
+  });
 
   // Admin login with rate limiting and DB-backed authentication
   router.post('/login', rateLimit('admin-login', 60 * 1000, 5), (req, res) => {
