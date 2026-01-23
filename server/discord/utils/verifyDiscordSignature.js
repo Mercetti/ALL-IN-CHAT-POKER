@@ -236,12 +236,42 @@ const discordSignatureVerifier = new DiscordSignatureVerifier();
 
 // Export the instance and methods
 const rawBodyParser = discordSignatureVerifier.rawBodyParser.bind(discordSignatureVerifier);
-const createSignatureMiddleware = discordSignatureVerifier.createSignatureMiddleware.bind(discordSignatureVerifier);
-const verifyDiscordSignature = discordSignatureVerifier.verifyDiscordSignature.bind(discordSignatureVerifier);
+const verifySignature = discordSignatureVerifier.verifySignature.bind(discordSignatureVerifier);
+const verifyWebhookSignature = discordSignatureVerifier.verifyWebhookSignature.bind(discordSignatureVerifier);
+
+// Create signature middleware function
+function createSignatureMiddleware(publicKey) {
+  return (req, res, next) => {
+    try {
+      const signature = req.headers['x-signature-ed25519'];
+      const timestamp = req.headers['x-signature-timestamp'];
+      
+      if (!signature || !timestamp) {
+        return res.status(401).json({ error: 'Missing signature headers' });
+      }
+      
+      const result = discordSignatureVerifier.verifyFull(signature, timestamp, req.rawBody, publicKey);
+      
+      if (!result.valid) {
+        return res.status(401).json({ error: 'Invalid signature' });
+      }
+      
+      next();
+    } catch (error) {
+      console.error('Signature middleware error:', error);
+      res.status(500).json({ error: 'Signature verification failed' });
+    }
+  };
+}
+
+// Alias for backward compatibility
+const verifyDiscordSignature = verifySignature;
 
 module.exports = {
   discordSignatureVerifier,
   verifyDiscordSignature,
+  verifySignature,
+  verifyWebhookSignature,
   createSignatureMiddleware,
   rawBodyParser
 };

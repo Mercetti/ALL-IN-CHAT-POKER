@@ -50,8 +50,20 @@ function initializeDatabase(db) {
   try {
     logger.info('🗄️ Initializing financial database schema...');
     
-    // Check if tables exist
+    // Check if database object has the expected methods
+    if (!db || typeof db.getDatabase !== 'function') {
+      logger.warn('Database object does not have getDatabase method, skipping schema initialization');
+      return;
+    }
+    
     const database = db.getDatabase();
+    
+    // Check if database has prepare method
+    if (!database || typeof database.prepare !== 'function') {
+      logger.warn('Database does not support prepared statements, skipping schema initialization');
+      return;
+    }
+    
     const tableCheck = database.prepare(`
       SELECT name FROM sqlite_master 
       WHERE type='table' AND name IN (

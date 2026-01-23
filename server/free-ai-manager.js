@@ -179,8 +179,22 @@ class OllamaProvider {
         timeout,
         signal: AbortSignal.timeout(timeout)
       });
-      return response.ok;
+      
+      if (response.ok) {
+        logger.debug('Ollama provider is available', { host: this.host });
+        return true;
+      } else {
+        logger.warn('Ollama provider returned non-OK status', { 
+          host: this.host, 
+          status: response.status 
+        });
+        return false;
+      }
     } catch (error) {
+      logger.warn('Ollama provider connection failed', { 
+        host: this.host, 
+        error: error.message 
+      });
       return false;
     }
   }
