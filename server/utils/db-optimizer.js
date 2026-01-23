@@ -153,9 +153,11 @@ class DatabaseBatcher {
         const results = this.executeBatch(queryType, queries);
         queries.forEach(({ resolve }, index) => {
           resolve(results[index]);
+        });
       } catch (error) {
         queries.forEach(({ reject }) => {
           reject(error);
+        });
       }
     }
     
