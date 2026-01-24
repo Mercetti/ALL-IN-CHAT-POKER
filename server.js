@@ -432,14 +432,14 @@ if (!config.isTest()) {
   });
 
   // Register AI Learning routes
-  // const learningOrchestrator = createAdminAILearningRoutes(app, {
-  //   auth,
-  //   unifiedAI,
-  //   sendMonitorAlert,
-  //   performanceMonitor,
-  //   logger,
-  // });
-  console.log('⚠️ AI Learning routes temporarily disabled');
+  const learningOrchestrator = createAdminAILearningRoutes(app, {
+    auth,
+    unifiedAI,
+    sendMonitorAlert,
+    performanceMonitor,
+    logger,
+  });
+  console.log('✅ AI Learning routes enabled');
 }
 
 // Initialize Poker Audio System
