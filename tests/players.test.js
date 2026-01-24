@@ -2,7 +2,7 @@ const request = require('supertest');
 
 // Initialize database before requiring server
 const db = require('../server/db');
-db.init();
+db.initialize();
 
 const { server } = require('../server');
 

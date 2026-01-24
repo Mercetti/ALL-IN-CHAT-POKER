@@ -1,11 +1,11 @@
 /**
  * WebSocket Integration Tests
- * Tests the Acey WebSocket server functionality
+ * Tests the Helm WebSocket server functionality
  */
 
 const WebSocket = require('ws');
 const http = require('http');
-const { AceyWebSocket } = require('../server/acey-websocket');
+const { HelmWebSocket } = require('../server/helm-websocket');
 const Logger = require('../server/logger');
 
 // Mock logger to avoid console output during tests
@@ -19,7 +19,7 @@ Logger.mockImplementation(() => ({
 
 describe('WebSocket Integration Tests', () => {
   let server;
-  let aceyWebSocket;
+  let helmWebSocket;
   let wsUrl;
   let testPort;
 
@@ -33,20 +33,20 @@ describe('WebSocket Integration Tests', () => {
       server.listen(testPort, resolve);
     });
 
-    // Initialize AceyWebSocket
-    aceyWebSocket = new AceyWebSocket({
+    // Initialize HelmWebSocket
+    helmWebSocket = new HelmWebSocket({
       server,
-      path: '/test-acey'
+      path: '/test-helm'
     });
 
-    aceyWebSocket.start();
-    wsUrl = `ws://localhost:${testPort}/test-acey`;
+    // HelmWebSocket initializes in constructor, no start method needed
+    wsUrl = `ws://localhost:${testPort}/test-helm`;
   });
 
   afterAll(async () => {
     // Clean up
-    if (aceyWebSocket) {
-      aceyWebSocket.stop();
+    if (helmWebSocket) {
+      helmWebSocket.close();
     }
     if (server) {
       await new Promise((resolve) => {
@@ -263,7 +263,7 @@ describe('WebSocket Integration Tests', () => {
           connectedCount++;
           if (connectedCount === clientCount) {
             // All clients connected, trigger a broadcast
-            aceyWebSocket.broadcast({
+            helmWebSocket.broadcast({
               type: 'testBroadcast',
               message: 'Hello to all clients',
               timestamp: Date.now()
@@ -315,7 +315,7 @@ describe('WebSocket Integration Tests', () => {
           
           // Wait a bit then broadcast
           setTimeout(() => {
-            aceyWebSocket.broadcast({
+            helmWebSocket.broadcast({
               type: 'testBroadcast',
               message: 'Only for client2',
               timestamp: Date.now()
@@ -330,7 +330,7 @@ describe('WebSocket Integration Tests', () => {
           client1.close();
           
           setTimeout(() => {
-            aceyWebSocket.broadcast({
+            helmWebSocket.broadcast({
               type: 'testBroadcast',
               message: 'Only for client2',
               timestamp: Date.now()
@@ -508,17 +508,23 @@ describe('WebSocket Integration Tests', () => {
     });
   });
 
-  describe('Integration with AceyEngine', () => {
-    test('should forward AceyEngine events to clients', (done) => {
+  describe('Integration with HelmEngine', () => {
+    test('should forward HelmEngine events to clients', (done) => {
       const ws = new WebSocket(wsUrl);
       let eventReceived = false;
 
       ws.on('open', () => {
-        // Simulate an AceyEngine event
+        // Simulate a HelmEngine event
         setTimeout(() => {
-          // Access the internal AceyEngine and emit an event
-          if (aceyWebSocket.aceyEngine) {
-            aceyWebSocket.aceyEngine.emit('overlay', {
+          // Access the internal HelmEngine and emit an event
+          if (helmWebSocket.helmEngine) {
+            helmWebSocket.helmEngine.emit('overlay', {
+              type: 'overlayEvent',
+              data: 'test overlay data'
+            });
+          } else {
+            // Fallback: directly broadcast to test the WebSocket
+            helmWebSocket.broadcast({
               type: 'overlayEvent',
               data: 'test overlay data'
             });

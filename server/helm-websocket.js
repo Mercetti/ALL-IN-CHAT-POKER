@@ -366,6 +366,7 @@ class HelmWebSocket {
 
       this.wss.close(() => {
         this.logger.info?.('🔗 Helm WebSocket server closed');
+      });
     }
   }
 }

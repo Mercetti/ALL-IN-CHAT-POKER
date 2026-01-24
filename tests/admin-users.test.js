@@ -3,7 +3,7 @@ const express = require('express');
 
 // Initialize database before requiring server
 const db = require('../server/db');
-db.init();
+db.initialize();
 
 // Mock modules that start intervals to prevent Jest from hanging
 jest.mock('../server/ai-cache', () => {

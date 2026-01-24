@@ -6,6 +6,37 @@
 /* eslint-disable */
 import 'react-native-gesture-handler/jestSetup';
 
+// Set up React Native globals
+global.__DEV__ = true;
+
+// Mock React Native modules
+jest.mock('react-native/Libraries/Utilities/Platform', () => ({
+  OS: 'ios',
+  Version: '14.0',
+  select: (obj) => obj.ios || obj.default,
+  isPad: false,
+  isTVOS: false,
+  isTV: false,
+}));
+
+jest.mock('react-native/Libraries/Utilities/Dimensions', () => ({
+  get: jest.fn(() => ({
+    width: 375,
+    height: 667,
+    scale: 2,
+    fontScale: 1,
+  })),
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+}));
+
+jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper', () => ({
+  generateSafeAnimationCount: jest.fn(),
+  getNativeAnimationModule: jest.fn(),
+  startAnimation: jest.fn(),
+  stopAnimation: jest.fn(),
+}));
+
 // Mock console methods for testing
 global.console = {
   log: jest.fn(),
@@ -35,7 +66,7 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 
 // Mock expo-notifications
 jest.mock('expo-notifications', () => ({
-  ...require.requireActual('expo-notifications'),
+  ...jest.requireActual('expo-notifications'),
   requestPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted' })),
   addNotificationReceivedListener: jest.fn(() => jest.fn()),
   addNotificationResponseReceivedListener: jest.fn(() => jest.fn()),
@@ -45,7 +76,7 @@ jest.mock('expo-notifications', () => ({
 
 // Mock expo-local-authentication
 jest.mock('expo-local-authentication', () => ({
-  ...require.requireActual('expo-local-authentication'),
+  ...jest.requireActual('expo-local-authentication'),
   supportedAuthenticationTypesAsync: jest.fn(() => 
     Promise.resolve(['fingerprint', 'facial'])
   ),
@@ -54,15 +85,15 @@ jest.mock('expo-local-authentication', () => ({
   ),
 }));
 
-// Mock expo-shortcuts
-jest.mock('expo-shortcuts', () => ({
-  ...require.requireActual('expo-shortcuts'),
-  setShortcutsAsync: jest.fn(() => Promise.resolve()),
-}));
+// Mock expo-shortcuts (package doesn't exist, commented out)
+// jest.mock('expo-shortcuts', () => ({
+//   ...require.requireActual('expo-shortcuts'),
+//   setShortcutsAsync: jest.fn(() => Promise.resolve()),
+// }));
 
 // Silence warning about react-test-renderer
 jest.mock('react-test-renderer', () => ({
-  ...require.requireActual('react-test-renderer'),
+  ...jest.requireActual('react-test-renderer'),
 }));
 
 // Global test utilities

@@ -29,21 +29,21 @@ describe('HelmWebSocket Integration Tests', () => {
     // Create test server
     testServer = new WebSocketTestServer();
     port = await testServer.start();
-    wsUrl = testServer.getWebSocketUrl('/acey');
+    wsUrl = testServer.getWebSocketUrl('/helm');
 
-    // Initialize AceyWebSocket
-    aceyWebSocket = new AceyWebSocket({
+    // Initialize HelmWebSocket
+    helmWebSocket = new HelmWebSocket({
       server: testServer.server,
-      path: '/acey'
+      path: '/helm'
     });
 
-    aceyWebSocket.start();
+    // HelmWebSocket doesn't have start method - it initializes in constructor
   });
 
   afterAll(async () => {
     // Clean up
-    if (aceyWebSocket) {
-      aceyWebSocket.stop();
+    if (helmWebSocket) {
+      helmWebSocket.close();
     }
     if (testServer) {
       await testServer.stop();

@@ -5,6 +5,7 @@
 
 module.exports = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  preset: 'react-native',
   testMatch: [
     '**/__tests__/**/*.test.js',
     '**/__tests__/**/*.test.jsx',
@@ -27,10 +28,10 @@ module.exports = {
     },
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(react-native|@react-native|expo|@expo|@react-navigation)/.*)',
+    'node_modules/(?!(react-native|@react-native|expo|@expo|@react-navigation|@testing-library)/.*)',
   ],
   testTimeout: 10000,
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   moduleNameMapper: {
     '^@components/(.*)$': '<rootDir>/src/components/$1',
     '^@screens/(.*)$': '<rootDir>/src/screens/$1',
