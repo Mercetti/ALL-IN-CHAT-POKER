@@ -117,6 +117,28 @@ jest.mock('../server/routes/incident', () => ({
   }),
 }));
 
+// Mock AceyBridge to prevent external connections during tests
+jest.mock('../acey-control-center/dist/server/aceyBridge', () => {
+  return {
+    AceyBridge: jest.fn().mockImplementation(() => ({
+      connect: jest.fn().mockResolvedValue(),
+      disconnect: jest.fn(),
+      getStatus: jest.fn(() => ({ connected: false })),
+      handleAceyOutput: jest.fn().mockResolvedValue(),
+    }))
+  };
+});
+
+// Mock socket.io to prevent WebSocket connections during tests
+jest.mock('socket.io', () => {
+  return jest.fn().mockImplementation(() => ({
+    on: jest.fn(),
+    emit: jest.fn(),
+    close: jest.fn(),
+    connect: jest.fn(),
+  }));
+});
+
 // Mock AceyEngine to fix WebSocket test issues
 jest.mock('../server/aceyEngine', () => {
   const mockAceyEngine = jest.fn().mockImplementation(() => ({
