@@ -957,35 +957,40 @@ async function initializeServer() {
     const modeManager = new ModeManager();
     const profileManager = new ProfileManager();
     const stabilityWatchdog = new StabilityWatchdog();
+    await stabilityWatchdog.start();
     const founderAssistant = new FounderAssistant();
     const replayEngine = new ReplayEngine();
     const cognitiveThrottling = new CognitiveThrottling();
+    const mobileAPIController = new MobileAPIController();
     
-    // Initialize main stability module
-    const stabilityModule = new AceyStabilityModule({
+    // Integrate stability components
+    app.locals.stability = {
       modeManager,
       profileManager,
       stabilityWatchdog,
       founderAssistant,
       replayEngine,
-      cognitiveThrottling
-    });
+      cognitiveThrottling,
+      mobileAPIController
+    };
     
-    // Start stability module
-    await stabilityModule.start();
-    console.log('✅ Acey Stability Module initialized successfully');
+    console.log('🛡️ Acey Stability Module initialized successfully');
     
-    // Initialize mobile API controller
-    const mobileAPIController = new MobileAPIController(app);
-    mobileAPIController.registerRoutes();
-    console.log('📱 Mobile API Controller registered');
+    // 💰 INTEGRATE FINANCIAL SYSTEM
+    console.log('💰 Integrating ACEY Financial Operations System...');
     
-    // Initialize new modules
-    await finance.initialize();
-    await trustEngine.initialize();
-    await disputeModule.initialize();
-    await analytics.initialize();
-    await investor.initialize();
+    // Integrate financial system
+    const financialSuccess = integrateFinancialSystem(app, db);
+    if (financialSuccess) {
+      console.log('💰 Financial system integrated successfully');
+    } else {
+      console.log('⚠️ Financial system integration failed, continuing without it');
+    }
+    
+    // Add financial health check
+    addFinancialHealthCheck(app, db);
+    console.log('💰 Financial health checks added');
+    
     console.log('🔧 Financial & Governance modules initialized successfully');
   } catch (error) {
     console.error('❌ Database initialization failed:', error);
@@ -996,9 +1001,7 @@ async function initializeServer() {
 }
 
 // Initialize server
-// Temporarily disabled to test startup
-// initializeServer();
-console.log('⚠️ Server initialization temporarily disabled for testing');
+initializeServer();
 
 // Start server
 const serverConfig = config.getServerConfig();
