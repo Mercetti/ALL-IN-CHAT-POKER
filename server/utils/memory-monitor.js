@@ -45,9 +45,9 @@ class MemoryMonitor {
    * Start memory monitoring
    */
   start() {
-    // Skip monitoring in production and test environments
-    if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'test') {
-      console.log('[MEMORY] Skipping memory monitoring in', process.env.NODE_ENV, 'mode');
+    // Only skip in test environment, keep running in production for diagnostics
+    if (process.env.NODE_ENV === 'test') {
+      console.log('[MEMORY] Skipping memory monitoring in test mode');
       return;
     }
     

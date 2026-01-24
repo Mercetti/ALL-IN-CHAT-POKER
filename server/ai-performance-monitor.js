@@ -36,13 +36,16 @@ class AIPerformanceMonitor extends EventEmitter {
    * Start performance monitoring
    */
   startMonitoring() {
-    // Skip intervals in test environment and production
-    if (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'production') {
-      setInterval(() => {
-        this.collectMetrics();
-        this.analyzePerformance();
-      }, this.metricsInterval);
+    // Only skip in test environment, keep running in production for diagnostics
+    if (process.env.NODE_ENV === 'test') {
+      console.log('[AI-PERF] Skipping AI performance monitoring in test mode');
+      return;
     }
+    
+    setInterval(() => {
+      this.collectMetrics();
+      this.analyzePerformance();
+    }, this.metricsInterval);
     
     logger.info('AI Performance Monitor started');
   }

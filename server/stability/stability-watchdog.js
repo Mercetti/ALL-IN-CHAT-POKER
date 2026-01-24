@@ -12,19 +12,19 @@ class StabilityWatchdog {
   }
 
   async start() {
-    // Skip watchdog in production and test environments
-    if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'test') {
-      console.log('[WATCHDOG] Skipping stability watchdog in', process.env.NODE_ENV, 'mode');
+    // Only skip in test environment, keep running in production for Helm diagnostics
+    if (process.env.NODE_ENV === 'test') {
+      console.log('[WATCHDOG] Skipping stability watchdog in test mode');
       return true;
     }
     
     console.log('[WATCHDOG] Starting stability watchdog');
     this.isRunning = true;
     
-    // Start health checks every 30 seconds
+    // Start health checks every 2 minutes instead of 30 seconds to reduce overhead
     this.checkInterval = setInterval(() => {
       this.performHealthCheck();
-    }, 30000);
+    }, 120000); // 2 minutes
     
     return true;
   }
