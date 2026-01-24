@@ -17,11 +17,12 @@ function getChannelFromSocket(req) {
 
 class HelmWebSocketServer {
   constructor(options = {}) {
-    this.port = options.port || 8081;
+    this.port = options.port || 0; // Use 0 for dynamic port allocation
     this.path = options.path || '/helm-ws';
     this.logger = options.logger || console;
     this.clients = new Map();
     this.wss = null;
+    this.actualPort = null;
     this.initialize();
   }
 
@@ -32,8 +33,15 @@ class HelmWebSocketServer {
         path: this.path
       });
 
+      // Get the actual port assigned
+      if (this.port === 0) {
+        this.actualPort = this.wss.address().port;
+      } else {
+        this.actualPort = this.port;
+      }
+
       this.setupEventHandlers();
-      this.logger.info?.(`🔗 Helm WebSocket server initialized on path: ${this.path}`);
+      this.logger.info?.(`🔗 Helm WebSocket server initialized on port: ${this.actualPort}, path: ${this.path}`);
     } catch (error) {
       this.logger.error?.('Failed to initialize Helm WebSocket server:', error);
       throw error;
@@ -174,12 +182,17 @@ class HelmWebSocketServer {
   getStatus() {
     return {
       status: 'running',
-      port: this.port,
+      port: this.actualPort || this.port,
       path: this.path,
       connectedClients: this.clients.size,
       uptime: process.uptime(),
       timestamp: Date.now()
     };
+  }
+
+  // Get the actual port (useful for dynamic port allocation)
+  getPort() {
+    return this.actualPort || this.port;
   }
 
   // Broadcast message to all clients
