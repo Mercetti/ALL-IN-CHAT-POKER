@@ -9,33 +9,87 @@ import 'react-native-gesture-handler/jestSetup';
 // Set up React Native globals
 global.__DEV__ = true;
 
-// Mock React Native modules
-jest.mock('react-native/Libraries/Utilities/Platform', () => ({
-  OS: 'ios',
-  Version: '14.0',
-  select: (obj) => obj.ios || obj.default,
-  isPad: false,
-  isTVOS: false,
-  isTV: false,
-}));
+// Mock React Native core modules
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  
+  return {
+    ...RN,
+    Platform: {
+      OS: 'ios',
+      Version: '14.0',
+      select: jest.fn((obj) => obj.ios || obj.default),
+      isPad: false,
+      isTVOS: false,
+      isTV: false,
+    },
+    Dimensions: {
+      get: jest.fn(() => ({
+        width: 375,
+        height: 667,
+        scale: 2,
+        fontScale: 1,
+      })),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+    },
+    StyleSheet: {
+      create: jest.fn((styles) => styles),
+      flatten: jest.fn((style) => style),
+      compose: jest.fn((style1, style2) => ({ ...style1, ...style2 })),
+    },
+    View: 'View',
+    Text: 'Text',
+    TouchableOpacity: 'TouchableOpacity',
+    ScrollView: 'ScrollView',
+    FlatList: 'FlatList',
+    Image: 'Image',
+    TextInput: 'TextInput',
+    ActivityIndicator: 'ActivityIndicator',
+    StatusBar: 'StatusBar',
+    SafeAreaView: 'SafeAreaView',
+  };
+});
 
-jest.mock('react-native/Libraries/Utilities/Dimensions', () => ({
-  get: jest.fn(() => ({
-    width: 375,
-    height: 667,
-    scale: 2,
-    fontScale: 1,
-  })),
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-}));
+// Mock react-native-reanimated
+jest.mock('react-native-reanimated', () => {
+  const Reanimated = require('react-native-reanimated/mock');
+  Reanimated.default.call = () => {};
+  return Reanimated;
+});
 
-jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper', () => ({
-  generateSafeAnimationCount: jest.fn(),
-  getNativeAnimationModule: jest.fn(),
-  startAnimation: jest.fn(),
-  stopAnimation: jest.fn(),
-}));
+// Mock react-native-gesture-handler
+jest.mock('react-native-gesture-handler', () => {
+  const View = require('react-native/Libraries/Components/View/View');
+  return {
+    Swipeable: View,
+    DrawerLayout: View,
+    State: {},
+    ScrollView: View,
+    Slider: View,
+    Switch: View,
+    TextInput: View,
+    ToolbarAndroid: View,
+    ViewPagerAndroid: View,
+    DrawerLayoutAndroid: View,
+    WebView: View,
+    NativeViewGestureHandler: View,
+    TapGestureHandler: View,
+    FlingGestureHandler: View,
+    ForceTouchGestureHandler: View,
+    LongPressGestureHandler: View,
+    PanGestureHandler: View,
+    PinchGestureHandler: View,
+    RotationGestureHandler: View,
+    RawButton: View,
+    BaseButton: View,
+    RectButton: View,
+    BorderlessButton: View,
+    FlatList: View,
+    gestureHandlerRootHOC: jest.fn((component) => component),
+    Directions: {},
+  };
+});
 
 // Mock console methods for testing
 global.console = {

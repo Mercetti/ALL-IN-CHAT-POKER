@@ -59,9 +59,10 @@ jest.mock('../server/routes/admin-ai-control', () => ({
   registerAdminAiControlRoutes: jest.fn(),
 }));
 
-jest.doMock('../server/routes/admin-services', () => ({
-  createSimpleAdminServicesRouter: jest.fn(() => express.Router()),
-}));
+jest.mock('../server/routes/admin-services', () => {
+  const express = require('express');
+  return express.Router();
+});
 
 jest.mock('../server/routes/public', () => ({
   createPublicRouter: jest.fn(),

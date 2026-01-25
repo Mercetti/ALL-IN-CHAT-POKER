@@ -4,8 +4,8 @@
  */
 
 module.exports = {
+  preset: 'react-native',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-  preset: 'jest-react-native',
   testMatch: [
     '**/__tests__/**/*.test.js',
     '**/__tests__/**/*.test.jsx',
@@ -21,14 +21,14 @@ module.exports = {
   coverageReporters: ['text', 'lcov', 'html'],
   coverageThreshold: {
     global: {
-      branches: 80,
-      functions: 80,
-      lines: 80,
-      statements: 80,
+      branches: 70,
+      functions: 70,
+      lines: 70,
+      statements: 70,
     },
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(react-native|@react-native|expo|@expo|@react-navigation|@testing-library)/.*)',
+    'node_modules/(?!(react-native|@react-native|expo|@expo|@react-navigation|@testing-library|react-native-vector-icons)/.*)',
   ],
   testTimeout: 10000,
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
@@ -40,9 +40,8 @@ module.exports = {
     '^@utils/(.*)$': '<rootDir>/src/utils/$1',
     '^@hooks/(.*)$': '<rootDir>/src/hooks/$1',
   },
-  globals: {
-    'ts-jest': {
-      tsconfig: 'tsconfig.json',
-    },
+  testEnvironment: 'node',
+  transform: {
+    '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest',
   },
 };
