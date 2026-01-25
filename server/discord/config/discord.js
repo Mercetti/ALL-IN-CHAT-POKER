@@ -80,8 +80,9 @@ if (process.env.NODE_ENV !== 'test') {
     console.log('✅ Discord configuration validated');
   } catch (error) {
     console.error('❌ Discord configuration error:', error.message);
+    // Don't exit in production for Render deployment - just log the error
     if (process.env.NODE_ENV === 'production') {
-      process.exit(1);
+      console.log('⚠️ Continuing without Discord integration...');
     }
   }
 }
