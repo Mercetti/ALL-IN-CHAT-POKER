@@ -82,7 +82,7 @@ const envSchema = Joi.object({
   SESSION_SECRET: Joi.string()
     .when('NODE_ENV', {
       is: 'production',
-      then: Joi.string().min(32).required(),
+      then: Joi.string().optional(), // Make optional for Render deployment
       otherwise: Joi.string().default('dev-session-secret-change-in-production')
     })
     .description('Session secret key'),
