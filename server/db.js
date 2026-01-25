@@ -40,6 +40,17 @@ class DatabaseManager {
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
       
+      CREATE TABLE IF NOT EXISTS admin_users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        login TEXT UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL,
+        email TEXT,
+        status TEXT DEFAULT 'active',
+        role TEXT DEFAULT 'admin',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+      
       CREATE TABLE IF NOT EXISTS tokens (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         token TEXT NOT NULL,
@@ -98,6 +109,35 @@ class DatabaseManager {
     if (!this.db) this.initialize();
     const stmt = this.db.prepare('SELECT * FROM system_logs ORDER BY timestamp DESC LIMIT ?');
     return stmt.all(limit);
+  }
+
+  // Admin user methods
+  getAdminUser(login) {
+    if (!this.db) this.initialize();
+    const stmt = this.db.prepare('SELECT * FROM admin_users WHERE login = ?');
+    return stmt.get(login);
+  }
+
+  createAdminUser(userData) {
+    if (!this.db) this.initialize();
+    const stmt = this.db.prepare('INSERT INTO admin_users (login, password_hash, email, status, role) VALUES (?, ?, ?, ?, ?)');
+    return stmt.run(userData.login, userData.password_hash, userData.email || null, userData.status || 'active', userData.role || 'admin');
+  }
+
+  updateAdminUser(login, updates) {
+    if (!this.db) this.initialize();
+    const fields = Object.keys(updates).map(key => `${key} = ?`).join(', ');
+    const values = Object.values(updates);
+    values.push(login);
+    
+    const stmt = this.db.prepare(`UPDATE admin_users SET ${fields}, updated_at = CURRENT_TIMESTAMP WHERE login = ?`);
+    return stmt.run(...values);
+  }
+
+  listAdminUsers() {
+    if (!this.db) this.initialize();
+    const stmt = this.db.prepare('SELECT * FROM admin_users ORDER BY created_at DESC');
+    return stmt.all();
   }
 
   close() {

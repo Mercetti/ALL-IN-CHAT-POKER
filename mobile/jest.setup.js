@@ -9,47 +9,34 @@ import 'react-native-gesture-handler/jestSetup';
 // Set up React Native globals
 global.__DEV__ = true;
 
-// Mock React Native core modules
-jest.mock('react-native', () => {
-  const RN = jest.requireActual('react-native');
-  
-  return {
-    ...RN,
-    Platform: {
-      OS: 'ios',
-      Version: '14.0',
-      select: jest.fn((obj) => obj.ios || obj.default),
-      isPad: false,
-      isTVOS: false,
-      isTV: false,
-    },
-    Dimensions: {
-      get: jest.fn(() => ({
-        width: 375,
-        height: 667,
-        scale: 2,
-        fontScale: 1,
-      })),
-      addEventListener: jest.fn(),
-      removeEventListener: jest.fn(),
-    },
-    StyleSheet: {
-      create: jest.fn((styles) => styles),
-      flatten: jest.fn((style) => style),
-      compose: jest.fn((style1, style2) => ({ ...style1, ...style2 })),
-    },
-    View: 'View',
-    Text: 'Text',
-    TouchableOpacity: 'TouchableOpacity',
-    ScrollView: 'ScrollView',
-    FlatList: 'FlatList',
-    Image: 'Image',
-    TextInput: 'TextInput',
-    ActivityIndicator: 'ActivityIndicator',
-    StatusBar: 'StatusBar',
-    SafeAreaView: 'SafeAreaView',
-  };
-});
+// Mock React Native core modules with simpler approach
+jest.mock('react-native/Libraries/Utilities/Platform', () => ({
+  OS: 'ios',
+  Version: '14.0',
+  select: jest.fn((obj) => obj.ios || obj.default),
+  isPad: false,
+  isTVOS: false,
+  isTV: false,
+}));
+
+jest.mock('react-native/Libraries/Utilities/Dimensions', () => ({
+  get: jest.fn(() => ({
+    width: 375,
+    height: 667,
+    scale: 2,
+    fontScale: 1,
+  })),
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+}));
+
+jest.mock('react-native/Libraries/StyleSheet/StyleSheet', () => ({
+  create: jest.fn((styles) => styles),
+  flatten: jest.fn((style) => style),
+  compose: jest.fn((style1, style2) => ({ ...style1, ...style2 })),
+  absoluteFill: 'absoluteFill',
+  hairlineWidth: 1,
+}));
 
 // Mock react-native-reanimated
 jest.mock('react-native-reanimated', () => {
