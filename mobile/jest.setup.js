@@ -126,6 +126,34 @@ jest.mock('expo-local-authentication', () => ({
   ),
 }));
 
+// Mock expo-status-bar
+jest.mock('expo-status-bar', () => ({
+  StatusBar: {
+    barStyle: 'default',
+    hidden: false,
+    backgroundColor: 'transparent',
+  },
+}));
+
+// Mock react-native-biometrics
+jest.mock('react-native-biometrics', () => ({
+  default: {
+    isSensorAvailable: jest.fn(() => Promise.resolve({ available: true })),
+    createKeys: jest.fn(() => Promise.resolve({ publicKey: 'mock-public-key' })),
+    createSignature: jest.fn(() => Promise.resolve({ success: true, signature: 'mock-signature' })),
+    biometricKeysExist: jest.fn(() => Promise.resolve({ keysExist: false })),
+    deleteBiometricKeys: jest.fn(() => Promise.resolve({ keysDeleted: true })),
+  },
+}));
+
+// Mock react-native-app-shortcuts
+jest.mock('react-native-app-shortcuts', () => ({
+  presentShortcut: jest.fn(() => Promise.resolve()),
+  getShortcuts: jest.fn(() => Promise.resolve([])),
+  addShortcut: jest.fn(() => Promise.resolve()),
+  removeShortcut: jest.fn(() => Promise.resolve()),
+}));
+
 // Mock expo-shortcuts (package doesn't exist, commented out)
 // jest.mock('expo-shortcuts', () => ({
 //   ...require.requireActual('expo-shortcuts'),
