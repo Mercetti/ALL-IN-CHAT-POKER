@@ -340,7 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       try {
-        const resp = await apiCall('/auth/login', {
+        const resp = await apiCall('/players/login', {
           method: 'POST',
           body: JSON.stringify({ login, password }),
           noAuthBounce: true,

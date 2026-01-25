@@ -39,6 +39,7 @@ function createSecurityHeadersMiddleware({ config }) {
     const scriptSrc = [
       "script-src 'self' 'unsafe-inline'",
       'https://pagead2.googlesyndication.com',
+      'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js',
       'https://www.googletagmanager.com',
       'https://cdn.jsdelivr.net',
       'https://cdn.socket.io',

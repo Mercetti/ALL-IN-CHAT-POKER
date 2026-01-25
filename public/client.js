@@ -417,6 +417,11 @@ window.getTheme = getTheme;
 window.setThemeButtonLabel = setThemeButtonLabel;
 window.getBackendBase = getBackendBase;
 window.buildApiUrl = buildApiUrl;
+// Initialize debug tools (placeholder for now)
+function initDebugTools() {
+  console.log('Debug tools initialized');
+}
+
 window.buildLoginRedirectUrl = buildLoginRedirectUrl;
 window.enforceAuthenticatedPage = enforceAuthenticatedPage;
 window.getTokenStatus = getTokenStatus;
