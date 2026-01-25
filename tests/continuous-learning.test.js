@@ -7,6 +7,25 @@
 const AudioCodingOrchestrator = require('../server/audioCodingOrchestrator');
 const { TaskType } = require('../server/utils/learningSchema');
 
+// Mock the ContinuousLearning class for testing
+jest.mock('../server/utils/continuousLearning', () => {
+  return jest.fn().mockImplementation(() => ({
+    initialize: jest.fn().mockResolvedValue(true),
+    isLearning: false,
+    models: new Map(),
+    getDatasetStats: jest.fn().mockReturnValue({
+      chat: { totalExamples: 0, approvedExamples: 0 },
+      coding: { totalExamples: 0, approvedExamples: 0 },
+      graphics: { totalExamples: 0, approvedExamples: 0 },
+      cosmetic: { totalExamples: 0, approvedExamples: 0 }
+    }),
+    exportDataset: jest.fn().mockReturnValue(null),
+    setEnabled: jest.fn(),
+    setAutoFineTune: jest.fn(),
+    setBatchSize: jest.fn()
+  }));
+});
+
 // Mock the AI system for testing
 jest.mock('../server/ai', () => ({
   getUnifiedAI: () => ({

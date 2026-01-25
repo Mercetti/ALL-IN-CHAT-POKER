@@ -32,6 +32,10 @@ module.exports = {
     "**/*.(test|spec).(js|jsx)",
     "!test/**/*.(test|spec).js"
   ],
+  "testPathIgnorePatterns": [
+    "tests/e2e/",
+    "tests/performance/"
+  ],
   "modulePathIgnorePatterns": [
     "<rootDir>/build/"
   ],

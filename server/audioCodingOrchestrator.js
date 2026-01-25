@@ -4,7 +4,7 @@
 
 const Logger = require('./logger');
 const { getUnifiedAI } = require('./ai');
-const ContinuousLearningLoop = require('./utils/continuousLearning');
+const ContinuousLearning = require('./utils/continuousLearning');
 const { TaskType, AceyOutput, AceyTask, isAutoApproved } = require('./utils/learningSchema');
 
 const logger = new Logger('ai-orchestrator');
@@ -17,12 +17,7 @@ class AudioCodingOrchestrator {
     
     // Initialize continuous learning
     if (this.learningEnabled) {
-      this.continuousLearning = new ContinuousLearningLoop(this, {
-        datasetDir: options.datasetDir,
-        fineTuneBatchSize: options.fineTuneBatchSize || 50,
-        autoFineTune: options.autoFineTune || false,
-        enabled: options.continuousLearningEnabled !== false
-      });
+      this.continuousLearning = new ContinuousLearning();
     }
     
     // Task queue and processing
