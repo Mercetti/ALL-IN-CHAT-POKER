@@ -91,12 +91,12 @@ module.exports = defineConfig({
   globalSetup: './tests/e2e/global-setup.js',
   globalTeardown: './tests/e2e/global-teardown.js',
 
-  // Web server configuration - disabled since we run server manually
+  // Web server configuration - temporarily disabled for manual testing
   // webServer: {
-  //   command: 'echo "Using existing server"',
-  //   url: 'http://localhost:8080',
-  //   reuseExistingServer: true,
-  //   timeout: 10000,
+  //   command: 'echo "Server managed by test-server-manager"',
+  //   url: process.env.BASE_URL || 'http://localhost:8080',
+  //   reuseExistingServer: !process.env.CI, // Reuse existing server in local development
+  //   timeout: 60000, // 60 seconds timeout for server startup
   // },
 
   // Test timeout

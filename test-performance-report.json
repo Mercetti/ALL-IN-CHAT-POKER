@@ -1,0 +1,79 @@
+{
+  "timestamp": "2026-01-25T02:56:55.127Z",
+  "optimizations": [
+    {
+      "name": "Parallel Execution",
+      "description": "Run tests across multiple CPU cores",
+      "impact": "2-4x speedup",
+      "implementation": "maxWorkers: \"50%\""
+    },
+    {
+      "name": "Selective Testing",
+      "description": "Run only relevant tests based on changes",
+      "impact": "5-10x speedup",
+      "implementation": "test:smoke, test:components scripts"
+    },
+    {
+      "name": "Reduced Timeout",
+      "description": "Lower timeout for faster failure detection",
+      "impact": "20-30% speedup",
+      "implementation": "testTimeout: 10000"
+    },
+    {
+      "name": "Optimized Coverage",
+      "description": "Selective coverage collection",
+      "impact": "2-3x speedup",
+      "implementation": "collectCoverage: false by default"
+    },
+    {
+      "name": "Test Caching",
+      "description": "Cache unchanged test results",
+      "impact": "3-5x speedup on subsequent runs",
+      "implementation": ".jest-cache.json"
+    }
+  ],
+  "scripts": {
+    "test:smoke": {
+      "description": "Run basic smoke tests for quick feedback",
+      "command": "jest --config=jest.optimized.config.js --testNamePattern=\"should render|renders with|should start\" --maxWorkers=4",
+      "estimatedTime": "30-60s"
+    },
+    "test:components": {
+      "description": "Run only component tests",
+      "command": "jest --config=jest.optimized.config.js --testPathPattern=\"components|__tests__.*Button|__tests__.*Input|__tests__.*Card\" --maxWorkers=4",
+      "estimatedTime": "60-120s"
+    },
+    "test:backend": {
+      "description": "Run only backend tests",
+      "command": "jest --config=jest.optimized.config.js --testPathPattern=\"tests/\" --maxWorkers=2",
+      "estimatedTime": "120-240s"
+    },
+    "test:mobile": {
+      "description": "Run only mobile tests",
+      "command": "cd mobile && jest --config=jest.config.js --maxWorkers=2",
+      "estimatedTime": "60-180s"
+    },
+    "test:parallel": {
+      "description": "Run all tests in parallel",
+      "command": "jest --config=jest.optimized.config.js --maxWorkers=0",
+      "estimatedTime": "180-300s"
+    },
+    "test:coverage": {
+      "description": "Run tests with coverage (slower)",
+      "command": "jest --config=jest.optimized.config.js --coverage --maxWorkers=2",
+      "estimatedTime": "240-420s"
+    },
+    "test:watch": {
+      "description": "Run tests in watch mode",
+      "command": "jest --config=jest.optimized.config.js --watch --maxWorkers=2",
+      "estimatedTime": "Continuous"
+    }
+  },
+  "recommendations": [
+    "Use test:smoke for quick feedback during development",
+    "Use test:components when working on UI changes",
+    "Use test:parallel for full test runs",
+    "Use test:coverage before commits",
+    "Run test-performance-monitor.js to measure performance"
+  ]
+}

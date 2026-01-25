@@ -1,0 +1,18 @@
+{
+  "version": "1.0.0",
+  "cacheDir": ".jest-cache",
+  "maxCacheSize": "500M",
+  "cacheCompression": true,
+  "strategies": {
+    "component-tests": {
+      "pattern": "**/__tests__/**/*.{js,jsx}",
+      "cacheKey": "component-tests-v1",
+      "ttl": 3600000
+    },
+    "unit-tests": {
+      "pattern": "**/*.test.{js,jsx}",
+      "cacheKey": "unit-tests-v1",
+      "ttl": 1800000
+    }
+  }
+}

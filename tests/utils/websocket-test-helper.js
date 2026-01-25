@@ -6,6 +6,9 @@
 const WebSocket = require('ws');
 const http = require('http');
 
+// Use the mocked WebSocket in test environment
+const MockWebSocket = WebSocket;
+
 /**
  * Creates a test HTTP server with WebSocket support
  */

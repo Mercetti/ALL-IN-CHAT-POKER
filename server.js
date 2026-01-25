@@ -106,14 +106,14 @@ let performanceMonitor;
 if (!config.isTest()) {
   performanceMonitor = new AIPerformanceMonitor();
 } else {
-  // Create a mock performanceMonitor for tests
+  // Create a mock performanceMonitor for tests (without Jest)
   performanceMonitor = {
-    init: jest.fn(),
-    startMonitoring: jest.fn(),
-    stopMonitoring: jest.fn(),
-    recordRequest: jest.fn(),
-    analyzePerformance: jest.fn(),
-    getMetrics: jest.fn(() => ({})),
+    init: () => {},
+    startMonitoring: () => {},
+    stopMonitoring: () => {},
+    recordRequest: () => {},
+    analyzePerformance: () => {},
+    getMetrics: () => ({}),
   };
 }
 

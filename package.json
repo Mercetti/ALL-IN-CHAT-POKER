@@ -12,7 +12,7 @@
     "acey:dev": "npm-run-all --parallel dev test:watch",
     "acey:helper": "node ./tools/acey-dev-helper.js",
     "test": "cross-env NODE_ENV=test jest --runInBand --config jest.config.js",
-    "test:watch": "cross-env NODE_ENV=test jest --watch --setupFilesAfterEnv tests/jest-setup.js",
+    "test:watch": "jest --config=jest.optimized.config.js --watch --maxWorkers=2",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "security:audit": "npm audit --audit-level high",
@@ -61,7 +61,13 @@
     "test:stress": "node -e \"const LoadTester = require('./tests/performance/load-testing.js'); const tester = new LoadTester({ concurrentUsers: 50, testDuration: 60000 }); tester.runStressTest();\"",
     "test:spike": "node -e \"const LoadTester = require('./tests/performance/load-testing.js'); const tester = new LoadTester(); tester.runSpikeTest().then(console.log);\"",
     "docs:lint": "npx markdownlint-cli --fix AI_AUDIO_GENERATION_GUIDE.md COSMETIC_GENERATOR_GUIDE.md docs/acey-*.md",
-    "docs:lint:setup": "bash scripts/setup-docs-lint.sh"
+    "docs:lint:setup": "bash scripts/setup-docs-lint.sh",
+    "test:smoke": "jest --config=jest.optimized.config.js --testNamePattern=\"should render|renders with|should start\" --maxWorkers=4",
+    "test:components": "jest --config=jest.optimized.config.js --testPathPattern=\"components|__tests__.*Button|__tests__.*Input|__tests__.*Card\" --maxWorkers=4",
+    "test:backend": "jest --config=jest.optimized.config.js --testPathPattern=\"tests/\" --maxWorkers=2",
+    "test:mobile": "cd mobile && jest --config=jest.config.js --maxWorkers=2",
+    "test:parallel": "jest --config=jest.optimized.config.js --maxWorkers=0",
+    "test:coverage": "jest --config=jest.optimized.config.js --coverage --maxWorkers=2"
   },
   "keywords": [
     "poker",

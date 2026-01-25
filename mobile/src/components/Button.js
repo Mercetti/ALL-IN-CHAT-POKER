@@ -16,6 +16,8 @@ const Button = ({
   loading = false,
   icon,
   style,
+  testID,
+  accessibilityLabel,
 }) => {
   const { colors, spacing, borderRadius, typography } = useTheme();
 
@@ -26,6 +28,7 @@ const Button = ({
     alignItems: 'center',
     justifyContent: 'center',
     minWidth: 120,
+    minHeight: 44,
   };
 
   const variants = {
@@ -39,6 +42,9 @@ const Button = ({
       backgroundColor: 'transparent',
       borderWidth: 1,
       borderColor: colors.primary,
+    },
+    danger: {
+      backgroundColor: colors.error,
     },
   };
 
@@ -88,7 +94,11 @@ const Button = ({
       onPress: onPress,
       style: getButtonStyle(),
       disabled: disabled,
-      activeOpacity: 0.8
+      activeOpacity: 0.8,
+      testID: testID || 'button',
+      accessible: true,
+      accessibilityLabel: accessibilityLabel || title,
+      accessibilityRole: 'button',
     },
     React.createElement(
       View,
