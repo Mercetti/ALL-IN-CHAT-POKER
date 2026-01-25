@@ -37,9 +37,9 @@ const envSchema = Joi.object({
     .when('NODE_ENV', {
       is: 'test',
       then: Joi.optional(),
-      otherwise: Joi.string().required()
+      otherwise: Joi.optional() // Make optional for Render deployment
     })
-    .description('Database connection URL'),
+    .description('Database connection string'),
   
   DATABASE_HOST: Joi.string()
     .default('localhost')

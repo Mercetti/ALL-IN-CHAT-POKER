@@ -1,16 +1,21 @@
 services:
+  # Main Poker Game Service
   - type: web
     name: all-in-chat-poker
-    env: node
+    runtime: node
     plan: free
     branch: main
+    rootDir: .
     buildCommand: npm install
     startCommand: node server.js
+    healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DB_FILE
-        value: /opt/data/data.db
+      - key: DATABASE_URL
+        fromDatabase:
+          name: poker-db
+          property: connectionString
       - key: JWT_SECRET
         sync: false
       - key: ADMIN_PASSWORD
@@ -21,7 +26,33 @@ services:
         value: streamer
       - key: GAME_MODE
         value: poker
-    disk:
-      name: data
-      mountPath: /opt/data
-      sizeGB: 1
+      - key: PORT
+        value: 10000
+
+  # Bot Service (Background Worker)
+  - type: worker
+    name: poker-bot
+    runtime: node
+    plan: free
+    branch: main
+    rootDir: .
+    buildCommand: npm install
+    startCommand: node bot/bot.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: poker-db
+          property: connectionString
+      - key: DISCORD_BOT_TOKEN
+        sync: false
+      - key: DISCORD_CLIENT_ID
+        sync: false
+
+databases:
+  # PostgreSQL Database
+  - name: poker-db
+    databaseName: poker_game
+    user: poker_user
+    plan: free
