@@ -143,6 +143,12 @@ class DatabaseAdapter {
   getDatabaseType() {
     return this.type;
   }
+
+  getCatalog() {
+    // Return the cosmetic catalog data
+    const { COSMETIC_CATALOG } = require('./cosmetic-catalog');
+    return COSMETIC_CATALOG;
+  }
 }
 
 module.exports = DatabaseAdapter;
