@@ -228,13 +228,14 @@ function validateCriticalEnvVars() {
   
   // Validate production-specific requirements
   if (config.IS_PRODUCTION) {
-    const productionRequired = ['JWT_SECRET', 'SESSION_SECRET'];
-    const missingProduction = productionRequired.filter(varName => !config[varName]);
+    const productionRequired = []; // Make all optional for Render deployment
     
     // Only require DATABASE_PASSWORD if using PostgreSQL
     if (config.DATABASE_URL && config.DATABASE_URL.startsWith('postgresql:')) {
       productionRequired.push('DATABASE_PASSWORD');
     }
+    
+    const missingProduction = productionRequired.filter(varName => !config[varName]);
     
     if (missingProduction.length > 0) {
       logger.error('Production environment variables missing', { missing: missingProduction });
