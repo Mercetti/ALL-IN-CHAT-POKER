@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All-In Chat Poker | Live Poker & Blackjack Overlay</title>
+  <meta name="description" content="All-In Chat Poker delivers a fast, streamer-ready poker and blackjack overlay with tournaments, cosmetics, and chat-powered play.">
+  <link rel="canonical" href="/index.html">
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="style-theme.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="accessibility.css">
+  <link rel="stylesheet" href="style-enhanced.css">
+  <link rel="stylesheet" href="style-cards.css">
+  <link rel="stylesheet" href="css/error-boundary.css">
+  <style>
+    /* Lightweight gallery preview styles (kept local to this page) */
+    .promo-assets {
+      margin: 28px 0;
+      padding: 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+    }
+    .promo-assets h2 { margin: 0 0 6px; font-size: 1.1rem; }
+    .promo-assets p { margin: 0 0 12px; color: var(--text-secondary, #a8b3c5); }
+    .promo-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+    .promo-gallery img,
+    .promo-gallery .promo-sprite {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: #0b0f1a;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+    }
+    .promo-gallery .promo-sprite {
+      background-repeat: no-repeat;
+      background-position: 0 0;
+      background-size: calc(var(--frames, 6) * 100%) 100%;
+      animation: allin-preview 1s steps(var(--frames, 6)) infinite;
+    }
+    @keyframes allin-preview {
+      0% { background-position: 0 0; }
+      100% { background-position: 100% 0; }
+    }
+    /* Hide legacy hero CTA rows (redundant with navbar) */
+    .hero-landing .cta-grid,
+    .hero-landing .cta-row,
+    .hero-landing .hero-actions,
+    .hero-landing .cta-links,
+    .hero-landing .cta-buttons {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Landing hero -->
+    <section class="hero-landing">
+      <div class="hero-content">
+        <div class="hero-tag">All-In Chat Poker</div>
+        <h1 class="hero-title">Bring Twitch Chat to the Table</h1>
+        <p class="hero-lede">
+          Spin up live Blackjack and Video Poker rounds where viewers join with <code>!join</code> or place bets right from chat.
+          Drop the overlay into OBS, start rounds from the admin panel, and let the hype take over.
+        </p>
+        <div class="hero-status">Status: Alpha testing (multi-stream lobbies + avatars)</div>
+      </div>
+      <div class="hero-logo-glow" aria-hidden="true"></div>
+    </section>
+
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <a class="brand" href="/welcome-enhanced.html">
+          <img src="logo.png" alt="All-In Chat Poker logo" class="brand-logo">
+          <div class="brand-text">
+            <h1>All-In Chat Poker</h1>
+            <p class="brand-subtitle">Chat-powered video poker</p>
+          </div>
+        </a>
+          <div class="header-info">
+            <div class="user-auth">
+              <span id="user-pill" class="badge badge-secondary subtle">Signed out</span>
+              <button id="logout-btn" class="btn btn-secondary btn-sm" style="display:none;">Logout</button>
+              <a id="login-link" class="btn btn-primary btn-sm" href="/login-enhanced.html" style="display:none;">Sign In</a>
+              <a id="streamer-btn" class="btn btn-info btn-sm" href="/admin-enhanced.html">Streamer Panel</a>
+              <a id="profile-btn" class="btn btn-success btn-sm" href="/profile-enhanced.html">Profile</a>
+            </div>
+            <span class="round-info">
+              <span id="phase-badge" class="badge badge-info phase-chip">Waiting...</span>
+            </span>
+            <span id="mode-badge" class="badge badge-secondary phase-chip subtle">Mode: blackjack</span>
+            <span id="phase-countdown" class="countdown countdown-pill">00:00</span>
+            <span id="phase-label" class="badge badge-secondary phase-chip subtle">-</span>
+            <a href="/help-enhanced.html" class="btn btn-secondary btn-sm">Help</a>
+            <a href="/about-enhanced.html" class="btn btn-secondary btn-sm">About</a>
+            <a href="/contact-enhanced.html" class="btn btn-secondary btn-sm">Contact</a>
+            <button id="theme-toggle" class="btn btn-secondary btn-sm">Theme</button>
+            <button id="btn-player-ready" class="btn btn-secondary btn-sm">Ready</button>
+            <span id="ready-pill" class="badge badge-secondary subtle" style="display:none;">Ready sent</span>
+          </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <!-- Cards Section -->
+      <section class="cards-section">
+        <div class="cards-container">
+          <div id="dealer-section" class="dealer-section" style="display:none;">
+            <h3>Dealer</h3>
+            <div id="dealer-cards" class="cards-grid"></div>
+          </div>
+          <div id="community-section" class="dealer-section" style="display:none;">
+            <h3>Community</h3>
+            <div id="community-cards" class="cards-grid"></div>
+          </div>
+
+          <div id="table-pot" class="table-pot">
+            <div class="pot-label">Pot</div>
+            <div id="pot-chips" class="pot-chips"></div>
+          </div>
+          <div id="player-hands" class="player-grid">
+            <!-- Player hands will be rendered here -->
+          </div>
+          <div class="player-actions">
+            <div class="action-block" style="display:none;">
+              <h4>Hold (Poker)</h4>
+              <div class="hold-toggle">
+                <label><input type="checkbox" class="hold-checkbox" data-idx="0"> Card 1</label>
+                <label><input type="checkbox" class="hold-checkbox" data-idx="1"> Card 2</label>
+                <label><input type="checkbox" class="hold-checkbox" data-idx="2"> Card 3</label>
+                <label><input type="checkbox" class="hold-checkbox" data-idx="3"> Card 4</label>
+                <label><input type="checkbox" class="hold-checkbox" data-idx="4"> Card 5</label>
+              </div>
+            </div>
+            <div class="action-block">
+              <h4>Blackjack</h4>
+              <div class="action-row">
+                <button id="btn-hit" class="btn btn-primary btn-sm">Hit</button>
+                <button id="btn-stand" class="btn btn-secondary btn-sm">Stand</button>
+              </div>
+              <button id="btn-double" class="btn btn-warning btn-sm">Double</button>
+              <button id="btn-surrender" class="btn btn-danger btn-sm subtle">Surrender</button>
+              <div class="action-row">
+                <button id="btn-insurance" class="btn btn-info btn-sm subtle">Insurance</button>
+                <button id="btn-split" class="btn btn-secondary btn-sm subtle">Split</button>
+              </div>
+              <div class="action-row">
+                <button id="btn-prev-hand" class="btn btn-secondary btn-sm subtle">Prev Hand</button>
+                <button id="btn-next-hand" class="btn btn-secondary btn-sm subtle">Next Hand</button>
+              </div>
+            </div>
+          </div>
+          <div class="cards-actions" style="display:none;">
+            <button id="btn-draw" class="btn btn-primary" disabled>Draw</button>
+            <button id="btn-force-draw" class="btn btn-secondary" disabled>Force Draw (Admin)</button>
+            <span id="player-action-timer" class="countdown countdown-inline">00:00</span>
+          </div>
+
+          <div class="poker-actions" style="display:none;">
+            <label for="poker-raise-amount" class="sr-only">Raise amount</label>
+            <input id="poker-raise-amount" type="number" min="0" step="10" class="form-input" placeholder="Raise amount">
+            <button id="poker-check" class="btn btn-secondary btn-sm">Check</button>
+            <button id="poker-call" class="btn btn-primary btn-sm">Call</button>
+            <button id="poker-raise" class="btn btn-success btn-sm">Raise</button>
+            <button id="poker-fold" class="btn btn-danger btn-sm">Fold</button>
+          </div>
+        </div>
+
+        <!-- Result Display -->
+        <div id="result-display" class="result-display" style="display: none;">
+          <div class="result-card">
+            <h2 id="result-hand-name">No Winner</h2>
+            <div class="result-details">
+              <div class="result-item">
+                <span class="label">Payout:</span>
+                <span id="result-payout" class="value">0x</span>
+              </div>
+            </div>
+          </div>
+          <div id="payout-details" class="payout-details"></div>
+        </div>
+      </section>
+
+      <!-- Stats Section -->
+      <aside class="stats-sidebar">
+        <div class="stats-card">
+          <h3>Your Stats</h3>
+          <div class="stat">
+            <span class="stat-label">Balance:</span>
+            <span id="user-balance" class="stat-value">1000</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Rounds Won:</span>
+            <span id="user-wins" class="stat-value">0</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Total Won:</span>
+            <span id="user-total-won" class="stat-value">0</span>
+          </div>
+        </div>
+
+        <div class="stats-card">
+          <h3>Leaderboard</h3>
+          <ol id="leaderboard" class="leaderboard">
+            <!-- Leaderboard entries will be rendered here -->
+          </ol>
+        </div>
+
+        <div class="stats-card">
+          <h3>Pot &amp; Bets</h3>
+          <div class="stat">
+            <span class="stat-label">Pot:</span>
+            <span id="pot-value" class="stat-value">0</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Current Bet:</span>
+            <span id="current-bet" class="stat-value">0</span>
+          </div>
+        </div>
+
+        <div class="stats-card">
+          <h3>Waiting Queue</h3>
+          <div class="queue-header">
+            <span class="badge badge-secondary phase-chip subtle" id="waiting-count">0</span>
+          </div>
+          <ol id="waiting-queue" class="leaderboard">
+            <li>None</li>
+          </ol>
+        </div>
+
+        <div id="insurance-banner" class="info-banner" style="display:none;">
+          Dealer shows an Ace – Insurance available now.
+        </div>
+
+        <div class="stats-card">
+          <h3>Commands</h3>
+          <div class="command-guide">
+            <p><code>!bet &lt;amount&gt;</code> - Place bet</p>
+            <p><code>!raise &lt;amount&gt;</code> - Raise bet</p>
+            <p><code>!call</code> - Match current bet</p>
+            <p><code>!fold</code> - Exit round</p>
+          </div>
+        </div>
+
+        <div class="stats-card">
+          <h3>Blackjack Rules</h3>
+          <ul class="command-guide">
+            <li>Wager first, then deal (2 cards player, 1 up / 1 down dealer)</li>
+            <li>Actions: hit, stand, double down (one card), split pairs, surrender (early), insurance vs dealer Ace</li>
+            <li>Dealer reveals downcard after players finish; hits until 17+</li>
+            <li>Goal: get closer to 21 than dealer without busting</li>
+          </ul>
+        </div>
+      </aside>
+    </main>
+
+    <!-- Asset preview (mirrors welcome page) -->
+    <section class="promo-assets" aria-label="Overlay assets preview">
+      <h2>Vibes from the felt</h2>
+      <p>Live assets shipped in the overlay: card backs, chip stacks, deal/win FX, and the neon all-in burst.</p>
+      <p style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+        <a class="btn btn-info btn-sm" href="/admin-enhanced.html?channel=testroom" target="_blank" rel="noopener">Open Admin (testroom)</a>
+        <a class="btn btn-secondary btn-sm" href="/obs-overlay.html?channel=testroom" target="_blank" rel="noopener">Open Overlay (testroom)</a>
+      </p>
+      <div class="promo-gallery">
+        <img src="/assets/cosmetics/cards/basic/card-back-purple.png" alt="Purple neon card back">
+        <img src="/assets/cosmetics/effects/chips/chip-100-top.png" alt="Chip stack top view">
+        <img src="/assets/cosmetics/effects/deals/face-down/horizontal_transparent_sheet.png" alt="Face-down deal animation sheet">
+        <img src="/assets/cosmetics/effects/win/AllInChatPoker_Glitch_24Frames_1024x1024_Horizontal_FIXED.png" alt="Win burst sprite">
+        <div class="promo-sprite" id="allin-sprite-preview-index" aria-label="All-in burst sprite preview"></div>
+      </div>
+    </section>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <img src="logo.png" alt="All-In Chat Poker logo" class="footer-logo">
+          <div>
+            <div class="footer-title">All-In Chat Poker</div>
+            <div class="footer-subtitle">Streamer-first poker & blackjack overlay</div>
+          </div>
+        </div>
+        <div class="footer-links">
+          <a href="/about-enhanced.html">About Us</a>
+          <a href="/contact-enhanced.html">Contact Us</a>
+          <a href="/help-enhanced.html">Help</a>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Admin Controls (shown when authorized) -->
+    <footer class="admin-controls" id="admin-controls" style="display: none;">
+      <div class="admin-container">
+        <button id="btn-start-round" class="btn btn-success">Start Round</button>
+        <button id="btn-admin-panel" class="btn btn-info">Admin Panel</button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="client.js"></script>
+  <script src="accessibility.js"></script>
+  <script src="animations.js"></script>
+  <script>
+    enforceAuthenticatedPage({ page: 'main' });
+  </script>
+  <script type="module" src="overlay.js"></script>
+  <script>
+    // Expose the stored user token for Socket.IO auth
+    window.__USER_TOKEN__ = getUserToken && getUserToken();
+  </script>
+  <script>
+    // Gate protected links (admin/dev/profile/overlay) to login
+    (function gateProtectedLinks() {
+      const protectedPaths = new Set([
+        '/admin2.html',
+        '/admin-dev.html',
+        '/profile-enhanced.html',
+        '/obs-overlay.html',
+        '/overlay-editor-enhanced.html',
+        '/store-modern.html',
+        '/shop.html',
+        '/cosmetics.html',
+      ]);
+      document.addEventListener('click', (e) => {
+        const a = e.target.closest('a');
+        if (!a || !a.href) return;
+        try {
+          const url = new URL(a.href, window.location.origin);
+          if (!protectedPaths.has(url.pathname)) return;
+          const token = getUserToken && getUserToken();
+          if (token) return;
+          e.preventDefault();
+          const redirect = encodeURIComponent(url.pathname + url.search + url.hash);
+          window.location.href = `/login.html?redirect=${redirect}`;
+        } catch {
+          // ignore parse errors
+        }
+      });
+    })();
+  </script>
+  <script>
+    // Animate the all-in preview and auto-derive frame count from the sprite sheet
+    (() => {
+      const el = document.getElementById('allin-sprite-preview-index');
+      if (!el) return;
+      const SPRITE_URL = '/assets/cosmetics/effects/all-in/allin_burst_horizontal_sheet.png?v=3';
+      const img = new Image();
+      img.onload = () => {
+        if (!img.naturalHeight) return;
+        const frames = Math.max(1, Math.round(img.naturalWidth / img.naturalHeight));
+        el.style.setProperty('--frames', frames);
+        el.style.backgroundImage = `url('${SPRITE_URL}')`;
+        el.setAttribute('aria-label', `All-in burst sprite preview (${frames} frames)`);
+      };
+      img.onerror = () => { el.textContent = 'All-in animation preview unavailable'; };
+      img.src = SPRITE_URL;
+      el.style.backgroundImage = `url('${SPRITE_URL}')`;
+      el.style.setProperty('--frames', 6);
+    })();
+  </script>
+  <script src="js/error-boundary.js"></script>
+  <script src="js/accessibility-manager.js"></script>
+  <script src="js/responsive-manager.js"></script>
+  <script src="js/poker-component-library.js"></script>
+  <script src="js/poker-design-system.js"></script>
+  <script src="js/website-performance-optimizer.js"></script>
+  <script src="js/website-theme-manager.js"></script>
+  <script src="js/website-loading-skeletons.js"></script>
+  <script src="js/website-code-splitting.js"></script>
+  <script src="js/consistent-color-scheme.js"></script>
+  <script src="js/website-micro-interactions.js"></script>
+  <script src="js/website-performance-monitor.js"></script>
+  <script src="js/secure-token-storage.js"></script>
+  <script src="js/safe-dom-utils.js"></script>
+  <script src="js/standardized-event-handler.js"></script>
+  <script src="js/standardized-fetch-handler.js"></script>
+  <script src="js/console-log-remover.js"></script>
+  <script src="js/safe-eval-replacer.js"></script>
+  <script src="js/input-validator.js"></script>
+  <script src="js/content-security-policy.js"></script>
+  <script src="js/rate-limiter.js"></script>
+  <script src="js/bundle-size-optimizer.js"></script>
+  <script src="js/code-documentation-generator.js"></script>
+  <script src="js/code-formatter.js"></script>
+  <script src="js/security-guidelines-documentation.js"></script>
+</body>
+</html>

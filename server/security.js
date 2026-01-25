@@ -122,7 +122,7 @@ class SecurityManager {
       
       const csp = [
         `default-src 'self'`,
-        `script-src 'self' 'unsafe-inline' 'nonce-${nonce}' https://cdn.socket.io`,
+        `script-src 'self' 'unsafe-inline' https://cdn.socket.io`,
         `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
         `img-src 'self' data: https: blob:`,
         `connect-src 'self' wss: ws:`,

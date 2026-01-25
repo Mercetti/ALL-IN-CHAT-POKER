@@ -370,8 +370,8 @@ app.use(playersRoutes);
 // app.use('/public', publicRoutes);
 // const partnersRoutes = createPartnersRouter({ auth, db, logger });
 // app.use('/partners', partnersRoutes);
-// const catalogRoutes = createCatalogRouter({ db, logger });
-// app.use('/catalog', catalogRoutes);
+const catalogRoutes = createCatalogRouter({ db });
+app.use('/catalog', catalogRoutes);
 
 // Admin AI control routes (simple router for demo/fallback)
 const adminAiControlRoutes = createSimpleAdminAiControlRouter();
