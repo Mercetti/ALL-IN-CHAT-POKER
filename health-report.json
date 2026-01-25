@@ -1,0 +1,66 @@
+{
+  "timestamp": "2026-01-25T01:23:45.756Z",
+  "services": {
+    "Main Server": {
+      "name": "Main Server",
+      "url": "http://localhost:8080/health",
+      "status": "unhealthy",
+      "error": "",
+      "responseTime": "82ms",
+      "timestamp": "2026-01-25T01:23:45.842Z"
+    },
+    "AI Control Center": {
+      "name": "AI Control Center",
+      "url": "http://localhost:3001/",
+      "status": "unhealthy",
+      "error": "",
+      "responseTime": "67ms",
+      "timestamp": "2026-01-25T01:23:45.842Z"
+    },
+    "Control Center UI": {
+      "name": "Control Center UI",
+      "url": "http://localhost:5173/",
+      "status": "unhealthy",
+      "error": "",
+      "responseTime": "67ms",
+      "timestamp": "2026-01-25T01:23:45.842Z"
+    },
+    "Database": {
+      "name": "Database",
+      "status": "healthy",
+      "responseTime": "9ms",
+      "timestamp": "2026-01-25T01:23:45.808Z"
+    },
+    "WebSocket": {
+      "name": "WebSocket",
+      "status": "unhealthy",
+      "error": "",
+      "responseTime": "9ms",
+      "timestamp": "2026-01-25T01:23:45.842Z"
+    },
+    "System Resources": {
+      "name": "System Resources",
+      "status": "healthy",
+      "memoryUsage": "77.00%",
+      "cpuCount": 16,
+      "loadAverage": [
+        "0.00",
+        "0.00",
+        "0.00"
+      ],
+      "responseTime": "1ms",
+      "timestamp": "2026-01-25T01:23:45.836Z"
+    }
+  },
+  "overall": "unhealthy",
+  "healthPercentage": "33.3",
+  "totalChecks": 6,
+  "healthyChecks": 2,
+  "summary": {
+    "status": "unhealthy",
+    "healthScore": "33.3%",
+    "totalServices": 6,
+    "healthyServices": 2,
+    "timestamp": "2026-01-25T01:23:45.756Z"
+  }
+}
