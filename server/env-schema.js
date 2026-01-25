@@ -63,7 +63,7 @@ const envSchema = Joi.object({
       is: 'production',
       then: Joi.when('DATABASE_URL', {
         is: Joi.string().regex(/^postgresql:/),
-        then: Joi.string().required(),
+        then: Joi.string().optional(), // Make optional when using DATABASE_URL
         otherwise: Joi.string().optional()
       }),
       otherwise: Joi.string().optional()
