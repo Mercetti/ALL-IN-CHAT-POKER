@@ -28,6 +28,12 @@ class DatabaseAdapter {
     console.log('[DATABASE] Initializing PostgreSQL...');
     this.type = 'postgresql';
     
+    if (!process.env.DATABASE_URL) {
+      console.log('[DATABASE] DATABASE_URL not available, falling back to SQLite');
+      await this.initializeSQLite();
+      return;
+    }
+    
     this.pool = new Pool({
       connectionString: process.env.DATABASE_URL,
       ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
@@ -40,8 +46,8 @@ class DatabaseAdapter {
       client.release();
       console.log('[DATABASE] PostgreSQL connected successfully');
     } catch (error) {
-      console.error('[DATABASE] PostgreSQL connection failed:', error);
-      throw error;
+      console.error('[DATABASE] PostgreSQL connection failed, falling back to SQLite:', error.message);
+      await this.initializeSQLite();
     }
   }
 
