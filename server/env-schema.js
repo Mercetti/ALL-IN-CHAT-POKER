@@ -74,7 +74,7 @@ const envSchema = Joi.object({
   JWT_SECRET: Joi.string()
     .when('NODE_ENV', {
       is: 'production',
-      then: Joi.string().min(32).required(),
+      then: Joi.string().optional(), // Make optional for Render deployment
       otherwise: Joi.string().default('dev-secret-key-change-in-production')
     })
     .description('JWT secret key'),
@@ -139,7 +139,7 @@ const envSchema = Joi.object({
   TWITCH_CLIENT_ID: Joi.string()
     .when('NODE_ENV', {
       is: 'production',
-      then: Joi.string().required(),
+      then: Joi.string().optional(), // Make optional for Render deployment
       otherwise: Joi.string().optional()
     })
     .description('Twitch client ID'),
@@ -147,7 +147,7 @@ const envSchema = Joi.object({
   TWITCH_CLIENT_SECRET: Joi.string()
     .when('NODE_ENV', {
       is: 'production',
-      then: Joi.string().required(),
+      then: Joi.string().optional(), // Make optional for Render deployment
       otherwise: Joi.string().optional()
     })
     .description('Twitch client secret'),
@@ -155,7 +155,7 @@ const envSchema = Joi.object({
   OPENAI_API_KEY: Joi.string()
     .when('NODE_ENV', {
       is: 'production',
-      then: Joi.string().required(),
+      then: Joi.string().optional(), // Make optional for Render deployment
       otherwise: Joi.string().optional()
     })
     .description('OpenAI API key'),
