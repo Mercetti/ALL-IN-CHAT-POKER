@@ -2,11 +2,13 @@ services:
   # Main Poker Game Service
   - type: web
     name: all-in-chat-poker
-    env: node
+    runtime: node
     plan: free
     branch: main
+    rootDir: .
     buildCommand: npm install
     startCommand: node server.js
+    healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
@@ -30,9 +32,10 @@ services:
   # Bot Service (Background Worker)
   - type: worker
     name: poker-bot
-    env: node
+    runtime: node
     plan: free
     branch: main
+    rootDir: .
     buildCommand: npm install
     startCommand: node bot/bot.js
     envVars:
