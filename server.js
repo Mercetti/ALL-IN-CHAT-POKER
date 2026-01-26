@@ -95,6 +95,10 @@ const { validateLocalLogin } = require('./server/routes/auth-simple');
 // Discord integration
 const { registerDiscordRoutes, getDiscordConfig } = require('./server/discord');
 
+// Import Smart AI Router
+const AIRouter = require('./server/ai-router');
+const aiRouter = new AIRouter();
+
 const logger = new Logger('server');
 const unifiedAI = new UnifiedAISystem({
   enableChatBot: true,
@@ -742,6 +746,46 @@ app.get('/api/check-user', async (req, res) => {
     
   } catch (error) {
     console.error('Check user error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Smart AI Model Selection API
+app.post('/api/ai/select-model', (req, res) => {
+  try {
+    const { prompt, context = 'general' } = req.body;
+    
+    if (!prompt) {
+      return res.status(400).json({ error: 'Prompt required' });
+    }
+    
+    const selection = aiRouter.routeRequest(prompt, context);
+    const availableModels = aiRouter.getAvailableModels();
+    
+    res.json({
+      success: true,
+      selectedModel: selection.model,
+      endpoint: selection.endpoint,
+      reason: selection.reason,
+      availableModels: availableModels
+    });
+    
+  } catch (error) {
+    console.error('Model selection error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get available AI models
+app.get('/api/ai/models', (req, res) => {
+  try {
+    const models = aiRouter.getAvailableModels();
+    res.json({
+      success: true,
+      models: models
+    });
+  } catch (error) {
+    console.error('Get models error:', error);
     res.status(500).json({ error: error.message });
   }
 });
