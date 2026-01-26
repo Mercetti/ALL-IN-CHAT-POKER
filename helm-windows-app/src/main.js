@@ -5,7 +5,7 @@
 
 const { app, BrowserWindow, ipcMain, Menu, shell, dialog } = require('electron');
 const path = require('path');
-const isDev = process.env.NODE_ENV === 'development';
+const isDev = true; // Force development mode for npm run dev
 const Store = require('electron-store');
 
 // Initialize store for settings
@@ -99,6 +99,9 @@ function createWindow() {
   // Load the app - use development server
   const startUrl = isDev ? 'http://localhost:5173' : `file://${path.join(__dirname, '../dist/index.html')}`;
   
+  console.log('Development mode:', isDev);
+  console.log('NODE_ENV:', process.env.NODE_ENV);
+  console.log('argv:', process.argv);
   console.log('Loading app from:', startUrl);
   
   mainWindow.loadURL(startUrl);
