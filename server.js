@@ -1036,6 +1036,18 @@ async function initializeServer() {
 // Initialize server
 initializeServer();
 
+// Simple user creation fix for PostgreSQL
+if (process.env.DATABASE_URL) {
+  const { createSimpleUser } = require('./server/simple-user-fix');
+  createSimpleUser().then(success => {
+    if (success) {
+      console.log('✅ User creation fix applied successfully');
+    } else {
+      console.log('⚠️ User creation fix failed, but continuing...');
+    }
+  });
+}
+
 // Initialize AI Worker in main app (no extra service needed)
 if (process.env.NODE_ENV === 'production' && process.env.ENABLE_AI_WORKER !== 'false') {
   console.log('[MAIN] Starting AI Worker in main process...');
