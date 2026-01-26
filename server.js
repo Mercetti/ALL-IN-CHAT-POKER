@@ -77,6 +77,7 @@ const { createUnlockRouter } = require('./server/routes/unlock.js');
 const { createIncidentRouter } = require('./server/routes/incident.js');
 const { createFinanceRouter } = require('./server/routes/finance');
 const { createTrustRouter } = require('./server/routes/trust');
+const { createAIJobsRouter } = require('./server/routes/ai-jobs');
 const { createDisputeRouter } = require('./server/routes/disputes');
 const { createAnalyticsRouter } = require('./server/routes/analytics');
 const { createInvestorRouter } = require('./server/routes/investor');
@@ -407,6 +408,10 @@ app.use('/api/analytics', analyticsRoutes);
 // Investor Dashboard routes
 const investorRoutes = createInvestorRouter({ auth, db, logger });
 app.use('/api/investor', investorRoutes);
+
+// AI Jobs routes
+const aiJobsRoutes = createAIJobsRouter({ auth, db, logger });
+app.use('/api/ai', aiJobsRoutes);
 
 // File Tools API for Acey
 const fileToolsRoutes = require('./server/api/file-tools');

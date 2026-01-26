@@ -1,0 +1,41 @@
+services:
+  # AI Processing Worker for Cosmetics Generation
+  - type: worker
+    name: poker-ai-worker
+    runtime: node
+    plan: free
+    branch: main
+    rootDir: .
+    buildCommand: npm install
+    startCommand: node ai-worker.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: poker-db
+          property: connectionString
+      # AI Configuration
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: AI_MODEL
+        value: gpt-4
+      - key: AI_MAX_TOKENS
+        value: 1000
+      # Worker Configuration
+      - key: WORKER_TYPE
+        value: ai-cosmetics
+      - key: MAX_CONCURRENT_JOBS
+        value: 3
+      - key: JOB_TIMEOUT
+        value: 30000
+      # Redis for Queue (optional)
+      - key: REDIS_URL
+        sync: false
+
+databases:
+  # Shared database (already exists)
+  - name: poker-db
+    databaseName: poker_game
+    user: poker_user
+    plan: free
