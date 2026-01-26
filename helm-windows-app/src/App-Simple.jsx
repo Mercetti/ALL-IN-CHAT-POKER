@@ -97,13 +97,86 @@ function SimpleApp() {
     // Add user message to history
     setChatHistory(prev => [...prev, { role: 'user', content: userMessage }]);
     
+    // Smart detection of what the user wants
+    let skillId = 'simple_chat';
+    let params = { message: userMessage };
+    let modelToUse = currentModel;
+    
+    // Detect creative content requests
+    if (userMessage.toLowerCase().includes('logo') || 
+        userMessage.toLowerCase().includes('design') ||
+        userMessage.toLowerCase().includes('create') ||
+        userMessage.toLowerCase().includes('icon') ||
+        userMessage.toLowerCase().includes('graphic')) {
+      skillId = 'create_content';
+      params = { 
+        type: 'logo',
+        description: userMessage,
+        style: 'modern',
+        format: 'detailed'
+      };
+      modelToUse = 'phi'; // Use better model for creativity
+    }
+    
+    // Detect code analysis requests
+    if (userMessage.toLowerCase().includes('code') || 
+        userMessage.toLowerCase().includes('analyze') ||
+        userMessage.toLowerCase().includes('function') ||
+        userMessage.toLowerCase().includes('debug') ||
+        userMessage.toLowerCase().includes('javascript') ||
+        userMessage.toLowerCase().includes('python')) {
+      skillId = 'code_analysis';
+      // Extract code from message if present
+      const codeMatch = userMessage.match(/```[\s\S]*```|`[^`]*`/);
+      if (codeMatch) {
+        params = { 
+          code: codeMatch[0].replace(/```|`/g, ''),
+          language: 'javascript',
+          task: 'analyze'
+        };
+      } else {
+        params = { 
+          code: userMessage,
+          language: 'javascript',
+          task: 'analyze'
+        };
+      }
+      modelToUse = 'deepseek-coder:1.3b'; // Use coding model
+    }
+    
+    // Detect poker requests
+    if (userMessage.toLowerCase().includes('poker') || 
+        userMessage.toLowerCase().includes('game') ||
+        userMessage.toLowerCase().includes('cards') ||
+        userMessage.toLowerCase().includes('bet') ||
+        userMessage.toLowerCase().includes('hand')) {
+      skillId = 'quick_commentary';
+      params = { context: userMessage };
+      modelToUse = 'qwen:0.5b'; // Use fast model for quick responses
+    }
+    
+    // Show what we're doing
+    addNotification('info', `Using ${modelToUse} for ${skillId}...`);
+    
     // Get AI response
-    const result = await executeSkill('simple_chat', { message: userMessage });
+    const result = await executeSkill(skillId, params);
     
     if (result) {
+      let response = '';
+      
+      if (skillId === 'create_content') {
+        response = result.content || 'Content created successfully.';
+      } else if (skillId === 'code_analysis') {
+        response = result.analysis || 'Code analysis completed.';
+      } else {
+        response = result.response || result.commentary || 'I processed your message.';
+      }
+      
       setChatHistory(prev => [...prev, { 
         role: 'assistant', 
-        content: result.response || result.commentary || 'I processed your message.' 
+        content: response,
+        skill: skillId,
+        model: modelToUse
       }]);
     }
   };
@@ -223,6 +296,11 @@ function SimpleApp() {
                   <Box key={index} sx={{ mb: 1 }}>
                     <Typography variant="body2" color={msg.role === 'user' ? 'primary' : 'secondary'}>
                       <strong>{msg.role === 'user' ? 'You:' : 'AI:'}</strong> {msg.content}
+                      {msg.role === 'assistant' && msg.skill && (
+                        <Typography variant="caption" display="block" color="text.secondary">
+                          🎯 {msg.skill} • 🤖 {msg.model}
+                        </Typography>
+                      )}
                     </Typography>
                   </Box>
                 ))
@@ -232,7 +310,7 @@ function SimpleApp() {
               <TextField
                 fullWidth
                 variant="outlined"
-                placeholder="Ask your AI assistant anything..."
+                placeholder="Ask anything! Try: 'Create a logo', 'Analyze this code', 'Poker advice', or just chat..."
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleChat()}
