@@ -1,5 +1,5 @@
 import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import { HelmOrchestrator } from "./server/utils/orchestrator";
 import { HelmDashboard } from "./ui/HelmDashboard";
 
@@ -14,8 +14,9 @@ const helmOrchestrator = new HelmOrchestrator({
   models: ["tinyllama", "phi", "qwen:0.5b", "deepseek-coder:1.3b"]
 });
 
-// Render the Helm dashboard
-ReactDOM.render(
-  <HelmDashboard orchestrator={helmOrchestrator} />,
-  document.getElementById("root")
-);
+// Render the Helm dashboard with React 19 createRoot
+const container = document.getElementById("root");
+if (container) {
+  const root = createRoot(container);
+  root.render(<HelmDashboard orchestrator={helmOrchestrator} />);
+}
