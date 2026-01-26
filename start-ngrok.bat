@@ -1,6 +1,11 @@
 @echo off
-echo Starting ngrok tunnel for Ollama...
-echo This will expose your local Ollama to the internet
+echo Starting SECURE ngrok tunnel for Ollama...
+echo This will expose your local Ollama ONLY to Render servers
 echo.
-ngrok http 11434
+echo Security Features Enabled:
+echo - IP Restrictions (Render servers only)
+echo - No public access
+echo - Your machine is protected
+echo.
+ngrok http 11434 --policy-file ngrok-policy.yml
 pause
