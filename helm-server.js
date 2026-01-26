@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const http = require('http');
 const socketIo = require('socket.io');
+const cors = require('cors');
 const HelmSmallLLMEngine = require('./helm-small-llm-engine');
 
 const app = express();
@@ -15,6 +16,14 @@ const io = socketIo(server, {
 
 // Initialize Helm Small LLM Engine
 const helmEngine = new HelmSmallLLMEngine();
+
+// CORS Middleware
+app.use(cors({
+  origin: ['http://localhost:8082', 'http://localhost:3000', 'http://127.0.0.1:8082', 'http://127.0.0.1:3000'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 
 // Middleware
 app.use(express.json());
