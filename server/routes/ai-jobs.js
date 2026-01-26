@@ -11,10 +11,19 @@ function createAIJobsRouter({ db, auth }) {
   const router = Router();
 
   // Submit new AI job
-  router.post('/jobs', auth.requireUser, async (req, res) => {
+  router.post('/jobs', async (req, res) => {
     try {
-      const { job_type, parameters } = req.body;
+      // Check permissions - only devs and admins can submit AI jobs
       const userId = auth.extractUserLogin(req);
+      const userProfile = db.getProfile(userId);
+      
+      if (!userProfile || !['dev', 'admin', 'owner'].includes(userProfile.role)) {
+        return res.status(403).json({ 
+          error: 'Permission denied. AI job submission requires developer or admin access.' 
+        });
+      }
+
+      const { job_type, parameters } = req.body;
 
       // Validate job type
       const validJobTypes = ['cosmetic_generation', 'card_design', 'chip_style', 'avatar_creation'];
@@ -46,9 +55,18 @@ function createAIJobsRouter({ db, auth }) {
   });
 
   // Get user's AI jobs
-  router.get('/jobs', auth.requireUser, async (req, res) => {
+  router.get('/jobs', async (req, res) => {
     try {
+      // Check permissions - only devs and admins can view AI jobs
       const userId = auth.extractUserLogin(req);
+      const userProfile = db.getProfile(userId);
+      
+      if (!userProfile || !['dev', 'admin', 'owner'].includes(userProfile.role)) {
+        return res.status(403).json({ 
+          error: 'Permission denied. AI job viewing requires developer or admin access.' 
+        });
+      }
+
       const { status, limit = 20, offset = 0 } = req.query;
 
       let query = `
@@ -80,10 +98,19 @@ function createAIJobsRouter({ db, auth }) {
   });
 
   // Get job status
-  router.get('/jobs/:jobId', auth.requireUser, async (req, res) => {
+  router.get('/jobs/:jobId', async (req, res) => {
     try {
-      const { jobId } = req.params;
+      // Check permissions - only devs and admins can view AI jobs
       const userId = auth.extractUserLogin(req);
+      const userProfile = db.getProfile(userId);
+      
+      if (!userProfile || !['dev', 'admin', 'owner'].includes(userProfile.role)) {
+        return res.status(403).json({ 
+          error: 'Permission denied. AI job viewing requires developer or admin access.' 
+        });
+      }
+
+      const { jobId } = req.params;
 
       const query = `
         SELECT * FROM ai_jobs 
@@ -108,9 +135,18 @@ function createAIJobsRouter({ db, auth }) {
   });
 
   // Get AI generated assets
-  router.get('/assets', auth.requireUser, async (req, res) => {
+  router.get('/assets', async (req, res) => {
     try {
+      // Check permissions - only devs and admins can view AI assets
       const userId = auth.extractUserLogin(req);
+      const userProfile = db.getProfile(userId);
+      
+      if (!userProfile || !['dev', 'admin', 'owner'].includes(userProfile.role)) {
+        return res.status(403).json({ 
+          error: 'Permission denied. AI asset viewing requires developer or admin access.' 
+        });
+      }
+
       const { asset_type, limit = 20 } = req.query;
 
       let query = `
@@ -141,10 +177,19 @@ function createAIJobsRouter({ db, auth }) {
   });
 
   // Cancel pending job
-  router.delete('/jobs/:jobId', auth.requireUser, async (req, res) => {
+  router.delete('/jobs/:jobId', async (req, res) => {
     try {
-      const { jobId } = req.params;
+      // Check permissions - only devs and admins can cancel AI jobs
       const userId = auth.extractUserLogin(req);
+      const userProfile = db.getProfile(userId);
+      
+      if (!userProfile || !['dev', 'admin', 'owner'].includes(userProfile.role)) {
+        return res.status(403).json({ 
+          error: 'Permission denied. AI job cancellation requires developer or admin access.' 
+        });
+      }
+
+      const { jobId } = req.params;
 
       const query = `
         UPDATE ai_jobs 
