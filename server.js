@@ -1003,10 +1003,24 @@ async function initializeServer() {
       process.exit(1);
     }
   }
-}
 
 // Initialize server
 initializeServer();
+
+// Initialize AI Worker in main app (no extra service needed)
+if (process.env.NODE_ENV === 'production' && process.env.ENABLE_AI_WORKER !== 'false') {
+  console.log('[MAIN] Starting AI Worker in main process...');
+  try {
+    const AIWorker = require('./ai-worker');
+    const aiWorker = new AIWorker();
+    aiWorker.start().catch(error => {
+      console.error('[MAIN] Failed to start AI Worker:', error);
+    });
+    console.log('[MAIN] AI Worker started successfully - processing jobs in background');
+  } catch (error) {
+    console.warn('[MAIN] AI Worker not available:', error.message);
+  }
+}
 
 // Start server
 const serverConfig = config.getServerConfig();
@@ -1383,4 +1397,4 @@ module.exports = {
   app,
   server,
   io
-};
+};;
