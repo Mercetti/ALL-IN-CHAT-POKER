@@ -1,20 +1,21 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import { AceyOrchestrator } from "./server/utils/orchestrator";
-import { OrchestratorDashboard } from "./ui/OrchestratorDashboard";
+import { HelmOrchestrator } from "./server/utils/orchestrator";
+import { HelmDashboard } from "./ui/HelmDashboard";
 
-// Initialize orchestrator with your LLM endpoint
-const orchestrator = new AceyOrchestrator({
-  llmEndpoint: "https://your-llm-endpoint.com/generate", // Replace with your actual LLM endpoint
-  personaMode: "hype",
+// Initialize Helm orchestrator with local small LLMs
+const helmOrchestrator = new HelmOrchestrator({
+  helmEndpoint: "http://localhost:3001", // Helm server endpoint
   autoApprove: true,
   simulationMode: true, // Start in dry-run mode for safety
   retryAttempts: 3,
-  timeout: 30000
+  timeout: 30000,
+  smallLLMs: true, // Use small LLMs
+  models: ["tinyllama", "phi", "qwen:0.5b", "deepseek-coder:1.3b"]
 });
 
-// Render the dashboard
+// Render the Helm dashboard
 ReactDOM.render(
-  <OrchestratorDashboard orchestrator={orchestrator} />,
+  <HelmDashboard orchestrator={helmOrchestrator} />,
   document.getElementById("root")
 );

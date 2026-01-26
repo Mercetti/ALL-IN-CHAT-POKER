@@ -6,35 +6,41 @@ import { saveLog } from "./llmLogger";
 import { filterAceyLogs } from "../filter";
 
 export interface OrchestratorOptions {
-  llmEndpoint: string;           // 3rd-party LLM endpoint
+  helmEndpoint: string;          // Helm server endpoint
   personaMode?: PersonaMode;     // Default persona mode
   autoApprove?: boolean;         // Whether to auto-approve filtered outputs
   simulationMode?: boolean;      // If true, do not execute final actions
   dryRunMode?: boolean;          // If true, apply rules but don't execute
   retryAttempts?: number;        // Number of retry attempts for failed LLM calls
   timeout?: number;             // Request timeout in milliseconds
+  smallLLMs?: boolean;          // Use small LLMs
+  models?: string[];            // Available models
 }
 
 /**
  * Main orchestrator class for multi-task Helm Control
  */
 export class HelmOrchestrator {
-  private llmEndpoint: string;
+  private helmEndpoint: string;
   private personaMode: PersonaMode;
   private autoApprove: boolean;
   private simulationMode: boolean;
   private dryRunMode: boolean;
   private retryAttempts: number;
   private timeout: number;
+  private smallLLMs: boolean;
+  private models: string[];
 
   constructor(options: OrchestratorOptions) {
-    this.llmEndpoint = options.llmEndpoint;
+    this.helmEndpoint = options.helmEndpoint;
     this.personaMode = options.personaMode || "neutral";
     this.autoApprove = options.autoApprove ?? true;
     this.simulationMode = options.simulationMode ?? false;
     this.dryRunMode = options.dryRunMode ?? false;
     this.retryAttempts = options.retryAttempts ?? 3;
     this.timeout = options.timeout ?? 30000;
+    this.smallLLMs = options.smallLLMs ?? false;
+    this.models = options.models || [];
   }
 
   /**
@@ -175,7 +181,7 @@ export class HelmOrchestrator {
       max_tokens: this.getMaxTokensForTask(taskType)
     };
 
-    const response = await axios.post(this.llmEndpoint, payload, {
+    const response = await axios.post(this.helmEndpoint, payload, {
       timeout: this.timeout,
       headers: {
         'Content-Type': 'application/json',
@@ -516,7 +522,7 @@ export class HelmOrchestrator {
    */
   public getStats() {
     return {
-      llmEndpoint: this.llmEndpoint,
+      llmEndpoint: this.helmEndpoint,
       personaMode: this.personaMode,
       autoApprove: this.autoApprove,
       simulationMode: this.simulationMode,
