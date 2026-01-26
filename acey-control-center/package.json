@@ -18,7 +18,7 @@
     "@react-navigation/stack": "^6.3.17",
     "@types/react-dom": "~18.0.10",
     "axios": "^1.5.0",
-    "expo": "~50.0.0",
+    "expo": "~51.0.0",
     "expo-av": "~13.10.6",
     "expo-barcode-scanner": "~12.9.3",
     "expo-linking": "~6.2.2",
