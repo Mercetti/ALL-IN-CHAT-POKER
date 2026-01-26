@@ -570,6 +570,182 @@ app.get('/api/test/database', async (req, res) => {
   }
 });
 
+// Direct login test endpoint
+app.post('/api/direct-login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username and password required' });
+    }
+    
+    // Direct PostgreSQL query
+    const { Pool } = require('pg');
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+    
+    const client = await pool.connect();
+    
+    try {
+      const result = await client.query(
+        'SELECT * FROM profiles WHERE login = $1',
+        [username.toLowerCase()]
+      );
+      
+      if (result.rows.length === 0) {
+        return res.status(401).json({ error: 'User not found' });
+      }
+      
+      const user = result.rows[0];
+      
+      // Simple password check (for testing)
+      const bcrypt = require('bcrypt');
+      const passwordMatch = await bcrypt.compare(password, user.password_hash);
+      
+      if (!passwordMatch) {
+        return res.status(401).json({ error: 'Invalid password' });
+      }
+      
+      // Create JWT token
+      const token = auth.signUserJWT(username);
+      
+      res.json({
+        success: true,
+        message: 'Login successful',
+        user: {
+          login: user.login,
+          role: user.role,
+          email: user.email
+        },
+        token: token
+      });
+      
+    } finally {
+      client.release();
+    }
+    
+  } catch (error) {
+    console.error('Direct login error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create user directly endpoint
+app.post('/api/create-user', async (req, res) => {
+  try {
+    const { username, password, email, role = 'user' } = req.body;
+    
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username and password required' });
+    }
+    
+    // Direct PostgreSQL query
+    const { Pool } = require('pg');
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+    
+    const client = await pool.connect();
+    
+    try {
+      // Check if user exists
+      const existingUser = await client.query(
+        'SELECT login FROM profiles WHERE login = $1',
+        [username.toLowerCase()]
+      );
+      
+      if (existingUser.rows.length > 0) {
+        return res.status(409).json({ error: 'User already exists' });
+      }
+      
+      // Hash password
+      const bcrypt = require('bcrypt');
+      const passwordHash = await bcrypt.hash(password, 10);
+      
+      // Create user
+      await client.query(`
+        INSERT INTO profiles (login, email, password_hash, role, chips) 
+        VALUES ($1, $2, $3, $4, $5)
+      `, [username.toLowerCase(), email, passwordHash, role, 10000]);
+      
+      res.json({
+        success: true,
+        message: 'User created successfully',
+        user: {
+          login: username,
+          email: email,
+          role: role
+        }
+      });
+      
+    } finally {
+      client.release();
+    }
+    
+  } catch (error) {
+    console.error('Create user error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Check user exists endpoint
+app.get('/api/check-user', async (req, res) => {
+  try {
+    const { username } = req.query;
+    
+    if (!username) {
+      return res.status(400).json({ error: 'Username required' });
+    }
+    
+    // Direct PostgreSQL query
+    const { Pool } = require('pg');
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+    
+    const client = await pool.connect();
+    
+    try {
+      const result = await client.query(
+        'SELECT login, role, email, created_at FROM profiles WHERE login = $1',
+        [username.toLowerCase()]
+      );
+      
+      if (result.rows.length === 0) {
+        return res.json({
+          success: true,
+          exists: false,
+          message: 'User not found'
+        });
+      }
+      
+      const user = result.rows[0];
+      
+      res.json({
+        success: true,
+        exists: true,
+        user: {
+          login: user.login,
+          role: user.role,
+          email: user.email,
+          created_at: user.created_at
+        }
+      });
+      
+    } finally {
+      client.release();
+    }
+    
+  } catch (error) {
+    console.error('Check user error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
 
