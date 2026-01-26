@@ -39,12 +39,35 @@ class DatabaseAdapter {
       ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
     });
 
-    // Test connection
+    // Test connection and create tables
     try {
       const client = await this.pool.connect();
       await client.query('SELECT NOW()');
+      
+      // Create profiles table if it doesn't exist
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS profiles (
+          id SERIAL PRIMARY KEY,
+          login VARCHAR(255) UNIQUE NOT NULL,
+          email VARCHAR(255),
+          password_hash VARCHAR(255),
+          role VARCHAR(50) DEFAULT 'user',
+          chips INTEGER DEFAULT 1000,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          settings TEXT,
+          last_login TIMESTAMP,
+          is_active BOOLEAN DEFAULT true
+        )
+      `);
+      
+      // Create indexes
+      await client.query('CREATE INDEX IF NOT EXISTS idx_profiles_login ON profiles(login)');
+      await client.query('CREATE INDEX IF NOT EXISTS idx_profiles_email ON profiles(email)');
+      await client.query('CREATE INDEX IF NOT EXISTS idx_profiles_role ON profiles(role)');
+      
       client.release();
-      console.log('[DATABASE] PostgreSQL connected successfully');
+      console.log('[DATABASE] PostgreSQL connected and tables created successfully');
     } catch (error) {
       console.error('[DATABASE] PostgreSQL connection failed, falling back to SQLite:', error.message);
       await this.initializeSQLite();
