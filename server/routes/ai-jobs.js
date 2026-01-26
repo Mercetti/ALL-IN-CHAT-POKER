@@ -15,7 +15,7 @@ function createAIJobsRouter({ db, auth }) {
     try {
       // Check permissions - only devs and admins can submit AI jobs
       const userId = auth.extractUserLogin(req);
-      const userProfile = db.getProfile(userId);
+      const userProfile = await db.getProfile(userId);
       
       if (!userProfile || !['dev', 'admin', 'owner'].includes(userProfile.role)) {
         return res.status(403).json({ 
@@ -59,7 +59,7 @@ function createAIJobsRouter({ db, auth }) {
     try {
       // Check permissions - only devs and admins can view AI jobs
       const userId = auth.extractUserLogin(req);
-      const userProfile = db.getProfile(userId);
+      const userProfile = await db.getProfile(userId);
       
       if (!userProfile || !['dev', 'admin', 'owner'].includes(userProfile.role)) {
         return res.status(403).json({ 
@@ -102,7 +102,7 @@ function createAIJobsRouter({ db, auth }) {
     try {
       // Check permissions - only devs and admins can view AI jobs
       const userId = auth.extractUserLogin(req);
-      const userProfile = db.getProfile(userId);
+      const userProfile = await db.getProfile(userId);
       
       if (!userProfile || !['dev', 'admin', 'owner'].includes(userProfile.role)) {
         return res.status(403).json({ 
@@ -139,7 +139,7 @@ function createAIJobsRouter({ db, auth }) {
     try {
       // Check permissions - only devs and admins can view AI assets
       const userId = auth.extractUserLogin(req);
-      const userProfile = db.getProfile(userId);
+      const userProfile = await db.getProfile(userId);
       
       if (!userProfile || !['dev', 'admin', 'owner'].includes(userProfile.role)) {
         return res.status(403).json({ 
@@ -181,7 +181,7 @@ function createAIJobsRouter({ db, auth }) {
     try {
       // Check permissions - only devs and admins can cancel AI jobs
       const userId = auth.extractUserLogin(req);
-      const userProfile = db.getProfile(userId);
+      const userProfile = await db.getProfile(userId);
       
       if (!userProfile || !['dev', 'admin', 'owner'].includes(userProfile.role)) {
         return res.status(403).json({ 

@@ -149,6 +149,31 @@ class DatabaseAdapter {
     const { COSMETIC_CATALOG } = require('./cosmetic-catalog');
     return COSMETIC_CATALOG;
   }
+
+  getProfile(login) {
+    if (!login) return null;
+    const normalizedLogin = login.toLowerCase();
+    
+    if (this.isPostgres) {
+      // For PostgreSQL, we'll use async query
+      return this.query('SELECT * FROM profiles WHERE login = $1', [normalizedLogin])
+        .then(result => result.rows[0] || null)
+        .catch(err => {
+          console.error('[DATABASE] Profile query error:', err);
+          return null;
+        });
+    } else {
+      // For SQLite
+      if (!this.db) this.initialize();
+      try {
+        const stmt = this.db.prepare('SELECT * FROM profiles WHERE login = ?');
+        return stmt.get(normalizedLogin) || null;
+      } catch (err) {
+        console.error('[DATABASE] Profile query error:', err);
+        return null;
+      }
+    }
+  }
 }
 
 module.exports = DatabaseAdapter;
