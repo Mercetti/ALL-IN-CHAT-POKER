@@ -99,7 +99,17 @@ function createWindow() {
   // Load the app - use development server
   const startUrl = isDev ? 'http://localhost:5173' : `file://${path.join(__dirname, '../dist/index.html')}`;
   
+  console.log('Loading app from:', startUrl);
+  
   mainWindow.loadURL(startUrl);
+
+  // Handle loading errors
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+    console.error('Failed to load:', errorCode, errorDescription);
+    console.log('Attempting to load fallback...');
+    // Try loading the index.html directly as fallback
+    mainWindow.loadFile(path.join(__dirname, '../index.html'));
+  });
 
   // Show window when ready to prevent visual flash
   mainWindow.once('ready-to-show', () => {
