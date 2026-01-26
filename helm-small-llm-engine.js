@@ -21,9 +21,10 @@ class HelmSmallLLMEngine {
     
     // Initialize with small models
     this.models = {
-      fast: 'tinyllama',      // Fastest, smallest
-      balanced: 'phi',          // Good balance of speed/quality
-      efficient: 'qwen:1.5-0.5b'  // Most efficient
+      fast: 'tinyllama',            // Fastest, smallest
+      balanced: 'phi',                // Good balance of speed/quality
+      efficient: 'qwen:0.5b',        // Most efficient
+      coding: 'deepseek-coder:1.3b'  // Coding specialist
     };
     
     this.currentModel = this.models.fast; // Start with fastest
@@ -74,19 +75,26 @@ class HelmSmallLLMEngine {
   async checkAvailableModels() {
     const models = [];
     
-    for (const [name, model] of Object.entries(this.models)) {
-      try {
-        const testResult = await this.aiIntegration.generateResponse('test', {
-          type: 'test',
-          sessionId: 'test'
-        });
-        
-        if (testResult.success) {
-          models.push(name);
-        }
-      } catch (error) {
-        console.log(`⚠️ Model ${model} not available: ${error.message}`);
+    // Test connection to Ollama first
+    try {
+      const response = await fetch('http://localhost:11434/api/tags');
+      if (!response.ok) {
+        throw new Error('Ollama not responding');
       }
+      
+      const data = await response.json();
+      const availableModels = data.models.map(m => m.name);
+      
+      for (const [name, model] of Object.entries(this.models)) {
+        if (availableModels.includes(model)) {
+          models.push(name);
+          console.log(`✅ Model ${model} is available`);
+        } else {
+          console.log(`⚠️ Model ${model} not found in Ollama`);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Failed to check Ollama models:', error.message);
     }
     
     return models;
@@ -117,6 +125,12 @@ class HelmSmallLLMEngine {
         name: 'Quick Player Assist',
         category: 'assistance',
         execute: (params) => this.generateQuickAssist(params)
+      },
+      {
+        id: 'code_analysis',
+        name: 'Code Analysis',
+        category: 'development',
+        execute: (params) => this.analyzeCode(params)
       },
       {
         id: 'poker_deal',
@@ -305,6 +319,48 @@ Keep it simple and actionable!`;
     };
   }
 
+  async analyzeCode(params) {
+    const { code, language = 'javascript', task = 'analyze' } = params;
+    
+    // Switch to coding model
+    const originalModel = this.currentModel;
+    this.switchModel('coding');
+    
+    const prompt = `Code ${task} for ${language}:
+\`\`\`${language}
+${code}
+\`\`\`
+
+Provide ${task} in under 100 words. Focus on clarity and best practices.`;
+
+    try {
+      this.metrics.aiRequests++;
+      const result = await this.aiIntegration.generateResponse(prompt, {
+        type: 'coding',
+        sessionId: params.sessionId
+      });
+      
+      // Switch back to original model
+      this.switchModel(originalModel === this.models.fast ? 'fast' : originalModel);
+      
+      return {
+        analysis: result.response,
+        provider: result.provider,
+        model: result.model,
+        language,
+        task
+      };
+    } catch (error) {
+      console.error('Code analysis failed:', error);
+      // Switch back to original model
+      this.switchModel(originalModel === this.models.fast ? 'fast' : originalModel);
+      return {
+        analysis: `Code analysis unavailable for ${language}. Check syntax and structure.`,
+        provider: 'fallback'
+      };
+    }
+  }
+
   getFallbackResponse(message, context) {
     const fallbacks = {
       poker: [
@@ -326,6 +382,11 @@ Keep it simple and actionable!`;
         "Play smart and have fun!",
         "Consider your position carefully!",
         "Good luck at the tables!"
+      ],
+      coding: [
+        "Code looks good! Check for syntax and logic.",
+        "Nice code structure! Consider optimization.",
+        "Good programming practice! Review and test."
       ]
     };
 
