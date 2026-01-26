@@ -1,37 +1,37 @@
-// Smart AI Router - Routes requests to optimal models
+// Smart AI Router - Routes requests to optimal models (optimized for user's system)
 class AIRouter {
   constructor() {
     this.endpoints = {
-      'llama2': process.env.LLAMA2_GATEWAY || 'http://127.0.0.1:11434',
-      'qwen': process.env.QWEN_GATEWAY || 'http://127.0.0.1:11434', 
-      'deepseek': process.env.DEEPSEEK_GATEWAY || 'http://127.0.0.1:11434',
-      'llama3': process.env.LLAMA3_GATEWAY || 'http://127.0.0.1:11434'
+      'deepseek': process.env.OLLAMA_HOST || 'http://127.0.0.1:11434',
+      'qwen': process.env.OLLAMA_HOST || 'http://127.0.0.1:11434', 
+      'tinyllama': process.env.OLLAMA_HOST || 'http://127.0.0.1:11434'
     };
     
     this.modelMapping = {
-      // Chat & Creative
-      'chat': 'llama2',
-      'creative': 'llama2',
-      'story': 'llama2',
-      'cosmetic': 'llama2',
-      
-      // Fast & Lightweight
-      'quick': 'qwen',
-      'simple': 'qwen', 
-      'basic': 'qwen',
-      'lightweight': 'qwen',
-      
-      // Code & Technical
+      // Code & Technical - DeepSeek Coder
       'code': 'deepseek',
       'programming': 'deepseek',
       'technical': 'deepseek',
       'debug': 'deepseek',
+      'generate code': 'deepseek',
+      'help me code': 'deepseek',
       
-      // Complex Reasoning
-      'analysis': 'llama3',
-      'complex': 'llama3',
-      'reasoning': 'llama3',
-      'research': 'llama3'
+      // Fast & Lightweight - Qwen 0.5b
+      'quick': 'qwen',
+      'simple': 'qwen', 
+      'basic': 'qwen',
+      'lightweight': 'qwen',
+      'fast': 'qwen',
+      'short': 'qwen',
+      
+      // General & Creative - TinyLlama (fallback)
+      'chat': 'tinyllama',
+      'creative': 'tinyllama',
+      'story': 'tinyllama',
+      'cosmetic': 'tinyllama',
+      'generate': 'tinyllama',
+      'create': 'tinyllama',
+      'design': 'tinyllama'
     };
   }
 
@@ -51,10 +51,10 @@ class AIRouter {
       }
     }
     
-    // Default to llama2 for general use
+    // Default to tinyllama for general use
     return {
-      model: 'llama2',
-      endpoint: this.endpoints.llama2,
+      model: 'tinyllama',
+      endpoint: this.endpoints.tinyllama,
       reason: 'Default model for general use'
     };
   }
@@ -62,29 +62,26 @@ class AIRouter {
   // Get available models with their specializations
   getAvailableModels() {
     return {
-      'llama2:latest': {
-        gateway: this.endpoints.llama2,
-        specialty: 'General chat, creative tasks, cosmetic generation',
-        speed: 'medium',
-        quality: 'high'
+      'deepseek-coder:1.3b': {
+        gateway: this.endpoints.deepseek,
+        specialty: 'Code generation, technical tasks, debugging',
+        speed: 'fast',
+        quality: 'high',
+        useCase: 'Best for programming and technical help'
       },
       'qwen:0.5b': {
         gateway: this.endpoints.qwen,
         specialty: 'Fast responses, lightweight tasks, quick queries',
         speed: 'very fast',
-        quality: 'medium'
+        quality: 'medium',
+        useCase: 'Perfect for quick questions and simple tasks'
       },
-      'deepseek-coder:1.3b': {
-        gateway: this.endpoints.deepseek,
-        specialty: 'Code generation, technical tasks, debugging',
+      'tinyllama:latest': {
+        gateway: this.endpoints.tinyllama,
+        specialty: 'General chat, creative tasks, cosmetic generation',
         speed: 'fast',
-        quality: 'high'
-      },
-      'llama3.2:latest': {
-        gateway: this.endpoints.llama3,
-        specialty: 'Complex reasoning, analysis, research tasks',
-        speed: 'slow',
-        quality: 'very high'
+        quality: 'good',
+        useCase: 'Great for general purpose and creative work'
       }
     };
   }
