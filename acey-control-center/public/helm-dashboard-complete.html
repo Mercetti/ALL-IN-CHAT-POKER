@@ -509,6 +509,130 @@
                 setCustomPrompt('');
             };
 
+            const drawLogo = (canvasId, description) => {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas) return;
+                
+                const ctx = canvas.getContext('2d');
+                const width = canvas.width;
+                const height = canvas.height;
+                
+                // Clear canvas
+                ctx.clearRect(0, 0, width, height);
+                
+                // Generate logo based on description
+                const desc = description.toLowerCase();
+                
+                if (desc.includes('tech') || desc.includes('technology')) {
+                    // Tech logo - circuit board style
+                    ctx.fillStyle = '#667eea';
+                    ctx.fillRect(0, 0, width, height);
+                    
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 2;
+                    
+                    // Draw circuit pattern
+                    for (let i = 0; i < 5; i++) {
+                        ctx.beginPath();
+                        ctx.moveTo(Math.random() * width, Math.random() * height);
+                        ctx.lineTo(Math.random() * width, Math.random() * height);
+                        ctx.stroke();
+                        
+                        // Add nodes
+                        ctx.fillStyle = '#ffffff';
+                        ctx.beginPath();
+                        ctx.arc(Math.random() * width, Math.random() * height, 3, 0, 2 * Math.PI);
+                        ctx.fill();
+                    }
+                    
+                    // Add tech text
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 24px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('TECH', width/2, height/2);
+                    
+                } else if (desc.includes('gaming') || desc.includes('game')) {
+                    // Gaming logo - game controller style
+                    ctx.fillStyle = '#764ba2';
+                    ctx.fillRect(0, 0, width, height);
+                    
+                    // Draw game controller shape
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.roundRect(width/4, height/3, width/2, height/3, 20);
+                    ctx.fill();
+                    
+                    // Add buttons
+                    ctx.fillStyle = '#ff6b6b';
+                    ctx.beginPath();
+                    ctx.arc(width/2 + 30, height/2, 8, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = '#4ecdc4';
+                    ctx.beginPath();
+                    ctx.arc(width/2 - 30, height/2, 8, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                } else if (desc.includes('finance') || desc.includes('money')) {
+                    // Finance logo - dollar sign style
+                    ctx.fillStyle = '#10b981';
+                    ctx.fillRect(0, 0, width, height);
+                    
+                    // Draw dollar sign
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 48px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('$', width/2, height/2 + 15);
+                    
+                    // Add circle
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.arc(width/2, height/2, 60, 0, 2 * Math.PI);
+                    ctx.stroke();
+                    
+                } else {
+                    // Default creative logo
+                    const gradient = ctx.createLinearGradient(0, 0, width, height);
+                    gradient.addColorStop(0, '#667eea');
+                    gradient.addColorStop(1, '#764ba2');
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(0, 0, width, height);
+                    
+                    // Add geometric shapes
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                    ctx.beginPath();
+                    ctx.moveTo(width/2, 20);
+                    ctx.lineTo(width - 20, height - 20);
+                    ctx.lineTo(20, height - 20);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Add center circle
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(width/2, height/2, 30, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    // Add text
+                    ctx.fillStyle = '#667eea';
+                    ctx.font = 'bold 16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('HELM', width/2, height/2 + 5);
+                }
+            };
+
+            // Draw logos when responses are updated
+            React.useEffect(() => {
+                responses.forEach((response, index) => {
+                    if (response.success && response.result?.type === 'logo') {
+                        setTimeout(() => {
+                            drawLogo(`logo-${index}`, response.result?.content || response.result?.response || '');
+                        }, 100);
+                    }
+                });
+            }, [responses]);
+
             const emergencyLockdown = async () => {
                 if (confirm('⚠️ EMERGENCY LOCKDOWN ⚠️\n\nThis will immediately stop all Helm operations and lock the system. Are you sure?')) {
                     try {
@@ -629,98 +753,143 @@
                                 {isLoading ? '⏳' : '🚀'} Send
                             </button>
                         </div>
-                        <div className="response-area">
-                            {responses.map((response, index) => (
-                                <div key={index} className="response-item">
-                                    <div className="response-header">
-                                        <span>{response.skill} • {response.model}</span>
-                                        <span>{response.timestamp}</span>
-                                    </div>
-                                    <div className="response-content">
-                                        {response.success ? (
-                                            <div>
-                                                {response.result?.type === 'logo' && (
-                                                    <div style={{ 
-                                                        background: 'linear-gradient(135deg, #667eea, #764ba2)',
-                                                        padding: '20px',
-                                                        borderRadius: '12px',
-                                                        textAlign: 'center',
-                                                        marginBottom: '15px',
-                                                        color: 'white'
-                                                    }}>
-                                                        <div style={{ fontSize: '2rem', marginBottom: '10px' }}>🎨</div>
-                                                        <div style={{ fontWeight: 'bold', marginBottom: '10px' }}>
-                                                            Generated Logo Design
-                                                        </div>
-                                                        <div style={{ 
-                                                            background: 'rgba(255,255,255,0.1)',
-                                                            padding: '15px',
-                                                            borderRadius: '8px',
-                                                            fontStyle: 'italic'
-                                                        }}>
-                                                            {response.result?.content || response.result?.response || response.result?.analysis || 'Logo created successfully'}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                {response.result?.type === 'creative' && (
-                                                    <div style={{ 
-                                                        background: 'linear-gradient(135deg, #f093fb, #f5576c)',
-                                                        padding: '20px',
-                                                        borderRadius: '12px',
-                                                        textAlign: 'center',
-                                                        marginBottom: '15px',
-                                                        color: 'white'
-                                                    }}>
-                                                        <div style={{ fontSize: '2rem', marginBottom: '10px' }}>🎨</div>
-                                                        <div style={{ fontWeight: 'bold', marginBottom: '10px' }}>
-                                                            Creative Content Generated
-                                                        </div>
-                                                        <div style={{ 
-                                                            background: 'rgba(255,255,255,0.1)',
-                                                            padding: '15px',
-                                                            borderRadius: '8px',
-                                                            fontStyle: 'italic'
-                                                        }}>
-                                                            {response.result?.content || response.result?.response || response.result?.analysis || 'Content created successfully'}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                {response.result?.type === 'code' && (
-                                                    <div style={{ 
-                                                        background: 'linear-gradient(135deg, #4facfe, #00f2fe)',
-                                                        padding: '20px',
-                                                        borderRadius: '12px',
-                                                        marginBottom: '15px',
-                                                        color: 'white'
-                                                    }}>
-                                                        <div style={{ fontSize: '2rem', marginBottom: '10px' }}>💻</div>
-                                                        <div style={{ fontWeight: 'bold', marginBottom: '10px' }}>
-                                                            Code Analysis Complete
-                                                        </div>
-                                                        <pre style={{ 
-                                                            background: 'rgba(0,0,0,0.3)',
-                                                            padding: '15px',
-                                                            borderRadius: '8px',
-                                                            overflowX: 'auto',
-                                                            fontFamily: 'Courier New, monospace',
-                                                            fontSize: '0.9rem'
-                                                        }}>
-                                                            {response.result?.content || response.result?.response || response.result?.analysis || 'Code analyzed successfully'}
-                                                        </pre>
-                                                    </div>
-                                                )}
-                                                {!response.result?.type && (
+                        <div style={{ 
+                            background: 'rgba(255, 255, 255, 0.02)',
+                            border: '1px solid #3a3a5e',
+                            borderRadius: '12px',
+                            padding: '20px',
+                            height: '400px',
+                            overflowY: 'auto',
+                            display: 'flex',
+                            flexDirection: 'column'
+                        }}>
+                            <div style={{ flex: 1, overflowY: 'auto' }}>
+                                {responses.map((response, index) => (
+                                    <div key={index} style={{ marginBottom: '15px' }}>
+                                        {/* User message */}
+                                        <div style={{ 
+                                            display: 'flex',
+                                            justifyContent: 'flex-end',
+                                            marginBottom: '10px'
+                                        }}>
+                                            <div style={{
+                                                background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                                                color: 'white',
+                                                padding: '12px 16px',
+                                                borderRadius: '18px 18px 4px 18px',
+                                                maxWidth: '70%',
+                                                wordWrap: 'break-word'
+                                            }}>
+                                                <div style={{ fontSize: '0.875rem', opacity: 0.8, marginBottom: '4px' }}>
+                                                    You • {response.timestamp}
+                                                </div>
+                                                <div>{customPrompt || 'Skill executed'}</div>
+                                            </div>
+                                        </div>
+
+                                        {/* AI response */}
+                                        <div style={{ 
+                                            display: 'flex',
+                                            justifyContent: 'flex-start',
+                                            marginBottom: '10px'
+                                        }}>
+                                            <div style={{
+                                                background: 'rgba(102, 126, 234, 0.1)',
+                                                border: '1px solid #3a3a5e',
+                                                color: '#e0e0e0',
+                                                padding: '12px 16px',
+                                                borderRadius: '18px 18px 18px 4px',
+                                                maxWidth: '70%',
+                                                wordWrap: 'break-word'
+                                            }}>
+                                                <div style={{ fontSize: '0.875rem', color: '#9ca3af', marginBottom: '4px' }}>
+                                                    🛡️ Helm • {response.model} • {response.timestamp}
+                                                </div>
+                                                
+                                                {response.success ? (
                                                     <div>
-                                                        {response.result?.response || response.result?.analysis || response.result?.content || 'Task completed successfully'}
+                                                        {response.result?.type === 'logo' && (
+                                                            <div>
+                                                                <div style={{ 
+                                                                    background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                                                                    borderRadius: '12px',
+                                                                    padding: '20px',
+                                                                    textAlign: 'center',
+                                                                    margin: '10px 0',
+                                                                    color: 'white'
+                                                                }}>
+                                                                    <canvas 
+                                                                        id={`logo-${index}`}
+                                                                        width="200" 
+                                                                        height="200"
+                                                                        style={{ 
+                                                                            background: 'white',
+                                                                            borderRadius: '8px',
+                                                                            marginBottom: '10px'
+                                                                        }}
+                                                                    ></canvas>
+                                                                    <div style={{ 
+                                                                        background: 'rgba(255,255,255,0.1)',
+                                                                        padding: '15px',
+                                                                        borderRadius: '8px',
+                                                                        fontStyle: 'italic',
+                                                                        textAlign: 'left'
+                                                                    }}>
+                                                                        {response.result?.content || response.result?.response || 'Logo created successfully'}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                        {response.result?.type === 'creative' && (
+                                                            <div style={{ 
+                                                                background: 'linear-gradient(135deg, #f093fb, #f5576c)',
+                                                                borderRadius: '12px',
+                                                                padding: '15px',
+                                                                margin: '10px 0',
+                                                                color: 'white'
+                                                            }}>
+                                                                <div style={{ fontSize: '1.2rem', marginBottom: '8px' }}>🎨 Creative Content</div>
+                                                                <div>{response.result?.content || response.result?.response || 'Content created successfully'}</div>
+                                                            </div>
+                                                        )}
+                                                        {response.result?.type === 'code' && (
+                                                            <div style={{ 
+                                                                background: 'linear-gradient(135deg, #4facfe, #00f2fe)',
+                                                                borderRadius: '12px',
+                                                                padding: '15px',
+                                                                margin: '10px 0',
+                                                                color: 'white'
+                                                            }}>
+                                                                <div style={{ fontSize: '1.2rem', marginBottom: '8px' }}>💻 Code Analysis</div>
+                                                                <pre style={{ 
+                                                                    background: 'rgba(0,0,0,0.3)',
+                                                                    padding: '10px',
+                                                                    borderRadius: '6px',
+                                                                    overflowX: 'auto',
+                                                                    fontFamily: 'Courier New, monospace',
+                                                                    fontSize: '0.85rem',
+                                                                    margin: '8px 0'
+                                                                }}>
+                                                                    {response.result?.content || response.result?.response || response.result?.analysis || 'Code analyzed successfully'}
+                                                                </pre>
+                                                            </div>
+                                                        )}
+                                                        {!response.result?.type && (
+                                                            <div>
+                                                                {response.result?.response || response.result?.analysis || response.result?.content || 'Task completed successfully'}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <div style={{ color: '#ef4444' }}>
+                                                        ❌ Error: {response.error}
                                                     </div>
                                                 )}
                                             </div>
-                                        ) : (
-                                            <span style={{ color: '#ef4444' }}>❌ Error: {response.error}</span>
-                                        )}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
