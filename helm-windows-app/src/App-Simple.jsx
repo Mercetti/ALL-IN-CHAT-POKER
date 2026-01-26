@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { createTheme, ThemeProvider, CssBaseline, Box, Typography, Button, Card, CardContent, Grid, Alert } from '@mui/material';
+import { createTheme, ThemeProvider, CssBaseline, Box, Typography, Button, Card, CardContent, Grid, Alert, TextField } from '@mui/material';
 import { Dashboard as DashboardIcon, Chat as ChatIcon, Assessment as AnalyticsIcon, Settings as SettingsIcon } from '@mui/icons-material';
 
 // Create dark theme
@@ -53,30 +53,72 @@ function SimpleApp() {
     }, 5000);
   };
 
-  const testSkill = async (skillId) => {
+  const [chatInput, setChatInput] = useState('');
+  const [chatHistory, setChatHistory] = useState([]);
+  const [codeInput, setCodeInput] = useState('');
+  const [codeAnalysis, setCodeAnalysis] = useState('');
+
+  const executeSkill = async (skillId, params = {}) => {
     addNotification('info', `Executing ${skillId} with ${currentModel}...`);
     
     try {
       if (window.helmAPI && window.helmAPI.executeSkill) {
         const result = await window.helmAPI.executeSkill(skillId, {
+          ...params,
           model: currentModel,
           sessionId: 'windows-app'
         });
         
         if (result.success) {
-          addNotification('success', `${skillId} completed: ${result.result.commentary || result.result.response || result.result.analysis || 'Success'}`);
+          addNotification('success', `${skillId} completed successfully`);
+          return result.result;
         } else {
           addNotification('error', `${skillId} failed: ${result.error || 'Unknown error'}`);
+          return null;
         }
       } else {
-        // Fallback simulation
-        addNotification('warning', `Simulating ${skillId} (demo mode)`);
-        setTimeout(() => {
-          addNotification('success', `${skillId} simulation completed`);
-        }, 1500);
+        addNotification('warning', `Helm not available - using demo mode`);
+        return null;
       }
     } catch (error) {
       addNotification('error', `${skillId} error: ${error.message}`);
+      return null;
+    }
+  };
+
+  const handleChat = async () => {
+    if (!chatInput.trim()) return;
+    
+    const userMessage = chatInput;
+    setChatInput('');
+    
+    // Add user message to history
+    setChatHistory(prev => [...prev, { role: 'user', content: userMessage }]);
+    
+    // Get AI response
+    const result = await executeSkill('simple_chat', { message: userMessage });
+    
+    if (result) {
+      setChatHistory(prev => [...prev, { 
+        role: 'assistant', 
+        content: result.response || result.commentary || 'I processed your message.' 
+      }]);
+    }
+  };
+
+  const analyzeCode = async () => {
+    if (!codeInput.trim()) return;
+    
+    addNotification('info', 'Analyzing code with DeepSeek-Coder...');
+    
+    const result = await executeSkill('code_analysis', { 
+      code: codeInput,
+      language: 'javascript',
+      task: 'analyze'
+    });
+    
+    if (result) {
+      setCodeAnalysis(result.analysis || 'Code analysis completed.');
     }
   };
 
@@ -146,31 +188,95 @@ function SimpleApp() {
           </CardContent>
         </Card>
 
-        {/* AI Skills */}
+        {/* AI Chat Interface */}
         <Card sx={{ mb: 3 }}>
           <CardContent>
             <Typography variant="h5" gutterBottom>
-              🎮 AI Skills
+              💬 AI Chat Assistant
+            </Typography>
+            <Box sx={{ mb: 2, maxHeight: '300px', overflow: 'auto', bgcolor: 'background.paper', p: 2, borderRadius: 1 }}>
+              {chatHistory.length === 0 ? (
+                <Typography variant="body2" color="text.secondary">
+                  Start a conversation with your AI assistant...
+                </Typography>
+              ) : (
+                chatHistory.map((msg, index) => (
+                  <Box key={index} sx={{ mb: 1 }}>
+                    <Typography variant="body2" color={msg.role === 'user' ? 'primary' : 'secondary'}>
+                      <strong>{msg.role === 'user' ? 'You:' : 'AI:'}</strong> {msg.content}
+                    </Typography>
+                  </Box>
+                ))
+              )}
+            </Box>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <TextField
+                fullWidth
+                variant="outlined"
+                placeholder="Ask your AI assistant anything..."
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleChat()}
+              />
+              <Button variant="contained" onClick={handleChat}>
+                Send
+              </Button>
+            </Box>
+          </CardContent>
+        </Card>
+
+        {/* Code Analysis */}
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h5" gutterBottom>
+              💻 Code Analysis (DeepSeek-Coder)
+            </Typography>
+            <TextField
+              fullWidth
+              multiline
+              rows={4}
+              variant="outlined"
+              placeholder="Paste your code here for analysis..."
+              value={codeInput}
+              onChange={(e) => setCodeInput(e.target.value)}
+              sx={{ mb: 2 }}
+            />
+            <Button variant="contained" onClick={analyzeCode} sx={{ mb: 2 }}>
+              Analyze Code
+            </Button>
+            {codeAnalysis && (
+              <Box sx={{ bgcolor: 'background.paper', p: 2, borderRadius: 1 }}>
+                <Typography variant="body2" component="pre">
+                  {codeAnalysis}
+                </Typography>
+              </Box>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Quick Actions */}
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h5" gutterBottom>
+              ⚡ Quick Actions
             </Typography>
             <Grid container spacing={2}>
               {[
-                { id: 'quick_commentary', name: 'Quick Commentary', icon: '💬' },
-                { id: 'simple_chat', name: 'Simple Chat', icon: '💭' },
+                { id: 'quick_commentary', name: 'Poker Commentary', icon: '�' },
                 { id: 'basic_analysis', name: 'Game Analysis', icon: '📊' },
-                { id: 'quick_assist', name: 'Player Assist', icon: '🤝' },
-                { id: 'code_analysis', name: 'Code Analysis', icon: '💻' },
-                { id: 'poker_deal', name: 'Poker Deal', icon: '🃏' }
-              ].map((skill) => (
-                <Grid item xs={12} sm={6} md={4} key={skill.id}>
+                { id: 'quick_assist', name: 'Player Help', icon: '🤝' },
+                { id: 'poker_deal', name: 'Smart Deal', icon: '🃏' }
+              ].map((action) => (
+                <Grid item xs={12} sm={6} md={3} key={action.id}>
                   <Button
                     variant="outlined"
                     fullWidth
-                    onClick={() => testSkill(skill.id)}
+                    onClick={() => executeSkill(action.id)}
                     sx={{ p: 2, height: '80px' }}
                   >
                     <Box sx={{ textAlign: 'center' }}>
-                      <Typography variant="h4">{skill.icon}</Typography>
-                      <Typography variant="body2">{skill.name}</Typography>
+                      <Typography variant="h4">{action.icon}</Typography>
+                      <Typography variant="body2">{action.name}</Typography>
                     </Box>
                   </Button>
                 </Grid>
