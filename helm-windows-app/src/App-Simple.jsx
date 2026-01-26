@@ -46,7 +46,7 @@ function SimpleApp() {
   }, []);
 
   const addNotification = (type, message) => {
-    const id = Date.now();
+    const id = Date.now() + Math.random(); // Ensure unique ID
     setNotifications(prev => [...prev, { id, type, message }]);
     setTimeout(() => {
       setNotifications(prev => prev.filter(n => n.id !== id));
