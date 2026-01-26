@@ -638,7 +638,83 @@
                                     </div>
                                     <div className="response-content">
                                         {response.success ? (
-                                            response.result?.response || response.result?.analysis || response.result?.content || 'Task completed successfully'
+                                            <div>
+                                                {response.result?.type === 'logo' && (
+                                                    <div style={{ 
+                                                        background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                                                        padding: '20px',
+                                                        borderRadius: '12px',
+                                                        textAlign: 'center',
+                                                        marginBottom: '15px',
+                                                        color: 'white'
+                                                    }}>
+                                                        <div style={{ fontSize: '2rem', marginBottom: '10px' }}>🎨</div>
+                                                        <div style={{ fontWeight: 'bold', marginBottom: '10px' }}>
+                                                            Generated Logo Design
+                                                        </div>
+                                                        <div style={{ 
+                                                            background: 'rgba(255,255,255,0.1)',
+                                                            padding: '15px',
+                                                            borderRadius: '8px',
+                                                            fontStyle: 'italic'
+                                                        }}>
+                                                            {response.result?.content || response.result?.response || response.result?.analysis || 'Logo created successfully'}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {response.result?.type === 'creative' && (
+                                                    <div style={{ 
+                                                        background: 'linear-gradient(135deg, #f093fb, #f5576c)',
+                                                        padding: '20px',
+                                                        borderRadius: '12px',
+                                                        textAlign: 'center',
+                                                        marginBottom: '15px',
+                                                        color: 'white'
+                                                    }}>
+                                                        <div style={{ fontSize: '2rem', marginBottom: '10px' }}>🎨</div>
+                                                        <div style={{ fontWeight: 'bold', marginBottom: '10px' }}>
+                                                            Creative Content Generated
+                                                        </div>
+                                                        <div style={{ 
+                                                            background: 'rgba(255,255,255,0.1)',
+                                                            padding: '15px',
+                                                            borderRadius: '8px',
+                                                            fontStyle: 'italic'
+                                                        }}>
+                                                            {response.result?.content || response.result?.response || response.result?.analysis || 'Content created successfully'}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {response.result?.type === 'code' && (
+                                                    <div style={{ 
+                                                        background: 'linear-gradient(135deg, #4facfe, #00f2fe)',
+                                                        padding: '20px',
+                                                        borderRadius: '12px',
+                                                        marginBottom: '15px',
+                                                        color: 'white'
+                                                    }}>
+                                                        <div style={{ fontSize: '2rem', marginBottom: '10px' }}>💻</div>
+                                                        <div style={{ fontWeight: 'bold', marginBottom: '10px' }}>
+                                                            Code Analysis Complete
+                                                        </div>
+                                                        <pre style={{ 
+                                                            background: 'rgba(0,0,0,0.3)',
+                                                            padding: '15px',
+                                                            borderRadius: '8px',
+                                                            overflowX: 'auto',
+                                                            fontFamily: 'Courier New, monospace',
+                                                            fontSize: '0.9rem'
+                                                        }}>
+                                                            {response.result?.content || response.result?.response || response.result?.analysis || 'Code analyzed successfully'}
+                                                        </pre>
+                                                    </div>
+                                                )}
+                                                {!response.result?.type && (
+                                                    <div>
+                                                        {response.result?.response || response.result?.analysis || response.result?.content || 'Task completed successfully'}
+                                                    </div>
+                                                )}
+                                            </div>
                                         ) : (
                                             <span style={{ color: '#ef4444' }}>❌ Error: {response.error}</span>
                                         )}
