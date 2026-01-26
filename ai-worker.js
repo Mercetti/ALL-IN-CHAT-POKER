@@ -24,20 +24,21 @@ class AIWorker {
     this.maxConcurrentJobs = parseInt(process.env.MAX_CONCURRENT_JOBS) || 3;
     this.jobTimeout = parseInt(process.env.JOB_TIMEOUT) || 30000;
     
-    // Initialize your AI system
+    // Initialize your AI system with intelligent model selection
     this.ai = new AI();
     this.cosmeticAI = new EnhancedCosmeticAI({
       enablePublicGeneration: false, // Worker-only
       maxConcurrentGenerations: this.maxConcurrentJobs,
-      // Use your local AI system
+      // Use your intelligent AI system
       useLocalAI: true,
       ollamaHost: process.env.OLLAMA_HOST || 'http://127.0.0.1:11434',
-      preferredModel: process.env.AI_MODEL || 'llama2'
+      intelligentRouting: true // Enable smart model selection
     });
     
-    console.log('[AI-WORKER] AI Worker initialized with local AI system');
+    console.log('[AI-WORKER] AI Worker initialized with intelligent LLM routing');
     console.log(`[AI-WORKER] Max concurrent jobs: ${this.maxConcurrentJobs}`);
     console.log(`[AI-WORKER] Ollama host: ${process.env.OLLAMA_HOST || 'http://127.0.0.1:11434'}`);
+    console.log('[AI-WORKER] Smart model selection enabled for optimal results');
   }
 
   async start() {
@@ -137,11 +138,25 @@ class AIWorker {
   async generateCosmetic(job) {
     const { prompt, cosmetic_type, style_requirements } = job.parameters;
     
+    // Prepare messages with cosmetic context for intelligent model selection
+    const messages = [
+      {
+        role: 'system',
+        content: `You are a cosmetic designer for poker games. Generate detailed, creative cosmetic descriptions for ${cosmetic_type}.`
+      },
+      {
+        role: 'user', 
+        content: `Generate a ${cosmetic_type} with the following specifications: ${prompt}. Style requirements: ${style_requirements || 'modern and elegant'}`
+      }
+    ];
+    
     const result = await this.cosmeticAI.generateEnhancedCosmetic({
       type: cosmetic_type,
       prompt: prompt,
       style: style_requirements,
-      userId: job.user_id
+      userId: job.user_id,
+      context: 'cosmetic', // Enable intelligent model selection
+      messages: messages
     });
     
     // Save generated cosmetic to database
@@ -153,13 +168,26 @@ class AIWorker {
   async generateCardDesign(job) {
     const { theme, colors, style, elements } = job.parameters;
     
-    // Generate card design using AI
+    // Generate card design using AI with intelligent model selection
     const prompt = `Create a poker card design with theme: ${theme}, colors: ${colors}, style: ${style}, elements: ${elements}`;
+    
+    const messages = [
+      {
+        role: 'system',
+        content: 'You are a professional poker card designer. Create detailed, visually appealing card designs.'
+      },
+      {
+        role: 'user',
+        content: prompt
+      }
+    ];
     
     const result = await this.ai.generateImage({
       prompt: prompt,
       size: '512x512',
-      style: 'detailed'
+      style: 'detailed',
+      context: 'design', // Enable intelligent model selection
+      messages: messages
     });
     
     // Save card design
@@ -173,10 +201,23 @@ class AIWorker {
     
     const prompt = `Generate chip style with base: ${base_style}, colors: ${colors}, effects: ${effects}, denomination: ${denomination}`;
     
+    const messages = [
+      {
+        role: 'system',
+        content: 'You are a poker chip designer. Create attractive, professional chip designs.'
+      },
+      {
+        role: 'user',
+        content: prompt
+      }
+    ];
+    
     const result = await this.ai.generateImage({
       prompt: prompt,
       size: '256x256',
-      style: 'detailed'
+      style: 'detailed',
+      context: 'design', // Enable intelligent model selection
+      messages: messages
     });
     
     // Save chip style
@@ -190,10 +231,23 @@ class AIWorker {
     
     const prompt = `Generate avatar with description: ${description}, style: ${style}, size: ${size}`;
     
+    const messages = [
+      {
+        role: 'system',
+        content: 'You are an avatar designer. Create unique, appealing user avatars.'
+      },
+      {
+        role: 'user',
+        content: prompt
+      }
+    ];
+    
     const result = await this.ai.generateImage({
       prompt: prompt,
       size: '512x512',
-      style: 'avatar'
+      style: 'avatar',
+      context: 'creative', // Enable intelligent model selection
+      messages: messages
     });
     
     // Save avatar

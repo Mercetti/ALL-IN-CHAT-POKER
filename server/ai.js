@@ -73,6 +73,22 @@ function selectModelForContext(messages = [], options = {}) {
   // Available models that fit in 8.6GB RAM
   const availableModels = ['deepseek-coder:1.3b', 'qwen:0.5b', 'llama3.2:1b', 'tinyllama:latest', 'llama3.2:latest'];
   
+  // Cosmetic generation contexts - use creative models
+  if (systemMessage.includes('cosmetic') || 
+      systemMessage.includes('card design') ||
+      systemMessage.includes('chip style') ||
+      userMessage.includes('card back') ||
+      userMessage.includes('poker chip') ||
+      userMessage.includes('avatar') ||
+      userMessage.includes('cosmetic') ||
+      userMessage.includes('design') ||
+      userMessage.includes('theme') ||
+      options.context === 'cosmetic' ||
+      options.context === 'design' ||
+      options.context === 'creative') {
+    return 'qwen:0.5b'; // Best for creative/visual tasks
+  }
+  
   // Audio/creative contexts - use smaller, more creative models
   if (systemMessage.includes('audio engineer') || 
       systemMessage.includes('composer') ||
