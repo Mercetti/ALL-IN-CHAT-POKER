@@ -1,0 +1,161 @@
+services:
+  # Main Poker Game with Free Helm Integration
+  - type: web
+    name: all-in-chat-poker
+    runtime: node
+    plan: free
+    branch: main
+    rootDir: .
+    buildCommand: |
+      npm ci --production
+      npm cache clean --force
+    startCommand: node server.js
+    healthCheckPath: /health
+    envVars:
+      # Core Configuration
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: NODE_OPTIONS
+        value: "--max-old-space-size=512"
+      
+      # Helm Configuration (Free)
+      - key: HELM_MODE
+        value: local
+      - key: HELM_ENABLED
+        value: "true"
+      - key: HELM_AUDIT_LOG_SIZE
+        value: "1000"
+      - key: HELM_MONITORING_INTERVAL
+        value: "30000"
+      
+      # Database
+      - key: DATABASE_URL
+        fromDatabase:
+          name: poker-db
+          property: connectionString
+      
+      # Security
+      - key: JWT_SECRET
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ADMIN_TOKEN
+        sync: false
+      - key: TRUST_PROXY
+        value: "1"
+      
+      # Game Configuration
+      - key: STREAMER_LOGIN
+        value: streamer
+      - key: GAME_MODE
+        value: poker
+      - key: ENABLE_HELM_SKILLS
+        value: "true"
+      
+      # Performance
+      - key: RATE_LIMIT_WINDOW
+        value: "900000"  # 15 minutes
+      - key: RATE_LIMIT_MAX
+        value: "100"
+      - key: WEB_CONCURRENCY
+        value: "1"
+
+  # Discord Bot with Free Helm Integration
+  - type: worker
+    name: poker-bot
+    runtime: node
+    plan: free
+    branch: main
+    rootDir: .
+    buildCommand: |
+      npm ci --production
+      npm cache clean --force
+    startCommand: node bot/bot.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_OPTIONS
+        value: "--max-old-space-size=256"
+      
+      # Helm Configuration (Free)
+      - key: HELM_MODE
+        value: local
+      - key: HELM_ENABLED
+        value: "true"
+      - key: HELM_BOT_MODE
+        value: "true"
+      
+      - key: DATABASE_URL
+        fromDatabase:
+          name: poker-db
+          property: connectionString
+      - key: DISCORD_BOT_TOKEN
+        sync: false
+      - key: DISCORD_CLIENT_ID
+        sync: false
+      - key: BOT_RETRY_DELAY
+        value: "5000"
+      - key: BOT_MAX_RETRIES
+        value: "3"
+
+  # AI Worker with Free Helm Integration
+  - type: worker
+    name: poker-ai-worker
+    runtime: node
+    plan: free
+    branch: main
+    rootDir: .
+    buildCommand: |
+      npm ci --production
+      npm cache clean --force
+    startCommand: node ai-worker.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_OPTIONS
+        value: "--max-old-space-size=512"
+      
+      # Helm Configuration (Free)
+      - key: HELM_MODE
+        value: local
+      - key: HELM_ENABLED
+        value: "true"
+      - key: HELM_AI_MODE
+        value: "true"
+      
+      - key: DATABASE_URL
+        fromDatabase:
+          name: poker-db
+          property: connectionString
+      
+      # AI Configuration (Free Local AI)
+      - key: USE_LOCAL_AI
+        value: "true"
+      - key: AI_MODE
+        value: local
+      - key: AI_RESPONSE_TYPE
+        value: simple
+      - key: AI_TIMEOUT
+        value: "30000"
+      
+      # Worker Configuration
+      - key: WORKER_TYPE
+        value: helm-ai
+      - key: MAX_CONCURRENT_JOBS
+        value: "2"
+      - key: JOB_TIMEOUT
+        value: "30000"
+      - key: WORKER_RETRY_DELAY
+        value: "5000"
+      - key: WORKER_MAX_RETRIES
+        value: "3"
+
+databases:
+  # PostgreSQL Database - Free Tier
+  - name: poker-db
+    databaseName: poker_game
+    user: poker_user
+    plan: free
+    ipAllowList: []  # Allow all Render services

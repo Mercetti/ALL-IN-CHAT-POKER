@@ -1,0 +1,144 @@
+services:
+  # Main Poker Game Service - Optimized
+  - type: web
+    name: all-in-chat-poker
+    runtime: node
+    plan: free
+    branch: main
+    rootDir: .
+    buildCommand: |
+      npm ci --production
+      npm cache clean --force
+    startCommand: node server.js
+    healthCheckPath: /health
+    healthCheckTimeout: 30
+    healthCheckInterval: 30
+    healthCheckGracePeriod: 60
+    envVars:
+      # Core Configuration
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: NODE_OPTIONS
+        value: "--max-old-space-size=512"
+      - key: PM2_NO_INTERACTION
+        value: "1"
+      
+      # Database
+      - key: DATABASE_URL
+        fromDatabase:
+          name: poker-db
+          property: connectionString
+      
+      # Security
+      - key: JWT_SECRET
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ADMIN_TOKEN
+        sync: false
+      - key: TRUST_PROXY
+        value: "1"
+      
+      # Game Configuration
+      - key: STREAMER_LOGIN
+        value: streamer
+      - key: GAME_MODE
+        value: poker
+      
+      # Performance
+      - key: RATE_LIMIT_WINDOW
+        value: "900000"  # 15 minutes
+      - key: RATE_LIMIT_MAX
+        value: "100"
+      - key: WEB_CONCURRENCY
+        value: "1"
+
+  # Bot Service - Optimized
+  - type: worker
+    name: poker-bot
+    runtime: node
+    plan: free
+    branch: main
+    rootDir: .
+    buildCommand: |
+      npm ci --production
+      npm cache clean --force
+    startCommand: node bot/bot.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_OPTIONS
+        value: "--max-old-space-size=256"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: poker-db
+          property: connectionString
+      - key: DISCORD_BOT_TOKEN
+        sync: false
+      - key: DISCORD_CLIENT_ID
+        sync: false
+      - key: BOT_RETRY_DELAY
+        value: "5000"
+      - key: BOT_MAX_RETRIES
+        value: "3"
+
+  # AI Processing Worker - Optimized
+  - type: worker
+    name: poker-ai-worker
+    runtime: node
+    plan: free
+    branch: main
+    rootDir: .
+    buildCommand: |
+      npm ci --production
+      npm cache clean --force
+    startCommand: node ai-worker.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_OPTIONS
+        value: "--max-old-space-size=512"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: poker-db
+          property: connectionString
+      
+      # AI Configuration
+      - key: USE_LOCAL_AI
+        value: true
+      - key: OLLAMA_HOST
+        value: http://127.0.0.1:11434
+      - key: AI_MODEL
+        value: llama2
+      - key: AI_MAX_TOKENS
+        value: 1000
+      - key: AI_TIMEOUT
+        value: "30000"
+      
+      # Worker Configuration
+      - key: WORKER_TYPE
+        value: ai-cosmetics
+      - key: MAX_CONCURRENT_JOBS
+        value: "2"
+      - key: JOB_TIMEOUT
+        value: "30000"
+      - key: WORKER_RETRY_DELAY
+        value: "5000"
+      - key: WORKER_MAX_RETRIES
+        value: "3"
+      
+      # Queue Configuration
+      - key: REDIS_URL
+        sync: false
+      - key: QUEUE_CHECK_INTERVAL
+        value: "1000"
+
+databases:
+  # PostgreSQL Database - Optimized
+  - name: poker-db
+    databaseName: poker_game
+    user: poker_user
+    plan: free
+    ipAllowList: []  # Allow all Render services
