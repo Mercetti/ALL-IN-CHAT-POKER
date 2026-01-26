@@ -41,7 +41,7 @@ async function createSimpleUser() {
       await client.query(`
         INSERT INTO profiles (login, email, password_hash, role, chips) 
         VALUES ($1, $2, $3, $4, $5)
-      `, ['mercetti', 'mercetti@example.com', passwordHash, 'owner', 10000]);
+      `, ['mercetti', 'brown.jamie08@gmail.com', passwordHash, 'owner', 10000]);
       
       console.log('✅ Created mercetti user successfully');
     } else {
