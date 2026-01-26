@@ -93,4 +93,4 @@ function createCatalogRouter({ db }) {
   return router;
 }
 
-module.exports = { createCatalogRouter };
+module.exports = createCatalogRouter;
