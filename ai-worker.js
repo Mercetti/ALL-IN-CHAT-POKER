@@ -24,14 +24,20 @@ class AIWorker {
     this.maxConcurrentJobs = parseInt(process.env.MAX_CONCURRENT_JOBS) || 3;
     this.jobTimeout = parseInt(process.env.JOB_TIMEOUT) || 30000;
     
+    // Initialize your AI system
     this.ai = new AI();
     this.cosmeticAI = new EnhancedCosmeticAI({
       enablePublicGeneration: false, // Worker-only
-      maxConcurrentGenerations: this.maxConcurrentJobs
+      maxConcurrentGenerations: this.maxConcurrentJobs,
+      // Use your local AI system
+      useLocalAI: true,
+      ollamaHost: process.env.OLLAMA_HOST || 'http://127.0.0.1:11434',
+      preferredModel: process.env.AI_MODEL || 'llama2'
     });
     
-    console.log('[AI-WORKER] AI Worker initialized');
+    console.log('[AI-WORKER] AI Worker initialized with local AI system');
     console.log(`[AI-WORKER] Max concurrent jobs: ${this.maxConcurrentJobs}`);
+    console.log(`[AI-WORKER] Ollama host: ${process.env.OLLAMA_HOST || 'http://127.0.0.1:11434'}`);
   }
 
   async start() {

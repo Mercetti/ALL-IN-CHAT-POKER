@@ -15,11 +15,13 @@ services:
         fromDatabase:
           name: poker-db
           property: connectionString
-      # AI Configuration
-      - key: OPENAI_API_KEY
-        sync: false
+      # AI Configuration (Local AI System)
+      - key: USE_LOCAL_AI
+        value: true
+      - key: OLLAMA_HOST
+        value: http://127.0.0.1:11434
       - key: AI_MODEL
-        value: gpt-4
+        value: llama2
       - key: AI_MAX_TOKENS
         value: 1000
       # Worker Configuration
