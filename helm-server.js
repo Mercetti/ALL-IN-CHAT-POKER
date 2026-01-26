@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const http = require('http');
 const socketIo = require('socket.io');
+const HelmSmallLLMEngine = require('./helm-small-llm-engine');
 
 const app = express();
 const server = http.createServer(app);
@@ -12,7 +13,11 @@ const io = socketIo(server, {
   }
 });
 
-// Serve static files
+// Initialize Helm Small LLM Engine
+const helmEngine = new HelmSmallLLMEngine();
+
+// Middleware
+app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/socket.io', express.static(path.join(__dirname, 'node_modules', 'socket.io', 'client-dist')));
 
@@ -24,6 +29,33 @@ app.get('/', (req, res) => {
 // Helm route
 app.get('/helm', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'helm', 'index.html'));
+});
+
+// Helm API Routes
+app.get('/helm/status', (req, res) => {
+  res.json(helmEngine.getStatus());
+});
+
+app.post('/helm/skill/:skillId', async (req, res) => {
+  try {
+    const { skillId } = req.params;
+    const { params, sessionId } = req.body;
+    
+    const result = await helmEngine.executeSkill(skillId, params || {}, sessionId || 'default');
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+app.get('/helm/audit', (req, res) => {
+  res.json({
+    logs: helmEngine.auditLog,
+    total: helmEngine.auditLog.length
+  });
 });
 
 // Health endpoint
@@ -60,9 +92,24 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`🚀 Helm Control Server running on port ${PORT}`);
-  console.log(`📱 Access the Helm UI at: http://localhost:${PORT}/helm`);
-  console.log(`🏠 Main site at: http://localhost:${PORT}`);
-});
+// Initialize Helm and start server
+async function startServer() {
+  try {
+    console.log('🚀 Initializing Helm Small LLM Engine...');
+    await helmEngine.initialize();
+    console.log('✅ Helm Small LLM Engine ready!');
+    
+    const PORT = process.env.PORT || 3001; // Use 3001 to avoid conflict with poker game
+    server.listen(PORT, () => {
+      console.log(`🚀 Helm Control Server running on port ${PORT}`);
+      console.log(`📱 Access the Helm UI at: http://localhost:${PORT}/helm`);
+      console.log(`🏠 Main site at: http://localhost:${PORT}`);
+      console.log(`🤖 Small LLMs ready: TinyLlama, Phi, Qwen, DeepSeek-Coder`);
+    });
+  } catch (error) {
+    console.error('❌ Failed to initialize Helm:', error);
+    process.exit(1);
+  }
+}
+
+startServer();

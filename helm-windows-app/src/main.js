@@ -5,7 +5,7 @@
 
 const { app, BrowserWindow, ipcMain, Menu, shell, dialog } = require('electron');
 const path = require('path');
-const isDev = require('electron-is-dev');
+const isDev = process.env.NODE_ENV === 'development';
 const Store = require('electron-store');
 
 // Initialize store for settings
@@ -21,8 +21,8 @@ const helmAPI = {
   connected: false,
   
   async connect() {
-    // Try multiple common ports
-    const ports = [3000, 8080, 8000, 5000];
+    // Try multiple common ports - prioritize 3001 where Helm server is running
+    const ports = [3001, 8080, 3000, 8000, 5000];
     
     for (const port of ports) {
       try {
@@ -40,9 +40,10 @@ const helmAPI = {
       }
     }
     
+    // Don't fail - just run in demo mode
     this.connected = false;
-    console.log('Could not connect to Helm on any port');
-    return false;
+    console.log('Helm not found - running in demo mode');
+    return true; // Return true so app doesn't exit
   },
   
   async executeSkill(skillId, params = {}) {
@@ -95,10 +96,8 @@ function createWindow() {
     titleBarStyle: 'default'
   });
 
-  // Load the app
-  const startUrl = isDev 
-    ? 'http://localhost:3001' 
-    : `file://${path.join(__dirname, '../build/index.html')}`;
+  // Load the app - use development server
+  const startUrl = isDev ? 'http://localhost:5173' : `file://${path.join(__dirname, '../dist/index.html')}`;
   
   mainWindow.loadURL(startUrl);
 

@@ -54,11 +54,30 @@ function SimpleApp() {
   };
 
   const testSkill = async (skillId) => {
-    addNotification('info', `Testing ${skillId} with ${currentModel}...`);
-    // Simulate skill execution
-    setTimeout(() => {
-      addNotification('success', `${skillId} completed successfully`);
-    }, 2000);
+    addNotification('info', `Executing ${skillId} with ${currentModel}...`);
+    
+    try {
+      if (window.helmAPI && window.helmAPI.executeSkill) {
+        const result = await window.helmAPI.executeSkill(skillId, {
+          model: currentModel,
+          sessionId: 'windows-app'
+        });
+        
+        if (result.success) {
+          addNotification('success', `${skillId} completed: ${result.result.commentary || result.result.response || result.result.analysis || 'Success'}`);
+        } else {
+          addNotification('error', `${skillId} failed: ${result.error || 'Unknown error'}`);
+        }
+      } else {
+        // Fallback simulation
+        addNotification('warning', `Simulating ${skillId} (demo mode)`);
+        setTimeout(() => {
+          addNotification('success', `${skillId} simulation completed`);
+        }, 1500);
+      }
+    } catch (error) {
+      addNotification('error', `${skillId} error: ${error.message}`);
+    }
   };
 
   return (
