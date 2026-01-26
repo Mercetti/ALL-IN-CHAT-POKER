@@ -11,16 +11,6 @@ const parseAIResponse = (response) => {
       error: error.message 
     });
     
-    // Try to extract JSON from response
-    const jsonMatch = response?.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      try {
-        return JSON.parse(jsonMatch[0]);
-      } catch (e) {
-        logger.warn('Failed to extract JSON from response');
-      }
-    }
-    
     // Return structured fallback
     return {
       type: 'fallback_response',

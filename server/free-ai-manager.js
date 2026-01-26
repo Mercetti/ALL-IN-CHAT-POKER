@@ -175,7 +175,17 @@ class OllamaProvider {
       // Use shorter timeout for tunnel requests
       const timeout = this.host.includes('trycloudflare.com') ? 3000 : 5000;
       
+      // AI Gateway compatible headers
+      const headers = {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Ollama-JavaScript-Client/1.0',
+        'Accept': 'application/json',
+        'ngrok-trace-id': `trace-${Date.now()}`
+      };
+      
       const response = await fetch(`${this.host}/api/tags`, {
+        method: 'GET',
+        headers,
         timeout,
         signal: AbortSignal.timeout(timeout)
       });
@@ -210,19 +220,30 @@ class OllamaProvider {
       ...options
     }, context);
 
+    // AI Gateway compatible headers and request format
+    const headers = {
+      'Content-Type': 'application/json',
+      'User-Agent': 'Ollama-JavaScript-Client/1.0',
+      'Accept': 'application/json',
+      'ngrok-trace-id': `chat-${Date.now()}`,
+      'ngrok-skip-browser-warning': 'true'
+    };
+
+    const requestBody = {
+      model: optimizedOptions.model,
+      stream: false,
+      messages: optimizedOptions.messages,
+      options: optimizedOptions.options
+    };
+
     const response = await fetch(`${this.host}/api/chat`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: optimizedOptions.model,
-        stream: false,
-        messages: optimizedOptions.messages,
-        options: optimizedOptions.options
-      })
+      headers,
+      body: JSON.stringify(requestBody)
     });
 
     if (!response.ok) {
-      throw new Error(`Ollama request failed: ${response.status}`);
+      throw new Error(`Ollama request failed: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
