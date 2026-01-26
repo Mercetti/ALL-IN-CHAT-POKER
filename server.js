@@ -1003,6 +1003,7 @@ async function initializeServer() {
       process.exit(1);
     }
   }
+}
 
 // Initialize server
 initializeServer();
