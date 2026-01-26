@@ -365,6 +365,8 @@ class AIWorker {
   }
 }
 
+module.exports = AIWorker;
+
 // Initialize and start worker
 const worker = new AIWorker();
 
