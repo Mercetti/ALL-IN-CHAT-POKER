@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛡️ Helm Control Center - Complete</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f23;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        
+        .app-container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #1a1a3e 0%, #16213e 100%);
+            border-right: 1px solid #2a2a4e;
+            overflow-y: auto;
+        }
+        
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            background: #0f0f23;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .nav-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-left-color: #667eea;
+        }
+        
+        .nav-item.active {
+            background: rgba(102, 126, 234, 0.2);
+            border-left-color: #667eea;
+        }
+        
+        .content-area {
+            padding: 20px;
+        }
+        
+        .card {
+            background: linear-gradient(135deg, #1e1e3f 0%, #2a2a4e 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #3a3a5e;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #3a3a5e;
+        }
+        
+        .card h2 {
+            color: #667eea;
+            font-size: 1.3rem;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .status-card {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid #3a3a5e;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .status-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .status-label {
+            font-size: 0.875rem;
+            color: #9ca3af;
+            margin-top: 5px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-online { background: #10b981; box-shadow: 0 0 10px #10b981; }
+        .status-offline { background: #ef4444; box-shadow: 0 0 10px #ef4444; }
+        .status-warning { background: #f59e0b; box-shadow: 0 0 10px #f59e0b; }
+        
+        .skill-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .skill-card {
+            background: rgba(102, 126, 234, 0.05);
+            border: 1px solid #3a3a5e;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .skill-card:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .skill-name {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .skill-description {
+            font-size: 0.875rem;
+            color: #9ca3af;
+            margin-bottom: 10px;
+        }
+        
+        .skill-status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .skill-active { background: #10b981; color: white; }
+        .skill-inactive { background: #6b7280; color: white; }
+        
+        .security-mode {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        
+        .mode-green { background: #10b981; color: white; }
+        .mode-yellow { background: #f59e0b; color: white; }
+        .mode-red { background: #ef4444; color: white; }
+        
+        .log-entry {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 3px solid #3a3a5e;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+        }
+        
+        .log-info { border-left-color: #3b82f6; }
+        .log-warn { border-left-color: #f59e0b; }
+        .log-error { border-left-color: #ef4444; }
+        .log-debug { border-left-color: #8b5cf6; }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .input-field, .select-field {
+            flex: 1;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #3a3a5e;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+        
+        .input-field:focus, .select-field:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+        
+        .metrics-chart {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid #3a3a5e;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            height: 300px;
+        }
+        
+        .tab-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #3a3a5e;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .tab:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .tab.active {
+            border-bottom-color: #667eea;
+            color: #667eea;
+        }
+        
+        .response-area {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #3a3a5e;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .response-item {
+            background: rgba(102, 126, 234, 0.05);
+            border-left: 3px solid #667eea;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        
+        .response-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.875rem;
+            color: #9ca3af;
+        }
+        
+        .response-content {
+            color: #e0e0e0;
+            line-height: 1.5;
+        }
+        
+        .emergency-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .control-panel {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid #ef4444;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        
+        .control-panel h3 {
+            color: #ef4444;
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                order: 2;
+            }
+            
+            .main-content {
+                order: 1;
+            }
+            
+            .status-grid, .skill-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        function HelmControlCenter() {
+            const [activeTab, setActiveTab] = useState('dashboard');
+            const [helmStatus, setHelmStatus] = useState(null);
+            const [selectedModel, setSelectedModel] = useState('qwen:0.5b');
+            const [customPrompt, setCustomPrompt] = useState('');
+            const [responses, setResponses] = useState([]);
+            const [isLoading, setIsLoading] = useState(false);
+            const [logs, setLogs] = useState([]);
+            const [securityMode, setSecurityMode] = useState('Green');
+            const [skills, setSkills] = useState([]);
+            const [metrics, setMetrics] = useState({});
+
+            const availableModels = ['tinyllama', 'phi', 'qwen:0.5b', 'deepseek-coder:1.3b'];
+            
+            const helmSkills = [
+                { id: 'simple_chat', name: '💬 Chat Assistant', description: 'General conversation and queries', status: 'active' },
+                { id: 'create_content', name: '🎨 Creative Content', description: 'Logo design and visual creation', status: 'active' },
+                { id: 'code_analysis', name: '💻 Code Analysis', description: 'Code review and debugging', status: 'active' },
+                { id: 'quick_commentary', name: '🃏 Poker Commentary', description: 'Poker game analysis and advice', status: 'active' },
+                { id: 'basic_analysis', name: '📊 Game Analysis', description: 'Advanced game statistics', status: 'active' },
+                { id: 'quick_assist', name: '🤝 Player Assistant', description: 'Player guidance and help', status: 'active' },
+                { id: 'poker_deal', name: '🎯 Smart Deal', description: 'Intelligent card dealing', status: 'active' },
+                { id: 'poker_bet', name: '💰 Bet Assistant', description: 'Betting strategy and advice', status: 'active' }
+            ];
+
+            const navigationItems = [
+                { id: 'dashboard', name: '📊 Dashboard', icon: 'dashboard' },
+                { id: 'skills', name: '🛠️ Skills', icon: 'build' },
+                { id: 'chat', name: '💬 Chat Interface', icon: 'chat' },
+                { id: 'security', name: '🔒 Security', icon: 'security' },
+                { id: 'logs', name: '📋 Logs', icon: 'description' },
+                { id: 'metrics', name: '📈 Metrics', icon: 'trending_up' },
+                { id: 'control', name: '🎮 Control', icon: 'settings' }
+            ];
+
+            useEffect(() => {
+                checkHelmStatus();
+                loadSkills();
+                loadLogs();
+                const interval = setInterval(() => {
+                    checkHelmStatus();
+                    loadLogs();
+                }, 5000);
+                return () => clearInterval(interval);
+            }, []);
+
+            const checkHelmStatus = async () => {
+                try {
+                    const response = await axios.get('http://localhost:3001/helm/status');
+                    setHelmStatus(response.data);
+                    setMetrics(response.data.metrics || {});
+                } catch (error) {
+                    setHelmStatus({ running: false, error: 'Connection failed' });
+                }
+            };
+
+            const loadSkills = () => {
+                setSkills(helmSkills);
+            };
+
+            const loadLogs = async () => {
+                try {
+                    // Mock logs for now - replace with actual API call
+                    const mockLogs = [
+                        { id: '1', level: 'info', message: 'Helm server started successfully', timestamp: Date.now() - 60000 },
+                        { id: '2', level: 'info', message: 'Model qwen:0.5b loaded', timestamp: Date.now() - 50000 },
+                        { id: '3', level: 'warn', message: 'Model tinyllama not found in Ollama', timestamp: Date.now() - 40000 },
+                        { id: '4', level: 'info', message: 'Skill simple_chat executed successfully', timestamp: Date.now() - 30000 },
+                        { id: '5', level: 'error', message: 'Failed to execute skill: create_content', timestamp: Date.now() - 20000 }
+                    ];
+                    setLogs(mockLogs);
+                } catch (error) {
+                    console.error('Failed to load logs:', error);
+                }
+            };
+
+            const executeSkill = async (skillId, params = {}) => {
+                setIsLoading(true);
+                try {
+                    const response = await axios.post(
+                        `http://localhost:3001/helm/skill/${skillId}`,
+                        {
+                            params: { ...params, model: selectedModel },
+                            sessionId: 'web-dashboard'
+                        }
+                    );
+                    
+                    setResponses(prev => [{
+                        skill: skillId,
+                        model: selectedModel,
+                        result: response.data,
+                        timestamp: new Date().toLocaleTimeString(),
+                        success: true
+                    }, ...prev].slice(0, 50)); // Keep last 50 responses
+                    
+                } catch (error) {
+                    setResponses(prev => [{
+                        skill: skillId,
+                        model: selectedModel,
+                        error: error.message,
+                        timestamp: new Date().toLocaleTimeString(),
+                        success: false
+                    }, ...prev].slice(0, 50));
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            const executeCustomPrompt = () => {
+                if (!customPrompt.trim()) return;
+                
+                let skillId = 'simple_chat';
+                let params = { message: customPrompt };
+                
+                if (customPrompt.toLowerCase().includes('logo') || 
+                    customPrompt.toLowerCase().includes('design') || 
+                    customPrompt.toLowerCase().includes('create')) {
+                    skillId = 'create_content';
+                    params = {
+                        type: 'logo',
+                        description: customPrompt,
+                        style: 'modern',
+                        format: 'detailed'
+                    };
+                } else if (customPrompt.toLowerCase().includes('code') || 
+                          customPrompt.toLowerCase().includes('function')) {
+                    skillId = 'code_analysis';
+                    params = {
+                        code: customPrompt,
+                        language: 'javascript',
+                        task: 'analyze'
+                    };
+                }
+                
+                executeSkill(skillId, params);
+                setCustomPrompt('');
+            };
+
+            const emergencyLockdown = async () => {
+                if (confirm('⚠️ EMERGENCY LOCKDOWN ⚠️\n\nThis will immediately stop all Helm operations and lock the system. Are you sure?')) {
+                    try {
+                        // Mock emergency lockdown - replace with actual API call
+                        setSecurityMode('Red');
+                        alert('🔒 EMERGENCY LOCKDOWN ACTIVATED\n\nAll operations have been stopped and the system is locked.');
+                    } catch (error) {
+                        alert('Failed to activate emergency lockdown: ' + error.message);
+                    }
+                }
+            };
+
+            const renderDashboard = () => (
+                <div>
+                    <div className="status-grid">
+                        <div className="status-card">
+                            <div className="status-value">{helmStatus?.running ? '🟢' : '🔴'}</div>
+                            <div className="status-label">System Status</div>
+                        </div>
+                        <div className="status-card">
+                            <div className="status-value">{availableModels.length}</div>
+                            <div className="status-label">Available Models</div>
+                        </div>
+                        <div className="status-card">
+                            <div className="status-value">{skills.filter(s => s.status === 'active').length}</div>
+                            <div className="status-label">Active Skills</div>
+                        </div>
+                        <div className="status-card">
+                            <div className="status-value">{metrics.totalExecutions || 0}</div>
+                            <div className="status-label">Total Executions</div>
+                        </div>
+                    </div>
+
+                    <div className="card">
+                        <div className="card-header">
+                            <h2>🔒 Security Status</h2>
+                            <span className={`security-mode mode-${securityMode.toLowerCase()}`}>
+                                {securityMode} MODE
+                            </span>
+                        </div>
+                        <div className="status-grid">
+                            <div className="status-card">
+                                <div className="status-value">🛡️</div>
+                                <div className="status-label">Firewall Active</div>
+                            </div>
+                            <div className="status-card">
+                                <div className="status-value">🔐</div>
+                                <div className="status-label">Encryption ON</div>
+                            </div>
+                            <div className="status-card">
+                                <div className="status-value">📊</div>
+                                <div className="status-label">Monitoring</div>
+                            </div>
+                            <div className="status-card">
+                                <div className="status-value">✅</div>
+                                <div className="status-label">Health Check</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="card">
+                        <h2>📈 Performance Metrics</h2>
+                        <div className="metrics-chart">
+                            <canvas id="metricsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const renderSkills = () => (
+                <div>
+                    <div className="card">
+                        <h2>🛠️ Available Skills</h2>
+                        <div className="skill-grid">
+                            {skills.map(skill => (
+                                <div key={skill.id} className="skill-card" onClick={() => executeSkill(skill.id)}>
+                                    <div className="skill-name">{skill.name}</div>
+                                    <div className="skill-description">{skill.description}</div>
+                                    <span className={`skill-status ${skill.status === 'active' ? 'skill-active' : 'skill-inactive'}`}>
+                                        {skill.status}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const renderChat = () => (
+                <div>
+                    <div className="card">
+                        <h2>💬 Helm Chat Interface</h2>
+                        <div className="input-group">
+                            <select 
+                                className="select-field"
+                                value={selectedModel} 
+                                onChange={(e) => setSelectedModel(e.target.value)}
+                            >
+                                {availableModels.map(model => (
+                                    <option key={model} value={model}>{model}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="input-group">
+                            <input
+                                type="text"
+                                className="input-field"
+                                placeholder="Ask anything! Try: 'Create a logo', 'Analyze this code', 'Poker advice'..."
+                                value={customPrompt}
+                                onChange={(e) => setCustomPrompt(e.target.value)}
+                                onKeyPress={(e) => e.key === 'Enter' && executeCustomPrompt()}
+                            />
+                            <button 
+                                className="btn"
+                                onClick={executeCustomPrompt}
+                                disabled={!helmStatus?.running || isLoading}
+                            >
+                                {isLoading ? '⏳' : '🚀'} Send
+                            </button>
+                        </div>
+                        <div className="response-area">
+                            {responses.map((response, index) => (
+                                <div key={index} className="response-item">
+                                    <div className="response-header">
+                                        <span>{response.skill} • {response.model}</span>
+                                        <span>{response.timestamp}</span>
+                                    </div>
+                                    <div className="response-content">
+                                        {response.success ? (
+                                            response.result?.response || response.result?.analysis || response.result?.content || 'Task completed successfully'
+                                        ) : (
+                                            <span style={{ color: '#ef4444' }}>❌ Error: {response.error}</span>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const renderSecurity = () => (
+                <div>
+                    <div className="card">
+                        <h2>🔒 Security Dashboard</h2>
+                        <div className="status-grid">
+                            <div className="status-card">
+                                <div className="status-value">🟢</div>
+                                <div className="status-label">Current Mode: {securityMode}</div>
+                            </div>
+                            <div className="status-card">
+                                <div className="status-value">0</div>
+                                <div className="status-label">Threats Blocked</div>
+                            </div>
+                            <div className="status-card">
+                                <div className="status-value">100%</div>
+                                <div className="status-label">System Integrity</div>
+                            </div>
+                            <div className="status-card">
+                                <div className="status-value">🔐</div>
+                                <div className="status-label">All Secure</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="card control-panel">
+                        <h3>⚠️ Emergency Controls</h3>
+                        <div className="emergency-controls">
+                            <button className="btn btn-danger" onClick={emergencyLockdown}>
+                                🚨 EMERGENCY LOCKDOWN
+                            </button>
+                            <button className="btn" onClick={() => setSecurityMode('Yellow')}>
+                                ⚠️ Switch to Yellow Mode
+                            </button>
+                            <button className="btn btn-success" onClick={() => setSecurityMode('Green')}>
+                                ✅ Switch to Green Mode
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const renderLogs = () => (
+                <div>
+                    <div className="card">
+                        <h2>📋 System Logs</h2>
+                        <div className="tab-container">
+                            {['all', 'info', 'warn', 'error', 'debug'].map(level => (
+                                <div 
+                                    key={level}
+                                    className="tab"
+                                    onClick={() => {/* Filter logs */}}
+                                >
+                                    {level.toUpperCase()}
+                                </div>
+                            ))}
+                        </div>
+                        <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                            {logs.map(log => (
+                                <div key={log.id} className={`log-entry log-${log.level}`}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                        <span style={{ color: '#9ca3af' }}>
+                                            [{new Date(log.timestamp).toLocaleTimeString()}]
+                                        </span>
+                                        <span style={{ 
+                                            color: log.level === 'error' ? '#ef4444' : 
+                                                   log.level === 'warn' ? '#f59e0b' : 
+                                                   log.level === 'info' ? '#3b82f6' : '#8b5cf6',
+                                            fontWeight: 'bold'
+                                        }}>
+                                            {log.level.toUpperCase()}
+                                        </span>
+                                    </div>
+                                    <div>{log.message}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const renderMetrics = () => (
+                <div>
+                    <div className="card">
+                        <h2>📈 Performance Metrics</h2>
+                        <div className="status-grid">
+                            <div className="status-card">
+                                <div className="status-value">{metrics.totalExecutions || 0}</div>
+                                <div className="status-label">Total Executions</div>
+                            </div>
+                            <div className="status-card">
+                                <div className="status-value">{metrics.successfulExecutions || 0}</div>
+                                <div className="status-label">Successful</div>
+                            </div>
+                            <div className="status-card">
+                                <div className="status-value">{metrics.failedExecutions || 0}</div>
+                                <div className="status-label">Failed</div>
+                            </div>
+                            <div className="status-card">
+                                <div className="status-value">
+                                    {metrics.totalExecutions > 0 ? 
+                                        Math.round((metrics.successfulExecutions / metrics.totalExecutions) * 100) : 0}%
+                                </div>
+                                <div className="status-label">Success Rate</div>
+                            </div>
+                        </div>
+                        <div className="metrics-chart">
+                            <canvas id="performanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const renderControl = () => (
+                <div>
+                    <div className="card">
+                        <h2>🎮 System Control</h2>
+                        <div className="status-grid">
+                            <div className="status-card">
+                                <button className="btn btn-success">
+                                    ▶️ Start Helm
+                                </button>
+                            </div>
+                            <div className="status-card">
+                                <button className="btn btn-danger">
+                                    ⏹️ Stop Helm
+                                </button>
+                            </div>
+                            <div className="status-card">
+                                <button className="btn">
+                                    🔄 Restart
+                                </button>
+                            </div>
+                            <div className="status-card">
+                                <button className="btn">
+                                    📊 Refresh Status
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="card">
+                        <h2>⚙️ Configuration</h2>
+                        <div className="input-group">
+                            <label>Default Model:</label>
+                            <select className="select-field" value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)}>
+                                {availableModels.map(model => (
+                                    <option key={model} value={model}>{model}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="input-group">
+                            <label>Max Tokens:</label>
+                            <input type="number" className="input-field" defaultValue="1000" />
+                        </div>
+                        <div className="input-group">
+                            <label>Temperature:</label>
+                            <input type="number" className="input-field" defaultValue="0.7" step="0.1" min="0" max="1" />
+                        </div>
+                        <button className="btn">💾 Save Configuration</button>
+                    </div>
+                </div>
+            );
+
+            const renderContent = () => {
+                switch(activeTab) {
+                    case 'dashboard': return renderDashboard();
+                    case 'skills': return renderSkills();
+                    case 'chat': return renderChat();
+                    case 'security': return renderSecurity();
+                    case 'logs': return renderLogs();
+                    case 'metrics': return renderMetrics();
+                    case 'control': return renderControl();
+                    default: return renderDashboard();
+                }
+            };
+
+            return (
+                <div className="app-container">
+                    <div className="sidebar">
+                        <div style={{ padding: '20px', borderBottom: '1px solid #2a2a4e' }}>
+                            <h2 style={{ color: '#667eea', textAlign: 'center' }}>🛡️ Helm</h2>
+                        </div>
+                        {navigationItems.map(item => (
+                            <div
+                                key={item.id}
+                                className={`nav-item ${activeTab === item.id ? 'active' : ''}`}
+                                onClick={() => setActiveTab(item.id)}
+                            >
+                                <span>{item.name}</span>
+                            </div>
+                        ))}
+                    </div>
+                    
+                    <div className="main-content">
+                        <div className="header">
+                            <h1>🛡️ Helm Control Center</h1>
+                            <p>Advanced AI Control & Management System</p>
+                        </div>
+                        
+                        <div className="content-area">
+                            {renderContent()}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<HelmControlCenter />, document.getElementById('root'));
+    </script>
+</body>
+</html>

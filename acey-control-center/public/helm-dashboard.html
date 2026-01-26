@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛡️ Helm Control Dashboard</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-online { background: #10b981; }
+        .status-offline { background: #ef4444; }
+        
+        .skill-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .skill-btn {
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+        }
+        
+        .skill-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        
+        .chat { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .creative { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .code { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .poker { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .input-field {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .execute-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .execute-btn:hover { transform: translateY(-2px); }
+        
+        .response {
+            background: #f8fafc;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .model-selector {
+            padding: 8px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+        }
+        
+        .task-item {
+            background: #f1f5f9;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .remove-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function HelmDashboard() {
+            const [helmStatus, setHelmStatus] = useState(null);
+            const [selectedModel, setSelectedModel] = useState('qwen:0.5b');
+            const [customPrompt, setCustomPrompt] = useState('');
+            const [responses, setResponses] = useState([]);
+            const [isLoading, setIsLoading] = useState(false);
+
+            const availableModels = ['tinyllama', 'phi', 'qwen:0.5b', 'deepseek-coder:1.3b'];
+            
+            const skills = [
+                { id: 'simple_chat', name: '💬 Chat', class: 'chat' },
+                { id: 'create_content', name: '🎨 Creative', class: 'creative' },
+                { id: 'code_analysis', name: '💻 Code', class: 'code' },
+                { id: 'quick_commentary', name: '🃏 Poker', class: 'poker' }
+            ];
+
+            useEffect(() => {
+                checkHelmStatus();
+                const interval = setInterval(checkHelmStatus, 5000);
+                return () => clearInterval(interval);
+            }, []);
+
+            const checkHelmStatus = async () => {
+                try {
+                    const response = await axios.get('http://localhost:3001/helm/status');
+                    setHelmStatus(response.data);
+                } catch (error) {
+                    setHelmStatus({ running: false, error: 'Connection failed' });
+                }
+            };
+
+            const executeSkill = async (skillId, params = {}) => {
+                setIsLoading(true);
+                try {
+                    const response = await axios.post(
+                        `http://localhost:3001/helm/skill/${skillId}`,
+                        {
+                            params: { ...params, model: selectedModel },
+                            sessionId: 'web-dashboard'
+                        }
+                    );
+                    
+                    setResponses(prev => [{
+                        skill: skillId,
+                        model: selectedModel,
+                        result: response.data,
+                        timestamp: new Date().toLocaleTimeString(),
+                        success: true
+                    }, ...prev]);
+                    
+                } catch (error) {
+                    setResponses(prev => [{
+                        skill: skillId,
+                        model: selectedModel,
+                        error: error.message,
+                        timestamp: new Date().toLocaleTimeString(),
+                        success: false
+                    }, ...prev]);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            const executeCustomPrompt = () => {
+                if (!customPrompt.trim()) return;
+                
+                // Smart skill detection
+                let skillId = 'simple_chat';
+                let params = { message: customPrompt };
+                
+                if (customPrompt.toLowerCase().includes('logo') || 
+                    customPrompt.toLowerCase().includes('design') || 
+                    customPrompt.toLowerCase().includes('create')) {
+                    skillId = 'create_content';
+                    params = {
+                        type: 'logo',
+                        description: customPrompt,
+                        style: 'modern',
+                        format: 'detailed'
+                    };
+                } else if (customPrompt.toLowerCase().includes('code') || 
+                          customPrompt.toLowerCase().includes('function')) {
+                    skillId = 'code_analysis';
+                    params = {
+                        code: customPrompt,
+                        language: 'javascript',
+                        task: 'analyze'
+                    };
+                }
+                
+                executeSkill(skillId, params);
+                setCustomPrompt('');
+            };
+
+            return (
+                <div className="container">
+                    <div className="header">
+                        <h1>🛡️ Helm Control Dashboard</h1>
+                        <p>Mobile-Ready AI Control Interface</p>
+                    </div>
+
+                    {/* Status Card */}
+                    <div className="card">
+                        <h2>System Status</h2>
+                        <div style={{ display: 'flex', alignItems: 'center', marginTop: '10px' }}>
+                            <span className={`status-indicator ${helmStatus?.running ? 'status-online' : 'status-offline'}`}></span>
+                            <span style={{ fontWeight: '600' }}>
+                                {helmStatus?.running ? '🟢 Helm Online' : '🔴 Helm Offline'}
+                            </span>
+                        </div>
+                        {helmStatus?.running && (
+                            <div className="stats">
+                                <div className="stat-item">
+                                    <div className="stat-value">{availableModels.length}</div>
+                                    <div className="stat-label">Models</div>
+                                </div>
+                                <div className="stat-item">
+                                    <div className="stat-value">{skills.length}</div>
+                                    <div className="stat-label">Skills</div>
+                                </div>
+                                <div className="stat-item">
+                                    <div className="stat-value">{helmStatus.metrics?.totalExecutions || 0}</div>
+                                    <div className="stat-label">Executions</div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Model Selection */}
+                    <div className="card">
+                        <h2>Model Selection</h2>
+                        <select 
+                            className="model-selector"
+                            value={selectedModel} 
+                            onChange={(e) => setSelectedModel(e.target.value)}
+                        >
+                            {availableModels.map(model => (
+                                <option key={model} value={model}>{model}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Quick Skills */}
+                    <div className="card">
+                        <h2>Quick Actions</h2>
+                        <div className="skill-grid">
+                            {skills.map(skill => (
+                                <button
+                                    key={skill.id}
+                                    className={`skill-btn ${skill.class}`}
+                                    onClick={() => executeSkill(skill.id)}
+                                    disabled={!helmStatus?.running || isLoading}
+                                >
+                                    {skill.name}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Custom Prompt */}
+                    <div className="card">
+                        <h2>Custom Request</h2>
+                        <div className="input-group">
+                            <input
+                                type="text"
+                                className="input-field"
+                                placeholder="Ask anything! Try: 'Create a logo', 'Analyze this code', 'Poker advice'..."
+                                value={customPrompt}
+                                onChange={(e) => setCustomPrompt(e.target.value)}
+                                onKeyPress={(e) => e.key === 'Enter' && executeCustomPrompt()}
+                            />
+                            <button 
+                                className="execute-btn"
+                                onClick={executeCustomPrompt}
+                                disabled={!helmStatus?.running || isLoading}
+                            >
+                                {isLoading ? '⏳' : '🚀'} Execute
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Responses */}
+                    {responses.length > 0 && (
+                        <div className="card">
+                            <h2>Recent Responses</h2>
+                            {responses.map((response, index) => (
+                                <div key={index} className="response">
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                        <span style={{ fontWeight: '600' }}>
+                                            {response.skill} • {response.model}
+                                        </span>
+                                        <span style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                                            {response.timestamp}
+                                        </span>
+                                    </div>
+                                    {response.success ? (
+                                        <div>
+                                            <p>{response.result?.response || response.result?.analysis || response.result?.content || 'Task completed successfully'}</p>
+                                        </div>
+                                    ) : (
+                                        <p style={{ color: '#ef4444' }}>❌ Error: {response.error}</p>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        ReactDOM.render(<HelmDashboard />, document.getElementById('root'));
+    </script>
+</body>
+</html>
