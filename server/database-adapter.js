@@ -174,6 +174,36 @@ class DatabaseAdapter {
       }
     }
   }
+
+  createLocalUser({ login, email, password_hash }) {
+    const normalizedLogin = login.toLowerCase();
+    
+    if (this.isPostgres) {
+      // For PostgreSQL
+      return this.query(
+        'INSERT INTO profiles (login, email, password_hash, role, chips, created_at) VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING *',
+        [normalizedLogin, email, password_hash, 'user', 1000]
+      )
+      .then(result => result.rows[0])
+      .catch(err => {
+        console.error('[DATABASE] Create user error:', err);
+        throw err;
+      });
+    } else {
+      // For SQLite
+      if (!this.db) this.initialize();
+      try {
+        const stmt = this.db.prepare(`
+          INSERT INTO profiles (login, email, password_hash, role, chips, created_at) 
+          VALUES (?, ?, ?, ?, ?, datetime('now'))
+        `);
+        return stmt.run(normalizedLogin, email, password_hash, 'user', 1000);
+      } catch (err) {
+        console.error('[DATABASE] Create user error:', err);
+        throw err;
+      }
+    }
+  }
 }
 
 module.exports = DatabaseAdapter;
