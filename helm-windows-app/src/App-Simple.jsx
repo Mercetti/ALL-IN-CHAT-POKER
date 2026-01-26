@@ -57,6 +57,8 @@ function SimpleApp() {
   const [chatHistory, setChatHistory] = useState([]);
   const [codeInput, setCodeInput] = useState('');
   const [codeAnalysis, setCodeAnalysis] = useState('');
+  const [creativeInput, setCreativeInput] = useState('');
+  const [creativeOutput, setCreativeOutput] = useState('');
 
   const executeSkill = async (skillId, params = {}) => {
     addNotification('info', `Executing ${skillId} with ${currentModel}...`);
@@ -119,6 +121,23 @@ function SimpleApp() {
     
     if (result) {
       setCodeAnalysis(result.analysis || 'Code analysis completed.');
+    }
+  };
+
+  const createContent = async () => {
+    if (!creativeInput.trim()) return;
+    
+    addNotification('info', 'Creating content with AI...');
+    
+    const result = await executeSkill('create_content', { 
+      type: 'logo',
+      description: creativeInput,
+      style: 'modern',
+      format: 'detailed'
+    });
+    
+    if (result) {
+      setCreativeOutput(result.content || 'Content created successfully.');
     }
   };
 
@@ -248,6 +267,35 @@ function SimpleApp() {
               <Box sx={{ bgcolor: 'background.paper', p: 2, borderRadius: 1 }}>
                 <Typography variant="body2" component="pre">
                   {codeAnalysis}
+                </Typography>
+              </Box>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Creative Content */}
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h5" gutterBottom>
+              🎨 Creative Content (Logo Design)
+            </Typography>
+            <TextField
+              fullWidth
+              multiline
+              rows={3}
+              variant="outlined"
+              placeholder="Describe what you want to create (e.g., 'a modern logo for an AI company called Helm')..."
+              value={creativeInput}
+              onChange={(e) => setCreativeInput(e.target.value)}
+              sx={{ mb: 2 }}
+            />
+            <Button variant="contained" onClick={createContent} sx={{ mb: 2 }}>
+              Create Content
+            </Button>
+            {creativeOutput && (
+              <Box sx={{ bgcolor: 'background.paper', p: 2, borderRadius: 1 }}>
+                <Typography variant="body2" component="pre">
+                  {creativeOutput}
                 </Typography>
               </Box>
             )}

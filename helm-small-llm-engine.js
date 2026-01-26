@@ -133,6 +133,12 @@ class HelmSmallLLMEngine {
         execute: (params) => this.analyzeCode(params)
       },
       {
+        id: 'create_content',
+        name: 'Creative Content',
+        category: 'creative',
+        execute: (params) => this.createContent(params)
+      },
+      {
         id: 'poker_deal',
         name: 'Poker Deal',
         category: 'game',
@@ -356,6 +362,48 @@ Provide ${task} in under 100 words. Focus on clarity and best practices.`;
       this.switchModel(originalModel === this.models.fast ? 'fast' : originalModel);
       return {
         analysis: `Code analysis unavailable for ${language}. Check syntax and structure.`,
+        provider: 'fallback'
+      };
+    }
+  }
+
+  async createContent(params) {
+    const { type = 'logo', description, style = 'modern', format = 'text' } = params;
+    
+    // Use the balanced model for creative tasks
+    const originalModel = this.currentModel;
+    this.switchModel('balanced');
+    
+    const prompt = `Create ${type} design: ${description}
+Style: ${style}
+Format: ${format}
+
+Generate detailed ${type} with visual elements, colors, and composition. Be creative and specific.`;
+
+    try {
+      this.metrics.aiRequests++;
+      const result = await this.aiIntegration.generateResponse(prompt, {
+        type: 'creative',
+        sessionId: params.sessionId
+      });
+      
+      // Switch back to original model
+      this.switchModel(originalModel === this.models.fast ? 'fast' : originalModel);
+      
+      return {
+        content: result.response,
+        type,
+        style,
+        format,
+        provider: result.provider,
+        model: result.model
+      };
+    } catch (error) {
+      console.error('Content creation failed:', error);
+      // Switch back to original model
+      this.switchModel(originalModel === this.models.fast ? 'fast' : originalModel);
+      return {
+        content: `Creative ${type} generation unavailable. Try a different description.`,
         provider: 'fallback'
       };
     }
