@@ -18,11 +18,31 @@ function SimpleApp() {
   const [currentModel, setCurrentModel] = useState('tinyllama');
 
   useEffect(() => {
-    // Simulate Helm connection
-    setTimeout(() => {
-      setHelmConnected(true);
-      addNotification('success', 'Connected to Helm with Small LLMs');
-    }, 1000);
+    // Try to connect to Helm
+    const connectToHelm = async () => {
+      try {
+        if (window.helmAPI) {
+          const connected = await window.helmAPI.connect();
+          setHelmConnected(connected);
+          if (connected) {
+            addNotification('success', 'Connected to Helm with Small LLMs');
+          } else {
+            addNotification('warning', 'Helm not found - running in demo mode');
+          }
+        } else {
+          // Fallback for development
+          setTimeout(() => {
+            setHelmConnected(true);
+            addNotification('success', 'Demo mode - Small LLMs ready');
+          }, 1000);
+        }
+      } catch (error) {
+        addNotification('warning', 'Demo mode - Small LLMs simulated');
+        setHelmConnected(true);
+      }
+    };
+
+    connectToHelm();
   }, []);
 
   const addNotification = (type, message) => {

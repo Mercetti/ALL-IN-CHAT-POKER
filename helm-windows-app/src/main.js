@@ -21,15 +21,28 @@ const helmAPI = {
   connected: false,
   
   async connect() {
-    try {
-      const response = await fetch(`${this.baseURL}/helm/status`);
-      const status = await response.json();
-      this.connected = status.running;
-      return this.connected;
-    } catch (error) {
-      this.connected = false;
-      return false;
+    // Try multiple common ports
+    const ports = [3000, 8080, 8000, 5000];
+    
+    for (const port of ports) {
+      try {
+        const response = await fetch(`http://localhost:${port}/helm/status`);
+        const status = await response.json();
+        if (status.running) {
+          this.baseURL = `http://localhost:${port}`;
+          this.connected = true;
+          console.log(`Connected to Helm on port ${port}`);
+          return true;
+        }
+      } catch (error) {
+        // Try next port
+        continue;
+      }
     }
+    
+    this.connected = false;
+    console.log('Could not connect to Helm on any port');
+    return false;
   },
   
   async executeSkill(skillId, params = {}) {
