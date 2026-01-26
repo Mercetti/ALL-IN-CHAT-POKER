@@ -539,7 +539,35 @@ app.post('/api/acey/mode', (req, res) => {
 });
 
 app.get('/health', (req, res) => {
-  res.status(200).send('OK');
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    database: db.type || 'unknown'
+  });
+});
+
+// Test database endpoint for debugging
+app.get('/api/test/database', async (req, res) => {
+  try {
+    const result = await db.query('SELECT COUNT(*) as count FROM profiles');
+    const profiles = await db.query('SELECT login, role, created_at FROM profiles LIMIT 5');
+    
+    res.json({
+      success: true,
+      database_type: db.type,
+      profiles_count: result.rows[0].count,
+      profiles: result.rows,
+      message: 'Database connection successful'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      database_type: db.type,
+      message: 'Database connection failed'
+    });
+  }
 });
 
 // Static files
