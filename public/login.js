@@ -411,7 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       try {
-        const resp = await apiCall('/auth/register', {
+        const resp = await apiCall('/players/register', {
           method: 'POST',
           body: JSON.stringify({ login, email, password }),
           noAuthBounce: true,
