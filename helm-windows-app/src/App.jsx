@@ -107,7 +107,10 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Router>
+      <Router future={{ 
+        v7_startTransition: true,
+        v7_relativeSplatPath: true 
+      }}>
         <Box sx={{ display: 'flex', height: '100vh' }}>
           {/* App Bar */}
           <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
