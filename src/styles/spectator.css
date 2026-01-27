@@ -86,10 +86,10 @@
   --spectator-font-size-2xl: 20px;
   --spectator-font-size-3xl: 24px;
   
-  /* Spectator z-index */
+  /* Spectator z-index - Fixed hierarchy */
   --spectator-z-base: 1000;
-  --spectator-z-controls: 1010;
-  --spectator-z-content: 1020;
+  --spectator-z-content: 1010;
+  --spectator-z-controls: 1020;
   --spectator-z-overlay: 1030;
   --spectator-z-modal: 1040;
   --spectator-z-toast: 1050;
@@ -122,6 +122,14 @@
 
 .spectator-component:focus:not(:focus-visible) {
   outline: none;
+}
+
+/* Accessibility fallback for older browsers */
+@supports not selector(:focus-visible) {
+  .spectator-component:focus {
+    outline: 2px solid var(--spectator-primary);
+    outline-offset: 2px;
+  }
 }
 
 .spectator-component--disabled {
@@ -404,7 +412,7 @@
 /* ===== SPECTATOR SIDE PANELS ===== */
 .spectator-side-panels {
   position: absolute;
-  top: 0;
+  top: 60px; /* Fixed: Account for header height */
   right: 0;
   bottom: 0;
   width: 300px;
