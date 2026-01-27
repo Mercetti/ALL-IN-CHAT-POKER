@@ -3,6 +3,7 @@ const path = require('path');
 const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
+const { spawn, exec } = require('child_process');
 const HelmSmallLLMEngine = require('./helm-small-llm-engine');
 
 const app = express();
@@ -101,9 +102,56 @@ io.on('connection', (socket) => {
   });
 });
 
+// Start Ollama if not running
+async function startOllama() {
+  return new Promise((resolve, reject) => {
+    console.log('🔍 Checking Ollama status...');
+    
+    // Check if Ollama is already running
+    exec('ollama list', (error, stdout, stderr) => {
+      if (!error) {
+        console.log('✅ Ollama is already running');
+        resolve();
+        return;
+      }
+      
+      console.log('🚀 Starting Ollama...');
+      const ollamaProcess = spawn('ollama', ['serve'], {
+        detached: true,
+        stdio: ['ignore', 'pipe', 'pipe']
+      });
+      
+      ollamaProcess.stdout.on('data', (data) => {
+        console.log(`Ollama: ${data}`);
+      });
+      
+      ollamaProcess.stderr.on('data', (data) => {
+        console.log(`Ollama: ${data}`);
+      });
+      
+      ollamaProcess.on('error', (err) => {
+        console.error('❌ Failed to start Ollama:', err.message);
+        reject(err);
+      });
+      
+      // Give Ollama time to start
+      setTimeout(() => {
+        console.log('✅ Ollama started successfully');
+        resolve();
+      }, 5000);
+      
+      // Don't wait for Ollama to close - it runs in background
+      ollamaProcess.unref();
+    });
+  });
+}
+
 // Initialize Helm and start server
 async function startServer() {
   try {
+    // Start Ollama first
+    await startOllama();
+    
     console.log('🚀 Initializing Helm Small LLM Engine...');
     await helmEngine.initialize();
     console.log('✅ Helm Small LLM Engine ready!');
@@ -114,6 +162,7 @@ async function startServer() {
       console.log(`📱 Access the Helm UI at: http://localhost:${PORT}/helm`);
       console.log(`🏠 Main site at: http://localhost:${PORT}`);
       console.log(`🤖 Small LLMs ready: TinyLlama, Phi, Qwen, DeepSeek-Coder`);
+      console.log(`🧠 Intelligent Learning System Active`);
     });
   } catch (error) {
     console.error('❌ Failed to initialize Helm:', error);

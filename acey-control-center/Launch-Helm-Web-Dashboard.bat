@@ -2,8 +2,8 @@
 title Helm Web Dashboard
 echo 🛡️  Starting Helm Web Dashboard...
 echo.
-echo 📱 Mobile-ready dashboard will open in your browser
-echo 🚀 Make sure Helm server is running on port 3001
+echo � Helm will automatically start Ollama if needed
+echo �📱 Mobile-ready dashboard will open in your browser
 echo.
 
 REM Change to the app directory

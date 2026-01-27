@@ -37,10 +37,10 @@ if __name__ == "__main__":
         
         # Auto-open browser
         try:
-            webbrowser.open(f'http://localhost:{PORT}/helm-dashboard.html')
-            print(f"🌐 Opening dashboard in default browser...")
+            webbrowser.open(f'http://localhost:{PORT}/helm-dashboard-complete.html')
+            print(f"🌐 Opening enhanced dashboard in default browser...")
         except:
-            print(f"⚠️  Could not auto-open browser. Please manually navigate to http://localhost:{PORT}/helm-dashboard.html")
+            print(f"⚠️  Could not auto-open browser. Please manually navigate to http://localhost:{PORT}/helm-dashboard-complete.html")
         
         try:
             httpd.serve_forever()
