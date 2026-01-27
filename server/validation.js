@@ -97,6 +97,7 @@ function validateObject(obj, schema) {
   if (typeof obj !== 'object' || obj === null) return false;
   return Object.entries(schema).every(([key, validator]) => {
     return validator(obj[key]);
+  });
 }
 
 module.exports = {
