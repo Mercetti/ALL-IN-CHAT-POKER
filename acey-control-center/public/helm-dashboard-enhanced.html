@@ -80,6 +80,28 @@
             margin-bottom: 15px;
             overflow-x: hidden; /* Prevent horizontal scrollbar */
             min-height: 0; /* Allow flexbox to work properly */
+            /* Custom scrollbar styling */
+            scrollbar-width: thin;
+            scrollbar-color: #667eea #2a2a3e;
+        }
+        
+        /* Custom scrollbar for Webkit browsers */
+        .chat-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .chat-container::-webkit-scrollbar-track {
+            background: #2a2a3e;
+            border-radius: 4px;
+        }
+        
+        .chat-container::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+        }
+        
+        .chat-container::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
         }
         
         .message-bubble {
