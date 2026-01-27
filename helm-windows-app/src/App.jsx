@@ -17,6 +17,7 @@ import {
 } from '@mui/icons-material';
 
 // Import components
+import EnhancedDashboard from './components/EnhancedDashboard';
 import Dashboard from './components/Dashboard';
 import SkillManagement from './components/SkillManagement';
 import SessionControl from './components/SessionControl';
@@ -95,7 +96,8 @@ function App() {
 
   // Navigation items
   const navigationItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: <DashboardIcon />, component: Dashboard },
+    { id: 'dashboard', label: 'Enhanced Dashboard', icon: <DashboardIcon />, component: EnhancedDashboard },
+    { id: 'classic', label: 'Classic Dashboard', icon: <AnalyticsIcon />, component: Dashboard },
     { id: 'skills', label: 'Skills', icon: <ChatIcon />, component: SkillManagement },
     { id: 'sessions', label: 'Sessions', icon: <SecurityIcon />, component: SessionControl },
     { id: 'logs', label: 'Logs', icon: <AnalyticsIcon />, component: MonitorLogs },

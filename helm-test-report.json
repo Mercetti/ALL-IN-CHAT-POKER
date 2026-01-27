@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-01-27T14:31:48.133Z",
+  "timestamp": "2026-01-27T16:13:26.315Z",
   "summary": {
     "passed": 9,
     "failed": 1,
@@ -50,7 +50,7 @@
       "message": "Ollama running with models",
       "details": {
         "code": 0,
-        "output": "NAME                   ID              SIZE      MODIFIED     \nphi:latest             e2fd6321a5fe    1.6 GB    31 hours ago    \ntinyllama:latest       2644915ede35    637 MB    31 hours ago    \nllama"
+        "output": "NAME                   ID              SIZE      MODIFIED     \nphi:latest             e2fd6321a5fe    1.6 GB    32 hours ago    \ntinyllama:latest       2644915ede35    637 MB    33 hours ago    \nllama"
       }
     },
     {
@@ -172,9 +172,9 @@
     {
       "name": "System Metrics",
       "passed": true,
-      "message": "System metrics available - Uptime: 21354s",
+      "message": "System metrics available - Uptime: 27452s",
       "details": {
-        "uptime": 21354.5313394,
+        "uptime": 27452.7129916,
         "totalExecutions": 0,
         "successRate": "N/A"
       }
