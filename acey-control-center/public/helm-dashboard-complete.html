@@ -479,8 +479,45 @@
                 }
             };
 
+            const selectBestModel = (prompt) => {
+                const lowerPrompt = prompt.toLowerCase();
+                
+                // Code-related tasks - use coding model
+                if (lowerPrompt.includes('code') || 
+                    lowerPrompt.includes('function') || 
+                    lowerPrompt.includes('programming') ||
+                    lowerPrompt.includes('debug') ||
+                    lowerPrompt.includes('analyze code')) {
+                    return 'deepseek-coder:1.3b';
+                }
+                
+                // Creative tasks - use balanced model
+                if (lowerPrompt.includes('logo') || 
+                    lowerPrompt.includes('design') || 
+                    lowerPrompt.includes('create') ||
+                    lowerPrompt.includes('creative') ||
+                    lowerPrompt.includes('art')) {
+                    return 'phi';
+                }
+                
+                // Poker/gaming tasks - use efficient model
+                if (lowerPrompt.includes('poker') || 
+                    lowerPrompt.includes('game') || 
+                    lowerPrompt.includes('bet') ||
+                    lowerPrompt.includes('cards')) {
+                    return 'qwen:0.5b';
+                }
+                
+                // Default - use fastest model for quick responses
+                return 'tinyllama';
+            };
+
             const executeCustomPrompt = () => {
                 if (!customPrompt.trim()) return;
+                
+                // Auto-select best model based on content
+                const bestModel = selectBestModel(customPrompt);
+                setSelectedModel(bestModel);
                 
                 let skillId = 'simple_chat';
                 let params = { message: customPrompt };
@@ -726,17 +763,6 @@
                     <div className="card">
                         <h2>💬 Helm Chat Interface</h2>
                         <div className="input-group">
-                            <select 
-                                className="select-field"
-                                value={selectedModel} 
-                                onChange={(e) => setSelectedModel(e.target.value)}
-                            >
-                                {availableModels.map(model => (
-                                    <option key={model} value={model}>{model}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="input-group">
                             <input
                                 type="text"
                                 className="input-field"
@@ -745,6 +771,23 @@
                                 onChange={(e) => setCustomPrompt(e.target.value)}
                                 onKeyPress={(e) => e.key === 'Enter' && executeCustomPrompt()}
                             />
+                            <select 
+                                style={{
+                                    padding: '8px 12px',
+                                    background: 'rgba(102, 126, 234, 0.1)',
+                                    border: '1px solid #3a3a5e',
+                                    borderRadius: '8px',
+                                    color: '#e0e0e0',
+                                    fontSize: '12px',
+                                    minWidth: '120px'
+                                }}
+                                value={selectedModel} 
+                                onChange={(e) => setSelectedModel(e.target.value)}
+                            >
+                                {availableModels.map(model => (
+                                    <option key={model} value={model}>{model}</option>
+                                ))}
+                            </select>
                             <button 
                                 className="btn"
                                 onClick={executeCustomPrompt}
