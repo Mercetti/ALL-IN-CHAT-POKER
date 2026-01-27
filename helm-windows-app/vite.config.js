@@ -14,7 +14,7 @@ export default defineConfig({
   
   // Development server configuration
   server: {
-    port: 3000,
+    port: 5173,
     host: 'localhost',
   },
   
@@ -35,7 +35,7 @@ export default defineConfig({
   
   // Define global constants
   define: {
-    __DEV__: JSON.stringify(import.meta.env.MODE === 'development'),
+    __DEV__: JSON.stringify(process.env.NODE_ENV === 'development'),
   },
   
   // Security and CSP settings
