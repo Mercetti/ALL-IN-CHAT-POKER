@@ -35,12 +35,17 @@ if __name__ == "__main__":
         print(f"�🔄 Press Ctrl+C to stop the server")
         print()
         
-        # Auto-open browser
+        # Auto-open browser with cache-buster
         try:
-            webbrowser.open(f'http://localhost:{PORT}/helm-dashboard-complete.html')
-            print(f"🌐 Opening enhanced dashboard in default browser...")
+            import time
+            timestamp = int(time.time())
+            webbrowser.open(f'http://localhost:{PORT}/test-enhanced.html')
+            print(f"🌐 Opening dashboard test page in default browser...")
+            print(f"📱 Enhanced dashboard: http://localhost:{PORT}/helm-dashboard-complete.html?v={timestamp}")
         except:
-            print(f"⚠️  Could not auto-open browser. Please manually navigate to http://localhost:{PORT}/helm-dashboard-complete.html")
+            print(f"⚠️  Could not auto-open browser. Please manually navigate to:")
+            print(f"   🧪 Test page: http://localhost:{PORT}/test-enhanced.html")
+            print(f"   ✅ Enhanced: http://localhost:{PORT}/helm-dashboard-complete.html")
         
         try:
             httpd.serve_forever()

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Helm Enhanced Dashboard Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            padding: 20px;
+            text-align: center;
+        }
+        .test-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            margin: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .test-button:hover {
+            background: #5a6fd8;
+        }
+    </style>
+</head>
+<body>
+    <h1>🛡️ Helm Dashboard Test</h1>
+    <p>This page tests if the enhanced dashboard is working correctly.</p>
+    
+    <button class="test-button" onclick="openEnhanced()">
+        🚀 Open Enhanced Dashboard
+    </button>
+    
+    <button class="test-button" onclick="openBasic()">
+        📱 Open Basic Dashboard
+    </button>
+    
+    <button class="test-button" onclick="clearCache()">
+        🔄 Clear Cache & Reload
+    </button>
+    
+    <div id="status" style="margin-top: 30px; padding: 20px; background: #16213e; border-radius: 8px;">
+        <p>Click a button above to test the dashboard.</p>
+    </div>
+    
+    <script>
+        function openEnhanced() {
+            const timestamp = Date.now();
+            const url = `http://localhost:8082/helm-dashboard-complete.html?v=${timestamp}`;
+            document.getElementById('status').innerHTML = `
+                <h3>✅ Opening Enhanced Dashboard</h3>
+                <p>URL: <a href="${url}" target="_blank">${url}</a></p>
+                <p>You should see:</p>
+                <ul style="text-align: left; max-width: 400px; margin: 0 auto;">
+                    <li>💬 Smart chat interface with message bubbles</li>
+                    <li>🎨 Compact LLM selector that auto-selects</li>
+                    <li>🖼️ Visual logo generation on canvas</li>
+                    <li>🌙 Dark theme with modern UI</li>
+                    <li>📱 Multiple tabs (Dashboard, Skills, Chat, etc.)</li>
+                </ul>
+            `;
+            window.open(url, '_blank');
+        }
+        
+        function openBasic() {
+            const timestamp = Date.now();
+            const url = `http://localhost:8082/helm-dashboard.html?v=${timestamp}`;
+            document.getElementById('status').innerHTML = `
+                <h3>📱 Opening Basic Dashboard</h3>
+                <p>URL: <a href="${url}" target="_blank">${url}</a></p>
+                <p>This is the old simple version for comparison.</p>
+            `;
+            window.open(url, '_blank');
+        }
+        
+        function clearCache() {
+            if ('caches' in window) {
+                caches.keys().then(function(names) {
+                    names.forEach(function(name) {
+                        caches.delete(name);
+                    });
+                });
+            }
+            location.reload(true);
+        }
+    </script>
+</body>
+</html>

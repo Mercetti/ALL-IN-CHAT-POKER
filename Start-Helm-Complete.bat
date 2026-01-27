@@ -30,8 +30,8 @@ start "Helm Dashboard" cmd /k "cd acey-control-center && python serve-dashboard.
 REM Wait for dashboard to start
 timeout /t 3 /nobreak >nul
 
-REM Open the dashboard in browser
-start http://localhost:8082/helm-dashboard-complete.html
+REM Open the dashboard in browser with cache-buster
+start http://localhost:8082/helm-dashboard-complete.html?nocache=%random%
 
 echo.
 echo ✅ Helm Complete System Started!
@@ -40,7 +40,7 @@ echo 📊 Learning data will be stored in D:\AceyLearning\helm\
 echo.
 echo Press any key to open dashboard again...
 pause >nul
-start http://localhost:8082/helm-dashboard-complete.html
+start http://localhost:8082/helm-dashboard-complete.html?nocache=%random%
 
 echo.
 echo 🎯 Helm is running! Close this window to keep Helm running in background.
