@@ -54,17 +54,22 @@
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 60vh; /* Take up more vertical space */
+            min-height: 500px;
         }
         
         /* Chat Message Bubbles */
         .chat-container {
-            max-height: 400px;
+            flex: 1;
             overflow-y: auto;
             padding: 20px;
             background: rgba(26, 26, 46, 0.5);
             border-radius: 12px;
             border: 1px solid #3a3a5e;
             margin-bottom: 15px;
+            overflow-x: hidden; /* Prevent horizontal scrollbar */
         }
         
         .message-bubble {
@@ -133,12 +138,13 @@
         
         .chat-input-container {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
-            padding: 15px;
+            padding: 12px;
             background: rgba(26, 26, 46, 0.8);
             border-radius: 12px;
             border: 1px solid #3a3a5e;
+            flex-shrink: 0; /* Prevent input container from growing */
         }
         
         .chat-input {
@@ -164,27 +170,30 @@
         }
         
         .model-select {
-            padding: 8px 12px;
+            padding: 6px 10px;
             background: rgba(102, 126, 234, 0.1);
             border: 1px solid #3a3a5e;
-            border-radius: 8px;
+            border-radius: 6px;
             color: #e0e0e0;
             font-size: 12px;
-            min-width: 120px;
+            min-width: 100px;
+            flex-shrink: 0;
         }
         
         .chat-send-btn {
-            padding: 10px 20px;
+            padding: 8px 16px;
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border: none;
-            border-radius: 25px;
+            border-radius: 20px;
             cursor: pointer;
             font-weight: 500;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
+            font-size: 13px;
+            flex-shrink: 0;
         }
         
         .chat-send-btn:hover {
@@ -249,6 +258,7 @@
             const [selectedModel, setSelectedModel] = useState('phi');
             const [isLoading, setIsLoading] = useState(false);
             const [helmStatus, setHelmStatus] = useState({ running: false });
+            const [pendingAssets, setPendingAssets] = useState([]);
             
             const availableModels = ['tinyllama', 'phi', 'qwen:0.5b', 'deepseek-coder:1.3b'];
             
@@ -324,9 +334,25 @@
                     
                     setMessages(prev => [...prev, aiMessage]);
                     
-                    // If it's a logo creation request, display the logo
-                    if (input.toLowerCase().includes('logo') || input.toLowerCase().includes('create')) {
+                    // If it's a poker asset creation request, display the asset
+                    const lowerInput = input.toLowerCase();
+                    if (lowerInput.includes('card back') || lowerInput.includes('playing card') ||
+                        lowerInput.includes('poker chip') || lowerInput.includes('chip') ||
+                        lowerInput.includes('avatar') || lowerInput.includes('player icon') ||
+                        lowerInput.includes('table') || lowerInput.includes('felt') ||
+                        lowerInput.includes('suit') || lowerInput.includes('spade') || lowerInput.includes('heart') || lowerInput.includes('diamond') || lowerInput.includes('club') ||
+                        lowerInput.includes('logo') || lowerInput.includes('create logo') || 
+                        lowerInput.includes('design') || lowerInput.includes('image') ||
+                        lowerInput.includes('make a') && (lowerInput.includes('logo') || lowerInput.includes('icon') || lowerInput.includes('card')) ||
+                        lowerInput.includes('poker')) {
                         setTimeout(() => createLogo(input), 500);
+                    }
+                    
+                    // If it's an audio creation request, create the audio
+                    if (lowerInput.includes('sound') || lowerInput.includes('audio') || lowerInput.includes('music') ||
+                        lowerInput.includes('shuffle') || lowerInput.includes('chip sound') || lowerInput.includes('win') || lowerInput.includes('lose') ||
+                        lowerInput.includes('deal') || lowerInput.includes('bet') || lowerInput.includes('background') || lowerInput.includes('alert')) {
+                        setTimeout(() => createAudio(input), 500);
                     }
                     
                 } catch (error) {
@@ -352,29 +378,553 @@
                 canvas.width = width;
                 canvas.height = height;
                 
-                // Create a simple logo based on description
+                const lowerDesc = description.toLowerCase();
+                
+                // Create poker-themed graphics based on description
+                if (lowerDesc.includes('card back') || lowerDesc.includes('playing card')) {
+                    createCardBack(ctx, width, height);
+                } else if (lowerDesc.includes('chip') || lowerDesc.includes('poker chip')) {
+                    createPokerChip(ctx, width, height);
+                } else if (lowerDesc.includes('avatar') || lowerDesc.includes('player icon')) {
+                    createPlayerAvatar(ctx, width, height);
+                } else if (lowerDesc.includes('table') || lowerDesc.includes('felt')) {
+                    createTableFelt(ctx, width, height);
+                } else if (lowerDesc.includes('suit') || lowerDesc.includes('spade') || lowerDesc.includes('heart') || lowerDesc.includes('diamond') || lowerDesc.includes('club')) {
+                    createCardSuit(ctx, width, height, lowerDesc);
+                } else if (lowerDesc.includes('logo') || lowerDesc.includes('icon')) {
+                    createPokerLogo(ctx, width, height);
+                } else {
+                    createPokerLogo(ctx, width, height); // Default
+                }
+                
+                // Convert canvas to image data URL
+                const imageData = canvas.toDataURL('image/png');
+                
+                // Show the canvas
+                canvas.style.display = 'block';
+                
+                // Create pending asset for approval
+                const pendingAsset = {
+                    id: Date.now(),
+                    type: 'image',
+                    assetType: getAssetType(lowerDesc),
+                    description: description,
+                    imageUrl: imageData,
+                    timestamp: new Date().toISOString(),
+                    status: 'pending'
+                };
+                
+                setPendingAssets(prev => [...prev, pendingAsset]);
+                
+                // Add approval message
+                const approvalMessage = {
+                    content: `Poker ${getAssetType(lowerDesc)} created! Review and approve to implement:`,
+                    isUser: false,
+                    timestamp: new Date().toISOString(),
+                    isApproval: true,
+                    assetId: pendingAsset.id,
+                    imageUrl: imageData
+                };
+                
+                setMessages(prev => [...prev, approvalMessage]);
+            };
+            
+            const getAssetType = (desc) => {
+                if (desc.includes('card back')) return 'Card Back';
+                if (desc.includes('chip')) return 'Chip';
+                if (desc.includes('avatar')) return 'Avatar';
+                if (desc.includes('table') || desc.includes('felt')) return 'Table';
+                if (desc.includes('suit')) return 'Card Suit';
+                return 'Asset';
+            };
+            
+            const createCardBack = (ctx, width, height) => {
+                // Card back design
+                const gradient = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, width/2);
+                gradient.addColorStop(0, '#2c3e50');
+                gradient.addColorStop(0.5, '#34495e');
+                gradient.addColorStop(1, '#2c3e50');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, width, height);
+                
+                // Add pattern
+                ctx.strokeStyle = '#e74c3c';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.strokeRect(10, 10, width-20, height-20);
+                
+                // Inner border
+                ctx.strokeStyle = '#f39c12';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([]);
+                ctx.strokeRect(20, 20, width-40, height-40);
+                
+                // Center design
+                ctx.fillStyle = '#f39c12';
+                ctx.beginPath();
+                ctx.arc(width/2, height/2, 30, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = '#e74c3c';
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('♠️', width/2, height/2 + 5);
+            };
+            
+            const createPokerChip = (ctx, width, height) => {
+                // Poker chip design
+                const gradient = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, width/2);
+                gradient.addColorStop(0, '#e74c3c');
+                gradient.addColorStop(0.7, '#c0392b');
+                gradient.addColorStop(1, '#8b0000');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(width/2, height/2, width/2 - 10, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Inner circle
+                ctx.fillStyle = '#2c3e50';
+                ctx.beginPath();
+                ctx.arc(width/2, height/2, width/2 - 25, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Dollar sign
+                ctx.fillStyle = '#f39c12';
+                ctx.font = 'bold 24px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('$', width/2, height/2 + 8);
+                
+                // Edge dots
+                ctx.fillStyle = '#f39c12';
+                for (let i = 0; i < 8; i++) {
+                    const angle = (i * Math.PI * 2) / 8;
+                    const x = width/2 + Math.cos(angle) * (width/2 - 15);
+                    const y = height/2 + Math.sin(angle) * (width/2 - 15);
+                    ctx.beginPath();
+                    ctx.arc(x, y, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            };
+            
+            const createPlayerAvatar = (ctx, width, height) => {
+                // Player avatar background
                 const gradient = ctx.createLinearGradient(0, 0, width, height);
                 gradient.addColorStop(0, '#667eea');
                 gradient.addColorStop(1, '#764ba2');
                 ctx.fillStyle = gradient;
                 ctx.fillRect(0, 0, width, height);
                 
-                // Add text
-                ctx.fillStyle = 'white';
-                ctx.font = 'bold 24px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('🛡️', width/2, height/2 - 20);
-                ctx.font = '16px Arial';
-                ctx.fillText('HELM', width/2, height/2 + 10);
+                // Avatar circle
+                ctx.fillStyle = '#f0f0f0';
+                ctx.beginPath();
+                ctx.arc(width/2, height/2, 60, 0, Math.PI * 2);
+                ctx.fill();
                 
-                const logoMessage = {
-                    content: 'Logo created successfully!',
-                    isUser: false,
+                // Player icon
+                ctx.fillStyle = '#333';
+                ctx.font = 'bold 40px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('👤', width/2, height/2 + 10);
+                
+                // Status indicator
+                ctx.fillStyle = '#10b981';
+                ctx.beginPath();
+                ctx.arc(width - 30, 30, 8, 0, Math.PI * 2);
+                ctx.fill();
+            };
+            
+            const createTableFelt = (ctx, width, height) => {
+                // Poker table felt
+                const gradient = ctx.createLinearGradient(0, 0, 0, height);
+                gradient.addColorStop(0, '#0d5f2b');
+                gradient.addColorStop(0.5, '#0a4f2a');
+                gradient.addColorStop(1, '#0d5f2b');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, width, height);
+                
+                // Wood texture lines
+                ctx.strokeStyle = '#084420';
+                ctx.lineWidth = 1;
+                for (let i = 0; i < height; i += 10) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, i);
+                    ctx.lineTo(width, i);
+                    ctx.stroke();
+                }
+                
+                // Center design
+                ctx.strokeStyle = '#f39c12';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(width/2 - 40, height/2 - 40, 80, 80);
+            };
+            
+            const createCardSuit = (ctx, width, height, desc) => {
+                let suit = '♠️';
+                let color = '#000000';
+                
+                if (desc.includes('heart') || desc.includes('♥')) {
+                    suit = '♥️';
+                    color = '#e74c3c';
+                } else if (desc.includes('diamond') || desc.includes('♦')) {
+                    suit = '♦️';
+                    color = '#e74c3c';
+                } else if (desc.includes('club') || desc.includes('♣')) {
+                    suit = '♣️';
+                    color = '#000000';
+                }
+                
+                // Card background
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, width, height);
+                
+                // Card border
+                ctx.strokeStyle = '#333333';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(5, 5, width-10, height-10);
+                
+                // Suit symbol
+                ctx.fillStyle = color;
+                ctx.font = 'bold 60px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(suit, width/2, height/2 + 20);
+            };
+            
+            const createPokerLogo = (ctx, width, height) => {
+                // Poker logo design
+                const gradient = ctx.createLinearGradient(0, 0, width, height);
+                gradient.addColorStop(0, '#1a1a2e');
+                gradient.addColorStop(1, '#16213e');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, width, height);
+                
+                // Cards background
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.fillRect(20, 20, width-40, height-40);
+                
+                // Playing cards
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(30, 40, 40, 60);
+                ctx.fillRect(130, 40, 40, 60);
+                
+                // Card suits
+                ctx.fillStyle = '#e74c3c';
+                ctx.font = '24px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('♥️', 50, 70);
+                ctx.fillText('♠️', 150, 70);
+                
+                // Poker chips
+                ctx.fillStyle = '#e74c3c';
+                ctx.beginPath();
+                ctx.arc(50, 120, 20, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = '#f39c12';
+                ctx.beginPath();
+                ctx.arc(100, 120, 20, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = '#000000';
+                ctx.beginPath();
+                ctx.arc(150, 120, 20, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Title
+                ctx.fillStyle = '#667eea';
+                ctx.font = 'bold 20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('POKER', width/2, height - 25);
+            };
+            
+            const createAudio = (description) => {
+                const lowerDesc = description.toLowerCase();
+                
+                if (lowerDesc.includes('card shuffle') || lowerDesc.includes('shuffle')) {
+                    createCardShuffleSound();
+                } else if (lowerDesc.includes('chip sound') || lowerDesc.includes('chip noise')) {
+                    createChipSound();
+                } else if (lowerDesc.includes('win') || lowerDesc.includes('victory')) {
+                    createWinSound();
+                } else if (lowerDesc.includes('lose') || lowerDesc.includes('defeat')) {
+                    createLoseSound();
+                } else if (lowerDesc.includes('deal') || lowerDesc.includes('dealing')) {
+                    createDealSound();
+                } else if (lowerDesc.includes('bet') || lowerDesc.includes('wager')) {
+                    createBetSound();
+                } else if (lowerDesc.includes('background') || lowerDesc.includes('music') || lowerDesc.includes('ambient')) {
+                    createBackgroundMusic();
+                } else if (lowerDesc.includes('alert') || lowerDesc.includes('notification')) {
+                    createAlertSound();
+                } else {
+                    createBackgroundMusic(); // Default
+                }
+                
+                // Create pending asset for approval
+                const pendingAsset = {
+                    id: Date.now(),
+                    type: 'audio',
+                    assetType: getAudioType(lowerDesc),
+                    description: description,
+                    audioUrl: currentAudioUrl,
                     timestamp: new Date().toISOString(),
-                    isLogo: true
+                    status: 'pending'
                 };
                 
-                setMessages(prev => [...prev, logoMessage]);
+                setPendingAssets(prev => [...prev, pendingAsset]);
+                
+                // Add approval message
+                const approvalMessage = {
+                    content: `Poker ${getAudioType(lowerDesc)} created! Review and approve to implement:`,
+                    isUser: false,
+                    timestamp: new Date().toISOString(),
+                    isApproval: true,
+                    assetId: pendingAsset.id,
+                    audioUrl: currentAudioUrl
+                };
+                
+                setMessages(prev => [...prev, approvalMessage]);
+            };
+            
+            const getAudioType = (desc) => {
+                if (desc.includes('shuffle')) return 'Shuffle Sound';
+                if (desc.includes('chip')) return 'Chip Sound';
+                if (desc.includes('win')) return 'Win Sound';
+                if (desc.includes('lose')) return 'Lose Sound';
+                if (desc.includes('deal')) return 'Deal Sound';
+                if (desc.includes('bet')) return 'Bet Sound';
+                if (desc.includes('background') || desc.includes('music')) return 'Background Music';
+                if (desc.includes('alert') || desc.includes('notification')) return 'Alert Sound';
+                return 'Audio';
+            };
+            
+            let currentAudioUrl = null;
+            
+            // Audio generation functions
+            const createCardShuffleSound = () => {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const duration = 1.5;
+                const sampleRate = audioContext.sampleRate;
+                const buffer = audioContext.createBuffer(1, sampleRate * duration, audioContext.sampleRate);
+                const data = buffer.getChannelData(0);
+                
+                for (let i = 0; i < data.length; i++) {
+                    // Create realistic card shuffle sound
+                    if (Math.random() < 0.02) {
+                        data[i] = (Math.random() - 0.5) * 0.3; // Random noise
+                    } else {
+                        data[i] = Math.sin(i * 0.02) * 0.1 * Math.exp(-i * 0.001) * Math.random();
+                    }
+                }
+                
+                const blob = new Blob([buffer], { type: 'audio/wav' });
+                currentAudioUrl = URL.createObjectURL(blob);
+            };
+            
+            const createChipSound = () => {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const duration = 0.3;
+                const sampleRate = audioContext.sampleRate;
+                const buffer = audioContext.createBuffer(1, sampleRate * duration, audioContext.sampleRate);
+                const data = buffer.getChannelData(0);
+                
+                for (let i = 0; i < data.length; i++) {
+                    // Create chip click sound
+                    data[i] = Math.sin(i * 0.5) * 0.8 * Math.exp(-i * 0.01);
+                }
+                
+                const blob = new Blob([buffer], { type: 'audio/wav' });
+                currentAudioUrl = URL.createObjectURL(blob);
+            };
+            
+            const createWinSound = () => {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const duration = 2.0;
+                const sampleRate = audioContext.sampleRate;
+                const buffer = audioContext.createBuffer(1, sampleRate * duration, audioContext.sampleRate);
+                const data = buffer.getChannelData(0);
+                
+                for (let i = 0; i < data.length; i++) {
+                    // Create celebratory win sound
+                    const t = i / sampleRate;
+                    data[i] = (Math.sin(440 * t) * 0.3 + Math.sin(880 * t) * 0.2) * Math.exp(-t * 0.5) +
+                              (Math.sin(220 * t) * 0.4 + Math.sin(660 * t) * 0.3) * Math.exp(-t * 0.3);
+                }
+                
+                const blob = new Blob([buffer], { type: 'audio/wav' });
+                currentAudioUrl = URL.createObjectURL(blob);
+            };
+            
+            const createLoseSound = () => {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const duration = 1.0;
+                const sampleRate = audioContext.sampleRate;
+                const buffer = audioContext.createBuffer(1, sampleRate * duration, audioContext.sampleRate);
+                const data = buffer.getChannelData(0);
+                
+                for (let i = 0; i < data.length; i++) {
+                    // Create sad lose sound
+                    const t = i / sampleRate;
+                    data[i] = (Math.sin(200 * t) * 0.2 * Math.exp(-t * 0.8)) +
+                              (Math.sin(100 * t) * 0.1 * Math.exp(-t * 0.5));
+                }
+                
+                const blob = new Blob([buffer], { type: 'audio/wav' });
+                currentAudioUrl = URL.createObjectURL(blob);
+            };
+            
+            const createDealSound = () => {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const duration = 0.8;
+                const sampleRate = audioContext.sampleRate;
+                const buffer = audioContext.createBuffer(1, sampleRate * duration, audioContext.sampleRate);
+                const data = buffer.getChannelData(0);
+                
+                for (let i = 0; i < data.length; i++) {
+                    // Create card dealing sound
+                    if (i < 100) {
+                        data[i] = Math.random() * 0.1 - 0.05; // Quick swoosh
+                    } else {
+                        data[i] = 0;
+                    }
+                }
+                
+                const blob = new Blob([buffer], { type: 'audio/wav' });
+                currentAudioUrl = URL.createObjectURL(blob);
+            };
+            
+            const createBetSound = () => {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const duration = 0.4;
+                const sampleRate = audioContext.sampleRate;
+                const buffer = audioContext.createBuffer(1, sampleRate * duration, audioContext.sampleRate);
+                const data = buffer.getChannelData(0);
+                
+                for (let i = 0; i < data.length; i++) {
+                    // Create bet placement sound
+                    data[i] = Math.sin(i * 0.8) * 0.3 * Math.exp(-i * 0.01);
+                }
+                
+                const blob = new Blob([buffer], { type: 'audio/wav' });
+                currentAudioUrl = URL.createObjectURL(blob);
+            };
+            
+            const createBackgroundMusic = () => {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const duration = 10.0;
+                const sampleRate = audioContext.sampleRate;
+                const buffer = audioContext.createBuffer(1, sampleRate * duration, audioContext.sampleRate);
+                const data = buffer.getChannelData(0);
+                
+                for (let i = 0; i < data.length; i++) {
+                    // Create ambient poker background music
+                    const t = i / sampleRate;
+                    data[i] = (Math.sin(110 * t) * 0.1 + Math.sin(220 * t) * 0.05) * 0.3 +
+                              (Math.sin(330 * t) * 0.08 * 0.2) +
+                              (Math.sin(440 * t) * 0.06 * 0.15);
+                }
+                
+                const blob = new Blob([buffer], { type: 'audio/wav' });
+                currentAudioUrl = URL.createObjectURL(blob);
+            };
+            
+            const createAlertSound = () => {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const duration = 0.5;
+                const sampleRate = audioContext.sampleRate;
+                const buffer = audioContext.createBuffer(1, sampleRate * duration, audioContext.sampleRate);
+                const data = buffer.getChannelData(0);
+                
+                for (let i = 0; i < data.length; i++) {
+                    // Create alert notification sound
+                    const t = i / sampleRate;
+                    data[i] = (Math.sin(880 * t) * 0.2) * Math.exp(-t * 0.3));
+                }
+                
+                const blob = new Blob([buffer], { type: 'audio/wav' });
+                currentAudioUrl = URL.createObjectURL(blob);
+            };
+            
+            const approveAsset = (assetId) => {
+                const asset = pendingAssets.find(a => a.id === assetId);
+                if (!asset) return;
+                
+                // Implement the asset
+                implementAsset(asset);
+                
+                // Update status
+                setPendingAssets(prev => prev.map(a => 
+                    a.id === assetId ? { ...a, status: 'approved' } : a
+                ));
+                
+                // Add implementation message
+                const implMessage = {
+                    content: `✅ ${asset.assetType} approved and implemented!`,
+                    isUser: false,
+                    timestamp: new Date().toISOString(),
+                    isImplementation: true,
+                    assetId: assetId
+                };
+                
+                setMessages(prev => [...prev, implMessage]);
+            };
+            
+            const rejectAsset = (assetId) => {
+                // Update status
+                setPendingAssets(prev => prev.map(a => 
+                    a.id === assetId ? { ...a, status: 'rejected' } : a
+                ));
+                
+                // Add rejection message
+                const rejectMessage = {
+                    content: `❌ Asset rejected. You can create a new one if needed.`,
+                    isUser: false,
+                    timestamp: new Date().toISOString(),
+                    isImplementation: true,
+                    assetId: assetId
+                };
+                
+                setMessages(prev => [...prev, rejectMessage]);
+            };
+            
+            const implementAsset = async (asset) => {
+                try {
+                    // Simulate implementation (in real scenario, this would save files)
+                    console.log('Implementing asset:', asset);
+                    
+                    // For demonstration, we'll just show what would happen
+                    const implementationDetails = {
+                        image: {
+                            folder: `assets/${asset.assetType.toLowerCase().replace(' ', '-')}/`,
+                            filename: `${asset.assetType.toLowerCase().replace(' ', '-')}-${Date.now()}.png`,
+                            component: `components/${asset.assetType.replace(' ', '')}.jsx`,
+                            styles: `styles/${asset.assetType.toLowerCase().replace(' ', '')}.css`
+                        },
+                        audio: {
+                            folder: `assets/audio/`,
+                            filename: `${asset.assetType.toLowerCase().replace(' ', '-')}-${Date.now()}.wav`,
+                            component: `components/AudioPlayer.jsx`,
+                            integration: 'integrated with game sound system'
+                        }
+                    };
+                    
+                    const details = implementationDetails[asset.type];
+                    
+                    // Add detailed implementation message
+                    const detailMessage = {
+                        content: `📁 Implementation Details:\n• Saved to: ${details.folder}\n• Filename: ${details.filename}\n• Component: ${details.component}\n• Ready to use in your poker game!`,
+                        isUser: false,
+                        timestamp: new Date().toISOString(),
+                        isImplementation: true,
+                        assetId: asset.id
+                    };
+                    
+                    setTimeout(() => {
+                        setMessages(prev => [...prev, detailMessage]);
+                    }, 1000);
+                    
+                } catch (error) {
+                    console.error('Implementation error:', error);
+                }
             };
             
             return (
@@ -409,7 +959,80 @@
                                         <div className="message-avatar">🛡️</div>
                                     )}
                                     <div className="message-content">
-                                        <div>{message.content}</div>
+                                        {message.isApproval ? (
+                                            <div>
+                                                {message.imageUrl && (
+                                                    <img 
+                                                        src={message.imageUrl} 
+                                                        alt="Generated Asset" 
+                                                        style={{
+                                                            maxWidth: '100%',
+                                                            borderRadius: '8px',
+                                                            border: '2px solid #3a3a5e',
+                                                            marginBottom: '8px'
+                                                        }}
+                                                    />
+                                                )}
+                                                {message.audioUrl && (
+                                                    <audio 
+                                                        controls 
+                                                        style={{
+                                                            width: '100%',
+                                                            borderRadius: '8px',
+                                                            marginBottom: '8px'
+                                                        }}
+                                                    >
+                                                        <source src={message.audioUrl} type="audio/wav" />
+                                                        Your browser does not support the audio element.
+                                                    </audio>
+                                                )}
+                                                <div style={{ marginBottom: '10px' }}>{message.content}</div>
+                                                <div style={{ display: 'flex', gap: '8px' }}>
+                                                    <button
+                                                        onClick={() => approveAsset(message.assetId)}
+                                                        style={{
+                                                            padding: '6px 12px',
+                                                            background: 'linear-gradient(135deg, #10b981, #059669)',
+                                                            color: 'white',
+                                                            border: 'none',
+                                                            borderRadius: '6px',
+                                                            cursor: 'pointer',
+                                                            fontSize: '12px',
+                                                            fontWeight: '500'
+                                                        }}
+                                                    >
+                                                        ✅ Approve & Implement
+                                                    </button>
+                                                    <button
+                                                        onClick={() => rejectAsset(message.assetId)}
+                                                        style={{
+                                                            padding: '6px 12px',
+                                                            background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                                                            color: 'white',
+                                                            border: 'none',
+                                                            borderRadius: '6px',
+                                                            cursor: 'pointer',
+                                                            fontSize: '12px',
+                                                            fontWeight: '500'
+                                                        }}
+                                                    >
+                                                        ❌ Reject
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : message.isImplementation ? (
+                                            <div style={{
+                                                background: 'rgba(16, 185, 129, 0.1)',
+                                                border: '1px solid #10b981',
+                                                borderRadius: '8px',
+                                                padding: '12px',
+                                                whiteSpace: 'pre-line'
+                                            }}>
+                                                {message.content}
+                                            </div>
+                                        ) : (
+                                            <div>{message.content}</div>
+                                        )}
                                         <div className="message-time">
                                             {new Date(message.timestamp).toLocaleTimeString()}
                                         </div>
