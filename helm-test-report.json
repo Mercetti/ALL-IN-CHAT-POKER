@@ -1,0 +1,183 @@
+{
+  "timestamp": "2026-01-27T14:31:48.133Z",
+  "summary": {
+    "passed": 9,
+    "failed": 1,
+    "total": 10,
+    "successRate": "90.0"
+  },
+  "details": [
+    {
+      "name": "File Structure",
+      "passed": true,
+      "message": "All 7 core files present",
+      "details": {
+        "files": [
+          {
+            "file": "helm-server.js",
+            "exists": true
+          },
+          {
+            "file": "helm-small-llm-engine.js",
+            "exists": true
+          },
+          {
+            "file": "acey-control-center/public/helm-dashboard-complete.html",
+            "exists": true
+          },
+          {
+            "file": "acey-control-center/public/helm-dashboard.html",
+            "exists": true
+          },
+          {
+            "file": "acey-control-center/serve-dashboard.py",
+            "exists": true
+          },
+          {
+            "file": "Start-Helm-Complete.bat",
+            "exists": true
+          },
+          {
+            "file": "acey-control-center/Launch-Helm-Web-Dashboard.bat",
+            "exists": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "Ollama Availability",
+      "passed": true,
+      "message": "Ollama running with models",
+      "details": {
+        "code": 0,
+        "output": "NAME                   ID              SIZE      MODIFIED     \nphi:latest             e2fd6321a5fe    1.6 GB    31 hours ago    \ntinyllama:latest       2644915ede35    637 MB    31 hours ago    \nllama"
+      }
+    },
+    {
+      "name": "Helm Server",
+      "passed": true,
+      "message": "Helm server running (port 3001) - Status: Active",
+      "details": {
+        "status": 200,
+        "running": true,
+        "skills": 8,
+        "learning": true
+      }
+    },
+    {
+      "name": "Dashboard Server",
+      "passed": true,
+      "message": "Basic dashboard available (missing enhanced features)",
+      "details": {
+        "status": 200,
+        "enhanced": false,
+        "size": 51971
+      }
+    },
+    {
+      "name": "Learning System",
+      "passed": true,
+      "message": "Learning system active with storage",
+      "details": {
+        "enabled": true,
+        "storageExists": true,
+        "path": "D:\\AceyLearning\\helm",
+        "events": 0
+      }
+    },
+    {
+      "name": "Chat Interface",
+      "passed": true,
+      "message": "Chat interface available with simple_chat skill",
+      "details": {
+        "running": true,
+        "skills": [
+          "quick_commentary",
+          "simple_chat",
+          "basic_analysis",
+          "quick_assist",
+          "code_analysis",
+          "create_content",
+          "poker_deal",
+          "poker_bet"
+        ],
+        "chatSkill": true
+      }
+    },
+    {
+      "name": "Skill Execution",
+      "passed": true,
+      "message": "All 4 core skills available",
+      "details": {
+        "expected": [
+          "simple_chat",
+          "create_content",
+          "code_analysis",
+          "quick_assist"
+        ],
+        "available": [
+          "quick_commentary",
+          "simple_chat",
+          "basic_analysis",
+          "quick_assist",
+          "code_analysis",
+          "create_content",
+          "poker_deal",
+          "poker_bet"
+        ],
+        "missing": []
+      }
+    },
+    {
+      "name": "Dashboard Features",
+      "passed": false,
+      "message": "3/6 dashboard features detected",
+      "details": {
+        "features": {
+          "smartModelSelection": true,
+          "messageBubbles": false,
+          "logoCanvas": true,
+          "darkTheme": false,
+          "multipleTabs": true,
+          "learningStats": false
+        },
+        "featureCount": 3,
+        "totalFeatures": 6
+      }
+    },
+    {
+      "name": "Shortcut Files",
+      "passed": true,
+      "message": "3/3 shortcuts found, 1 have auto-Ollama",
+      "details": {
+        "shortcuts": [
+          {
+            "shortcut": "Start-Helm-Complete.bat",
+            "exists": true,
+            "hasOllamaAuto": true
+          },
+          {
+            "shortcut": "acey-control-center/Launch-Helm-Web-Dashboard.bat",
+            "exists": true,
+            "hasOllamaAuto": false
+          },
+          {
+            "shortcut": "acey-control-center/Launch-Helm-Mobile.bat",
+            "exists": true,
+            "hasOllamaAuto": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "System Metrics",
+      "passed": true,
+      "message": "System metrics available - Uptime: 21354s",
+      "details": {
+        "uptime": 21354.5313394,
+        "totalExecutions": 0,
+        "successRate": "N/A"
+      }
+    }
+  ]
+}
