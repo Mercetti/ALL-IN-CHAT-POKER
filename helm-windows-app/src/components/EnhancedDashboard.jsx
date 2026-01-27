@@ -23,7 +23,7 @@ import {
 const EnhancedDashboard = ({ onNotification }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [dashboardUrl, setDashboardUrl] = useState('http://localhost:8082/helm-dashboard-complete.html');
+  const [dashboardUrl, setDashboardUrl] = useState(`http://localhost:8082/helm-dashboard-enhanced.html?v=${Date.now()}`);
 
   useEffect(() => {
     // Check if dashboard server is running
@@ -49,10 +49,8 @@ const EnhancedDashboard = ({ onNotification }) => {
   };
 
   const handleRefresh = () => {
-    const iframe = document.getElementById('dashboard-frame');
-    if (iframe) {
-      iframe.src = iframe.src;
-    }
+    const newUrl = `http://localhost:8082/helm-dashboard-enhanced.html?v=${Date.now()}`;
+    setDashboardUrl(newUrl);
     checkDashboardStatus();
   };
 
