@@ -67,9 +67,9 @@
             margin-bottom: 20px;
             display: flex;
             flex-direction: column;
-            height: 70vh; /* Take up even more vertical space */
-            min-height: 600px;
-            max-height: 80vh; /* Prevent from taking too much space */
+            height: 85vh; /* Take up most of the page */
+            min-height: 700px;
+            max-height: 90vh; /* Prevent from taking too much space */
             overflow: hidden; /* Prevent section from scrolling */
         }
         
@@ -182,6 +182,27 @@
             border: 1px solid #3a3a5e;
             flex-shrink: 0; /* Prevent input container from growing */
             margin-top: 0; /* Remove any extra margin */
+        }
+        
+        .upload-button {
+            padding: 8px 12px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .upload-button:hover {
+            background: linear-gradient(135deg, #764ba2, #667eea);
+            transform: translateY(-1px);
+        }
+        
+        .upload-button:active {
+            transform: translateY(0);
         }
         
         .chat-input {
@@ -318,6 +339,65 @@
             background: rgba(239, 68, 68, 0.3);
         }
         
+        /* File Upload Modal */
+        .upload-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .upload-modal-content {
+            background: rgba(26, 26, 46, 0.95);
+            border: 1px solid #3a3a5e;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .upload-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .upload-modal-title {
+            color: #e0e0e0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .close-modal-btn {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .close-modal-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        
         .chat-input:focus {
             border-color: #667eea;
             background: rgba(58, 58, 94, 0.8);
@@ -420,6 +500,7 @@
             const [pendingAssets, setPendingAssets] = useState([]);
             const [uploadedFiles, setUploadedFiles] = useState([]);
             const [isDragging, setIsDragging] = useState(false);
+            const [showUploadModal, setShowUploadModal] = useState(false);
             
             const availableModels = ['tinyllama', 'phi', 'qwen:0.5b', 'deepseek-coder:1.3b'];
             
@@ -513,9 +594,17 @@
                     }
                     
                     // If it's an audio creation request, create the audio
-                    if (lowerInput.includes('sound') || lowerInput.includes('audio') || lowerInput.includes('music') ||
-                        lowerInput.includes('shuffle') || lowerInput.includes('chip sound') || lowerInput.includes('win') || lowerInput.includes('lose') ||
-                        lowerInput.includes('deal') || lowerInput.includes('bet') || lowerInput.includes('background') || lowerInput.includes('alert')) {
+                    if (lowerInput.includes('create sound') || lowerInput.includes('make a sound') || lowerInput.includes('generate sound') ||
+                        lowerInput.includes('create audio') || lowerInput.includes('make audio') || lowerInput.includes('generate audio') ||
+                        lowerInput.includes('create music') || lowerInput.includes('make music') || lowerInput.includes('generate music') ||
+                        lowerInput.includes('create shuffle sound') || lowerInput.includes('make shuffle sound') ||
+                        lowerInput.includes('create chip sound') || lowerInput.includes('make chip sound') ||
+                        lowerInput.includes('create win sound') || lowerInput.includes('make win sound') ||
+                        lowerInput.includes('create lose sound') || lowerInput.includes('make lose sound') ||
+                        lowerInput.includes('create deal sound') || lowerInput.includes('make deal sound') ||
+                        lowerInput.includes('create bet sound') || lowerInput.includes('make bet sound') ||
+                        lowerInput.includes('create background music') || lowerInput.includes('make background music') ||
+                        lowerInput.includes('create alert sound') || lowerInput.includes('make alert sound')) {
                         setTimeout(() => createAudio(input), 500);
                     }
                     
@@ -1426,64 +1515,6 @@
                     <div className="chat-section">
                         <h2>💬 Chat with Helm</h2>
                         
-                        {/* File Upload Section */}
-                        <div className="file-upload-section">
-                            <div 
-                                className={`file-upload-area ${isDragging ? 'dragging' : ''}`}
-                                onDragOver={handleDragOver}
-                                onDragLeave={handleDragLeave}
-                                onDrop={handleDrop}
-                                onClick={() => document.getElementById('file-input').click()}
-                            >
-                                <div className="file-upload-icon">📁</div>
-                                <div className="file-upload-text">
-                                    {isDragging ? 'Drop files here...' : 'Click to upload or drag & drop'}
-                                </div>
-                                <div className="file-upload-hint">
-                                    Images (JPG, PNG, GIF, WebP) • Audio (WAV, MP3, OGG)
-                                </div>
-                                <input
-                                    id="file-input"
-                                    type="file"
-                                    className="file-input"
-                                    multiple
-                                    accept="image/*,audio/*"
-                                    onChange={(e) => handleFileUpload(e.target.files)}
-                                />
-                            </div>
-                            
-                            {uploadedFiles.length > 0 && (
-                                <div className="uploaded-files">
-                                    {uploadedFiles.map(file => (
-                                        <div key={file.id} className="uploaded-file">
-                                            <div className="uploaded-file-info">
-                                                <div className="uploaded-file-icon">
-                                                    {file.type === 'image' ? '🖼️' : '🎵'}
-                                                </div>
-                                                {file.type === 'image' && (
-                                                    <img 
-                                                        src={file.url} 
-                                                        alt={file.name}
-                                                        className="uploaded-file-preview"
-                                                    />
-                                                )}
-                                                <div className="uploaded-file-details">
-                                                    <div className="uploaded-file-name">{file.name}</div>
-                                                    <div className="uploaded-file-size">{formatFileSize(file.size)}</div>
-                                                </div>
-                                            </div>
-                                            <button
-                                                className="remove-file-btn"
-                                                onClick={() => removeUploadedFile(file.id)}
-                                            >
-                                                Remove
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                        
                         <div className="chat-container">
                             {messages.map((message, index) => (
                                 <div key={index} className={`message-bubble ${message.isUser ? 'user' : 'assistant'}`}>
@@ -1600,13 +1631,21 @@
                         </div>
                         
                         <div className="chat-input-container">
+                            <button 
+                                className="upload-button" 
+                                onClick={() => setShowUploadModal(true)}
+                                title="Upload files for reference"
+                            >
+                                📁 Upload
+                            </button>
                             <input
                                 type="text"
                                 className="chat-input"
-                                placeholder="Ask anything! Try: 'Create a logo', 'Analyze this code', 'Poker advice'..."
+                                placeholder="Type your message..."
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
-                                onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                                onKeyPress={handleKeyPress}
+                                disabled={isLoading}
                             />
                             <select 
                                 className="model-select"
@@ -1618,9 +1657,9 @@
                                 ))}
                             </select>
                             <button 
-                                className="chat-send-btn"
+                                className="send-button" 
                                 onClick={sendMessage}
-                                disabled={!helmStatus.running || isLoading}
+                                disabled={isLoading || !input.trim()}
                             >
                                 {isLoading ? '⏳ Thinking...' : '🚀 Send'}
                             </button>
@@ -1630,6 +1669,84 @@
                     <div className="logo-display">
                         <canvas id="logo-canvas" width="200" height="200" style={{ display: 'none' }}></canvas>
                     </div>
+                    
+                    {/* Upload Modal */}
+                    {showUploadModal && (
+                        <div className="upload-modal">
+                            <div className="upload-modal-content">
+                                <div className="upload-modal-header">
+                                    <h3 className="upload-modal-title">📁 Upload Files for Reference</h3>
+                                    <button 
+                                        className="close-modal-btn"
+                                        onClick={() => setShowUploadModal(false)}
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                                
+                                <div 
+                                    className={`file-upload-area ${isDragging ? 'dragging' : ''}`}
+                                    onDragOver={handleDragOver}
+                                    onDragLeave={handleDragLeave}
+                                    onDrop={handleDrop}
+                                    onClick={() => document.getElementById('modal-file-input').click()}
+                                >
+                                    <div className="file-upload-icon">📁</div>
+                                    <div className="file-upload-text">
+                                        {isDragging ? 'Drop files here...' : 'Click to upload or drag & drop'}
+                                    </div>
+                                    <div className="file-upload-hint">
+                                        Images (JPG, PNG, GIF, WebP) • Audio (WAV, MP3, OGG)
+                                    </div>
+                                    <input
+                                        id="modal-file-input"
+                                        type="file"
+                                        className="file-input"
+                                        multiple
+                                        accept="image/*,audio/*"
+                                        onChange={(e) => {
+                                            handleFileUpload(e.target.files);
+                                            setShowUploadModal(false);
+                                        }}
+                                    />
+                                </div>
+                                
+                                {uploadedFiles.length > 0 && (
+                                    <div className="uploaded-files">
+                                        <div style={{ color: '#e0e0e0', marginBottom: '10px', fontSize: '14px' }}>
+                                            📋 Uploaded Files ({uploadedFiles.length}):
+                                        </div>
+                                        {uploadedFiles.map(file => (
+                                            <div key={file.id} className="uploaded-file">
+                                                <div className="uploaded-file-info">
+                                                    <div className="uploaded-file-icon">
+                                                        {file.type === 'image' ? '🖼️' : '🎵'}
+                                                    </div>
+                                                    {file.type === 'image' && (
+                                                        <img 
+                                                            src={file.url} 
+                                                            alt={file.name}
+                                                            className="uploaded-file-preview"
+                                                        />
+                                                    )}
+                                                    <div className="uploaded-file-details">
+                                                        <div className="uploaded-file-name">{file.name}</div>
+                                                        <div className="uploaded-file-size">{formatFileSize(file.size)}</div>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    className="remove-file-btn"
+                                                    onClick={() => removeUploadedFile(file.id)}
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         };
