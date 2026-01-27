@@ -837,7 +837,7 @@
                 for (let i = 0; i < data.length; i++) {
                     // Create alert notification sound
                     const t = i / sampleRate;
-                    data[i] = (Math.sin(880 * t) * 0.2) * Math.exp(-t * 0.3));
+                    data[i] = Math.sin(880 * t) * 0.2 * Math.exp(-t * 0.3);
                 }
                 
                 const blob = new Blob([buffer], { type: 'audio/wav' });
