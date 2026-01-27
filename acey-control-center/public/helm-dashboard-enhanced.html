@@ -18,6 +18,10 @@
             overflow: hidden; /* Prevent body from scrolling */
         }
         
+        html {
+            overflow: hidden; /* Also prevent html scrollbar */
+        }
+        
         .dashboard-container {
             max-width: 1200px;
             margin: 0 auto;
@@ -192,6 +196,128 @@
             transition: all 0.3s ease;
         }
         
+        /* File Upload Styles */
+        .file-upload-section {
+            background: rgba(26, 26, 46, 0.8);
+            border: 1px solid #3a3a5e;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .file-upload-area {
+            border: 2px dashed #3a3a5e;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: rgba(58, 58, 94, 0.2);
+        }
+        
+        .file-upload-area:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .file-upload-area.dragging {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.2);
+            transform: scale(1.02);
+        }
+        
+        .file-upload-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: #667eea;
+        }
+        
+        .file-upload-text {
+            color: #e0e0e0;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .file-upload-hint {
+            color: #9ca3af;
+            font-size: 12px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .uploaded-files {
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .uploaded-file {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(58, 58, 94, 0.4);
+            border: 1px solid #3a3a5e;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        .uploaded-file-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+        
+        .uploaded-file-icon {
+            font-size: 16px;
+        }
+        
+        .uploaded-file-details {
+            flex: 1;
+        }
+        
+        .uploaded-file-name {
+            color: #e0e0e0;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+        
+        .uploaded-file-size {
+            color: #9ca3af;
+            font-size: 10px;
+        }
+        
+        .uploaded-file-preview {
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            object-fit: cover;
+            border: 1px solid #3a3a5e;
+        }
+        
+        .remove-file-btn {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .remove-file-btn:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+        
         .chat-input:focus {
             border-color: #667eea;
             background: rgba(58, 58, 94, 0.8);
@@ -292,6 +418,8 @@
             const [isLoading, setIsLoading] = useState(false);
             const [helmStatus, setHelmStatus] = useState({ running: false });
             const [pendingAssets, setPendingAssets] = useState([]);
+            const [uploadedFiles, setUploadedFiles] = useState([]);
+            const [isDragging, setIsDragging] = useState(false);
             
             const availableModels = ['tinyllama', 'phi', 'qwen:0.5b', 'deepseek-coder:1.3b'];
             
@@ -367,17 +495,20 @@
                     
                     setMessages(prev => [...prev, aiMessage]);
                     
-                    // If it's a poker asset creation request, display the asset
+                    // If it's an asset creation request, display the asset
                     const lowerInput = input.toLowerCase();
-                    if (lowerInput.includes('card back') || lowerInput.includes('playing card') ||
-                        lowerInput.includes('poker chip') || lowerInput.includes('chip') ||
-                        lowerInput.includes('avatar') || lowerInput.includes('player icon') ||
-                        lowerInput.includes('table') || lowerInput.includes('felt') ||
-                        lowerInput.includes('suit') || lowerInput.includes('spade') || lowerInput.includes('heart') || lowerInput.includes('diamond') || lowerInput.includes('club') ||
-                        lowerInput.includes('logo') || lowerInput.includes('create logo') || 
-                        lowerInput.includes('design') || lowerInput.includes('image') ||
-                        lowerInput.includes('make a') && (lowerInput.includes('logo') || lowerInput.includes('icon') || lowerInput.includes('card')) ||
-                        lowerInput.includes('poker')) {
+                    if (lowerInput.includes('create logo') || lowerInput.includes('make a logo') || 
+                        lowerInput.includes('design a logo') || lowerInput.includes('generate logo') ||
+                        lowerInput.includes('create icon') || lowerInput.includes('make an icon') ||
+                        lowerInput.includes('create image') || lowerInput.includes('make an image') ||
+                        lowerInput.includes('create emote') || lowerInput.includes('make an emote') || 
+                        lowerInput.includes('create emoji') || lowerInput.includes('make an emoji') ||
+                        lowerInput.includes('emote') || lowerInput.includes('emoji') ||
+                        lowerInput.includes('card back') || lowerInput.includes('playing card') ||
+                        lowerInput.includes('poker chip') || lowerInput.includes('chip') && lowerInput.includes('poker') ||
+                        lowerInput.includes('avatar') && lowerInput.includes('poker') ||
+                        lowerInput.includes('table') && (lowerInput.includes('poker') || lowerInput.includes('felt')) ||
+                        lowerInput.includes('suit') && (lowerInput.includes('card') || lowerInput.includes('spade') || lowerInput.includes('heart') || lowerInput.includes('diamond') || lowerInput.includes('club'))) {
                         setTimeout(() => createLogo(input), 500);
                     }
                     
@@ -403,31 +534,33 @@
             const createLogo = (description) => {
                 const canvas = document.getElementById('logo-canvas');
                 if (!canvas) return;
-                
+
                 const ctx = canvas.getContext('2d');
                 const width = 200;
                 const height = 200;
-                
+
                 canvas.width = width;
                 canvas.height = height;
-                
+
                 const lowerDesc = description.toLowerCase();
-                
-                // Create poker-themed graphics based on description
-                if (lowerDesc.includes('card back') || lowerDesc.includes('playing card')) {
+
+                // Create graphics based on description - only create poker graphics if explicitly requested
+                if (lowerDesc.includes('emote') || lowerDesc.includes('emoji')) {
+                    createEmote(ctx, width, height, description);
+                } else if (lowerDesc.includes('card back') || lowerDesc.includes('playing card')) {
                     createCardBack(ctx, width, height);
-                } else if (lowerDesc.includes('chip') || lowerDesc.includes('poker chip')) {
+                } else if (lowerDesc.includes('poker chip') || (lowerDesc.includes('chip') && lowerDesc.includes('poker'))) {
                     createPokerChip(ctx, width, height);
-                } else if (lowerDesc.includes('avatar') || lowerDesc.includes('player icon')) {
+                } else if (lowerDesc.includes('avatar') && lowerDesc.includes('poker')) {
                     createPlayerAvatar(ctx, width, height);
-                } else if (lowerDesc.includes('table') || lowerDesc.includes('felt')) {
+                } else if (lowerDesc.includes('table') && (lowerDesc.includes('poker') || lowerDesc.includes('felt'))) {
                     createTableFelt(ctx, width, height);
-                } else if (lowerDesc.includes('suit') || lowerDesc.includes('spade') || lowerDesc.includes('heart') || lowerDesc.includes('diamond') || lowerDesc.includes('club')) {
+                } else if (lowerDesc.includes('suit') && (lowerDesc.includes('card') || lowerDesc.includes('spade') || lowerDesc.includes('heart') || lowerDesc.includes('diamond') || lowerDesc.includes('club'))) {
                     createCardSuit(ctx, width, height, lowerDesc);
-                } else if (lowerDesc.includes('logo') || lowerDesc.includes('icon')) {
+                } else if (lowerDesc.includes('poker') || lowerDesc.includes('casino')) {
                     createPokerLogo(ctx, width, height);
                 } else {
-                    createPokerLogo(ctx, width, height); // Default
+                    createGeneralLogo(ctx, width, height, description); // Create general logo
                 }
                 
                 // Convert canvas to image data URL
@@ -464,10 +597,14 @@
             
             const getAssetType = (desc) => {
                 if (desc.includes('card back')) return 'Card Back';
-                if (desc.includes('chip')) return 'Chip';
-                if (desc.includes('avatar')) return 'Avatar';
-                if (desc.includes('table') || desc.includes('felt')) return 'Table';
-                if (desc.includes('suit')) return 'Card Suit';
+                if (desc.includes('poker chip') || desc.includes('chip') && desc.includes('poker')) return 'Poker Chip';
+                if (desc.includes('avatar') && desc.includes('poker')) return 'Poker Avatar';
+                if (desc.includes('table') && (desc.includes('poker') || desc.includes('felt'))) return 'Poker Table';
+                if (desc.includes('suit') && (desc.includes('card') || desc.includes('spade') || desc.includes('heart') || desc.includes('diamond') || desc.includes('club'))) return 'Card Suit';
+                if (desc.includes('emote') || desc.includes('emoji')) return 'Emote';
+                if (desc.includes('logo')) return 'Logo';
+                if (desc.includes('icon')) return 'Icon';
+                if (desc.includes('image')) return 'Image';
                 return 'Asset';
             };
             
@@ -620,6 +757,249 @@
                 ctx.font = 'bold 60px Arial';
                 ctx.textAlign = 'center';
                 ctx.fillText(suit, width/2, height/2 + 20);
+            };
+            
+            const createEmote = (ctx, width, height, description) => {
+                const lowerDesc = description.toLowerCase();
+                
+                // Background
+                const gradient = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, width/2);
+                gradient.addColorStop(0, '#ffd700');
+                gradient.addColorStop(1, '#ffb347');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, width, height);
+                
+                // Face circle
+                ctx.fillStyle = '#ffeb3b';
+                ctx.beginPath();
+                ctx.arc(width/2, height/2, 80, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Face border
+                ctx.strokeStyle = '#ff9800';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                // Eyes
+                ctx.fillStyle = '#000000';
+                
+                if (lowerDesc.includes('happy') || lowerDesc.includes('smile') || lowerDesc.includes('joy')) {
+                    // Happy eyes
+                    ctx.beginPath();
+                    ctx.arc(width/2 - 25, height/2 - 20, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(width/2 + 25, height/2 - 20, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Smile
+                    ctx.beginPath();
+                    ctx.arc(width/2, height/2 + 10, 40, 0, Math.PI);
+                    ctx.stroke();
+                    
+                } else if (lowerDesc.includes('wink') || lowerDesc.includes('winking')) {
+                    // Winking face
+                    ctx.beginPath();
+                    ctx.arc(width/2 - 25, height/2 - 20, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Winking eye
+                    ctx.strokeStyle = '#000000';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(width/2 + 25, height/2 - 20, 12, 0, Math.PI);
+                    ctx.stroke();
+                    
+                    // Smile
+                    ctx.beginPath();
+                    ctx.arc(width/2, height/2 + 10, 40, 0, Math.PI);
+                    ctx.stroke();
+                    
+                } else if (lowerDesc.includes('sad') || lowerDesc.includes('cry') || lowerDesc.includes('tear')) {
+                    // Sad eyes
+                    ctx.beginPath();
+                    ctx.arc(width/2 - 25, height/2 - 20, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(width/2 + 25, height/2 - 20, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Sad mouth
+                    ctx.beginPath();
+                    ctx.arc(width/2, height/2 + 40, 30, Math.PI, 0);
+                    ctx.stroke();
+                    
+                    // Tear
+                    ctx.fillStyle = '#4fc3f7';
+                    ctx.beginPath();
+                    ctx.arc(width/2 + 30, height/2 - 10, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                } else if (lowerDesc.includes('angry') || lowerDesc.includes('mad') || lowerDesc.includes('rage')) {
+                    // Angry eyes
+                    ctx.beginPath();
+                    ctx.arc(width/2 - 25, height/2 - 20, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(width/2 + 25, height/2 - 20, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Angry eyebrows
+                    ctx.strokeStyle = '#000000';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.moveTo(width/2 - 35, height/2 - 35);
+                    ctx.lineTo(width/2 - 15, height/2 - 25);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(width/2 + 35, height/2 - 35);
+                    ctx.lineTo(width/2 + 15, height/2 - 25);
+                    ctx.stroke();
+                    
+                    // Angry mouth
+                    ctx.beginPath();
+                    ctx.moveTo(width/2 - 20, height/2 + 30);
+                    ctx.lineTo(width/2 + 20, height/2 + 30);
+                    ctx.stroke();
+                    
+                } else if (lowerDesc.includes('surprised') || lowerDesc.includes('shock') || lowerDesc.includes('wow')) {
+                    // Surprised eyes
+                    ctx.beginPath();
+                    ctx.arc(width/2 - 25, height/2 - 20, 12, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(width/2 + 25, height/2 - 20, 12, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Surprised mouth
+                    ctx.fillStyle = '#000000';
+                    ctx.beginPath();
+                    ctx.arc(width/2, height/2 + 25, 20, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                } else if (lowerDesc.includes('cool') || lowerDesc.includes('sunglasses')) {
+                    // Sunglasses
+                    ctx.fillStyle = '#000000';
+                    ctx.fillRect(width/2 - 40, height/2 - 30, 30, 20);
+                    ctx.fillRect(width/2 + 10, height/2 - 30, 30, 20);
+                    ctx.fillRect(width/2 - 10, height/2 - 25, 20, 5);
+                    
+                    // Cool smile
+                    ctx.beginPath();
+                    ctx.moveTo(width/2 - 20, height/2 + 20);
+                    ctx.quadraticCurveTo(width/2, height/2 + 30, width/2 + 20, height/2 + 20);
+                    ctx.stroke();
+                    
+                } else if (lowerDesc.includes('love') || lowerDesc.includes('heart eyes')) {
+                    // Heart eyes
+                    ctx.fillStyle = '#e91e63';
+                    ctx.font = '20px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('❤️', width/2 - 25, height/2 - 15);
+                    ctx.fillText('❤️', width/2 + 25, height/2 - 15);
+                    
+                    // Love smile
+                    ctx.strokeStyle = '#000000';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(width/2, height/2 + 10, 40, 0, Math.PI);
+                    ctx.stroke();
+                    
+                } else if (lowerDesc.includes('thinking') || lowerDesc.includes('hmm') || lowerDesc.includes('ponder')) {
+                    // Thinking eyes
+                    ctx.beginPath();
+                    ctx.arc(width/2 - 25, height/2 - 20, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Looking to the side
+                    ctx.beginPath();
+                    ctx.arc(width/2 + 25, height/2 - 20, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Thinking mouth
+                    ctx.beginPath();
+                    ctx.moveTo(width/2 - 15, height/2 + 25);
+                    ctx.lineTo(width/2 + 5, height/2 + 25);
+                    ctx.stroke();
+                    
+                    // Thought bubble
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(width/2 + 60, height/2 - 40, 15, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(width/2 + 70, height/2 - 50, 10, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(width/2 + 75, height/2 - 55, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                } else {
+                    // Default happy face
+                    ctx.beginPath();
+                    ctx.arc(width/2 - 25, height/2 - 20, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(width/2 + 25, height/2 - 20, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.beginPath();
+                    ctx.arc(width/2, height/2 + 10, 40, 0, Math.PI);
+                    ctx.stroke();
+                }
+            };
+            
+            const createGeneralLogo = (ctx, width, height, description) => {
+                // General logo design based on description
+                const lowerDesc = description.toLowerCase();
+                
+                // Background gradient
+                const gradient = ctx.createLinearGradient(0, 0, width, height);
+                gradient.addColorStop(0, '#667eea');
+                gradient.addColorStop(1, '#764ba2');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, width, height);
+                
+                // White background circle
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.beginPath();
+                ctx.arc(width/2, height/2, 70, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Icon based on description
+                ctx.fillStyle = '#667eea';
+                ctx.font = 'bold 48px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                if (lowerDesc.includes('helm') || lowerDesc.includes('shield')) {
+                    ctx.fillText('🛡️', width/2, height/2);
+                } else if (lowerDesc.includes('tech') || lowerDesc.includes('code')) {
+                    ctx.fillText('💻', width/2, height/2);
+                } else if (lowerDesc.includes('star') || lowerDesc.includes('rating')) {
+                    ctx.fillText('⭐', width/2, height/2);
+                } else if (lowerDesc.includes('heart') || lowerDesc.includes('love')) {
+                    ctx.fillText('❤️', width/2, height/2);
+                } else if (lowerDesc.includes('fire') || lowerDesc.includes('hot')) {
+                    ctx.fillText('🔥', width/2, height/2);
+                } else if (lowerDesc.includes('lightning') || lowerDesc.includes('bolt')) {
+                    ctx.fillText('⚡', width/2, height/2);
+                } else if (lowerDesc.includes('rocket') || lowerDesc.includes('launch')) {
+                    ctx.fillText('🚀', width/2, height/2);
+                } else if (lowerDesc.includes('crown') || lowerDesc.includes('king')) {
+                    ctx.fillText('👑', width/2, height/2);
+                } else if (lowerDesc.includes('diamond') || lowerDesc.includes('gem')) {
+                    ctx.fillText('💎', width/2, height/2);
+                } else {
+                    // Default Helm logo
+                    ctx.fillText('🛡️', width/2, height/2);
+                }
+                
+                // Text label
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('HELM', width/2, height - 20);
             };
             
             const createPokerLogo = (ctx, width, height) => {
@@ -960,6 +1340,67 @@
                 }
             };
             
+            // File upload functions
+            const handleFileUpload = (files) => {
+                const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'audio/wav', 'audio/mp3', 'audio/mpeg', 'audio/ogg'];
+                const validFiles = Array.from(files).filter(file => validTypes.includes(file.type));
+                
+                if (validFiles.length === 0) {
+                    alert('Please upload only images (JPG, PNG, GIF, WebP) or audio files (WAV, MP3, OGG)');
+                    return;
+                }
+                
+                const newFiles = validFiles.map(file => ({
+                    id: Date.now() + Math.random(),
+                    file: file,
+                    name: file.name,
+                    type: file.type.startsWith('image/') ? 'image' : 'audio',
+                    url: URL.createObjectURL(file),
+                    size: file.size,
+                    timestamp: new Date().toISOString()
+                }));
+                
+                setUploadedFiles(prev => [...prev, ...newFiles]);
+                
+                // Add upload confirmation message
+                const uploadMessage = {
+                    content: `📁 Files uploaded successfully:\n${newFiles.map(f => `• ${f.name} (${f.type})`).join('\n')}\n\nYou can now reference these files when creating new assets!`,
+                    isUser: false,
+                    timestamp: new Date().toISOString(),
+                    isUpload: true
+                };
+                
+                setMessages(prev => [...prev, uploadMessage]);
+            };
+            
+            const handleDragOver = (e) => {
+                e.preventDefault();
+                setIsDragging(true);
+            };
+            
+            const handleDragLeave = (e) => {
+                e.preventDefault();
+                setIsDragging(false);
+            };
+            
+            const handleDrop = (e) => {
+                e.preventDefault();
+                setIsDragging(false);
+                handleFileUpload(e.dataTransfer.files);
+            };
+            
+            const removeUploadedFile = (fileId) => {
+                setUploadedFiles(prev => prev.filter(f => f.id !== fileId));
+            };
+            
+            const formatFileSize = (bytes) => {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            };
+            
             return (
                 <div className="dashboard-container">
                     <div className="header">
@@ -984,6 +1425,64 @@
                     
                     <div className="chat-section">
                         <h2>💬 Chat with Helm</h2>
+                        
+                        {/* File Upload Section */}
+                        <div className="file-upload-section">
+                            <div 
+                                className={`file-upload-area ${isDragging ? 'dragging' : ''}`}
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
+                                onClick={() => document.getElementById('file-input').click()}
+                            >
+                                <div className="file-upload-icon">📁</div>
+                                <div className="file-upload-text">
+                                    {isDragging ? 'Drop files here...' : 'Click to upload or drag & drop'}
+                                </div>
+                                <div className="file-upload-hint">
+                                    Images (JPG, PNG, GIF, WebP) • Audio (WAV, MP3, OGG)
+                                </div>
+                                <input
+                                    id="file-input"
+                                    type="file"
+                                    className="file-input"
+                                    multiple
+                                    accept="image/*,audio/*"
+                                    onChange={(e) => handleFileUpload(e.target.files)}
+                                />
+                            </div>
+                            
+                            {uploadedFiles.length > 0 && (
+                                <div className="uploaded-files">
+                                    {uploadedFiles.map(file => (
+                                        <div key={file.id} className="uploaded-file">
+                                            <div className="uploaded-file-info">
+                                                <div className="uploaded-file-icon">
+                                                    {file.type === 'image' ? '🖼️' : '🎵'}
+                                                </div>
+                                                {file.type === 'image' && (
+                                                    <img 
+                                                        src={file.url} 
+                                                        alt={file.name}
+                                                        className="uploaded-file-preview"
+                                                    />
+                                                )}
+                                                <div className="uploaded-file-details">
+                                                    <div className="uploaded-file-name">{file.name}</div>
+                                                    <div className="uploaded-file-size">{formatFileSize(file.size)}</div>
+                                                </div>
+                                            </div>
+                                            <button
+                                                className="remove-file-btn"
+                                                onClick={() => removeUploadedFile(file.id)}
+                                            >
+                                                Remove
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                         
                         <div className="chat-container">
                             {messages.map((message, index) => (
@@ -1057,6 +1556,16 @@
                                             <div style={{
                                                 background: 'rgba(16, 185, 129, 0.1)',
                                                 border: '1px solid #10b981',
+                                                borderRadius: '8px',
+                                                padding: '12px',
+                                                whiteSpace: 'pre-line'
+                                            }}>
+                                                {message.content}
+                                            </div>
+                                        ) : message.isUpload ? (
+                                            <div style={{
+                                                background: 'rgba(59, 130, 246, 0.1)',
+                                                border: '1px solid #3b82f6',
                                                 borderRadius: '8px',
                                                 padding: '12px',
                                                 whiteSpace: 'pre-line'
