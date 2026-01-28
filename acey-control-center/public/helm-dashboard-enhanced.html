@@ -542,7 +542,7 @@
             };
             
             const sendMessage = async () => {
-                if (!input.trim() || isLoading) return;
+                if (!input.trim()) return;
                 
                 const userMessage = {
                     content: input,
@@ -551,20 +551,200 @@
                 };
                 
                 setMessages(prev => [...prev, userMessage]);
-                setInput('');
                 setIsLoading(true);
                 
+                // Advanced AI-powered detection system
+                const lowerInput = input.toLowerCase();
+                const words = lowerInput.split(/\s+/);
+                
+                // Sophisticated intent detection
+                const detectIntent = (text) => {
+                    const creationVerbs = ['create', 'make', 'design', 'generate', 'draw', 'craft', 'build', 'produce', 'develop', 'render', 'illustrate', 'craft', 'form', 'construct', 'produce', 'make me', 'give me', 'i need', 'i want', 'can you', 'could you'];
+                    const visualNouns = ['logo', 'icon', 'image', 'picture', 'graphic', 'art', 'design', 'visual', 'emblem', 'symbol', 'badge', 'insignia', 'mark', 'brand', 'avatar', 'portrait', 'illustration', 'emote', 'emoji', 'face', 'smiley', 'sticker'];
+                    const audioNouns = ['sound', 'audio', 'music', 'track', 'beat', 'melody', 'tune', 'effect', 'sfx', 'noise', 'clip', 'recording'];
+                    const pokerTerms = ['poker', 'card', 'chip', 'table', 'felt', 'suit', 'spade', 'heart', 'diamond', 'club', 'deck', 'dealer', 'player', 'casino'];
+                    
+                    // Check for creation intent
+                    const hasCreationVerb = creationVerbs.some(verb => text.includes(verb));
+                    
+                    // Check for visual asset intent
+                    const hasVisualNoun = visualNouns.some(noun => text.includes(noun));
+                    
+                    // Check for audio asset intent
+                    const hasAudioNoun = audioNouns.some(noun => text.includes(noun));
+                    
+                    // Check for poker-specific context
+                    const hasPokerContext = pokerTerms.some(term => text.includes(term));
+                    
+                    // Advanced pattern matching
+                    const patterns = {
+                        // Logo patterns
+                        logo: [
+                            /\b(create|make|design|generate|draw).+logo\b/,
+                            /\blogo.+for\b/,
+                            /\bneed.+logo\b/,
+                            /\blogo.+design\b/,
+                            /\bbrand.+logo\b/,
+                            /\bcompany.+logo\b/,
+                            /\blogo.+represent\b/,
+                            /\blogo.+symboliz\b/,
+                            /\bemblem.+for\b/,
+                            /\bsymbol.+for\b/
+                        ],
+                        // Emote patterns
+                        emote: [
+                            /\b(create|make|design).+emote\b/,
+                            /\b(create|make|design).+emoji\b/,
+                            /\b(create|make|design).+face\b/,
+                            /\b(create|make|design).+smiley\b/,
+                            /\bemote.+express\b/,
+                            /\bemoji.+show\b/,
+                            /\bface.+show\b/
+                        ],
+                        // Audio patterns
+                        audio: [
+                            /\b(create|make|design|generate).+sound\b/,
+                            /\b(create|make|design|generate).+audio\b/,
+                            /\b(create|make|design|generate).+music\b/,
+                            /\b(create|make|design|generate).+effect\b/,
+                            /\bsound.+effect\b/,
+                            /\baudio.+clip\b/,
+                            /\bbackground.+music\b/,
+                            /\bbgm\b/,
+                            /\bsfx\b/
+                        ],
+                        // Poker asset patterns
+                        poker: [
+                            /\b(create|make|design).+card.+back\b/,
+                            /\b(create|make|design).+playing.+card\b/,
+                            /\b(create|make|design).+poker.+chip\b/,
+                            /\b(create|make|design).+poker.+table\b/,
+                            /\b(create|make|design).+card.+suit\b/,
+                            /\b(create|make|design).+poker.+avatar\b/,
+                            /\bcard.+back\b/,
+                            /\bpoker.+chip\b/,
+                            /\btable.+felt\b/
+                        ]
+                    };
+                    
+                    // Test patterns
+                    const matchedPatterns = {};
+                    Object.keys(patterns).forEach(type => {
+                        matchedPatterns[type] = patterns[type].some(pattern => pattern.test(text));
+                    });
+                    
+                    // Determine intent with confidence scoring
+                    const intent = {
+                        logo: {
+                            score: 0,
+                            detected: false
+                        },
+                        emote: {
+                            score: 0,
+                            detected: false
+                        },
+                        audio: {
+                            score: 0,
+                            detected: false
+                        },
+                        poker: {
+                            score: 0,
+                            detected: false
+                        }
+                    };
+                    
+                    // Score calculation
+                    if (hasCreationVerb) {
+                        if (hasVisualNoun) {
+                            if (text.includes('logo') || matchedPatterns.logo) {
+                                intent.logo.score += 10;
+                                intent.logo.detected = true;
+                            }
+                            if (text.includes('emote') || text.includes('emoji') || text.includes('face') || matchedPatterns.emote) {
+                                intent.emote.score += 10;
+                                intent.emote.detected = true;
+                            }
+                        }
+                        if (hasAudioNoun || matchedPatterns.audio) {
+                            intent.audio.score += 10;
+                            intent.audio.detected = true;
+                        }
+                        if (hasPokerContext || matchedPatterns.poker) {
+                            intent.poker.score += 8;
+                            intent.poker.detected = true;
+                        }
+                    }
+                    
+                    // Contextual scoring
+                    if (text.includes('helm') && (hasVisualNoun || hasCreationVerb)) {
+                        intent.logo.score += 5;
+                    }
+                    
+                    if (text.includes('represent') && hasVisualNoun) {
+                        intent.logo.score += 3;
+                    }
+                    
+                    if (text.includes('ai') && hasVisualNoun) {
+                        intent.logo.score += 3;
+                    }
+                    
+                    // Determine highest scoring intent
+                    let highestIntent = null;
+                    let highestScore = 0;
+                    
+                    Object.keys(intent).forEach(type => {
+                        if (intent[type].score > highestScore) {
+                            highestScore = intent[type].score;
+                            highestIntent = type;
+                        }
+                    });
+                    
+                    return {
+                        intent: highestIntent,
+                        confidence: highestScore,
+                        details: intent,
+                        isAssetRequest: highestScore > 5
+                    };
+                };
+                
+                const detection = detectIntent(lowerInput);
+                
+                // If it's an asset creation request, handle it locally and skip backend
+                if (detection.isAssetRequest) {
+                    console.log('🎯 AI Detection:', {
+                        intent: detection.intent,
+                        confidence: detection.confidence,
+                        input: input
+                    });
+                    
+                    // Handle different asset types based on detected intent
+                    if (detection.intent === 'logo' || detection.intent === 'emote' || detection.intent === 'poker') {
+                        setTimeout(() => createLogo(input), 500);
+                    } else if (detection.intent === 'audio') {
+                        setTimeout(() => createAudio(input), 500);
+                    }
+                    
+                    setIsLoading(false);
+                    setInput('');
+                    return;
+                }
+                
+                // For non-asset requests, try to call the backend
                 try {
-                    const response = await fetch('http://localhost:3001/helm/skill/simple_chat', {
+                    const response = await fetch('http://localhost:3000/api/chat', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
-                            params: { prompt: input },
-                            sessionId: 'enhanced-chat'
+                            message: input,
+                            model: selectedModel
                         })
                     });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
                     
                     const result = await response.json();
                     
@@ -576,7 +756,8 @@
                     
                     setMessages(prev => [...prev, aiMessage]);
                     
-                    // If it's an asset creation request, display the asset
+                } catch (error) {
+                    // Check if it's an asset creation request first, before showing error
                     const lowerInput = input.toLowerCase();
                     if (lowerInput.includes('create logo') || lowerInput.includes('make a logo') || 
                         lowerInput.includes('design a logo') || lowerInput.includes('generate logo') ||
@@ -591,10 +772,7 @@
                         lowerInput.includes('table') && (lowerInput.includes('poker') || lowerInput.includes('felt')) ||
                         lowerInput.includes('suit') && (lowerInput.includes('card') || lowerInput.includes('spade') || lowerInput.includes('heart') || lowerInput.includes('diamond') || lowerInput.includes('club'))) {
                         setTimeout(() => createLogo(input), 500);
-                    }
-                    
-                    // If it's an audio creation request, create the audio
-                    if (lowerInput.includes('create sound') || lowerInput.includes('make a sound') || lowerInput.includes('generate sound') ||
+                    } else if (lowerInput.includes('create sound') || lowerInput.includes('make a sound') || lowerInput.includes('generate sound') ||
                         lowerInput.includes('create audio') || lowerInput.includes('make audio') || lowerInput.includes('generate audio') ||
                         lowerInput.includes('create music') || lowerInput.includes('make music') || lowerInput.includes('generate music') ||
                         lowerInput.includes('create shuffle sound') || lowerInput.includes('make shuffle sound') ||
@@ -606,15 +784,14 @@
                         lowerInput.includes('create background music') || lowerInput.includes('make background music') ||
                         lowerInput.includes('create alert sound') || lowerInput.includes('make alert sound')) {
                         setTimeout(() => createAudio(input), 500);
+                    } else {
+                        const errorMessage = {
+                            content: 'Sorry, I encountered an error. Please make sure Helm server is running.',
+                            isUser: false,
+                            timestamp: new Date().toISOString()
+                        };
+                        setMessages(prev => [...prev, errorMessage]);
                     }
-                    
-                } catch (error) {
-                    const errorMessage = {
-                        content: 'Sorry, I encountered an error. Please make sure Helm server is running.',
-                        isUser: false,
-                        timestamp: new Date().toISOString()
-                    };
-                    setMessages(prev => [...prev, errorMessage]);
                 }
                 
                 setIsLoading(false);
