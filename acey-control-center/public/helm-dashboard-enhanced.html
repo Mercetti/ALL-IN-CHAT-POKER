@@ -1490,6 +1490,13 @@
                 return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
             };
             
+            const handleKeyPress = (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            };
+            
             return (
                 <div className="dashboard-container">
                     <div className="header">
@@ -1751,7 +1758,9 @@
             );
         };
 
-        ReactDOM.render(<EnhancedHelmChat />, document.getElementById('root'));
+        // Render the app using React 18 createRoot API
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<EnhancedHelmChat />);
     </script>
 </body>
 </html>
