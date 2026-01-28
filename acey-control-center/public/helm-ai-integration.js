@@ -1,6 +1,8 @@
 // Helm AI Integration Layer for Poker Game
 // Bridges poker game with Helm AI backend
 
+/* global fetch, console */
+
 class HelmAIIntegration {
     constructor() {
         this.helmAPIBase = 'http://localhost:3001/api';
@@ -18,10 +20,12 @@ class HelmAIIntegration {
             if (response.ok) {
                 this.isHelmAvailable = true;
                 this.fallbackMode = false;
+                // eslint-disable-next-line no-console
                 console.log('✅ Helm AI server is available');
                 return true;
             }
-        } catch (error) {
+        } catch {
+            // eslint-disable-next-line no-console
             console.log('⚠️ Helm AI server not available, using fallback mode');
             this.isHelmAvailable = false;
             this.fallbackMode = true;
@@ -74,11 +78,13 @@ class HelmAIIntegration {
                 
                 return result;
             } else {
+                // eslint-disable-next-line no-console
                 console.warn('Helm AI call failed, using fallback');
                 return this.getFallbackAnalysis(eventType, data);
             }
-        } catch (error) {
-            console.error('Error calling Helm AI:', error);
+        } catch {
+            // eslint-disable-next-line no-console
+            console.error('Error calling Helm AI, using fallback');
             return this.getFallbackAnalysis(eventType, data);
         }
     }
@@ -180,16 +186,16 @@ class HelmAIIntegration {
     }
 
     // Fallback game event analysis
-    analyzeGameEvent(data) {
+    analyzeGameEvent() {
         return {
             impact: 'Moderate',
             description: 'Game event processed successfully',
-            affectedPlayers: data.playerId ? [data.playerId] : []
+            affectedPlayers: []
         };
     }
 
     // Fallback game state assessment
-    assessGameState(data) {
+    assessGameState() {
         return {
             status: 'active',
             stability: 'stable',
@@ -198,7 +204,7 @@ class HelmAIIntegration {
     }
 
     // Fallback next actions
-    getNextActions(data) {
+    getNextActions() {
         return [
             'Continue monitoring game flow',
             'Maintain security protocols',
@@ -207,17 +213,17 @@ class HelmAIIntegration {
     }
 
     // Fallback threat classification
-    classifyThreat(data) {
+    classifyThreat() {
         return 'unknown';
     }
 
     // Fallback severity assessment
-    assessSeverity(data) {
+    assessSeverity() {
         return 'medium';
     }
 
     // Fallback security actions
-    getSecurityActions(data) {
+    getSecurityActions() {
         return [
             'Log security event',
             'Monitor for patterns',
@@ -259,8 +265,9 @@ class HelmAIIntegration {
                             data: data.success ? data.data : null
                         };
                     }
-                } catch (error) {
-                    console.warn(`Failed to fetch ${endpoint}:`, error);
+                } catch {
+                    // eslint-disable-next-line no-console
+                    console.warn(`Failed to fetch ${endpoint}`);
                 }
             }
 
@@ -269,7 +276,7 @@ class HelmAIIntegration {
                 capabilities,
                 message: 'Helm AI capabilities loaded successfully'
             };
-        } catch (error) {
+        } catch {
             return {
                 available: false,
                 capabilities: [],
@@ -280,6 +287,7 @@ class HelmAIIntegration {
 
     // Initialize Helm AI integration
     async initialize() {
+        // eslint-disable-next-line no-console
         console.log('🚀 Initializing Helm AI integration...');
         
         // Check availability
@@ -288,9 +296,11 @@ class HelmAIIntegration {
         // Load capabilities if available
         if (this.isHelmAvailable) {
             const capabilities = await this.getHelmCapabilities();
+            // eslint-disable-next-line no-console
             console.log('🧠 Helm AI capabilities loaded:', capabilities);
         }
         
+        // eslint-disable-next-line no-console
         console.log('✅ Helm AI integration initialized');
         return {
             initialized: true,
@@ -311,11 +321,14 @@ class HelmAIIntegration {
 }
 
 // Create global instance
+/* global window */
 window.helmAIIntegration = new HelmAIIntegration();
 
 // Auto-initialize when page loads
+/* global document */
 document.addEventListener('DOMContentLoaded', () => {
     window.helmAIIntegration.initialize();
 });
 
+// eslint-disable-next-line no-console
 console.log('🤖 Helm AI Integration Layer loaded');

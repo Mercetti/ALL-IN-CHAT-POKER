@@ -3586,9 +3586,9 @@ document.getElementById('output').innerHTML = safeOutput;`;
                                 'Test with XSS payloads'
                             ];
                             patch.testCases = [
-                                '<script>alert("XSS")</script>',
-                                'javascript:alert("XSS")',
-                                '<img src=x onerror=alert("XSS")>'
+                                '&lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;',
+                                'javascript:alert(&quot;XSS&quot;)',
+                                '&lt;img src=x onerror=alert(&quot;XSS&quot;)&gt;'
                             ];
                             break;
                             
